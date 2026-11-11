@@ -1,0 +1,25 @@
+\paragraph{Code.} The repository contains the Python package \texttt{vrlab} (problems, high-precision optimum,
+algorithms, exact instrumentation, bounds, gap attribution), a test suite (\texttt{tests/test\_vrlab.py}), one script
+per hypothesis in \texttt{experiments/}, the theory notes in \texttt{theory/} and the bibliography in
+\texttt{bibliography/}. Dependencies: numpy, scipy, matplotlib (see \texttt{requirements.txt}); Python~3.14 was used.
+
+\paragraph{Tests.} The test suite checks, among other things, that the exact conditional expectations used in the
+tightness analysis coincide with the average over the $n$ possible indices of the realized next state (for SAGA in
+the Euclidean and in a quadratic metric, and for the Lyapunov function of L-Katyusha), that every tightness ratio
+lies in $(0,1]$, that the attribution chain is monotone and ends at the certified rate, that Proposition~\ref{prop:59}
+holds in expectation along runs, and that each algorithm converges on a small problem.
+
+\paragraph{Experiments.} \texttt{python experiments/run\_all.py} regenerates every result and figure
+(\texttt{exp\_A4b\_instances.py} and \texttt{exp\_validation\_book.py} are run separately); results are cached in
+\texttt{results/*.pkl}, summarised in \texttt{results/*\_summary.json} and collected in \texttt{results/digest.md}
+by \texttt{experiments/make\_digest.py}; every number quoted in this report comes from that digest. Seeds: the data
+set of a configuration is generated with seed~0, the algorithms are run with seeds $0, \dots, S-1$ (the number of
+seeds $S$ is stated with each figure). Every "expectation" of a one-step quantity is computed exactly by enumerating
+the sampled index; curves labelled "mean over seeds" are empirical averages over the $S$ runs. Trajectories are
+analysed only while the Lyapunov value is above the rounding floor ($10^{-18}$ for SAGA, whose floor is set by the
+precision of $\etastar$; $10^{-10}$ for the Lyapunov function of L-Katyusha, whose $W$-term amplifies the rounding
+error of $F(w) - F_\ast$ by a factor $\theta_2(1+\theta_1)/(p\theta_1) \approx 1500$). Running times on one core:
+about five minutes for the logistic experiments, about one hour for each $\kappa$ sweep.
+
+\paragraph{Figures.} Colours follow a fixed, colour-blind-safe categorical palette: a given algorithm or a given
+inequality keeps its colour across all figures; sequential magnitudes use a single-hue ramp.

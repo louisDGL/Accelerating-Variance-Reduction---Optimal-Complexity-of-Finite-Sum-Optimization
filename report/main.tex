@@ -1,0 +1,55 @@
+\documentclass[11pt]{article}
+\input{../theory/preamble}
+\usepackage{subcaption}
+\usepackage{float}
+\graphicspath{{../figures/}}
+\hypersetup{colorlinks=true, linkcolor=blue!60!black, citecolor=blue!60!black, urlcolor=blue!60!black}
+
+\title{Accelerating Variance Reduction:\\ Optimal Complexity of Finite-Sum Optimization\\[4pt]
+\large Project report, Statistical Learning Theory}
+\author{Beline Yuan \and Paul Ruiz Alliata \and Louis Darrigol}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\input{sections/abstract}
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}\label{sec:intro}
+\input{sections/introduction}
+
+\section{Setting, notation and the result under study}\label{sec:setting}
+\input{sections/setting}
+
+\section{Related work}\label{sec:related}
+\input{sections/related}
+
+\section{Theory}\label{sec:theory}
+\input{sections/theory_overview}
+\input{../theory/B3_prop59_tightness}
+\input{../theory/B2_effective_curvature}
+\input{../theory/B1_preconditioned_saga}
+\input{../theory/A1_lower_bound}
+\input{../theory/A3_lkatyusha_lyapunov}
+
+\section{Experiments}\label{sec:experiments}
+\input{sections/experiments}
+
+\section{Discussion}\label{sec:discussion}
+\input{sections/discussion}
+
+\section*{Use of generative AI}
+\input{sections/genai}
+
+\bibliographystyle{plainnat}
+\bibliography{../bibliography/references}
+
+\appendix
+\section{Reproducibility}\label{app:repro}
+\input{sections/reproducibility}
+
+\end{document}

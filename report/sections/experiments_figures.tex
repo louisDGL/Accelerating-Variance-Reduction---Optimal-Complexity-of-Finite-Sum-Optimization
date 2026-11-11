@@ -1,0 +1,128 @@
+% Figure environments shared by the experiments section (captions describe the protocol; the prose in
+% experiments.tex discusses the results).
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{fig0_validation_book}
+  \caption{\textbf{Validation.} The setting of Figure~5.4 of \cite{bach2024learning}: $d = 40$ Gaussian features,
+  $y = \mathrm{sign}(\text{linear} + \text{noise})$, $\mu = R^2/n$ with $R^2 = \max_i\norm{x_i}^2$, GD with step
+  $1/R^2$, SGD with step $1/(R^2 + \mu t)$ and SAGA with step $1/(4R^2)$; training objective versus effective passes
+  for $n = 1{,}000$ and $n = 10{,}000$ (one run each). SAGA reaches machine precision in about 25--30 passes.}
+  \label{fig:validation}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{fig1_convergence_vs_bound}
+  \caption{\textbf{Figure 1 of the proposal.} SAGA with the textbook step $\gamma = 1/(4R^2)$ on logistic
+  regression ($n = 1{,}000$, $d = 50$, $\alpha = 1$, three values of $\kappa$). Blue: $\E\norm{\theta_t - \etastar}^2$
+  estimated over 5 seeds (band: min--max); red: the bound of Proposition~\ref{prop:59}; orange: the same bound before
+  the initialization step I6, i.e. $\rho^t (D_0 + \Delta S_0)$; green and yellow: the a-posteriori bounds obtained by
+  replacing $\mu$ by $\muEff(\theta_{t-1})$ (and $R^2$ by $\LEff(\theta_{t-1})$) in the one-step inequality along
+  the realized trajectory of seed 0; violet: the product of the exact conditional contractions
+  $\prod_s \E[V_s \mid \mathcal F_{s-1}]/V_{s-1}$ along the same trajectory; grey: the realized Lyapunov value $V_t$.}
+  \label{fig:fig1}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{fig2_tightness_ratios}
+  \caption{\textbf{Figure 2 of the proposal.} Left: tightness ratios (left-hand side over right-hand side) of the
+  inequalities I1--I5 along SAGA runs ($n = 1{,}000$, $d = 50$, $\kappa = 10^3$, $\alpha = 1$; geometric mean over 5
+  seeds, band: min--max), computed from exact conditional expectations every $n/10$ iterations; the dot at $t = 0$ is the
+  ratio of the initialization inequality I6. Right: the attribution chain of Section~\ref{sec:prop59}: contraction
+  exponent per pass $-n\log\rho$ of the exact one-step contraction and after applying the inequalities cumulatively in
+  the order of the proof, down to the certified rate of Proposition~\ref{prop:59}.}
+  \label{fig:fig2}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{fig3_bottleneck_by_geometry}
+  \caption{\textbf{Figure 3 of the proposal.} Share of the logarithmic gap between the exact contraction and the
+  certified rate attributed to each inequality (cumulative attribution in proof order, averaged over passes 2--20 and
+  over 5 seeds; error bars: min--max over seeds), as a function of $\kappa$ for three covariance anisotropies
+  $\alpha \in \{0, 1, 2\}$ ($n = 1{,}000$, $d = 50$). Right: the total speed-up factor $(-\log\rho_{\rm exact})/(-\log\rho_{\rm bound})$.}
+  \label{fig:fig3}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{figB2_effective_curvature}
+  \caption{\textbf{Hypothesis B2.} Effective curvature $\muEff(\theta_t)/\mu$ (top), effective cocoercivity constant
+  $\LEff(\theta_t)/R^2$ (middle) and share of the squared error carried by the eigenvector of $F''(\etastar)$ with the
+  smallest eigenvalue (bottom), along SAGA (blue, $x$-axis in passes) and gradient-descent (magenta, $x$-axis in
+  iterations) trajectories for $\kappa \in \{10^2, 10^3, 10^4\}$, $\alpha = 1$, $n = 1{,}000$, $d = 50$. Horizontal lines:
+  $\lambda_{\min}(F''(\etastar))/\mu$, $\lambda_{\max}(F''(\etastar))/\mu$ and the extreme values of the limit of $\LEff$ at
+  $\etastar$ over directions.}
+  \label{fig:B2}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{figB1_preconditioned_saga}
+  \caption{\textbf{Hypothesis B1.} Preconditioned SAGA $\theta_t = \theta_{t-1} - \gamma P^{-1} g_t$ with
+  $\gamma = 1/(4R_P^2)$ for $P \in \{I, \diag(\hat\Sigma) + \lambda I, \hat\Sigma + \lambda I, F''(\etastar)\}$ on
+  logistic regression ($n = 1{,}000$, $d = 50$, $\kappa = 10^3$, $\alpha \in \{1, 2\}$; mean over 5 seeds, band: min--max).
+  Right: empirical contraction exponent per pass of $\norm{\theta_t - \etastar}_P^2$ (least-squares slope over passes
+  2--20) against the transferred bound of Proposition~\ref{prop:59} with the global constant $\mu_P$ and with the local
+  constant $\lambda_{\min}(F''(\etastar), P)$.}
+  \label{fig:B1}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{figC_gamma_delta}
+  \caption{\textbf{Constants inside the proof.} Left: the best contraction exponent per pass that the proof structure of
+  Proposition~\ref{prop:59} can certify as a function of the step $\gamma R^2$, with $\Delta$ optimized, for several
+  $\kappa$ ($n = 1{,}000$); dots: the textbook choice. Right: empirical contraction exponent of SAGA on logistic
+  regression ($\kappa = 10^3$, $\alpha = 1$, 3 seeds) as a function of $\gamma R^2$, on the same axis as the certificate.}
+  \label{fig:C}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{figA3_lkatyusha_lyapunov}
+  \caption{\textbf{Hypothesis A3.} L-Katyusha with the parameters of Theorem~4.6 of \cite{kovalev2020dont}
+  ($\theta_2 = 1/2$, $\theta_1 = \min\{\sqrt{2\sigma n/3}, 1/2\}$, $p = 1/n$). Top: the Lyapunov function
+  $\Psi_k = Z_k + Y_k + W_k$ (mean over 3 seeds), the contraction certified by Lemma~4.5, the product of the exact
+  conditional contractions along seed 0 and the realized $\Psi_k$. Middle: exact one-step contraction exponent
+  versus the certified one. Bottom: tightness of the estimator-variance bound
+  $\E\norm{g - \Fp(x)}^2 \le 2L\,D_F(w, x)$ and the shares of $Z$, $Y$, $W$ in $\Psi$.}
+  \label{fig:A3}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{figA2_naive_acceleration}
+  \caption{\textbf{Hypothesis A2.} Top: SAGA, L-SVRG, L-Katyusha, L-Katyusha without the negative-momentum term
+  ($\theta_2 = 0$), Nesterov momentum applied to the loopless-SVRG estimator (best setting of a $(\beta, \gamma)$ grid)
+  and AGD on the hard instance ($n = 16$, $m = 64$, $\kappa = 10^4$) and on logistic regression ($n = 1{,}000$,
+  $d = 50$, $\kappa = 10^4$, $\alpha = 1$), one seed. Bottom: gradient evaluations needed by the naive scheme to reach
+  $\norm{\theta - \etastar}^2 \le 10^{-6}\norm{\theta_0 - \etastar}^2$ over the grid (white cells: divergence or budget exhausted).}
+  \label{fig:A2}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{figA4b_instances}
+  \caption{\textbf{Hypothesis A4, supplementary instances of Section~\ref{sec:lowerbound}.} Top: the instance of
+  the lower-bound note (shared regularizer, geometric chain $\zeta = \zeta_Q$; $n = 16$, $m = 256$, 2 seeds) plotted
+  against the nominal $\kappa$ (left) and against the effective $\kappa_{\rm eff} = R^2/\lambda_{\min}(F'')$ (right);
+  the vertical line marks $\kappa_{\max}(m, \varepsilon)$, beyond which the chain is exhausted and the lower-bound
+  argument for the exponent $1/2$ is inactive. Bottom: the aligned instance (all components equal to one chain of
+  length $m = 2048$, $L_F = R^2$), on which the four orders $\kappa$ (SAGA), $\sqrt{n\kappa}$ (L-Katyusha),
+  $n\kappa$ (GD) and $n\sqrt\kappa$ (AGD) separate. Legend: least-squares log--log slopes over $\kappa \ge 10n$.}
+  \label{fig:A4b}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth]{figA4_hard_instance_exponents}
+  \caption{\textbf{Hypothesis A4.} Component-gradient evaluations needed to reach
+  $\norm{\theta - \etastar}^2 \le 10^{-8}\norm{\theta_0 - \etastar}^2$ as a function of $\kappa$ on the hard instance
+  ($n = 16$ Nesterov chains of length $m = 256$) and on block quadratics with random spectra (geometric mean over 3
+  seeds, error bars: min--max); legend: least-squares slope in log--log coordinates over $\kappa \ge 10n$. SAGA uses
+  $\gamma = 1/(4R^2)$, L-SVRG $\gamma = 1/(6R^2)$, L-Katyusha the parameters of \cite{kovalev2020dont}, the naive
+  scheme the best of a $(\beta, \gamma)$ grid selected on seed 0, AGD and GD the step $1/L$.}
+  \label{fig:A4}
+\end{figure}

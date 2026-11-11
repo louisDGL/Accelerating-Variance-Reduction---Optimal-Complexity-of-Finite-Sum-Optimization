@@ -1,0 +1,1323 @@
+\section{Preconditioned (quadratic-metric) SAGA (hypothesis B1)}
+\label{sec:B1}
+
+Throughout, $F(\theta)=\frac1n\sum_{i=1}^n f_i(\theta)$ on $\R^d$, each $f_i$ is convex and $R^2$-smooth,
+$F$ is $\mu$-strongly convex with minimizer $\etastar$, $\kappa=R^2/\mu$, and $P\in\R^{d\times d}$ is a
+\emph{fixed} symmetric positive definite (SPD) matrix; $P^{1/2}$ denotes its SPD square root and
+$P^{-1/2}=(P^{1/2})^{-1}$. Whenever a Hessian is written we assume the corresponding function is twice
+continuously differentiable (this is the case for logistic regression); every statement that only involves
+gradients holds without this assumption (Remark~\ref{rem:B1-C1}). We write $\Ei$ for the expectation with
+respect to the index $i(t)$ drawn at iteration $t$, conditionally on the past.
+
+The content of this note is the following chain of facts.
+(1)~SAGA run in the metric of $P$ (``$P$-SAGA'') is \emph{exactly} Euclidean SAGA on a linearly
+transformed problem (Proposition~\ref{prop:B1-transfer}), so Proposition~5.9 of \cite{bach2024learning}
+transfers verbatim, with $(R^2,\mu)$ replaced by the relative constants $(R_P^2,\mu_P)$ of
+\eqref{eq:B1-RP-muP} (Corollary~\ref{cor:B1-rate}). (2)~Redoing the proof in the $P$-metric shows which of
+the six proof inequalities change (Section~\ref{sec:B1-proofP}); this defines the six tightness ratios to be
+instrumented in the $P$-geometry (Definition~\ref{def:B1-ratios}). (3)~On $\ell_2$-regularized logistic
+regression, \emph{no} quadratic metric improves the certified global condition number, $\kappaP\ge\kappa$ for
+every $P$ (Proposition~\ref{prop:B1-nofreelunch}): the benefit of preconditioning is entirely a
+trajectory-dependent effect, captured by the effective constants of the B2 note; for the statistical
+preconditioner $P=\hat\Sigma+\lambda I$ the trajectory-dependent condition number is controlled by ridge
+leverage scores and the effective dimension, and the anisotropy of $\hat\Sigma$ disappears
+(Corollary~\ref{cor:B1-kappa-traj}). (4)~Cost and the case of a non-constant metric
+(Section~\ref{sec:B1-cost}), and a prediction table for the experiments (Section~\ref{sec:B1-predictions}).
+
+\subsection{The \texorpdfstring{$P$}{P}-geometry and the algorithm}
+\label{sec:B1-algo}
+
+\begin{definition}[$P$-norm and its dual norm]\label{def:B1-norms}
+For $v,g\in\R^d$ let $\norm{v}_P^2:=v^\top P v$ (norm on parameters) and
+$\norm{g}_{P^{-1}}^2:=g^\top P^{-1} g$ (norm on gradients and memory vectors).
+\end{definition}
+
+\begin{lemma}[elementary facts on the $P$-geometry]\label{lem:B1-geometry}
+Let $P$ be SPD. Then:
+\begin{enumerate}[label=(\roman*)]
+\item (generalized Cauchy--Schwarz) $|\inner{g}{v}|\le \norm{g}_{P^{-1}}\norm{v}_P$ for all $g,v\in\R^d$,
+with equality if and only if $g$ and $Pv$ are collinear; consequently
+$\norm{g}_{P^{-1}}=\sup_{\norm{v}_P\le 1}\inner{g}{v}$, i.e. $\norm{\cdot}_{P^{-1}}$ is the dual norm of
+$\norm{\cdot}_P$;
+\item $\norm{P^{1/2}v}=\norm{v}_P$, $\norm{P^{-1/2}g}=\norm{g}_{P^{-1}}$ and $\norm{P^{-1}g}_P=\norm{g}_{P^{-1}}$;
+\item (square-norm inequality) $\norm{a+b}_{P^{-1}}^2\le 2\norm{a}_{P^{-1}}^2+2\norm{b}_{P^{-1}}^2$,
+with equality iff $a=b$;
+\item (variance $\le$ second moment) for a random vector $Z$ with $\E\norm{Z}^2<\infty$,
+$\E\norm{Z-\E Z}_{P^{-1}}^2=\E\norm{Z}_{P^{-1}}^2-\norm{\E Z}_{P^{-1}}^2\le \E\norm{Z}_{P^{-1}}^2$;
+\item $\lmin(P)\norm{v}^2\le\norm{v}_P^2\le\lmax(P)\norm{v}^2$ and
+$\lmax(P)^{-1}\norm{g}^2\le\norm{g}_{P^{-1}}^2\le\lmin(P)^{-1}\norm{g}^2$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(i) $\inner{g}{v}=\inner{P^{-1/2}g}{P^{1/2}v}$, and the Euclidean Cauchy--Schwarz inequality gives
+$|\inner{g}{v}|\le\norm{P^{-1/2}g}\,\norm{P^{1/2}v}=\norm{g}_{P^{-1}}\norm{v}_P$, with equality iff
+$P^{-1/2}g$ and $P^{1/2}v$ are collinear, i.e. iff $g$ and $Pv$ are; the choice
+$v=P^{-1}g/\norm{g}_{P^{-1}}$ (for $g\neq0$) has $\norm{v}_P=1$ and attains the supremum.
+(ii) $\norm{P^{1/2}v}^2=v^\top Pv$, $\norm{P^{-1/2}g}^2=g^\top P^{-1}g$ and
+$(P^{-1}g)^\top P(P^{-1}g)=g^\top P^{-1}g$.
+(iii) $\norm{a+b}_{P^{-1}}^2=\norm{a}_{P^{-1}}^2+2a^\top P^{-1}b+\norm{b}_{P^{-1}}^2$ and
+$2a^\top P^{-1}b\le\norm{a}_{P^{-1}}^2+\norm{b}_{P^{-1}}^2$ because
+$\norm{a-b}_{P^{-1}}^2\ge0$, with equality iff $a=b$.
+(iv) Expand $\E\norm{Z-\E Z}_{P^{-1}}^2=\E\norm{Z}_{P^{-1}}^2-2(\E Z)^\top P^{-1}\E Z+\norm{\E Z}_{P^{-1}}^2$.
+(v) These are the extremal values of the Rayleigh quotients of $P$ and of $P^{-1}$.
+\end{proof}
+
+\begin{definition}[$P$-SAGA]\label{def:B1-PSAGA}
+Fix $\gamma>0$, $\theta_0\in\R^d$ and memory vectors $z_i^{(0)}\in\R^d$, $i=1,\dots,n$. At iteration
+$t\ge1$, draw $i(t)$ uniformly in $\{1,\dots,n\}$, independently of the past, and set
+\begin{align}
+g_t&:=f'_{i(t)}(\theta_{t-1})+\frac1n\sum_{i=1}^n z_i^{(t-1)}-z_{i(t)}^{(t-1)},\label{eq:B1-gt}\\
+\theta_t&:=\argmin_{\theta\in\R^d}\Big\{\inner{g_t}{\theta}
++\frac1{2\gamma}(\theta-\theta_{t-1})^\top P(\theta-\theta_{t-1})\Big\},\label{eq:B1-argmin}\\
+z_{i(t)}^{(t)}&:=f'_{i(t)}(\theta_{t-1}),\qquad z_j^{(t)}:=z_j^{(t-1)}\quad(j\neq i(t)).\label{eq:B1-memory}
+\end{align}
+The memory update \eqref{eq:B1-memory} is the one of SAGA \cite{defazio2014saga}; only the step
+\eqref{eq:B1-argmin} depends on $P$.
+\end{definition}
+
+\begin{lemma}[closed form, unbiasedness, Bregman form]\label{lem:B1-step}
+The minimization \eqref{eq:B1-argmin} has the unique solution
+\begin{equation}\label{eq:B1-step}
+\theta_t=\theta_{t-1}-\gamma P^{-1}g_t ,
+\end{equation}
+which for $P=I$ is the SAGA iteration of \cite[Sec.~5.4.4]{bach2024learning}. Moreover
+$\Ei[g_t]=\Fp(\theta_{t-1})$. Finally, \eqref{eq:B1-argmin} is the Bregman step
+$\argmin_\theta\{\gamma\inner{g_t}{\theta}+D_h(\theta,\theta_{t-1})\}$ for the quadratic reference function
+$h=\frac12\norm{\cdot}_P^2$, whose Bregman divergence is $D_h(\theta,\theta')=\frac12\norm{\theta-\theta'}_P^2$;
+i.e. $P$-SAGA is Algorithm~1 (Bregman-SAGA) of \cite{dragomir2021fast} with a quadratic $h$.
+\end{lemma}
+\begin{proof}
+The objective in \eqref{eq:B1-argmin} is a strictly convex quadratic (its Hessian is $P/\gamma\succ0$), so
+it has a unique minimizer, characterized by a vanishing gradient: $g_t+\gamma^{-1}P(\theta-\theta_{t-1})=0$,
+i.e. $\theta=\theta_{t-1}-\gamma P^{-1}g_t$. Since $i(t)$ is uniform and independent of the past,
+$\Ei[f'_{i(t)}(\theta_{t-1})]=\frac1n\sum_i\fip(\theta_{t-1})=\Fp(\theta_{t-1})$ and
+$\Ei[z_{i(t)}^{(t-1)}]=\frac1n\sum_i z_i^{(t-1)}$, so the two memory terms of \eqref{eq:B1-gt} cancel in
+expectation. For $h=\frac12\norm{\cdot}_P^2$ one has $\nabla h(\theta')=P\theta'$ and
+$D_h(\theta,\theta')=h(\theta)-h(\theta')-\inner{\nabla h(\theta')}{\theta-\theta'}
+=\frac12\norm{\theta-\theta'}_P^2$; multiplying the objective of \eqref{eq:B1-argmin} by $\gamma$ gives the
+Bregman form.
+\end{proof}
+
+\subsection{Change of variables: \texorpdfstring{$P$}{P}-SAGA is SAGA on a transformed problem}
+\label{sec:B1-transfer}
+
+\begin{proposition}[transfer]\label{prop:B1-transfer}
+Let $u:=P^{1/2}\theta$, $\tilde f_i(u):=f_i(P^{-1/2}u)$ and $\tilde F:=\frac1n\sum_i\tilde f_i=F\circ P^{-1/2}$.
+Then:
+\begin{enumerate}[label=(\roman*)]
+\item $\nabla\tilde f_i(u)=P^{-1/2}\fip(P^{-1/2}u)$ and, when $f_i$ is $C^2$,
+$\nabla^2\tilde f_i(u)=P^{-1/2}f_i''(P^{-1/2}u)P^{-1/2}$; the same formulas hold for $(\tilde F,F)$.
+\item $\tilde F$ is strongly convex and $\tilde u_*:=P^{1/2}\etastar$ is its unique minimizer.
+\item Let $(\theta_t,z^{(t)})_{t\ge0}$ be generated by $P$-SAGA (Definition~\ref{def:B1-PSAGA}) with step
+$\gamma$ and index sequence $(i(t))_{t\ge1}$, and let $u_t:=P^{1/2}\theta_t$,
+$\tilde z_i^{(t)}:=P^{-1/2}z_i^{(t)}$. Then $(u_t,\tilde z^{(t)})_{t\ge0}$ is generated by Euclidean SAGA
+($P=I$) on $(\tilde f_i)_{i\le n}$ with the \emph{same} step $\gamma$ and the \emph{same} index sequence,
+started from $(u_0,\tilde z^{(0)})$.
+\item For all $t$ and $i$,
+$\norm{u_t-\tilde u_*}^2=\norm{\theta_t-\etastar}_P^2$ and
+$\norm{\tilde z_i^{(t)}-\nabla\tilde f_i(\tilde u_*)}^2=\norm{z_i^{(t)}-\fip(\etastar)}_{P^{-1}}^2$;
+in particular $z_i^{(0)}=\fip(\theta_0)$ for all $i$ iff $\tilde z_i^{(0)}=\nabla\tilde f_i(u_0)$ for all $i$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(i) $\tilde f_i=f_i\circ A$ with the linear map $A=P^{-1/2}$ (symmetric), so by the chain rule
+$\nabla\tilde f_i(u)=A^\top\fip(Au)=P^{-1/2}\fip(P^{-1/2}u)$ and
+$\nabla^2\tilde f_i(u)=A^\top f_i''(Au)A$. Averaging over $i$ gives the statements for $\tilde F$.
+
+(ii) By (i), $\nabla\tilde F(\tilde u_*)=P^{-1/2}\Fp(\etastar)=0$. For $u,u'\in\R^d$ write
+$\theta=P^{-1/2}u$, $\theta'=P^{-1/2}u'$; by (i) and $\mu$-strong convexity of $F$,
+\[
+\tilde F(u')-\tilde F(u)-\inner{\nabla\tilde F(u)}{u'-u}
+=F(\theta')-F(\theta)-\inner{\Fp(\theta)}{\theta'-\theta}
+\ge\frac\mu2\norm{\theta'-\theta}^2\ge\frac{\mu}{2\lmax(P)}\norm{u'-u}^2 ,
+\]
+where we used $\inner{P^{-1/2}\Fp(\theta)}{u'-u}=\inner{\Fp(\theta)}{\theta'-\theta}$ and
+Lemma~\ref{lem:B1-geometry}(v), which gives
+$\norm{\theta'-\theta}^2=\norm{P^{-1/2}(u'-u)}^2\ge\norm{u'-u}^2/\lmax(P)$.
+Hence $\tilde F$ is $(\mu/\lmax(P))$-strongly convex and its stationary point $\tilde u_*$ is its unique
+minimizer.
+
+(iii) By induction on $t$; the initialization is the definition of $(u_0,\tilde z^{(0)})$. Let
+$\tilde g_t:=\nabla\tilde f_{i(t)}(u_{t-1})+\frac1n\sum_i\tilde z_i^{(t-1)}-\tilde z_{i(t)}^{(t-1)}$ be the
+Euclidean SAGA direction built from $(u_{t-1},\tilde z^{(t-1)})$ and the index $i(t)$. By (i) and the
+induction hypothesis,
+$\tilde g_t=P^{-1/2}f'_{i(t)}(\theta_{t-1})+P^{-1/2}\big(\frac1n\sum_i z_i^{(t-1)}-z_{i(t)}^{(t-1)}\big)
+=P^{-1/2}g_t$. Hence, by \eqref{eq:B1-step},
+$u_t=P^{1/2}\theta_t=P^{1/2}\theta_{t-1}-\gamma P^{1/2}P^{-1}g_t=u_{t-1}-\gamma P^{-1/2}g_t
+=u_{t-1}-\gamma\tilde g_t$, which is the Euclidean SAGA step. For the memory,
+$\tilde z_{i(t)}^{(t)}=P^{-1/2}f'_{i(t)}(\theta_{t-1})=\nabla\tilde f_{i(t)}(u_{t-1})$ and
+$\tilde z_j^{(t)}=\tilde z_j^{(t-1)}$ for $j\neq i(t)$: this is the SAGA memory update.
+
+(iv) By Lemma~\ref{lem:B1-geometry}(ii),
+$\norm{u_t-\tilde u_*}^2=\norm{P^{1/2}(\theta_t-\etastar)}^2=\norm{\theta_t-\etastar}_P^2$ and
+$\norm{\tilde z_i^{(t)}-\nabla\tilde f_i(\tilde u_*)}^2=\norm{P^{-1/2}(z_i^{(t)}-\fip(\etastar))}^2
+=\norm{z_i^{(t)}-\fip(\etastar)}_{P^{-1}}^2$, using (i) at $\tilde u_*$. The last claim is (i) at $u_0$,
+$P^{-1/2}$ being invertible.
+\end{proof}
+
+\begin{lemma}[relative smoothness and strong convexity constants]\label{lem:B1-constants}
+\begin{enumerate}[label=(\roman*)]
+\item $\tilde f_i$ is $L$-smooth (i.e. $\nabla\tilde f_i$ is $L$-Lipschitz) if and only if
+\begin{equation}\label{eq:B1-rel-smooth}
+\norm{\fip(\theta)-\fip(\theta')}_{P^{-1}}\le L\,\norm{\theta-\theta'}_P\qquad\forall\theta,\theta'\in\R^d ;
+\end{equation}
+when $f_i$ is $C^2$ and convex, this is equivalent to $\sup_{\theta}\lmax(P^{-1/2}f_i''(\theta)P^{-1/2})\le L$.
+\item $\tilde F$ is $m$-strongly convex if and only if
+$F(\theta')\ge F(\theta)+\inner{\Fp(\theta)}{\theta'-\theta}+\frac m2\norm{\theta'-\theta}_P^2$ for all
+$\theta,\theta'$; when $F$ is $C^2$, this is equivalent to $\inf_\theta\lmin(P^{-1/2}F''(\theta)P^{-1/2})\ge m$.
+\item If each $f_i$ is $R^2$-smooth and $F$ is $\mu$-strongly convex (Euclidean constants), then
+\eqref{eq:B1-rel-smooth} holds with $L=R^2/\lmin(P)$ and (ii) holds with $m=\mu/\lmax(P)$. Conversely, if
+\eqref{eq:B1-rel-smooth} holds with $L=R_P^2$ and (ii) with $m=\mu_P$, then each $f_i$ is
+$\lmax(P)R_P^2$-smooth and $F$ is $\lmin(P)\mu_P$-strongly convex.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(i) With $\theta=P^{-1/2}u$, $\theta'=P^{-1/2}u'$, Proposition~\ref{prop:B1-transfer}(i) and
+Lemma~\ref{lem:B1-geometry}(ii) give
+\[
+\norm{\nabla\tilde f_i(u)-\nabla\tilde f_i(u')}=\norm{P^{-1/2}(\fip(\theta)-\fip(\theta'))}
+=\norm{\fip(\theta)-\fip(\theta')}_{P^{-1}},\qquad \norm{u-u'}=\norm{\theta-\theta'}_P ;
+\]
+as $u$ ranges over $\R^d$ so does $\theta$. For a $C^2$ convex function, $L$-smoothness is equivalent to all Hessians being
+$\preceq LI$ \cite[Def.~5.3 and Sec.~5.2]{bach2024learning}; apply this to $\tilde f_i$, whose Hessian at
+$u$ is $P^{-1/2}f_i''(P^{-1/2}u)P^{-1/2}$. (ii) Same substitution in the definition of strong convexity,
+using $\inner{\nabla\tilde F(u)}{u'-u}=\inner{\Fp(\theta)}{\theta'-\theta}$ and
+$\norm{u'-u}^2=\norm{\theta'-\theta}_P^2$; for $C^2$ functions $m$-strong convexity is equivalent to all
+Hessians being $\succeq mI$ \cite[Sec.~5.2]{bach2024learning}.
+(iii) By Lemma~\ref{lem:B1-geometry}(v),
+\begin{align*}
+\norm{\fip(\theta)-\fip(\theta')}_{P^{-1}}&\le\lmin(P)^{-1/2}\norm{\fip(\theta)-\fip(\theta')}
+\le\lmin(P)^{-1/2}R^2\norm{\theta-\theta'}\\
+&\le\lmin(P)^{-1}R^2\norm{\theta-\theta'}_P ,
+\end{align*}
+and $\frac\mu2\norm{\theta'-\theta}^2\ge\frac{\mu}{2\lmax(P)}\norm{\theta'-\theta}_P^2$. The converse uses the
+reverse inequalities of Lemma~\ref{lem:B1-geometry}(v) in the same way.
+\end{proof}
+
+\begin{definition}[relative constants and relative condition number]\label{def:B1-kappaP}
+We set
+\begin{equation}\label{eq:B1-RP-muP}
+R_P^2:=\max_{1\le i\le n}\ \sup_{\theta\in\R^d}\lmax\big(P^{-1/2}f_i''(\theta)P^{-1/2}\big),\qquad
+\mu_P:=\inf_{\theta\in\R^d}\lmin\big(P^{-1/2}F''(\theta)P^{-1/2}\big),\qquad
+\kappaP:=\frac{R_P^2}{\mu_P} .
+\end{equation}
+By Lemma~\ref{lem:B1-constants}, every $\tilde f_i$ is $R_P^2$-smooth and $\tilde F$ is $\mu_P$-strongly
+convex; in the terminology of \cite[Def.~1]{hendrikx2020statistically} and \cite{lu2018relatively},
+$f_i$ is $R_P^2$-smooth and $F$ is $\mu_P$-strongly convex \emph{relative to} the reference function
+$h=\frac12\norm{\cdot}_P^2$ (whose Hessian is $P$). For $P=I$ these are the usual constants; in the rest
+of the note $R^2,\mu,\kappa$ always denote the Euclidean ($P=I$) constants.
+\end{definition}
+
+\begin{lemma}[general comparison with the Euclidean constants]\label{lem:B1-compare}
+With $\operatorname{cond}(P):=\lmax(P)/\lmin(P)$,
+\begin{gather}
+\mu_P\le\sup_\theta\lmax\big(P^{-1/2}F''(\theta)P^{-1/2}\big)\le R_P^2,\qquad
+R_P^2\le\frac{R^2}{\lmin(P)},\qquad \mu_P\ge\frac{\mu}{\lmax(P)},\nonumber\\
+\frac{\kappa}{\operatorname{cond}(P)}\le\kappaP\le\kappa\,\operatorname{cond}(P).\label{eq:B1-kappaP-vs-kappa}
+\end{gather}
+In particular $\kappaP\ge1$, $\kappa_{cP}=\kappaP$ for every $c>0$, and a badly chosen metric can degrade
+the condition number by at most $\operatorname{cond}(P)$.
+\end{lemma}
+\begin{proof}
+$F''=\frac1n\sum_i f_i''$ and $\lmax$ is subadditive on symmetric matrices, so
+$\lmax(P^{-1/2}F''(\theta)P^{-1/2})\le\frac1n\sum_i\lmax(P^{-1/2}f_i''(\theta)P^{-1/2})\le R_P^2$ for every
+$\theta$, while $\lmin\le\lmax$ at every $\theta$ gives the first inequality. The two middle inequalities
+are Lemma~\ref{lem:B1-constants}(iii) combined with the Hessian characterizations; dividing them gives the
+upper bound on $\kappaP$, and the converse part of Lemma~\ref{lem:B1-constants}(iii) gives
+$\kappa\le\kappaP\operatorname{cond}(P)$. Finally $R_{cP}^2=R_P^2/c$ and $\mu_{cP}=\mu_P/c$ by
+\eqref{eq:B1-RP-muP}.
+\end{proof}
+
+\begin{remark}[scaling of $P$ and of the step]\label{rem:B1-scaling}
+$(cP)$-SAGA with step $c\gamma$ produces exactly the same iterates as $P$-SAGA with step $\gamma$, since
+$c\gamma(cP)^{-1}=\gamma P^{-1}$; consistently, the normalized step $\gamma=1/(4R_P^2)$ of
+Corollary~\ref{cor:B1-rate} is multiplied by $c$ when $P$ is. Only $\kappaP$ is scale free; the values of
+$R_P^2$ and $\mu_P$ quoted below for $P=\hat\Sigma+\lambda I$ depend on the normalization
+$\hat\Sigma=\frac1nX^\top X$ (with $P'=nP=X^\top X+n\lambda I$ one would get $R_{P'}^2=R_P^2/n$).
+\end{remark}
+
+\begin{remark}[$C^1$ functions]\label{rem:B1-C1}
+If the $f_i$ are only $C^1$, define $R_P^2$ as the smallest constant $L$ in \eqref{eq:B1-rel-smooth}
+(over all $i$) and $\mu_P$ as the largest $m$ in Lemma~\ref{lem:B1-constants}(ii). Everything below that
+does not display a Hessian remains valid, because the transfer argument and the proof of Proposition~5.9
+only use the gradient forms (co-coercivity, Proposition~5.4 of \cite{bach2024learning}, is proved from
+$L$-smoothness and convexity alone).
+\end{remark}
+
+\begin{lemma}[$\ell_2$-regularized logistic regression]\label{lem:B1-logistic}
+Let $f_i(\theta)=\ell(y_ix_i^\top\theta)+\frac\lambda2\norm{\theta}^2$ with $\ell(u)=\log(1+e^{-u})$,
+$y_i\in\{-1,1\}$, $x_i\in\R^d$, $\lambda>0$, and let $\sigma(u)=(1+e^{-u})^{-1}$. Then
+$\ell'(u)=-\sigma(-u)$ and $\ell''(u)=\sigma'(u)=\sigma(u)\sigma(-u)=\big(2+e^{u}+e^{-u}\big)^{-1}\in(0,\tfrac14]$,
+which equals $\frac14$ at $u=0$ and is strictly decreasing in $|u|$. Writing
+$\sigma_i'(\theta):=\sigma'(y_ix_i^\top\theta)$,
+\begin{equation}\label{eq:B1-logistic-hessians}
+\fip(\theta)=\ell'(y_ix_i^\top\theta)\,y_ix_i+\lambda\theta,\qquad
+f_i''(\theta)=\sigma_i'(\theta)\,x_ix_i^\top+\lambda I,\qquad
+F''(\theta)=\frac1n\sum_{i=1}^n\sigma_i'(\theta)\,x_ix_i^\top+\lambda I .
+\end{equation}
+For every SPD $P$,
+\begin{equation}\label{eq:B1-logistic-RP}
+\max\Big\{\frac14\max_i\norm{x_i}_{P^{-1}}^2,\ \frac{\max_i\norm{x_i}^2/4+\lambda}{\lmax(P)}\Big\}\ \le\ R_P^2\ \le\
+\frac14\max_i\norm{x_i}_{P^{-1}}^2+\frac{\lambda}{\lmin(P)} ,
+\end{equation}
+and more precisely $R_P^2\ge\frac14\norm{x_i}_{P^{-1}}^2+\lambda\,\frac{x_i^\top P^{-2}x_i}{x_i^\top P^{-1}x_i}$
+for every $i$ with $x_i\neq0$;
+\begin{equation}\label{eq:B1-logistic-muP}
+\mu_P=\lambda\,\lmin(P^{-1})=\frac{\lambda}{\lmax(P)} .
+\end{equation}
+In particular, for $P=I$: $R^2:=\frac14\max_i\norm{x_i}^2+\lambda$ is a valid smoothness constant of
+every $f_i$, $\mu=\lambda$, and $\kappa=R^2/\mu=\max_i\norm{x_i}^2/(4\lambda)+1$; these are the Euclidean
+constants used in the whole project.
+\end{lemma}
+\begin{proof}
+$\ell'(u)=-e^{-u}/(1+e^{-u})=-\sigma(-u)$ and $\ell''(u)=\sigma'(u)=\sigma(u)(1-\sigma(u))=\sigma(u)\sigma(-u)
+=1/(2+e^u+e^{-u})$, which is maximal at $u=0$ (value $\frac14$) and decreasing in $|u|$ since
+$e^u+e^{-u}=2\cosh u$ is increasing in $|u|$. The gradient and Hessians follow from the chain rule and
+$y_i^2=1$. Upper bound in \eqref{eq:B1-logistic-RP}: by Weyl's inequality
+$\lmax(A+B)\le\lmax(A)+\lmax(B)$ with $A=\sigma_i'(\theta)P^{-1/2}x_ix_i^\top P^{-1/2}$ (rank one, with
+nonzero eigenvalue $\sigma_i'(\theta)\norm{P^{-1/2}x_i}^2\le\frac14\norm{x_i}_{P^{-1}}^2$) and
+$B=\lambda P^{-1}$. Lower bounds: at $\theta=0$, $\sigma_i'(0)=\frac14$; for $x_i\neq0$ the Rayleigh
+quotient of $P^{-1/2}f_i''(0)P^{-1/2}$ along $v=P^{-1/2}x_i$ equals
+$\frac14(x_i^\top P^{-1}x_i)^2/\norm{P^{-1/2}x_i}^2+\lambda\norm{P^{-1}x_i}^2/\norm{P^{-1/2}x_i}^2
+=\frac14\norm{x_i}_{P^{-1}}^2+\lambda\,(x_i^\top P^{-2}x_i)/(x_i^\top P^{-1}x_i)$, which is the ``more
+precise'' bound; it is $\ge\frac14\norm{x_i}_{P^{-1}}^2$, and also $\ge(\norm{x_i}^2/4+\lambda)/\lmax(P)$
+because, with $y:=P^{-1/2}x_i$, the fraction $(x_i^\top P^{-2}x_i)/(x_i^\top P^{-1}x_i)=y^\top P^{-1}y/\norm y^2$
+is a Rayleigh quotient of $P^{-1}$, hence $\ge\lmin(P^{-1})=1/\lmax(P)$, while
+$\norm{x_i}_{P^{-1}}^2\ge\norm{x_i}^2/\lmax(P)$ by Lemma~\ref{lem:B1-geometry}(v). If $x_i=0$ then
+$f_i''\equiv\lambda I$ and $\sup_\theta\lmax(P^{-1/2}f_i''(\theta)P^{-1/2})=\lambda/\lmin(P)\ge(\norm{x_i}^2/4+\lambda)/\lmax(P)$,
+the first lower bound being trivial. Taking the maximum over $i$ gives the two lower bounds in
+\eqref{eq:B1-logistic-RP}.
+For \eqref{eq:B1-logistic-muP}: $F''(\theta)\succeq\lambda I$ for all $\theta$ gives
+$P^{-1/2}F''(\theta)P^{-1/2}\succeq\lambda P^{-1}\succeq\lambda\lmin(P^{-1})I$, hence
+$\mu_P\ge\lambda\lmin(P^{-1})$. Conversely, let $I_0=\{i:x_i\neq0\}$ and pick $v$ with $v^\top x_i\neq0$
+for all $i\in I_0$ (the excluded set is a finite union of hyperplanes). For $s\to\infty$,
+$|y_ix_i^\top(sv)|\to\infty$ hence $\sigma_i'(sv)\to0$ for $i\in I_0$, while the terms $i\notin I_0$
+vanish identically; thus $F''(sv)\to\lambda I$ and, by continuity of $\lmin$,
+$\lmin(P^{-1/2}F''(sv)P^{-1/2})\to\lambda\lmin(P^{-1})$, so the infimum in \eqref{eq:B1-RP-muP} is
+$\le\lambda\lmin(P^{-1})$. The $P=I$ statements are the special case $\lmin(P)=\lmax(P)=1$.
+\end{proof}
+
+\subsection{Convergence of \texorpdfstring{$P$}{P}-SAGA: Proposition~5.9 in the \texorpdfstring{$P$}{P}-metric}
+\label{sec:B1-rate}
+
+\begin{corollary}[$P$-SAGA; Proposition~5.9 of \cite{bach2024learning} transferred]\label{cor:B1-rate}
+Let $P$ be SPD and let $R_P^2,\mu_P$ be the constants of \eqref{eq:B1-RP-muP} (or any constants such that
+each $\tilde f_i$ is $R_P^2$-smooth and $\tilde F$ is $\mu_P$-strongly convex). Run $P$-SAGA with
+$\gamma=1/(4R_P^2)$ and define
+\begin{gather}
+V_t^P:=\norm{\theta_t-\etastar}_P^2+3\gamma^2\sum_{i=1}^n\norm{z_i^{(t)}-\fip(\etastar)}_{P^{-1}}^2,\nonumber\\
+\rho_P:=1-\min\Big\{\frac1{3n},\frac{3\mu_P}{16R_P^2}\Big\}=1-\min\Big\{\frac1{3n},\frac{3}{16\kappaP}\Big\}.\label{eq:B1-VP}
+\end{gather}
+Then for every $t\ge1$,
+\begin{equation}\label{eq:B1-onestep}
+\Ei\big[V_t^P\big]\le\rho_P\,V_{t-1}^P ,
+\end{equation}
+and if $z_i^{(0)}=\fip(\theta_0)$ for all $i$,
+\begin{equation}\label{eq:B1-rate}
+\E\norm{\theta_t-\etastar}_P^2\le\rho_P^{\,t}\Big(1+\frac n4\Big)\norm{\theta_0-\etastar}_P^2 .
+\end{equation}
+Consequently
+\[
+\E\norm{\theta_t-\etastar}^2\le\operatorname{cond}(P)\,\rho_P^{\,t}\Big(1+\frac n4\Big)\norm{\theta_0-\etastar}^2
+\]
+(the condition number of $P$ enters the constant, not the rate), and
+$t\ge\max\{3n,\frac{16}{3}\kappaP\}\log\frac{2n}{\varepsilon}$ iterations guarantee
+$\E\norm{\theta_t-\etastar}_P^2\le\varepsilon\norm{\theta_0-\etastar}_P^2$, i.e. a running time of order
+$c_P\,(3n+\frac{16}{3}\kappaP)\log\frac{2n}{\varepsilon}$, where $c_P$ is the cost of one iteration
+(Section~\ref{sec:B1-cost}).
+\end{corollary}
+
+\begin{proof}[Proof by transfer]
+By Proposition~\ref{prop:B1-transfer}(iii), $(u_t,\tilde z^{(t)})=(P^{1/2}\theta_t,P^{-1/2}z^{(t)})$ is the
+Euclidean SAGA sequence on $(\tilde f_i)$ with step $\gamma$; the $\tilde f_i$ are convex and
+$R_P^2$-smooth and $\tilde F$ is $\mu_P$-strongly convex with minimizer $\tilde u_*$
+(Lemma~\ref{lem:B1-constants}, Proposition~\ref{prop:B1-transfer}(ii)). The proof of Proposition~5.9 in
+\cite{bach2024learning} (transcribed in the B3 note) establishes, for Euclidean SAGA with $\gamma=1/(4L)$ on
+any family of convex $L$-smooth functions whose average is $m$-strongly convex, the one-step contraction
+$\Ei[\tilde V_t]\le(1-\min\{\frac1{3n},\frac{3m}{16L}\})\tilde V_{t-1}$ of the Lyapunov function
+$\tilde V_t=\norm{u_t-\tilde u_*}^2+3\gamma^2\sum_i\norm{\tilde z_i^{(t)}-\nabla\tilde f_i(\tilde u_*)}^2$,
+and then the bound $\E\norm{u_t-\tilde u_*}^2\le(1-\min\{\frac1{3n},\frac{3m}{16L}\})^t(1+\frac n4)
+\norm{u_0-\tilde u_*}^2$ when $\tilde z_i^{(0)}=\nabla\tilde f_i(u_0)$. By
+Proposition~\ref{prop:B1-transfer}(iv), $\tilde V_t=V_t^P$ and
+$\norm{u_t-\tilde u_*}^2=\norm{\theta_t-\etastar}_P^2$ identically, and the initialization conditions
+correspond. The Euclidean consequence follows from Lemma~\ref{lem:B1-geometry}(v) applied on both sides;
+the iteration count follows from $\rho_P^t\le\exp(-t\min\{\frac1{3n},\frac3{16\kappaP}\})$ and
+$1+\frac n4\le 2n$.
+\end{proof}
+
+\subsubsection{The same proof written in the \texorpdfstring{$P$}{P}-metric: which inequalities change}
+\label{sec:B1-proofP}
+
+To see exactly where $P$ enters, we rewrite the proof of Proposition~5.9 in the original coordinates;
+every inequality is labelled, and these labels are the ones instrumented by the experiments
+(Definition~\ref{def:B1-ratios}). Fix $t\ge1$ and write $\delta:=\theta_{t-1}-\etastar$,
+$\omega_t:=g_t$, $\bar z:=\frac1n\sum_i z_i^{(t-1)}$ and, for each $i$,
+\[
+a_{t,i}:=\fip(\theta_{t-1})-\fip(\etastar),\qquad
+b_{t,i}:=\fip(\etastar)-z_i^{(t-1)}+\bar z,\qquad\text{so that}\quad \omega_t=a_{t,i(t)}+b_{t,i(t)} .
+\]
+
+\emph{Step 1.} Expanding the square in the $P$-inner product and using \eqref{eq:B1-step},
+\begin{align}
+\norm{\theta_t-\etastar}_P^2=\norm{\delta-\gamma P^{-1}\omega_t}_P^2
+&=\norm{\delta}_P^2-2\gamma\,\delta^\top PP^{-1}\omega_t+\gamma^2\omega_t^\top P^{-1}PP^{-1}\omega_t\nonumber\\
+&=\norm{\delta}_P^2-2\gamma\inner{\delta}{\omega_t}+\gamma^2\norm{\omega_t}_{P^{-1}}^2 .\label{eq:B1-expand}
+\end{align}
+The pairing $\inner{\delta}{\omega_t}$ is the same number for every $P$; taking $\Ei$ and using
+Lemma~\ref{lem:B1-step} (unbiasedness, also metric independent),
+$\Ei\norm{\theta_t-\etastar}_P^2=\norm{\delta}_P^2-2\gamma\inner{\delta}{\Fp(\theta_{t-1})}
++\gamma^2\Ei\norm{\omega_t}_{P^{-1}}^2$. The three inequalities of Step~1 are
+\begin{align}
+\text{(I1$_P$, square norm)}\quad&
+\Ei\norm{\omega_t}_{P^{-1}}^2\le 2\,\Ei\norm{a_{t,i(t)}}_{P^{-1}}^2+2\,\Ei\norm{b_{t,i(t)}}_{P^{-1}}^2,
+\label{ineq:P-sq}\\
+\text{(I2$_P$, co-coercivity)}\quad&
+\Ei\norm{a_{t,i(t)}}_{P^{-1}}^2=\frac1n\sum_{i=1}^n\norm{\fip(\theta_{t-1})-\fip(\etastar)}_{P^{-1}}^2\nonumber\\
+&\qquad\le R_P^2\,\inner{\Fp(\theta_{t-1})}{\theta_{t-1}-\etastar},
+\label{ineq:P-coco}\\
+\text{(I3$_P$, variance $\le$ 2nd moment)}\quad&
+\Ei\norm{b_{t,i(t)}}_{P^{-1}}^2\le\frac1n\sum_{i=1}^n\norm{\fip(\etastar)-z_i^{(t-1)}}_{P^{-1}}^2 .
+\label{ineq:P-var}
+\end{align}
+\eqref{ineq:P-sq} is Lemma~\ref{lem:B1-geometry}(iii) applied for each value of $i(t)$. For
+\eqref{ineq:P-coco}: each $\tilde f_i$ is convex and $R_P^2$-smooth, so co-coercivity (Proposition~5.4 of
+\cite{bach2024learning}) gives
+$\norm{\nabla\tilde f_i(u)-\nabla\tilde f_i(u')}^2\le R_P^2\inner{\nabla\tilde f_i(u)-\nabla\tilde f_i(u')}{u-u'}$;
+with $u=P^{1/2}\theta_{t-1}$, $u'=P^{1/2}\etastar$ and Proposition~\ref{prop:B1-transfer}(i), this reads
+\begin{equation}\label{eq:B1-coco-i}
+\norm{\fip(\theta_{t-1})-\fip(\etastar)}_{P^{-1}}^2\le R_P^2\inner{\fip(\theta_{t-1})-\fip(\etastar)}{\theta_{t-1}-\etastar}
+\qquad(i=1,\dots,n),
+\end{equation}
+because $\inner{P^{-1/2}(\fip(\theta)-\fip(\etastar))}{P^{1/2}(\theta-\etastar)}
+=\inner{\fip(\theta)-\fip(\etastar)}{\theta-\etastar}$; averaging over $i$ and using
+$\sum_i\fip(\etastar)=n\Fp(\etastar)=0$ gives \eqref{ineq:P-coco}, which is (5.31) of the book in the
+$P$-metric. For \eqref{ineq:P-var}: with $Z:=f'_{i(t)}(\etastar)-z_{i(t)}^{(t-1)}$ one has $\Ei Z=-\bar z$
+(again $\sum_i\fip(\etastar)=0$), so $Z-\Ei Z=b_{t,i(t)}$ and Lemma~\ref{lem:B1-geometry}(iv) applies.
+Combining, Step~1 yields
+\begin{equation}\label{eq:B1-step1}
+\Ei\norm{\theta_t-\etastar}_P^2\le\norm{\delta}_P^2-2\gamma(1-\gamma R_P^2)\inner{\Fp(\theta_{t-1})}{\delta}
++\frac{2\gamma^2}{n}\sum_{i=1}^n\norm{\fip(\etastar)-z_i^{(t-1)}}_{P^{-1}}^2 .
+\end{equation}
+
+\emph{Step 2.} Only the $i(t)$-th memory vector changes, so, exactly,
+\begin{align*}
+\sum_{i=1}^n\norm{\fip(\etastar)-z_i^{(t)}}_{P^{-1}}^2&=\sum_{i=1}^n\norm{\fip(\etastar)-z_i^{(t-1)}}_{P^{-1}}^2
+-\norm{f'_{i(t)}(\etastar)-z_{i(t)}^{(t-1)}}_{P^{-1}}^2\\
+&\quad+\norm{f'_{i(t)}(\etastar)-f'_{i(t)}(\theta_{t-1})}_{P^{-1}}^2 ;
+\end{align*}
+taking $\Ei$ (each index has probability $1/n$) and using \eqref{ineq:P-coco} once more,
+\begin{align}
+\Ei\sum_{i=1}^n\norm{\fip(\etastar)-z_i^{(t)}}_{P^{-1}}^2
+&=\Big(1-\frac1n\Big)\sum_{i=1}^n\norm{\fip(\etastar)-z_i^{(t-1)}}_{P^{-1}}^2
++\frac1n\sum_{i=1}^n\norm{\fip(\etastar)-\fip(\theta_{t-1})}_{P^{-1}}^2\nonumber\\
+&\le\Big(1-\frac1n\Big)\sum_{i=1}^n\norm{\fip(\etastar)-z_i^{(t-1)}}_{P^{-1}}^2
++R_P^2\inner{\Fp(\theta_{t-1})}{\delta}.\label{eq:B1-step2}
+\end{align}
+
+\emph{Combination.} Multiply \eqref{eq:B1-step2} by $\Delta=3\gamma^2$ and add to \eqref{eq:B1-step1}.
+With $\gamma=1/(4R_P^2)$: $1-\gamma R_P^2-R_P^2\Delta/(2\gamma)=1-\frac14-\frac38=\frac38$ and
+$\frac{2\gamma^2}{n\Delta}+1-\frac1n=1-\frac1{3n}$, so
+\begin{equation}\label{eq:B1-combined}
+\Ei[V_t^P]\le\norm{\delta}_P^2-\frac{3\gamma}{4}\inner{\Fp(\theta_{t-1})}{\delta}
++\Big(1-\frac1{3n}\Big)\Delta\sum_{i=1}^n\norm{\fip(\etastar)-z_i^{(t-1)}}_{P^{-1}}^2 .
+\end{equation}
+The last two inequalities are
+\begin{align}
+\text{(I4$_P$, strong convexity)}\quad&
+\inner{\Fp(\theta_{t-1})}{\theta_{t-1}-\etastar}\ \ge\ \mu_P\,\norm{\theta_{t-1}-\etastar}_P^2,
+\label{ineq:P-sc}\\
+\text{(I5$_P$, min)}\quad&
+\Big(1-\frac{3\mu_P}{16R_P^2}\Big)\norm{\delta}_P^2
++\Big(1-\frac1{3n}\Big)\Delta\sum_{i=1}^n\norm{\fip(\etastar)-z_i^{(t-1)}}_{P^{-1}}^2\ \le\ \rho_P\,V_{t-1}^P .
+\label{ineq:P-min}
+\end{align}
+For \eqref{ineq:P-sc}: $\tilde F$ is $\mu_P$-strongly convex, so adding the inequalities of
+Lemma~\ref{lem:B1-constants}(ii) written at $(\theta,\theta')=(\theta_{t-1},\etastar)$ and at
+$(\etastar,\theta_{t-1})$, and using $\Fp(\etastar)=0$, gives
+$\inner{\Fp(\theta_{t-1})}{\theta_{t-1}-\etastar}\ge\mu_P\norm{\theta_{t-1}-\etastar}_P^2$; inserting it in
+\eqref{eq:B1-combined} (the coefficient $-\frac{3\gamma}4$ is negative, so the inequality direction is
+preserved) produces the left-hand side of \eqref{ineq:P-min}, since $\frac{3\gamma}{4}\mu_P=\frac{3\mu_P}{16R_P^2}$.
+\eqref{ineq:P-min} is the scalar inequality $(1-\alpha)x+(1-\beta)y\le(1-\min\{\alpha,\beta\})(x+y)$ for
+$x,y\ge0$, with $\alpha=\frac{3\mu_P}{16R_P^2}$, $\beta=\frac1{3n}$. This proves \eqref{eq:B1-onestep}.
+Iterating with the tower property, $\E V_t^P\le\rho_P^tV_0^P$, and
+\begin{equation}\label{ineq:P-init}
+\text{(I6$_P$, initialization)}\qquad
+\sum_{i=1}^n\norm{\fip(\etastar)-\fip(\theta_0)}_{P^{-1}}^2\le n\,R_P^4\,\norm{\theta_0-\etastar}_P^2
+\end{equation}
+(each term is bounded by the square of \eqref{eq:B1-rel-smooth}) gives, when $z_i^{(0)}=\fip(\theta_0)$,
+\[
+V_0^P\le(1+3\gamma^2nR_P^4)\norm{\theta_0-\etastar}_P^2=\Big(1+\frac{3n}{16}\Big)\norm{\theta_0-\etastar}_P^2
+\le\Big(1+\frac n4\Big)\norm{\theta_0-\etastar}_P^2 ,
+\]
+which is \eqref{eq:B1-rate} because
+$\norm{\theta_t-\etastar}_P^2\le V_t^P$. This completes the second proof of
+Corollary~\ref{cor:B1-rate}. \qed
+
+\begin{remark}[comparison with Bregman-SAGA]\label{rem:B1-dragomir}
+Corollary~1 of \cite{dragomir2021fast} states, for Bregman-SAGA with a quadratic reference function
+($\nabla^2h$ constant, which is exactly $P$-SAGA by Lemma~\ref{lem:B1-step}) and step $1/(8L_{f/h})$,
+the contraction $\E[\psi_t]\le(1-\min\{\frac{1}{8\kappa_{f/h}},\frac1{2n}\})^t\psi_0$ of their potential
+$\psi_t=\frac1{\eta}D_h(x^\star,x_t)+\frac n2\cdot\frac1n\sum_iD_{f_i}(\phi_i^t,x^\star)$, where
+$L_{f/h}$ is the relative smoothness of every $f_i$ (their Assumption~3) and
+$\kappa_{f/h}=L_{f/h}/\mu_{f/h}$ the relative condition number: these are our $R_P^2$ and $\kappaP$. The
+rate has the same structure $1-\min\{c_1/n,\,c_2/\kappaP\}$ as \eqref{eq:B1-VP} (with $(c_1,c_2)=(\frac12,\frac18)$
+instead of $(\frac13,\frac3{16})$, the difference coming from the step and from a potential expressed with
+Bregman distances of the $f_i$ instead of squared norms of memory vectors).
+\end{remark}
+
+\subsubsection{Metric dependence of each step, and the six tightness ratios in the \texorpdfstring{$P$}{P}-geometry}
+\label{sec:B1-ratios}
+
+Table~\ref{tab:B1-metric} summarizes where $P$ enters. Three kinds of objects appear.
+(a) Quantities that are the same numbers for every $P$, given the current state $(\theta_{t-1},z^{(t-1)})$:
+the pairing $\inner{\theta_{t-1}-\etastar}{\omega_t}$ and its conditional expectation
+$\inner{\theta_{t-1}-\etastar}{\Fp(\theta_{t-1})}$, the unbiasedness, the memory bookkeeping identity of
+Step~2 (an identity, valid for any norm), the scalar inequality (I5), and the algebra of the combination
+(the constants $\frac38$, $\frac2{3n}$, $\frac3{16}$ are unchanged because $\gamma$ and $\Delta$ are
+normalized by $R_P^2$). (b) Inequalities whose \emph{form} is metric independent but which are instantiated
+in the $P^{-1}$-inner product: (I1) and (I3), both valid in every Hilbert norm (Lemma~\ref{lem:B1-geometry}).
+(c) Inequalities whose norm \emph{and} constant change: (I2) (left side in $\norm{\cdot}_{P^{-1}}$, right
+side metric free, constant $R_P^2$), (I4) (left side metric free, right side in $\norm{\cdot}_P$, constant
+$\mu_P$), (I6) (both norms and $R_P^4$). Of course the iterates themselves depend on $P$, so the numerical
+values of all ratios depend on $P$; the point of the classification is that the \emph{same six ratios} can
+be computed, by Proposition~\ref{prop:B1-transfer}(iv), either in $\theta$-coordinates with $P$-norms (one
+linear solve with $P$ per vector), or in $u$-coordinates with Euclidean norms on the transformed problem
+(whose regularizer is the non-isotropic quadratic $\frac\lambda2u^\top P^{-1}u$ for logistic regression,
+so the B3 code must accept a general quadratic regularizer if the second route is taken).
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{@{}p{2.0cm}p{2.5cm}p{4.8cm}p{5.2cm}@{}}
+\toprule
+Step & Inequality & What changes with $P$ & Metric-free part \\
+\midrule
+(I1) \eqref{ineq:P-sq} & square norm & norm $\norm{\cdot}_{P^{-1}}$ only & form of the inequality \\
+(I2) \eqref{ineq:P-coco} & co-coercivity & norm $\norm{\cdot}_{P^{-1}}$, constant $R_P^2$ &
+  pairing $\inner{\Fp(\theta_{t-1})}{\theta_{t-1}-\etastar}$ \\
+(I3) \eqref{ineq:P-var} & variance $\le$ 2nd moment & norm $\norm{\cdot}_{P^{-1}}$ only & form of the inequality \\
+(I4) \eqref{ineq:P-sc} & strong convexity & norm $\norm{\cdot}_P$, constant $\mu_P$ &
+  pairing $\inner{\Fp(\theta_{t-1})}{\theta_{t-1}-\etastar}$ \\
+(I5) \eqref{ineq:P-min} & min & only through the value of $3\mu_P/(16R_P^2)$ & scalar inequality \\
+(I6) \eqref{ineq:P-init} & initialization & both norms, constant $R_P^4$ & --- \\
+exact steps & \eqref{eq:B1-expand}, Step~2 identity, combination & norms only & unbiasedness, pairing, algebra \\
+\bottomrule
+\end{tabular}
+\caption{Metric dependence of the steps of the proof of Proposition~5.9 (Section~\ref{sec:B1-proofP}).}
+\label{tab:B1-metric}
+\end{table}
+
+\begin{definition}[tightness ratios in the $P$-geometry]\label{def:B1-ratios}
+The effective (trajectory-dependent) constants of the B2 note, written in the $P$-metric, are, for
+$\theta\neq\etastar$,
+\begin{equation}\label{eq:B1-eff-constants}
+\muEff^P(\theta):=\frac{\inner{\Fp(\theta)}{\theta-\etastar}}{\norm{\theta-\etastar}_P^2},
+\qquad
+\LEff^P(\theta):=\frac{\frac1n\sum_i\norm{\fip(\theta)-\fip(\etastar)}_{P^{-1}}^2}
+{\inner{\Fp(\theta)}{\theta-\etastar}} .
+\end{equation}
+\emph{Convention on indices.} As in the B3 note, the ratios of iteration $t$ are evaluated at the state
+$(\theta_{t-1},z^{(t-1)})$ seen before $i(t)$ is drawn, so they involve $\muEff^P(\theta_{t-1})$ and
+$\LEff^P(\theta_{t-1})$; the B2 note abbreviates $\muEff(t):=\muEff(\theta_t)$, which for $P=I$ is the
+value entering the ratios of iteration $t+1$. To avoid any off-by-one error in code shared by the three
+notes, we never write $\muEff^P(t)$ but always display the point, $\muEff^P(\theta_{t-1})$.
+With the notation of Section~\ref{sec:B1-proofP} ($\delta=\theta_{t-1}-\etastar$, $a_{t,i}$, $b_{t,i}$,
+$\bar z$), $\alpha=\frac{3\mu_P}{16R_P^2}$, $\beta=\frac1{3n}$ and $\Delta=3\gamma^2$, define, for
+$\theta_{t-1}\neq\etastar$,
+\begin{align*}
+r^P_{\mathrm{sq}}(t)&:=\frac{\frac1n\sum_i\norm{a_{t,i}+b_{t,i}}_{P^{-1}}^2}
+{\frac2n\sum_i\big(\norm{a_{t,i}}_{P^{-1}}^2+\norm{b_{t,i}}_{P^{-1}}^2\big)},\\
+r^P_{\mathrm{coco}}(t)&:=\frac{\frac1n\sum_i\norm{\fip(\theta_{t-1})-\fip(\etastar)}_{P^{-1}}^2}
+{R_P^2\,\inner{\Fp(\theta_{t-1})}{\delta}}=\frac{\LEff^P(\theta_{t-1})}{R_P^2},\\
+r^P_{\mathrm{var}}(t)&:=\frac{\frac1n\sum_i\norm{b_{t,i}}_{P^{-1}}^2}
+{\frac1n\sum_i\norm{\fip(\etastar)-z_i^{(t-1)}}_{P^{-1}}^2}
+=1-\frac{\norm{\bar z}_{P^{-1}}^2}{\frac1n\sum_i\norm{\fip(\etastar)-z_i^{(t-1)}}_{P^{-1}}^2},\\
+r^P_{\mathrm{sc}}(t)&:=\frac{\mu_P\norm{\delta}_P^2}{\inner{\Fp(\theta_{t-1})}{\delta}}
+=\frac{\mu_P}{\muEff^P(\theta_{t-1})},\\
+r^P_{\mathrm{min}}(t)&:=\frac{(1-\alpha)\norm{\delta}_P^2+(1-\beta)\Delta\sum_i\norm{\fip(\etastar)-z_i^{(t-1)}}_{P^{-1}}^2}
+{\rho_P\,V_{t-1}^P},
+\end{align*}
+with the convention $r^P_{\mathrm{var}}(t):=1$ when the memory is exact ($z_i^{(t-1)}=\fip(\etastar)$ for
+all $i$, the only case in which its denominator vanishes; \eqref{ineq:P-var} is then the equality
+$0\le0$), and, for $\theta_0\neq\etastar$,
+\begin{equation}\label{eq:B1-rinit-identity}
+r^P_{\mathrm{init}}:=\frac{\sum_i\norm{\fip(\etastar)-\fip(\theta_0)}_{P^{-1}}^2}
+{nR_P^4\norm{\theta_0-\etastar}_P^2}
+=\frac{\LEff^P(\theta_0)\,\muEff^P(\theta_0)}{R_P^4}
+=r^P_{\mathrm{coco}}(1)\,\frac{\muEff^P(\theta_0)}{R_P^2} .
+\end{equation}
+Each ratio is the smaller side of one of \eqref{ineq:P-sq}--\eqref{ineq:P-init} divided by the larger side,
+the expectations over $i(t)$ being exact averages over $i$. The identities in \eqref{eq:B1-rinit-identity}
+are immediate from \eqref{eq:B1-eff-constants}, the pairing $\inner{\Fp(\theta_0)}{\theta_0-\etastar}$
+cancelling in the product $\LEff^P(\theta_0)\muEff^P(\theta_0)$: $r^P_{\mathrm{init}}$ is a derived ratio,
+not an independent one. The one-step ratio $r^P_{\mathrm{tot}}(t):=\Ei[V_t^P]/(\rho_PV_{t-1}^P)$, defined
+when $V_{t-1}^P>0$, is also computable exactly (average of $V_t^P$ over the $n$ possible draws). For $P=I$
+all of them reduce to the ratios of the B3 note.
+\end{definition}
+
+\begin{lemma}[ranges and degenerate cases]\label{lem:B1-ranges}
+Let $\theta_{t-1}\neq\etastar$. Then
+\begin{equation}\label{eq:B1-eff-sandwich}
+0<\mu_P\le\muEff^P(\theta_{t-1})\le\LEff^P(\theta_{t-1})\le R_P^2 ,
+\end{equation}
+all the denominators in Definition~\ref{def:B1-ratios} are positive (that of $r^P_{\mathrm{var}}$ when the
+memory is not exact), and
+$r^P_{\mathrm{sc}}(t),r^P_{\mathrm{coco}}(t),r^P_{\mathrm{sq}}(t),r^P_{\mathrm{min}}(t)\in(0,1]$,
+$r^P_{\mathrm{var}}(t)\in[0,1]$; if $\theta_0\neq\etastar$ then $r^P_{\mathrm{init}}\in(0,1]$. At
+$\theta_{t-1}=\etastar$ the ratios $r^P_{\mathrm{sc}}$ and $r^P_{\mathrm{coco}}$ are of the form $0/0$ (both
+numerator and denominator vanish since $\Fp(\etastar)=0$), as are $r^P_{\mathrm{sq}}$ when in addition all
+memory errors $z_i^{(t-1)}-\fip(\etastar)$ coincide, and $r^P_{\mathrm{min}}$, $r^P_{\mathrm{tot}}$ when in
+addition the memory is exact; they are left undefined there, as in the B3 note.
+\end{lemma}
+\begin{proof}
+By Proposition~\ref{prop:B1-transfer}(i),(iv), every quantity above is the corresponding Euclidean quantity
+of the B3 note computed on the transformed problem $(\tilde f_i)$ at the state $(u_{t-1},\tilde z^{(t-1)})$,
+for which the hypotheses of the B3 note hold (convex $R_P^2$-smooth $\tilde f_i$, $\mu_P$-strongly convex
+$\tilde F$, $u_{t-1}\neq\tilde u_*$); the statement is the B3 lemma on ranges and degenerate cases,
+transferred. For completeness, directly: \eqref{ineq:P-sc} gives
+$\inner{\Fp(\theta_{t-1})}{\delta}\ge\mu_P\norm{\delta}_P^2>0$, i.e. $\muEff^P(\theta_{t-1})\ge\mu_P>0$, so
+$\Fp(\theta_{t-1})\neq0$; by convexity of the squared norm (Jensen) and Lemma~\ref{lem:B1-geometry}(i),
+$\frac1n\sum_i\norm{\fip(\theta_{t-1})-\fip(\etastar)}_{P^{-1}}^2\ge\norm{\Fp(\theta_{t-1})}_{P^{-1}}^2
+\ge\inner{\Fp(\theta_{t-1})}{\delta}^2/\norm{\delta}_P^2>0$, which is $\LEff^P\ge\muEff^P$ together with the
+positivity of the numerator of $r^P_{\mathrm{coco}}$; $\LEff^P\le R_P^2$ is \eqref{ineq:P-coco}. The
+numerator of $r^P_{\mathrm{sq}}$ is $\ge\norm{\frac1n\sum_i(a_{t,i}+b_{t,i})}_{P^{-1}}^2
+=\norm{\Fp(\theta_{t-1})}_{P^{-1}}^2>0$ (Jensen again, and $\sum_ib_{t,i}=0$ because
+$\sum_i\fip(\etastar)=0$); the numerator of $r^P_{\mathrm{min}}$ is $\ge(1-\alpha)\norm{\delta}_P^2>0$ as
+$\alpha\le\frac3{16}$, and its denominator is $\rho_PV_{t-1}^P\ge\rho_P\norm{\delta}_P^2>0$. The upper
+bounds are the inequalities \eqref{ineq:P-sq}--\eqref{ineq:P-min} themselves, and $r^P_{\mathrm{var}}\ge0$
+is clear. For $r^P_{\mathrm{init}}$, apply \eqref{eq:B1-eff-sandwich} at $\theta_0$ in
+\eqref{eq:B1-rinit-identity}.
+\end{proof}
+
+\begin{remark}[effective one-step contraction; link with the B2 note]\label{rem:B1-effective-rate}
+Keep $\gamma=1/(4R_P^2)$ and $\Delta=3\gamma^2$ but, in Steps~1--2, replace the two uses of
+\eqref{ineq:P-coco} and the use of \eqref{ineq:P-sc} by the identities
+\[
+\frac1n\sum_i\norm{\fip(\theta_{t-1})-\fip(\etastar)}_{P^{-1}}^2=\LEff^P(\theta_{t-1})\inner{\Fp(\theta_{t-1})}{\delta},
+\qquad
+\inner{\Fp(\theta_{t-1})}{\delta}=\muEff^P(\theta_{t-1})\norm{\delta}_P^2 .
+\]
+The coefficient of $\inner{\Fp(\theta_{t-1})}{\delta}$ in the combination becomes (writing $\LEff^P$ for
+$\LEff^P(\theta_{t-1})$)
+\[
+-2\gamma\big(1-\gamma\LEff^P-\LEff^P\Delta/(2\gamma)\big)=-2\gamma\big(1-\tfrac52\gamma\LEff^P\big)
+=-2\gamma\big(1-\tfrac58r^P_{\mathrm{coco}}(t)\big),
+\]
+whence, with only \eqref{ineq:P-sq} and \eqref{ineq:P-var} still used,
+\begin{equation}\label{eq:B1-effective-rate}
+\Ei[V_t^P]\le\Big(1-\Big(1-\frac58r^P_{\mathrm{coco}}(t)\Big)\frac{\muEff^P(\theta_{t-1})}{2R_P^2}\Big)
+\norm{\theta_{t-1}-\etastar}_P^2
++\Big(1-\frac1{3n}\Big)\Delta\sum_{i=1}^n\norm{\fip(\etastar)-z_i^{(t-1)}}_{P^{-1}}^2 .
+\end{equation}
+Since $r^P_{\mathrm{coco}}\in(0,1]$ (Lemma~\ref{lem:B1-ranges}), the contraction factor of the parameter
+part lies between $1-\frac{\muEff^P(\theta_{t-1})}{2R_P^2}$ and $1-\frac{3\muEff^P(\theta_{t-1})}{16R_P^2}$:
+the rate ``seen by the proof'' is governed by the effective relative condition number
+$R_P^2/\muEff^P(\theta_{t-1})$ (the B2 quantity in the
+$P$-metric), the looseness of co-coercivity affecting only the constant, between $\frac3{16}$ and
+$\frac12$. This is the quantity whose behaviour under the four metrics is predicted in
+Section~\ref{sec:B1-predictions}.
+\end{remark}
+
+\subsection{Choice of \texorpdfstring{$P$}{P} on \texorpdfstring{$\ell_2$}{l2}-regularized logistic regression}
+\label{sec:B1-choice}
+
+\paragraph{Setting and notation.}
+$X\in\R^{n\times d}$ has rows $x_i^\top$, $\hat\Sigma:=\frac1nX^\top X$ has eigenvalues
+$\sigma_1\ge\dots\ge\sigma_d\ge0$ and eigenvectors $v_1,\dots,v_d$, and $f_i$ is as in
+Lemma~\ref{lem:B1-logistic}. We use the ridge leverage scores and the effective dimension
+(\cite[Def.~1]{elalaoui2015fast} with the linear kernel $K=XX^\top$; \cite[Sec.~4.1]{bach2013sharp}):
+\begin{align}
+\ell_i(\lambda)&:=x_i^\top(X^\top X+n\lambda I)^{-1}x_i=\big[X(X^\top X+n\lambda I)^{-1}X^\top\big]_{ii},\label{eq:B1-leverage-def}\\
+d_{\mathrm{eff}}(\lambda)&:=\tr\big(\hat\Sigma(\hat\Sigma+\lambda I)^{-1}\big)=\sum_{k=1}^d\frac{\sigma_k}{\sigma_k+\lambda},\qquad
+d_{\infty}(\lambda):=n\max_i\ell_i(\lambda),\nonumber
+\end{align}
+$d_\infty$ being the ``maximal marginal degrees of freedom''
+$n\,\|\diag(K(K+n\lambda I)^{-1})\|_\infty$ of \cite[Sec.~4.1, eq.~(5)]{bach2013sharp}.
+
+\begin{lemma}[leverage scores]\label{lem:B1-leverage}
+\begin{enumerate}[label=(\roman*)]
+\item $\norm{x_i}^2_{(\hat\Sigma+\lambda I)^{-1}}=n\,\ell_i(\lambda)$ for every $i$.
+\item $\sum_{i=1}^n\ell_i(\lambda)=d_{\mathrm{eff}}(\lambda)$; hence
+$d_{\mathrm{eff}}(\lambda)\le d_\infty(\lambda)$.
+\item $0\le\ell_i(\lambda)<1$ for every $i$, hence $d_\infty(\lambda)<n$; for every $i$ the map
+$\lambda\mapsto\ell_i(\lambda)$ is nonincreasing on $(0,\infty)$, hence so are $d_\infty$ and
+$d_{\mathrm{eff}}$; moreover
+$d_{\mathrm{eff}}(\lambda)\le\min\{\operatorname{rank}(X),\,\tr(\hat\Sigma)/\lambda\}$.
+\item $X(X^\top X+n\lambda I)^{-1}X^\top=K(K+n\lambda I)^{-1}$ with $K=XX^\top$, so $\ell_i(\lambda)$ is
+the $\lambda$-ridge leverage score of \cite[Def.~1]{elalaoui2015fast}.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(i) $(\hat\Sigma+\lambda I)^{-1}=\big(\frac1n(X^\top X+n\lambda I)\big)^{-1}=n(X^\top X+n\lambda I)^{-1}$.
+(ii) By cyclicity of the trace,
+$\sum_i\ell_i=\tr\big(X(X^\top X+n\lambda I)^{-1}X^\top\big)=\tr\big((X^\top X+n\lambda I)^{-1}X^\top X\big)
+=\tr\big((\hat\Sigma+\lambda I)^{-1}\hat\Sigma\big)$, which equals $\sum_k\sigma_k/(\sigma_k+\lambda)$ in
+the eigenbasis of $\hat\Sigma$; the inequality is $\max_i\ell_i\ge\frac1n\sum_i\ell_i$.
+(iii) Let $X=\sum_{k=1}^{r}s_ku_kw_k^\top$ be a thin SVD ($r=\operatorname{rank}X$, $s_k>0$,
+$u_k\in\R^n$ orthonormal). Then $X(X^\top X+n\lambda I)^{-1}X^\top=\sum_k\frac{s_k^2}{s_k^2+n\lambda}u_ku_k^\top$,
+whose $i$-th diagonal entry is $\ell_i=\sum_k\frac{s_k^2}{s_k^2+n\lambda}u_{ki}^2$. If
+$\sum_ku_{ki}^2=0$ then $\ell_i=0$; otherwise $\frac{s_k^2}{s_k^2+n\lambda}<1$ gives
+$\ell_i<\sum_ku_{ki}^2\le1$, the last inequality because the $u_k$ are orthonormal columns of an
+$n\times r$ matrix. Each coefficient $s_k^2/(s_k^2+n\lambda)$ is decreasing in $\lambda$ and $u_{ki}^2\ge0$,
+so $\ell_i(\lambda)$ is nonincreasing in $\lambda$, and so are $d_\infty=n\max_i\ell_i$ and
+$d_{\mathrm{eff}}=\sum_i\ell_i$. The bound on $d_{\mathrm{eff}}$ follows from
+$\sigma_k/(\sigma_k+\lambda)\le\min\{\ind_{\sigma_k>0},\sigma_k/\lambda\}$.
+(iv) Push-through identity: $X(X^\top X+n\lambda I)=(XX^\top+n\lambda I)X$, hence
+$(XX^\top+n\lambda I)^{-1}X=X(X^\top X+n\lambda I)^{-1}$; multiply by $X^\top$ on the right.
+\end{proof}
+
+\begin{assumption}[coherence]\label{ass:B1-coherence}
+There is $C\ge1$ such that $\max_i\ell_i(\lambda)\le C\,d_{\mathrm{eff}}(\lambda)/n$, i.e.
+$d_\infty(\lambda)\le C\,d_{\mathrm{eff}}(\lambda)$: no data point has a leverage score larger than $C$
+times the average leverage score.
+\end{assumption}
+
+\paragraph{(a) $P=I$ (SAGA).}
+By Lemma~\ref{lem:B1-logistic}, $R^2=\frac14\max_i\norm{x_i}^2+\lambda$, $\mu=\lambda$ and
+\begin{equation}\label{eq:B1-kappa-I}
+\kappa=\frac{\max_i\norm{x_i}^2}{4\lambda}+1\ \ge\ \frac{\tr(\hat\Sigma)}{4\lambda}+1
+=\frac{\sum_{k=1}^d\sigma_k}{4\lambda}+1 ,
+\end{equation}
+since $\max_i\norm{x_i}^2\ge\frac1n\sum_i\norm{x_i}^2=\tr\hat\Sigma$. Thus $\kappa$ contains the whole
+spectrum of $\hat\Sigma$ through its trace (not only $\sigma_1$, which is what the condition number
+$L/\mu$ of $F$ alone would contain, since $L\le\sigma_1/4+\lambda$), divided by $\lambda$.
+
+\paragraph{(b) $P=D:=\diag(\hat\Sigma)+\lambda I$ (feature scaling, Jacobi preconditioning).}
+Write $D_0:=\diag(\hat\Sigma)$, $D_{0,jj}=\frac1n\sum_ix_{ij}^2$, assume no feature is identically zero
+(otherwise drop it), and let $C_{\mathrm{corr}}:=D_0^{-1/2}\hat\Sigma D_0^{-1/2}$ be the correlation matrix
+(unit diagonal, so $\lmin(C_{\mathrm{corr}})\le1\le\lmax(C_{\mathrm{corr}})\le d$).
+\begin{proposition}[Jacobi preconditioner]\label{prop:B1-diag}
+\begin{enumerate}[label=(\roman*)]
+\item $\norm{x_i}_{D^{-1}}^2=\sum_{j=1}^d\frac{x_{ij}^2}{D_{0,jj}+\lambda}$ and
+$\frac1n\sum_i\norm{x_i}_{D^{-1}}^2=\sum_{j=1}^d\frac{D_{0,jj}}{D_{0,jj}+\lambda}=:d^{\diag}_{\mathrm{eff}}(\lambda)
+\ \ge\ d_{\mathrm{eff}}(\lambda)$.
+\item $R_D^2\le\frac14\max_i\norm{x_i}_{D^{-1}}^2+\frac{\lambda}{\min_jD_{0,jj}+\lambda}$ and
+$\mu_D=\frac{\lambda}{\max_jD_{0,jj}+\lambda}$.
+\item $\lmin(C_{\mathrm{corr}})\,D\preceq\hat\Sigma+\lambda I\preceq\lmax(C_{\mathrm{corr}})\,D$;
+consequently $\lmin(C_{\mathrm{corr}})\,n\ell_i(\lambda)\le\norm{x_i}_{D^{-1}}^2
+\le\lmax(C_{\mathrm{corr}})\,n\ell_i(\lambda)$ for all $i$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(i) $D$ is diagonal, so $x_i^\top D^{-1}x_i=\sum_jx_{ij}^2/(D_{0,jj}+\lambda)$; averaging over $i$ and
+using $\frac1n\sum_ix_{ij}^2=D_{0,jj}$ gives $d^{\diag}_{\mathrm{eff}}$. For the inequality,
+$g(s)=s/(s+\lambda)$ is concave on $[0,\infty)$, the vector $(D_{0,jj})_j$ of diagonal entries of
+$\hat\Sigma$ is majorized by the vector of its eigenvalues (Schur--Horn theorem), and
+$x\mapsto\sum_jg(x_j)$ is Schur-concave when $g$ is concave \cite{marshall2011inequalities}; hence
+$\sum_jg(D_{0,jj})\ge\sum_kg(\sigma_k)$.
+(ii) Lemma~\ref{lem:B1-logistic} with $\lmin(D)=\min_jD_{0,jj}+\lambda$ and $\lmax(D)=\max_jD_{0,jj}+\lambda$.
+(iii) $\hat\Sigma=D_0^{1/2}C_{\mathrm{corr}}D_0^{1/2}$, so
+$\lmin(C_{\mathrm{corr}})D_0\preceq\hat\Sigma\preceq\lmax(C_{\mathrm{corr}})D_0$; adding $\lambda I$ and
+using $\lmin(C_{\mathrm{corr}})\le1\le\lmax(C_{\mathrm{corr}})$ gives the sandwich. Inverting it (the map
+$A\mapsto A^{-1}$ is order reversing on SPD matrices) gives
+\[
+\lmax(C_{\mathrm{corr}})^{-1}D^{-1}\preceq(\hat\Sigma+\lambda I)^{-1}\preceq\lmin(C_{\mathrm{corr}})^{-1}D^{-1},
+\]
+which with Lemma~\ref{lem:B1-leverage}(i) yields the bounds on $\norm{x_i}_{D^{-1}}^2$.
+\end{proof}
+Thus the Jacobi metric removes the \emph{scale} anisotropy of the features (up to the $\lambda$ terms, it
+is invariant under a rescaling of each feature) but keeps their \emph{correlation} anisotropy: every
+constant of the statistical preconditioner $\hat\Sigma+\lambda I$ derived below transfers to $D$ at the
+price of the factor $\operatorname{cond}(C_{\mathrm{corr}})=\lmax(C_{\mathrm{corr}})/\lmin(C_{\mathrm{corr}})$
+(the argument of Lemma~\ref{lem:B1-compare}, which applies verbatim to any pair of metrics, applied to
+$(D,\hat\Sigma+\lambda I)$ through (iii)), and $D=\hat\Sigma+\lambda I$
+exactly when the features are uncorrelated ($C_{\mathrm{corr}}=I$).
+
+\paragraph{(c) $P=\hat\Sigma+\lambda I$ (statistical preconditioning).}
+Here $\lmax(P)=\sigma_1+\lambda$, $\lmin(P)=\sigma_d+\lambda$ and, by Lemma~\ref{lem:B1-leverage}(i),
+$\norm{x_i}_{P^{-1}}^2=n\,\ell_i(\lambda)$.
+
+\begin{proposition}[global constants of the statistical preconditioner]\label{prop:B1-stat-global}
+For $P=\hat\Sigma+\lambda I$,
+\begin{equation}\label{eq:B1-stat-RP}
+\frac{d_\infty(\lambda)}{4}\ \le\ R_P^2\ \le\ \frac{d_\infty(\lambda)}{4}+\frac{\lambda}{\sigma_d+\lambda}
+\ \le\ \frac{d_\infty(\lambda)}4+1\ \le\ \frac{C\,d_{\mathrm{eff}}(\lambda)}{4}+1
+\quad\text{(the last under Assumption~\ref{ass:B1-coherence})},
+\end{equation}
+\begin{equation}\label{eq:B1-stat-muP}
+\mu_P=\frac{\lambda}{\sigma_1+\lambda},\qquad
+\kappaP=\frac{R_P^2}{\mu_P}\in\Big[\frac{d_\infty(\lambda)}{4}\cdot\frac{\sigma_1+\lambda}{\lambda},\
+\Big(\frac{d_\infty(\lambda)}{4}+\frac{\lambda}{\sigma_d+\lambda}\Big)\frac{\sigma_1+\lambda}{\lambda}\Big].
+\end{equation}
+\end{proposition}
+\begin{proof}
+Insert $\max_i\norm{x_i}_{P^{-1}}^2=n\max_i\ell_i(\lambda)=d_\infty(\lambda)$ and $\lmin(P)=\sigma_d+\lambda$
+in \eqref{eq:B1-logistic-RP}, and $\lmax(P)=\sigma_1+\lambda$ in \eqref{eq:B1-logistic-muP};
+$\lambda/(\sigma_d+\lambda)\le1$ and Assumption~\ref{ass:B1-coherence} give the last two bounds.
+\end{proof}
+
+The smoothness side is now controlled by leverage scores, i.e. by an effective dimension, with no trace of
+the spectrum of $\hat\Sigma$; but the \emph{global} strong convexity side has become
+$\lambda/(\sigma_1+\lambda)$, and the following statement shows that this is not an artefact of the proof:
+with global constants, no quadratic metric can beat $P=I$ on this problem.
+
+\begin{proposition}[no free lunch for global constants]\label{prop:B1-nofreelunch}
+For $\ell_2$-regularized logistic regression and \emph{every} SPD matrix $P$,
+\begin{equation}\label{ineq:P-nofreelunch}
+\kappaP\ \ge\ \frac{\max_i\norm{x_i}^2}{4\lambda}+1=\kappa ,
+\end{equation}
+with $\kappa$ the Euclidean condition number \eqref{eq:B1-kappa-I}; consequently $\rho_P\ge\rho_I$ for every
+$P$. In particular, for $P=\hat\Sigma+\lambda I$, $\kappa\le\kappaP\le\kappa\,\frac{\sigma_1+\lambda}{\sigma_d+\lambda}$.
+\end{proposition}
+\begin{proof}
+By the second lower bound in \eqref{eq:B1-logistic-RP},
+$R_P^2\ge(\max_i\norm{x_i}^2/4+\lambda)/\lmax(P)=R^2/\lmax(P)$, while $\mu_P=\lambda/\lmax(P)$ by
+\eqref{eq:B1-logistic-muP}; divide. Since $\kappaP\mapsto\rho_P=1-\min\{\frac1{3n},\frac3{16\kappaP}\}$ is
+nondecreasing, $\rho_P\ge\rho_I$. The upper bound for $P=\hat\Sigma+\lambda I$ is
+\eqref{eq:B1-kappaP-vs-kappa}.
+\end{proof}
+
+The mechanism is transparent: the supremum over $\theta$ in $R_P^2$ is attained on the decision boundary
+of sample $i$ ($x_i^\top\theta=0$, curvature $\frac14x_ix_i^\top$), whereas the infimum over $\theta$ in
+$\mu_P$ is approached far from all decision boundaries, where $F''\to\lambda I$ is isotropic; no single
+metric can be adapted both to a rank-one curvature $\frac14x_ix_i^\top$ and to an isotropic one. (For the
+square loss the curvature is constant, $F''\equiv\hat\Sigma+\lambda I=P$, every $f_i''=x_ix_i^\top+\lambda I$
+has relative smoothness in $[n\ell_i,n\ell_i+1]$, and the global $\kappaP$ lies in
+$[d_\infty(\lambda),d_\infty(\lambda)+1]$: a genuine gain. This is the ridge-regression setting of
+\cite{gonen2016solving}, whose Theorem~4 bounds the \emph{average} condition number of the preconditioned
+problem by $\tr(P^{-1/2}(\hat\Sigma+\lambda I)P^{-1/2})/\lmin(P^{-1/2}(\hat\Sigma+\lambda I)P^{-1/2})$,
+equal to $d$ for $P=\hat\Sigma+\lambda I$; with uniform sampling and the maximum in
+\eqref{eq:B1-RP-muP}, $d$ is replaced by $d_\infty(\lambda)$.) Hence, for logistic regression, any benefit
+of the metric must come from the \emph{trajectory-dependent} constants, which we now quantify; this is
+exactly the point of view of the B2 note.
+
+\begin{proposition}[trajectory-dependent strong convexity: exact formula]\label{prop:B1-traj-sc}
+For logistic regression, every $\theta\ne\etastar$, $\delta:=\theta-\etastar$, and
+$\bar\sigma_i'(\theta):=\int_0^1\sigma'\big(y_ix_i^\top(\etastar+s\delta)\big)\,ds\in(0,\tfrac14]$,
+\begin{equation}\label{eq:B1-pairing-exact}
+\fip(\theta)-\fip(\etastar)=\bar\sigma_i'(\theta)\,(x_i^\top\delta)\,x_i+\lambda\delta,\qquad
+\inner{\Fp(\theta)}{\theta-\etastar}=\frac1n\sum_{i=1}^n\bar\sigma_i'(\theta)\,(x_i^\top\delta)^2+\lambda\norm{\delta}^2 .
+\end{equation}
+Consequently, with
+$m(\theta):=\min_i\bar\sigma_i'(\theta)\ \ge\ \min_i\sigma'\big(\max\{|x_i^\top\etastar|,|x_i^\top\theta|\}\big)>0$:
+\begin{enumerate}[label=(\roman*)]
+\item for $P=\hat\Sigma+\lambda I$, the effective strong convexity
+$\muEff^P(\theta):=\inner{\Fp(\theta)}{\delta}/\norm{\delta}_P^2$ is the convex combination
+\begin{equation}\label{eq:B1-muEff-stat}
+\muEff^P(\theta)=\frac{\frac1n\sum_i\bar\sigma_i'(\theta)(x_i^\top\delta)^2+\lambda\norm{\delta}^2}
+{\frac1n\sum_i(x_i^\top\delta)^2+\lambda\norm{\delta}^2}\ \in\ [\,m(\theta),\,1\,]
+\end{equation}
+of the numbers $\bar\sigma_1'(\theta),\dots,\bar\sigma_n'(\theta),1$, and more precisely
+\begin{equation}\label{ineq:P-trajsc}
+\muEff^P(\theta)\ \ge\ \frac{m(\theta)\,\sigma_1+\lambda}{\sigma_1+\lambda}
+\ \ge\ \max\Big\{m(\theta),\ \frac{\lambda}{\sigma_1+\lambda}\Big\}=\max\{m(\theta),\mu_P\};
+\end{equation}
+\item for $P=I$,
+$\muEff(\theta)=\frac1n\sum_i\bar\sigma_i'(\theta)\,(x_i^\top\delta/\norm{\delta})^2+\lambda
+\in[\,m(\theta)\sigma_d+\lambda,\ \sigma_1/4+\lambda\,]$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+By the fundamental theorem of calculus applied to $s\mapsto\ell'(y_ix_i^\top(\etastar+s\delta))$,
+$\ell'(y_ix_i^\top\theta)-\ell'(y_ix_i^\top\etastar)=\int_0^1\ell''(y_ix_i^\top(\etastar+s\delta))\,ds\cdot y_ix_i^\top\delta
+=\bar\sigma_i'(\theta)\,y_ix_i^\top\delta$; multiplying by $y_ix_i$ ($y_i^2=1$) and adding $\lambda\delta$
+gives the first identity in \eqref{eq:B1-pairing-exact} by \eqref{eq:B1-logistic-hessians}. Pairing with
+$\delta$, averaging over $i$ and using $\Fp(\etastar)=0$ gives the second. Lower bound on $m(\theta)$:
+$s\mapsto x_i^\top(\etastar+s\delta)$ is affine, so $|x_i^\top(\etastar+s\delta)|\le\max\{|x_i^\top\etastar|,|x_i^\top\theta|\}$
+on $[0,1]$, and $\sigma'$ is decreasing in $|u|$ (Lemma~\ref{lem:B1-logistic}).
+(i) $\norm{\delta}_P^2=\delta^\top\hat\Sigma\delta+\lambda\norm{\delta}^2=\frac1n\sum_i(x_i^\top\delta)^2+\lambda\norm{\delta}^2$,
+which gives \eqref{eq:B1-muEff-stat}; it is a convex combination with (normalized) weights
+$(x_i^\top\delta)^2/n$ and $\lambda\norm{\delta}^2$, whence $m(\theta)\le\muEff^P\le1$ because
+$\bar\sigma_i'\le\frac14<1$. For \eqref{ineq:P-trajsc}: the numerator is $\ge\delta^\top(m\hat\Sigma+\lambda I)\delta$
+with $m=m(\theta)$, and since $\hat\Sigma$ and $P$ are simultaneously diagonalizable,
+$\delta^\top(m\hat\Sigma+\lambda I)\delta\ge\min_k\frac{m\sigma_k+\lambda}{\sigma_k+\lambda}\,\delta^\top P\delta
+=\frac{m\sigma_1+\lambda}{\sigma_1+\lambda}\norm{\delta}_P^2$, because $s\mapsto\frac{ms+\lambda}{s+\lambda}$ is
+nonincreasing on $[0,\infty)$ when $m\le1$ (its derivative is $\lambda(m-1)/(s+\lambda)^2$). Finally
+$\frac{m\sigma_1+\lambda}{\sigma_1+\lambda}$ is a convex combination of $m$ and $1$ with weights
+$\frac{\sigma_1}{\sigma_1+\lambda}$ and $\frac{\lambda}{\sigma_1+\lambda}$, hence it is $\ge m$ and
+$\ge\frac{\lambda}{\sigma_1+\lambda}$.
+(ii) Divide \eqref{eq:B1-pairing-exact} by $\norm{\delta}^2$; the bounds use $m\le\bar\sigma_i'\le\frac14$
+and $\sigma_d\norm{\delta}^2\le\delta^\top\hat\Sigma\delta\le\sigma_1\norm{\delta}^2$.
+\end{proof}
+
+Note that \eqref{ineq:P-trajsc} is the segment-averaged, \emph{per-sample} version of the pointwise
+inequality $F''(\theta')\succeq\min_i\sigma_i'(\theta')\,\hat\Sigma+\lambda I$: integrating the latter along
+the segment $[\etastar,\theta]$ would only produce the constant $\int_0^1\min_i\sigma_i'(\etastar+s\delta)\,ds$,
+which is $\le\min_j\int_0^1\sigma_j'(\etastar+s\delta)\,ds=m(\theta)$ (for each $j$,
+$\min_i\sigma_i'\le\sigma_j'$ pointwise), so \eqref{ineq:P-trajsc}, which uses the minimum of the per-sample
+segment averages, is at least as strong as the integrated pointwise bound. Its global version only gives
+$\mu_P=\lambda/(\sigma_1+\lambda)$ because $\inf_\theta\min_i\sigma_i'(\theta)=0$. The experiments can test
+\eqref{ineq:P-trajsc} directly (its tightness ratio is
+$\frac{m(\theta_{t-1})\sigma_1+\lambda}{\sigma_1+\lambda}\big/\muEff^P(\theta_{t-1})$), and
+\eqref{eq:B1-muEff-stat} shows that $\muEff^P(\theta_{t-1})$ is a direction-weighted \emph{average} of the per-sample
+curvatures along the segment, typically much larger than the minimum $m$: a single sample with a huge
+margin makes $m(\theta)$ tiny but has a negligible weight in \eqref{eq:B1-muEff-stat} unless the error
+$\delta$ is aligned with it.
+
+\begin{corollary}[trajectory-dependent condition number: the anisotropy of $\hat\Sigma$ disappears]
+\label{cor:B1-kappa-traj}
+Let $\kappa_{\mathrm{eff}}^P(\theta):=R_P^2/\muEff^P(\theta)$ be the effective relative condition number
+at $\theta$ (the quantity governing the effective contraction \eqref{eq:B1-effective-rate}). Then, for
+$P=\hat\Sigma+\lambda I$,
+\begin{equation}\label{eq:B1-kappa-traj-stat}
+\kappa^P_{\mathrm{eff}}(\theta)\ \le\ \Big(\frac{d_\infty(\lambda)}{4}+\frac{\lambda}{\sigma_d+\lambda}\Big)
+\frac{\sigma_1+\lambda}{m(\theta)\sigma_1+\lambda}\ \le\ \frac{d_\infty(\lambda)/4+1}{m(\theta)}
+\ \le\ \frac{C\,d_{\mathrm{eff}}(\lambda)/4+1}{m(\theta)},
+\end{equation}
+the last inequality under Assumption~\ref{ass:B1-coherence}, whereas for $P=I$ the same argument only gives
+\begin{equation}\label{eq:B1-kappa-traj-I}
+\frac{\max_i\norm{x_i}^2/4+\lambda}{\sigma_1/4+\lambda}\ \le\ \kappa_{\mathrm{eff}}(\theta)\ \le\
+\frac{\max_i\norm{x_i}^2/4+\lambda}{m(\theta)\sigma_d+\lambda},
+\qquad\text{with}\qquad \frac{\max_i\norm{x_i}^2/4+\lambda}{\sigma_1/4+\lambda}\ \ge\ \frac{\tr\hat\Sigma+4\lambda}{\sigma_1+4\lambda}.
+\end{equation}
+\end{corollary}
+\begin{proof}
+Divide \eqref{eq:B1-stat-RP} by \eqref{ineq:P-trajsc}, then use $\lambda/(\sigma_d+\lambda)\le1$ and
+$\frac{\sigma_1+\lambda}{m\sigma_1+\lambda}\le\frac1m$ (as $m\le1$). For $P=I$, divide $R^2$ by the bounds
+of Proposition~\ref{prop:B1-traj-sc}(ii), and use $\max_i\norm{x_i}^2\ge\tr\hat\Sigma$.
+\end{proof}
+
+In words: along the trajectory, the certified condition number in the statistical metric is (effective
+dimension)/(typical curvature of the logistic loss on the segment $[\etastar,\theta]$); the eigenvalues
+$\sigma_1,\dots,\sigma_d$ of $\hat\Sigma$ have disappeared, except through
+$d_{\mathrm{eff}}(\lambda)=\sum_k\sigma_k/(\sigma_k+\lambda)\le d$, which is a \emph{count} of the directions
+not killed by the regularization and is insensitive to the dynamic range of the spectrum. In the Euclidean
+metric, by contrast, even the trajectory-dependent bound keeps the factor
+$\max_i\norm{x_i}^2/(m\sigma_d+\lambda)\ge\tr\hat\Sigma/(\sigma_d/4+\lambda)$, the trace of $\hat\Sigma$
+divided by its smallest eigenvalue (or by $\lambda$ when $\lambda\gg m\sigma_d$); and the lower bound in
+\eqref{eq:B1-kappa-traj-I} shows that no trajectory can make the Euclidean $\kappa_{\mathrm{eff}}$ smaller
+than $(\tr\hat\Sigma)/\sigma_1$ (up to the $\lambda$ terms), the participation ratio of the spectrum. The
+price paid in the $P$-metric is the coherence constant $C$ and the curvature $m(\theta)$, which is small
+when some margins $|x_i^\top\theta|$ are large ($\sigma'(u)\approx e^{-|u|}$); the Newton metric (d)
+addresses this second issue.
+
+\begin{remark}[when the memory term is the bottleneck]\label{rem:B1-memory-bottleneck}
+The certified contraction is $1-\min\{\frac1{3n},\frac{3}{16\kappa'}\}$ for a condition number $\kappa'$
+(global or effective); the memory term $\frac1{3n}$ is the binding one iff $\kappa'\le\frac{9n}{16}$. For
+$P=\hat\Sigma+\lambda I$ and the trajectory constants of Corollary~\ref{cor:B1-kappa-traj}, a sufficient
+condition is therefore
+\begin{equation}\label{eq:B1-bottleneck-condition}
+n\ \ge\ \frac{16}{9}\cdot\frac{d_\infty(\lambda)/4+1}{m}=\frac{4d_\infty(\lambda)+16}{9m}
+\qquad\Big(\le\frac{4C\,d_{\mathrm{eff}}(\lambda)+16}{9m}\ \text{ under Assumption~\ref{ass:B1-coherence}}\Big),
+\end{equation}
+with $m$ a lower bound on $m(\theta_t)$ along the trajectory. In this regime ($n\gg d_{\mathrm{eff}}/m$) the
+effective rate of $P$-SAGA is $1-\frac1{3n}$ whatever $\lambda$ and the spectrum of $\hat\Sigma$: one needs
+$3\log(2n/\varepsilon)$ effective passes (the $\log(2n)$ coming from the prefactor $1+\frac n4$ of
+\eqref{eq:B1-rate}), which is the $n\log(1/\varepsilon)$ term of the lower bound of
+hypothesis (A1); no metric and no acceleration (A3) can improve the leading term further. For $P=I$ the
+corresponding condition $n\ge\frac{16}{9}\frac{\max_i\norm{x_i}^2/4+\lambda}{m\sigma_d+\lambda}$ fails by a
+factor of order $\max_i\norm{x_i}^2/(d_\infty(\lambda)\,\sigma_d)$ when $\lambda\ll m\sigma_d$; and with
+global constants both conditions read $n\ge\frac{16}{9}\kappaP\ge\frac{16}{9}\kappa$ by
+Proposition~\ref{prop:B1-nofreelunch}, which fails for the usual choice $\lambda\asymp R^2/n$ of
+\cite[Sec.~5.4.4]{bach2024learning} (then $\kappa\asymp n$).
+\end{remark}
+
+\begin{remark}[the variant $\frac14\hat\Sigma+\lambda I$]\label{rem:B1-quarter}
+$P'=\frac14\hat\Sigma+\lambda I=\frac14(\hat\Sigma+4\lambda I)$ is the exact global upper envelope of
+$F''$ ($F''(\theta)\preceq P'$ for all $\theta$ by \eqref{eq:B1-logistic-hessians}), so that $F$ is
+$1$-smooth relative to $P'$. It is the statistical preconditioner $P_{4\lambda}:=\hat\Sigma+4\lambda I$ at
+regularization $4\lambda$, rescaled by $\frac14$ (Remark~\ref{rem:B1-scaling}; the loss keeps its
+regularization $\lambda$), so that $\kappa_{P'}=\kappa_{P_{4\lambda}}$ and
+$\kappa^{P'}_{\mathrm{eff}}(\theta)=\kappa^{P_{4\lambda}}_{\mathrm{eff}}(\theta)$ (both $R_P^2$ and
+$\muEff^P(\theta)$ are multiplied by $1/c$ under $P\mapsto cP$). By Lemma~\ref{lem:B1-leverage}(i) at
+regularization $4\lambda$, $\norm{x_i}_{P_{4\lambda}^{-1}}^2=n\ell_i(4\lambda)$, so Lemma~\ref{lem:B1-logistic}
+gives $R_{P_{4\lambda}}^2\le\frac{d_\infty(4\lambda)}4+\frac{\lambda}{\sigma_d+4\lambda}$ and
+$\mu_{P_{4\lambda}}=\frac{\lambda}{\sigma_1+4\lambda}$; moreover $\muEff^{P'}(\theta)$ is a convex combination
+of $4\bar\sigma_1',\dots,4\bar\sigma_n',1$ (weights $(x_i^\top\delta)^2/(4n)$ and $\lambda\norm{\delta}^2$),
+hence lies in $[4m(\theta),1]$, and the argument of \eqref{ineq:P-trajsc}, now with the function
+$s\mapsto\frac{ms+\lambda}{s+4\lambda}$ (nonincreasing since $m\le\frac14$), gives
+$\muEff^{P_{4\lambda}}(\theta)\ge\frac{m(\theta)\sigma_1+\lambda}{\sigma_1+4\lambda}$. Hence
+\begin{align}
+\kappa_{P'}&\le\Big(\frac{d_\infty(4\lambda)}4+\frac{\lambda}{\sigma_d+4\lambda}\Big)\frac{\sigma_1+4\lambda}{\lambda},\nonumber\\
+\kappa^{P'}_{\mathrm{eff}}(\theta)&\le\Big(\frac{d_\infty(4\lambda)}4+\frac{\lambda}{\sigma_d+4\lambda}\Big)
+\frac{\sigma_1+4\lambda}{m(\theta)\sigma_1+\lambda}\le\frac{d_\infty(4\lambda)/4+1}{m(\theta)} ,\label{eq:B1-quarter-bounds}
+\end{align}
+the last step because $m(\sigma_1+4\lambda)\le m\sigma_1+\lambda$ when $m\le\frac14$. Since
+$\lambda\mapsto\ell_i(\lambda)$ is nonincreasing (Lemma~\ref{lem:B1-leverage}(iii)),
+$d_\infty(4\lambda)\le d_\infty(\lambda)$, and $\frac{\lambda}{\sigma_d+4\lambda}\le\frac{\lambda}{\sigma_d+\lambda}$:
+the brackets in \eqref{eq:B1-quarter-bounds} are never larger than those of \eqref{eq:B1-stat-muP} and
+\eqref{eq:B1-kappa-traj-stat}, but the factor $\sigma_1+4\lambda$ replaces $\sigma_1+\lambda$. Thus the
+variant is never worse than $P=\hat\Sigma+\lambda I$ in the global and in the finer trajectory bounds
+\emph{up to the factor} $(\sigma_1+4\lambda)/(\sigma_1+\lambda)\le4$, which is negligible when
+$\lambda\ll\sigma_1$, and never worse at all in the crude bound $(d_\infty/4+1)/m$; the experiments may use
+either.
+\end{remark}
+
+\paragraph{(d) $P=H:=F''(\etastar)$ (oracle Newton metric).}
+Let $w_i:=\sigma_i'(\etastar)=\sigma'(y_ix_i^\top\etastar)\in(0,\frac14]$, $W:=\diag(w_1,\dots,w_n)$ and
+$\hat\Sigma_w:=\frac1nX^\top WX$ (eigenvalues $\sigma_1^w\ge\dots\ge\sigma_d^w\ge0$), so that
+$H=\hat\Sigma_w+\lambda I$ by \eqref{eq:B1-logistic-hessians}. Define the $w$-weighted ridge leverage
+scores and effective dimension
+\begin{align}
+\ell_i^w(\lambda)&:=w_i\,x_i^\top(X^\top WX+n\lambda I)^{-1}x_i
+=\big[W^{1/2}X(X^\top WX+n\lambda I)^{-1}X^\top W^{1/2}\big]_{ii},\label{eq:B1-wleverage}\\
+d^w_{\mathrm{eff}}(\lambda)&:=\tr\big(\hat\Sigma_w(\hat\Sigma_w+\lambda I)^{-1}\big),\qquad
+d^w_\infty(\lambda):=n\max_i\ell^w_i(\lambda),\nonumber
+\end{align}
+i.e. the ridge leverage scores of the weighted design $W^{1/2}X$ (rows $\sqrt{w_i}\,x_i^\top$).
+Lemma~\ref{lem:B1-leverage} applied to $W^{1/2}X$ gives $\norm{\sqrt{w_i}\,x_i}_{H^{-1}}^2=n\ell_i^w(\lambda)$,
+$\sum_i\ell^w_i=d^w_{\mathrm{eff}}$ and $0\le\ell^w_i<1$.
+
+\begin{proposition}[constants in the Newton metric]\label{prop:B1-newton}
+For $P=H=F''(\etastar)$:
+\begin{enumerate}[label=(\roman*)]
+\item $\norm{x_i}_{H^{-1}}^2=n\,\ell_i^w(\lambda)/w_i$, hence
+\begin{equation}\label{eq:B1-newton-RP}
+\max_i\frac{n\ell^w_i(\lambda)}{4w_i}\ \le\ R_H^2\ \le\ \max_i\frac{n\ell^w_i(\lambda)}{4w_i}+\frac{\lambda}{\sigma^w_d+\lambda}
+\ \le\ \frac{d^w_\infty(\lambda)}{4\min_iw_i}+1,\qquad \mu_H=\frac{\lambda}{\sigma^w_1+\lambda}.
+\end{equation}
+\item For $\theta\neq\etastar$, with $\bar\sigma_i'(\theta)$ as in Proposition~\ref{prop:B1-traj-sc},
+\begin{equation}\label{eq:B1-muEff-newton}
+\muEff^H(\theta)=\frac{\frac1n\sum_i\bar\sigma_i'(\theta)(x_i^\top\delta)^2+\lambda\norm{\delta}^2}
+{\frac1n\sum_iw_i(x_i^\top\delta)^2+\lambda\norm{\delta}^2}
+\ \in\ \Big[\min\Big\{1,\min_i\frac{\bar\sigma_i'(\theta)}{w_i}\Big\},\ \max\Big\{1,\max_i\frac{\bar\sigma_i'(\theta)}{w_i}\Big\}\Big],
+\end{equation}
+a convex combination of $\bar\sigma_1'/w_1,\dots,\bar\sigma_n'/w_n,1$; in particular
+$\muEff^H(\theta)\to1$ as $\theta\to\etastar$, and $\muEff^H(\theta)\ge\mu_H$ always.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(i) $x_i^\top H^{-1}x_i=w_i^{-1}(\sqrt{w_i}x_i)^\top H^{-1}(\sqrt{w_i}x_i)=n\ell^w_i/w_i$ by
+Lemma~\ref{lem:B1-leverage}(i) for the design $W^{1/2}X$ (whose empirical covariance is $\hat\Sigma_w$);
+then \eqref{eq:B1-logistic-RP}--\eqref{eq:B1-logistic-muP} with $\lmin(H)=\sigma^w_d+\lambda$,
+$\lmax(H)=\sigma^w_1+\lambda$, and $\lambda/(\sigma_d^w+\lambda)\le1$.
+(ii) Divide \eqref{eq:B1-pairing-exact} by $\norm{\delta}_H^2=\frac1n\sum_iw_i(x_i^\top\delta)^2+\lambda\norm{\delta}^2$;
+the (normalized) weights are $w_i(x_i^\top\delta)^2/n$ for the values $\bar\sigma_i'/w_i$ and
+$\lambda\norm{\delta}^2$ for the value $1$. As $\theta\to\etastar$, $\bar\sigma_i'(\theta)\to\sigma_i'(\etastar)=w_i$
+by continuity of $\sigma'$, so every value tends to $1$. The last claim is \eqref{ineq:P-sc}.
+\end{proof}
+
+Thus the Newton metric makes the strong convexity side perfect near the optimum ($\muEff^H\to1$), but the
+smoothness side still pays the supremum over $\theta$ of the per-sample curvature: sample $i$ enters
+$R_H^2$ with the weight $\sup_\theta\sigma_i'(\theta)=\frac14$ in the numerator and with its curvature at
+the optimum $w_i$ in the metric, hence the factor $1/w_i$ in \eqref{eq:B1-newton-RP}; a sample with a large
+margin at $\etastar$ (small $w_i$) but a non-negligible weighted leverage is the worst case. Under a
+\emph{homogeneous curvature} assumption $\min_iw_i\ge w_{\min}$ and coherence of the weighted leverage
+scores ($d^w_\infty\le C\,d^w_{\mathrm{eff}}$), one gets $R_H^2\le C\,d^w_{\mathrm{eff}}(\lambda)/(4w_{\min})+1$
+and $\kappa_{\mathrm{eff}}^H(\theta)=R_H^2/\muEff^H(\theta)\to R_H^2\le C\,d^w_{\mathrm{eff}}/(4w_{\min})+1$
+as $\theta\to\etastar$. The next lemma shows that this $1/w_{\min}$ is again an artefact of the global
+supremum: the \emph{realized} smoothness constant $\LEff^H$ is leverage-controlled, with no curvature factor.
+
+\begin{lemma}[asymptotic effective constants]\label{lem:B1-asymptotic}
+Let the $f_i$ be $C^2$, $H_i:=f_i''(\etastar)$, $H:=F''(\etastar)=\frac1n\sum_iH_i\succ0$, and let
+$\theta\to\etastar$ with $\delta/\norm{\delta}\to v$, $\norm{v}=1$. Then, for every SPD $P$,
+\begin{align}
+\LEff^P(\theta)&\ \longrightarrow\ \frac{\frac1n\sum_i v^\top H_iP^{-1}H_iv}{v^\top Hv},\label{eq:B1-asymptotic}\\
+\muEff^P(\theta)&\ \longrightarrow\ \frac{v^\top Hv}{v^\top Pv}
+\in\big[\lmin(P^{-1/2}HP^{-1/2}),\lmax(P^{-1/2}HP^{-1/2})\big].\nonumber
+\end{align}
+Moreover $\frac1n\sum_iH_iP^{-1}H_i\succeq HP^{-1}H$, so the limit of $\LEff^P$ is at least
+$\lmin(P^{-1/2}HP^{-1/2})$, and for $P=H$
+\begin{equation}\label{eq:B1-asymptotic-newton}
+\lim\LEff^H(\theta)=1+\frac{\frac1n\sum_i\norm{H^{-1/2}(H_i-H)v}^2}{\norm{H^{1/2}v}^2}\ \ge\ 1,
+\end{equation}
+with equality iff $H_iv=Hv$ for all $i$ (homogeneous per-sample curvature in the direction $v$).
+For logistic regression, in addition, $\lim\LEff^H(\theta)\le\max\{d^w_\infty(\lambda),2\}$ for $P=H$,
+$\lim\LEff^P(\theta)\le d_\infty(\lambda)/4+\frac32$ for $P=\hat\Sigma+\lambda I$, and, for $P=I$, with
+$c_i:=x_i^\top v$ and $B_v:=\frac1n\sum_iw_i^2c_i^2\norm{x_i}^2$,
+\begin{equation}\label{eq:B1-asymptotic-I}
+\lim\LEff(\theta)=\frac{\lambda^2+2\lambda\,v^\top\hat\Sigma_wv+B_v}{\lambda+v^\top\hat\Sigma_wv},
+\qquad
+(v^\top\hat\Sigma_wv)^2\le B_v\le\frac{\max_i\norm{x_i}^2}{4}\,v^\top\hat\Sigma_wv=(\kappa-1)\lambda\,v^\top\hat\Sigma_wv
+\end{equation}
+(this is the exact formula $\LEff=(\lambda^2+2\lambda A+B)/(\lambda+A)$ of the B2 note, in the limit); in
+particular $\lambda+v^\top\hat\Sigma_wv\le\lim\LEff(\theta)\le\lambda+(\kappa+1)\,v^\top\hat\Sigma_wv$.
+\end{lemma}
+\begin{proof}
+Since $f_i$ is $C^2$, $\fip(\theta)-\fip(\etastar)=H_i\delta+o(\norm{\delta})$ and
+$\Fp(\theta)=H\delta+o(\norm{\delta})$ (as $\Fp(\etastar)=0$). Hence
+$\frac1n\sum_i\norm{\fip(\theta)-\fip(\etastar)}_{P^{-1}}^2=\frac1n\sum_i\delta^\top H_iP^{-1}H_i\delta+o(\norm{\delta}^2)$,
+$\inner{\Fp(\theta)}{\delta}=\delta^\top H\delta+o(\norm{\delta}^2)$ and $\norm{\delta}_P^2=\delta^\top P\delta$;
+dividing numerators and denominators by $\norm{\delta}^2$ and letting $\delta/\norm{\delta}\to v$ gives
+\eqref{eq:B1-asymptotic}, because $v^\top Hv>0$ and $v^\top Pv>0$; the bracket is the range of the
+Rayleigh quotient of $P^{-1/2}HP^{-1/2}$. The Loewner inequality:
+$0\preceq\frac1n\sum_i(H_i-H)P^{-1}(H_i-H)=\frac1n\sum_iH_iP^{-1}H_i-HP^{-1}H$, since the cross terms
+give $-\frac1n\sum_i(H_iP^{-1}H+HP^{-1}H_i)=-2HP^{-1}H$. Then
+$v^\top HP^{-1}Hv=\norm{M\,P^{1/2}v}^2$ with $M:=P^{-1/2}HP^{-1/2}$, and for an SPD matrix $M$ and any $w$,
+$\norm{Mw}^2=w^\top M^2w\ge\lmin(M)\,w^\top Mw$ (because $M^2-\lmin(M)M=M^{1/2}(M-\lmin(M)I)M^{1/2}\succeq0$),
+with $w^\top Mw=v^\top Hv$ here; with $P=H$ the same decomposition gives \eqref{eq:B1-asymptotic-newton}.
+For logistic regression, $H_i=w_ix_ix_i^\top+\lambda I$ and
+$v^\top H_iP^{-1}H_iv=w_i^2(x_i^\top v)^2\norm{x_i}_{P^{-1}}^2+2\lambda w_i(x_i^\top v)(x_i^\top P^{-1}v)+\lambda^2v^\top P^{-1}v$.
+For $P=H$: $w_i\norm{x_i}_{H^{-1}}^2=n\ell_i^w$, so the first terms average to
+$\frac1n\sum_i n\ell^w_i\,w_i(x_i^\top v)^2\le d^w_\infty\,v^\top\hat\Sigma_wv$; the remaining terms average to
+$2\lambda v^\top\hat\Sigma_wH^{-1}v+\lambda^2v^\top H^{-1}v=2\lambda v^\top(H-\lambda I)H^{-1}v+\lambda^2v^\top H^{-1}v
+=2\lambda\norm{v}^2-\lambda^2v^\top H^{-1}v\le2\lambda\norm{v}^2$; hence the numerator is
+$\le d^w_\infty\,v^\top\hat\Sigma_wv+2\lambda\norm{v}^2\le\max\{d^w_\infty,2\}\,v^\top Hv$.
+For $P=\hat\Sigma+\lambda I$: $\norm{x_i}_{P^{-1}}^2=n\ell_i$ and $w_i\le\frac14$ give
+$\frac1n\sum_iw_i^2(x_i^\top v)^2\,n\ell_i\le\frac{d_\infty}{4}\,v^\top\hat\Sigma_wv$; next
+$P^{-1}\preceq\lambda^{-1}I$ gives $\lambda^2v^\top P^{-1}v\le\lambda\norm{v}^2$; finally, by
+Cauchy--Schwarz, $\hat\Sigma_w\preceq\frac14\hat\Sigma$ and $\hat\Sigma\preceq P$,
+\begin{align*}
+2\lambda\,v^\top\hat\Sigma_wP^{-1}v&\le2\lambda\norm{\hat\Sigma_w^{1/2}v}\,\norm{\hat\Sigma_w^{1/2}P^{-1}v}
+\le\lambda\norm{\hat\Sigma_w^{1/2}v}\,\norm{\hat\Sigma^{1/2}P^{-1}v}
+\le\lambda\norm{\hat\Sigma_w^{1/2}v}\,\norm{P^{-1/2}v}\\
+&\le\sqrt\lambda\,\norm{\hat\Sigma_w^{1/2}v}\,\norm{v}\le\tfrac12\big(v^\top\hat\Sigma_wv+\lambda\norm{v}^2\big),
+\end{align*}
+where we used $\norm{\hat\Sigma^{1/2}P^{-1}v}^2=v^\top P^{-1}\hat\Sigma P^{-1}v\le v^\top P^{-1}v=\norm{P^{-1/2}v}^2\le\norm{v}^2/\lambda$
+and $ab\le\frac12(a^2+b^2)$. Summing the three bounds, the numerator is
+$\le(\frac{d_\infty}4+\frac12)v^\top\hat\Sigma_wv+\frac32\lambda\norm{v}^2\le(\frac{d_\infty}4+\frac32)\,v^\top Hv$.
+For $P=I$: $v^\top H_i^2v=\norm{H_iv}^2=\norm{w_ic_ix_i+\lambda v}^2=w_i^2c_i^2\norm{x_i}^2+2\lambda w_ic_i^2+\lambda^2$
+(using $x_i^\top v=c_i$ and $\norm v=1$); averaging over $i$ gives $B_v+2\lambda v^\top\hat\Sigma_wv+\lambda^2$,
+and $v^\top Hv=v^\top\hat\Sigma_wv+\lambda$, which is \eqref{eq:B1-asymptotic-I}. For the bounds on $B_v$:
+$\norm{x_i}^2\ge c_i^2$ (Cauchy--Schwarz, $\norm v=1$) and the convexity of the square give
+$B_v\ge\frac1n\sum_iw_i^2c_i^4\ge\big(\frac1n\sum_iw_ic_i^2\big)^2=(v^\top\hat\Sigma_wv)^2$, while
+$w_i\le\frac14$ and $\norm{x_i}^2\le\max_j\norm{x_j}^2=4(\kappa-1)\lambda$ (by \eqref{eq:B1-kappa-I}) give
+$B_v\le\frac{\max_j\norm{x_j}^2}4\cdot\frac1n\sum_iw_ic_i^2$. The two-sided bound on the limit follows, with
+$A:=v^\top\hat\Sigma_wv$, from $(\lambda^2+2\lambda A+B_v)/(\lambda+A)\ge(\lambda+A)^2/(\lambda+A)$ and
+$(\lambda^2+2\lambda A+B_v)/(\lambda+A)\le(\lambda^2+2\lambda A+(\kappa-1)\lambda A)/\lambda$.
+\end{proof}
+
+\paragraph{Global versus trajectory-dependent constants: where the supremum over $\theta$ is needed.}
+Proposition~5.9 uses (I2) for each $i$ at the pair $(\theta_{t-1},\etastar)$ for every $t$, and (I6) at
+$(\theta_0,\etastar)$; co-coercivity of $\tilde f_i$ between two points is proved (Proposition~5.4 of
+\cite{bach2024learning}) from smoothness on a neighbourhood containing an auxiliary point, so a constant
+valid on the whole space, $R_P^2$ with its $\sup_\theta$, is what the proof certifies; for logistic
+regression this supremum equals $\frac14$ for every sample, whatever $P$. Strong convexity (I4) is needed
+only at the pairs $(\theta_{t-1},\etastar)$, and the exact formula \eqref{eq:B1-pairing-exact} shows that it
+is a direction-weighted average of curvatures on the segment $[\etastar,\theta_{t-1}]$, which depends on
+the trajectory. The global constants $(R_P^2,\mu_P)$ are therefore pessimistic in two different ways:
+$\mu_P$ by the gap between $\inf_\theta$ and the segment averages (Propositions~\ref{prop:B1-traj-sc} and
+\ref{prop:B1-newton}), and $R_P^2$ by the gap between $\max_i\sup_\theta$ and the realized $\LEff^P$
+(Lemma~\ref{lem:B1-asymptotic}). The B2 note measures both gaps through $\muEff^P(\theta_{t-1})$ and
+$\LEff^P(\theta_{t-1})$;
+the statements above predict that preconditioning moves the gap from one inequality to the other
+(Section~\ref{sec:B1-predictions}). A rigorous way to use trajectory-dependent constants is to restrict a
+priori to a ball $\mathcal B$ containing $\etastar$ and all iterates and to replace $\sup_\theta$ and
+$\inf_\theta$ by $\sup_{\mathcal B}$ and $\inf_{\mathcal B}$; this is what
+\cite[Sec.~4.2]{hendrikx2020statistically} do for non-quadratic losses (uniform concentration of Hessians
+over a ball of radius $D$), the ball being needed precisely because the iterates depend on the metric.
+
+\subsection{Cost, and the case of a non-constant metric}
+\label{sec:B1-cost}
+
+\paragraph{Per iteration and per pass.}
+One iteration of $P$-SAGA computes one gradient $f'_{i(t)}(\theta_{t-1})$ ($O(d)$, or
+$O(\operatorname{nnz}(x_i))$ for sparse data), updates the memory vector $z_{i(t)}$ and the running sum
+$\sum_iz_i$ ($O(d)$), and applies $P^{-1}$ to $g_t$: $O(d)$ if $P$ is diagonal, $O(d^2)$ if $P$ is dense
+and a Cholesky factor $P=LL^\top$ (or $P^{-1}$ itself) has been precomputed (two triangular solves).
+Hence the cost of one iteration is $c_I=O(d)$, $c_D=O(d)$, $c_{\hat\Sigma+\lambda I}=c_H=O(d^2)$, and one
+effective pass ($n$ iterations) costs $O(nd)$ for $P\in\{I,D\}$ and $O(nd^2)$ for a dense $P$.
+Precomputation: $\diag(\hat\Sigma)$ costs $O(nd)$; $\hat\Sigma$ costs $O(nd^2)$ (one matrix product) and its
+Cholesky factorization $O(d^3)$; $F''(\etastar)$ needs $\etastar$ (an oracle; in practice a Hessian at a
+reference point, same cost $O(nd^2)$). Memory: $O(nd)$ for the $z_i$ as in Proposition~5.9 (the usual
+implementation for linear models stores one scalar $\ell'(y_ix_i^\top\theta_{\tau_i})$ per sample and keeps
+the regularizer outside the memory, $O(n)$ memory; this is a composite variant of SAGA
+\cite{defazio2014saga} whose analysis differs slightly from Proposition~5.9), plus $O(d^2)$ for the factor
+of a dense $P$. A dense $P$ also destroys sparsity ($P^{-1}x_i$ is dense), whereas a diagonal $P$ preserves
+it.
+
+\paragraph{Total complexity.}
+By Corollary~\ref{cor:B1-rate}, the time to reach accuracy $\varepsilon$ is
+\begin{equation}\label{eq:B1-total-cost}
+T_P\ \asymp\ c_P\Big(3n+\frac{16}{3}\kappaP\Big)\log\frac{2n}{\varepsilon}\ +\ \text{(precomputation)},
+\end{equation}
+to be compared with $T_I\asymp d\,(3n+\frac{16}{3}\kappa)\log\frac{2n}{\varepsilon}$ for SAGA
+\cite[Sec.~5.4.4]{bach2024learning}. The diagonal metric is free. A dense metric multiplies the
+per-iteration cost by $d$ and adds $O(nd^2+d^3)$, so it pays off only if the number of iterations
+decreases by more than a factor $d$: dividing \eqref{eq:B1-total-cost} by $d\log\frac{2n}{\varepsilon}$, the
+condition is
+\[
+d\Big(3n+\frac{16}{3}\kappaP\Big)+O\Big(\frac{nd+d^2}{\log(2n/\varepsilon)}\Big)\ \lesssim\ 3n+\frac{16}{3}\kappa,
+\qquad\text{i.e. roughly}\qquad \kappa\ \gtrsim\ d\,(n+\kappaP),
+\]
+the very ill-conditioned regime $\kappa\gg nd$ (the regime $\kappa\gg n$ of hypothesis (A4), with an extra
+factor $d$). With global constants this never happens for logistic regression ($\kappaP\ge\kappa$,
+Proposition~\ref{prop:B1-nofreelunch}). With trajectory constants, \emph{both} condition numbers must be
+replaced by their effective values: inserting the upper bounds \eqref{eq:B1-kappa-traj-stat} for
+$P=\hat\Sigma+\lambda I$ and \eqref{eq:B1-kappa-traj-I} for $P=I$ (with the same lower bound $m$ on the
+segment curvatures along both trajectories), the condition reads
+\begin{equation}\label{eq:B1-breakeven}
+\frac{\max_i\norm{x_i}^2/4+\lambda}{m\sigma_d+\lambda}\ \gtrsim\ d\,\Big(n+\frac{d_\infty(\lambda)/4+1}{m}\Big)
+\end{equation}
+if both bounds are tight. Since the left-hand side of \eqref{eq:B1-breakeven} is at most the global
+$\kappa=\max_i\norm{x_i}^2/(4\lambda)+1$, replacing it by $\kappa$ (global-constant SAGA against
+effective-constant $P$-SAGA, an asymmetric comparison) gives a condition,
+$\kappa\gtrsim d(n+(d_\infty(\lambda)/4+1)/m)$, which is only \emph{necessary}: it is a lower bound on the
+ill-conditioning required for a dense metric to pay off, and it overstates the benefit of the metric when
+$\lambda\ll m\sigma_d$ (then the left-hand side of \eqref{eq:B1-breakeven} is of order
+$\max_i\norm{x_i}^2/(4m\sigma_d)\ll\kappa$). In the memory-bottleneck regime of
+Remark~\ref{rem:B1-memory-bottleneck}, $T_P\asymp3c_Pn\log(2n/\varepsilon)$: $3\log(2n/\varepsilon)$
+passes, each $d$ times more expensive than a SAGA pass when $P$ is dense.
+
+\paragraph{A non-constant metric breaks the transfer argument.}
+Suppose the step uses $P_t$ at iteration $t$: $\theta_t=\theta_{t-1}-\gamma_tP_t^{-1}g_t$ (variable-metric
+or quasi-Newton variance reduction). Proposition~\ref{prop:B1-transfer} no longer applies: the transformed
+functions $\tilde f_i^{(t)}=f_i\circ P_t^{-1/2}$ and the transformed memory $P_t^{-1/2}z_i$ change with
+$t$, so there is no single Euclidean SAGA run to which Proposition~5.9 could be applied. In the $P$-metric
+proof of Section~\ref{sec:B1-proofP}, the one-step inequality \eqref{eq:B1-onestep} still holds at
+iteration $t$ for the Lyapunov function $V_t^{P_t}$ built with $P_t$ and $\gamma_t=1/(4R_{P_t}^2)$,
+\emph{provided} $P_t$ (hence $\gamma_t$, $R_{P_t}^2$, $\rho_{P_t}$) is measurable with respect to the past
+$\mathcal F_{t-1}:=\sigma(i(1),\dots,i(t-1))$, i.e. is computed before $i(t)$ is drawn: conditionally on
+$\mathcal F_{t-1}$ the metric is then fixed, the unbiasedness $\E[g_t\mid\mathcal F_{t-1}]=\Fp(\theta_{t-1})$
+can be used inside the $P_t$-norms, and the proof applies verbatim, giving
+$\E[V_t^{P_t}\mid\mathcal F_{t-1}]\le\rho_{P_t}V_{t-1}^{P_t}$ (if $P_t$ depended on $i(t)$, then
+$\E[P_t^{-1}g_t\mid\mathcal F_{t-1}]\neq P_t^{-1}\Fp(\theta_{t-1})$ in general and the argument already
+breaks at \eqref{eq:B1-expand}). But this compares $\E[V_t^{P_t}\mid\mathcal F_{t-1}]$ with
+$V_{t-1}^{P_t}$, not with $V_{t-1}^{P_{t-1}}$; one must pay the change of metric
+\begin{equation}\label{eq:B1-metric-drift}
+V_{t-1}^{P_t}\le c_t\,V_{t-1}^{P_{t-1}},\qquad
+c_t:=\max\Big\{\lmax\big(P_{t-1}^{-1/2}P_tP_{t-1}^{-1/2}\big),\
+\frac{\gamma_t^2}{\gamma_{t-1}^2}\lmax\big(P_t^{-1/2}P_{t-1}P_t^{-1/2}\big)\Big\}
+\end{equation}
+(Lemma~\ref{lem:B1-geometry}(v) applied to the pairs $(P_{t-1},P_t)$ and $(P_{t-1}^{-1},P_t^{-1})$; with
+the convention $P_0:=P_1$, $\gamma_0:=\gamma_1$, so that $c_1=1$). Both $\rho_{P_t}$ and $c_t$ are
+$\mathcal F_{t-1}$-measurable but random for an adaptive metric, and correlated with $V_{t-1}^{P_{t-1}}$,
+so they cannot be pulled out of the expectation; if however $\rho_{P_s}c_s\le\bar\rho_s$ almost surely for
+deterministic constants $\bar\rho_s$, then taking expectations and iterating gives
+$\E V_t^{P_t}\le\prod_{s=1}^t\bar\rho_s\,V_0^{P_0}$. Linear convergence is thus certified only if the
+metric drift is controlled by deterministic bounds, e.g. $c_t\le\bar c_t$ with $\sum_t\log\bar c_t<\infty$
+(a stationary limit metric, reached fast enough), or
+$c_t\le1+\frac12\min\{\frac1{3n},\frac3{16\bar\kappa}\}$ for a deterministic $\bar\kappa\ge\sup_t\kappa_{P_t}$
+(then $\rho_{P_t}c_t\le1-\frac12\min\{\frac1{3n},\frac3{16\bar\kappa}\}$), which is the analogue of the
+condition ``$\eta_t$ does
+not vary too much (not more than a factor $1-O(1/n)$)'' stated after Theorem~4 of \cite{dragomir2021fast}
+(there the gains $G_t$ must be nonincreasing for the Bregman potential to be a supermartingale). A uniform
+sandwich $\gamma I\preceq P_t^{-1}\preceq\Gamma I$ alone gives only $c_t\le\Gamma/\gamma$, useless per step;
+this is why the stochastic quasi-Newton variance-reduced methods of \cite{moritz2016linearly} (stochastic
+L-BFGS with SVRG gradients; Lemma~4: $\gamma I\preceq H_r\preceq\Gamma I$) and \cite{gower2016stochastic}
+(stochastic block BFGS with SVRG gradients; Assumption~1 and Lemma~1: $\gamma I\preceq H_t\preceq\Gamma I$)
+are analysed in the Euclidean norm, the metric entering only through $(\gamma,\Gamma)$: Theorem~7 of
+\cite{moritz2016linearly} gives, for $\lambda I\preceq\nabla^2f_T\preceq\Lambda I$, step $\eta$ and
+inner-loop length $m$, the rate $\alpha=\big(\frac1{2m\eta}+\eta\Gamma^2\Lambda^2\big)\big/\big(\gamma\lambda-\eta\Gamma^2\Lambda^2\big)$,
+and Theorem~1 of \cite{gower2016stochastic} the rate
+$\rho=\big(\frac1{2m\eta}+\eta\Gamma^2\Lambda(\Lambda-\lambda)\big)\big/\big(\gamma\lambda-\eta\Gamma^2\Lambda^2\big)$.
+In the first formula, $\alpha<1$ iff $\frac1{2m\eta}+2\eta\Gamma^2\Lambda^2<\gamma\lambda$; minimizing the
+left-hand side over $\eta$ (AM--GM: its minimum is $2\Gamma\Lambda/\sqrt m$, attained at
+$\eta=1/(2\Gamma\Lambda\sqrt m)$) shows that $\alpha<1$ for some $\eta$ if and only if
+$m>4\big(\Gamma\Lambda/(\gamma\lambda)\big)^2\ge4(\Lambda/\lambda)^2$, since $\Gamma\ge\gamma$: the
+certified epoch length is at least $4(\Lambda/\lambda)^2$, the square of the Hessian condition number
+$\Lambda/\lambda$ of $f$ (not to be confused with our $\kappa=R^2/\mu$), whereas the epoch length of
+Euclidean SVRG is linear in the condition number; the benefit of the metric is not captured at all. Capturing it requires a relative-smoothness analysis with a fixed (or
+asymptotically fixed) reference function, as here (\cite{dragomir2021fast}: Corollary~1 for quadratic $h$,
+Theorem~4 with gains $G_t$ otherwise), or a preconditioner fixed in advance from statistics of the data: a
+sub-sampled Hessian plus ridge as in \cite{hendrikx2020statistically}, whose Theorem~2 shows that for
+quadratic losses with $\norm{a_i}\le R$, a sub-sample of size $n>\frac{28}{3}\log\frac{2d}{\delta}$ and the
+ridge $\mu=\frac12\big(\frac{28R^2}{3n}\log\frac{2d}\delta-\lambda\big)^+$ give, with probability $1-\delta$,
+$(\frac32+\frac{2\mu}{\lambda})^{-1}(H_f+\mu I)\preceq H_F\preceq2(H_f+\mu I)$, i.e. a relative condition
+number $O\big(1+\frac{\kappa_\ell}{n}\log\frac d\delta\big)$ with $\kappa_\ell=R^2/\lambda$; or a sketched
+preconditioner as in \cite{gonen2016solving} (rank-$k$ sketch of the covariance for ridge regression,
+computed in time $O(ndk\log n)$; their Theorem~1 replaces the average condition number
+$\sum_i(\sigma_i+\lambda)/(\sigma_d+\lambda)$ of SVRG by one of order $(k\sigma_k+\sum_{i>k}\sigma_i)/\lambda$).
+In all these cases the metric is constant during the variance-reduced run, which is exactly what
+Proposition~\ref{prop:B1-transfer} needs. (Non-uniform sampling of $i(t)$ is outside the uniform-sampling
+setting of Proposition~5.9 and of this note. For the record: Schmidt et al.
+\cite[Sec.~4.8]{schmidt2017minimizing} conjectured, and Gower et al. \cite[Thm.~5.2 and Table~1,
+row~8]{gower2021stochastic} proved (see also \cite{qian2019saga}), that SAGA with the reweighted unbiased
+estimator $\frac1n\sum_iz_i^{(t-1)}+\frac1{np_{i(t)}}\big(f'_{i(t)}(\theta_{t-1})-z_{i(t)}^{(t-1)}\big)$ and
+probabilities $p_i\propto\mu n+4L_i$ reaches accuracy $\varepsilon$ in
+$O\big((n+4\bar L/\mu)\log\frac1\varepsilon\big)$ iterations, $\bar L=\frac1n\sum_iL_i$ being the
+\emph{average} of the per-sample smoothness constants. The change of variables of
+Proposition~\ref{prop:B1-transfer} applies verbatim to this variant, and for $P=\hat\Sigma+\lambda I$ the
+per-sample relative smoothness constants satisfy $L_i\le\frac{n\ell_i(\lambda)}4+\frac{\lambda}{\sigma_d+\lambda}$
+by the Weyl bound in the proof of Lemma~\ref{lem:B1-logistic}, so that $d_\infty(\lambda)$ would be replaced
+by $d_{\mathrm{eff}}(\lambda)=\sum_i\ell_i(\lambda)$ in the \emph{global} bound \eqref{eq:B1-stat-muP};
+whether the same substitution holds in the trajectory bounds of Corollary~\ref{cor:B1-kappa-traj} is not
+covered by those analyses and is left open.)
+
+\subsection{Predictions for the experiments}
+\label{sec:B1-predictions}
+
+Tables~\ref{tab:B1-predictions-global} and \ref{tab:B1-predictions-late} collect, for the four metrics,
+the certified constants (Lemma~\ref{lem:B1-logistic}, Propositions~\ref{prop:B1-diag},
+\ref{prop:B1-stat-global} and \ref{prop:B1-newton}), the certified rate
+$\rho_P=1-\min\{\frac1{3n},\frac{3}{16\kappaP}\}$, and the predicted late-phase behaviour of the
+effective constants (Lemma~\ref{lem:B1-asymptotic}). The late-phase predictions rest on the heuristic
+that, as for gradient descent on a quadratic, the late-phase error $\delta$ aligns with the bottom
+eigenspace of the relative Hessian $M_P:=P^{-1/2}F''(\etastar)P^{-1/2}$ (the most slowly contracted
+direction); $\bar w$ denotes a leverage-weighted average of the curvatures $w_i=\sigma_i'(\etastar)$ in that
+direction and $\overline{n\ell}$ a weighted average of the $n\ell_i(\lambda)$ (equal to
+$d_{\mathrm{eff}}(\lambda)$ when leverage scores are homogeneous).
+
+\begin{table}[ht]
+\centering
+\footnotesize
+\begin{tabular}{@{}p{2.0cm}p{2.6cm}p{3.2cm}p{3.4cm}p{3.4cm}@{}}
+\toprule
+ & $P=I$ & $P=D=\diag(\hat\Sigma)+\lambda I$ & $P=\hat\Sigma+\lambda I$ & $P=H=F''(\etastar)$ \\
+\midrule
+$R_P^2$ (certified) & $\frac14\max_i\norm{x_i}^2+\lambda$
+ & $\frac14\max_i\norm{x_i}_{D^{-1}}^2+\frac{\lambda}{\min_jD_{0,jj}+\lambda}$
+ & $\frac{d_\infty(\lambda)}4+\frac{\lambda}{\sigma_d+\lambda}$ \newline $\le\frac{Cd_{\mathrm{eff}}(\lambda)}4+1$
+ & $\max_i\frac{n\ell^w_i(\lambda)}{4w_i}+\frac{\lambda}{\sigma^w_d+\lambda}$ \\[2pt]
+$\mu_P$ (global, exact) & $\lambda$ & $\frac{\lambda}{\max_jD_{0,jj}+\lambda}$
+ & $\frac{\lambda}{\sigma_1+\lambda}$ & $\frac{\lambda}{\sigma^w_1+\lambda}$ \\[2pt]
+$\kappaP$ (global) & $\kappa$ & $\ge\kappa$ & $\in[\kappa,\ \kappa\operatorname{cond}(P)]$ & $\ge\kappa$ \\[2pt]
+certified $\rho_P$ & $1-\min\{\frac1{3n},\frac3{16\kappa}\}$ & $\ge\rho_I$: not better than $P=I$ & $\ge\rho_I$: not better than $P=I$ & $\ge\rho_I$: not better than $P=I$ \\[2pt]
+cost per pass & $O(nd)$ & $O(nd)$ & $O(nd^2)$ $+O(nd^2+d^3)$ once & $O(nd^2)$ $+O(nd^2+d^3)$ once, needs $\etastar$ \\
+\bottomrule
+\end{tabular}
+\caption{Certified (global) constants for $\ell_2$-regularized logistic regression.}
+\label{tab:B1-predictions-global}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\footnotesize
+\begin{tabular}{@{}p{1.6cm}p{3.2cm}p{2.8cm}p{3.6cm}p{3.4cm}@{}}
+\toprule
+late phase & $P=I$ & $P=D$ & $P=\hat\Sigma+\lambda I$ & $P=H=F''(\etastar)$ \\
+\midrule
+$\muEff^P\to$ & $\lmin(H)=\sigma^w_d+\lambda$ & $\lmin(M_D)$
+ & $\lmin(M_P)\approx\bar w$, \newline $\in\big[\frac{w_{\min}\sigma_1+\lambda}{\sigma_1+\lambda},1\big]$ & $1$ \\[2pt]
+$\LEff^P\to$ & $\frac{\lambda^2+2\lambda\sigma^w_d+B_v}{\lambda+\sigma^w_d}$ \newline $\in[\sigma^w_d+\lambda,\ \lambda+(\kappa+1)\sigma^w_d]$ & same with $\norm{\cdot}_{D^{-1}}$
+ & $\le\frac{d_\infty(\lambda)}4+\frac32$, $\approx\bar w\,\overline{n\ell}$ & $\in[1,\max\{d^w_\infty(\lambda),2\}]$ \\[2pt]
+$r_{\mathrm{sc}}\to$ & $\frac{\lambda}{\sigma^w_d+\lambda}$ ($\approx1$ if $\sigma^w_d\ll\lambda$) & $\mu_D/\lmin(M_D)$
+ & $\approx\frac{\lambda}{(\sigma_1+\lambda)\bar w}\ll1$ & $\frac{\lambda}{\sigma^w_1+\lambda}\ll1$ \\[2pt]
+$r_{\mathrm{coco}}\to$ & $\frac{\lambda^2+2\lambda\sigma^w_d+B_v}{(\lambda+\sigma^w_d)R^2}$ \newline $\in\big[\frac1\kappa,\ \frac1\kappa+\frac{2\sigma^w_d}{\lambda}\big]$ \newline ($\approx\frac1\kappa$ if $\sigma^w_d\ll\lambda/\kappa$) & intermediate
+ & $\approx4\bar w\,\overline{n\ell}/d_\infty(\lambda)\le1$ & $\frac{1+\text{heterogeneity}}{R_H^2}$ \\[2pt]
+loosest step & (I2) co-coercivity & (I2) and (I4) & (I4) strong convexity & (I4) strong convexity \\[2pt]
+$R_P^2/\muEff^P\to$ & $\frac{\max_i\norm{x_i}^2/4+\lambda}{\sigma^w_d+\lambda}$
+ & between the two neighbours, factor $\operatorname{cond}(C_{\mathrm{corr}})$
+ & $\lesssim\frac{Cd_{\mathrm{eff}}(\lambda)/4+1}{\bar w}$ & $R_H^2\le\frac{Cd^w_{\mathrm{eff}}(\lambda)}{4w_{\min}}+1$ \\
+\bottomrule
+\end{tabular}
+\caption{Predicted late-phase behaviour ($M_P=P^{-1/2}F''(\etastar)P^{-1/2}$, $v$ the late-phase error
+direction, taken to be the bottom eigenvector of $M_P$; for $P=I$, $v^\top\hat\Sigma_wv=\sigma^w_d$ and
+$B_v=\frac1n\sum_iw_i^2(x_i^\top v)^2\norm{x_i}^2\le(\kappa-1)\lambda\sigma^w_d$ as in
+\eqref{eq:B1-asymptotic-I}; ``heterogeneity'' is the second term of \eqref{eq:B1-asymptotic-newton}).}
+\label{tab:B1-predictions-late}
+\end{table}
+
+In words, with the statements they follow from:
+\begin{enumerate}[label=(P\arabic*)]
+\item \emph{Certified rates.} With global constants, none of the three preconditioners improves $\rho_P$
+for logistic regression ($\rho_P\ge\rho_I$ since $\kappaP\ge\kappa$, Proposition~\ref{prop:B1-nofreelunch});
+any observed speed-up must show up in the
+effective constants, not in $\rho_P$. For the square loss the statistical preconditioner does improve
+$\rho_P$, to $1-\min\{\frac1{3n},\frac{3}{16(d_\infty(\lambda)+1)}\}$.
+\item \emph{Looseness moves from (I2) to (I4).} Under $P=I$ the late-phase error lives in the
+low-curvature directions of $H$, where (I4) is nearly tight
+($r_{\mathrm{sc}}\to\lambda/\lmin(H)=\lambda/(\sigma^w_d+\lambda)$, close to $1$ when $\sigma^w_d\ll\lambda$)
+and (I2) is loose: by \eqref{eq:B1-asymptotic-I} with $v$ the bottom eigenvector of $H$ (so
+$v^\top\hat\Sigma_wv=\sigma^w_d$),
+\[
+r_{\mathrm{coco}}\ \to\ \frac{\lambda^2+2\lambda\sigma^w_d+B_v}{(\lambda+\sigma^w_d)R^2}
+\ \in\ \Big[\frac{\sigma^w_d+\lambda}{R^2},\ \frac1\kappa+\Big(1+\frac1\kappa\Big)\frac{\sigma^w_d}{\lambda}\Big],
+\]
+which is $\approx\lambda/R^2=1/\kappa$ when $\sigma^w_d\ll\lambda$ \emph{and} $B_v\ll\lambda^2$ (sufficient:
+$\sigma^w_d\ll\lambda/\kappa$, since $B_v\le(\kappa-1)\lambda\sigma^w_d$), and in any case $\ll1$ as soon as
+$\sigma^w_d\ll\lambda$. The condition $\sigma^w_d\ll\lambda$ alone does not give $\LEff\approx\lambda$: it
+kills the term $2\lambda\sigma^w_d$ but not $B_v$, which may be as large as
+$(\kappa-1)\lambda\sigma^w_d\gg\lambda^2$ on the hard instances $\kappa\gg n$ of (A4); the experiments should
+therefore record $B_v$ (or directly the limit value) rather than test $r_{\mathrm{coco}}\approx1/\kappa$.
+Under $P=\hat\Sigma+\lambda I$ and $P=H$ the bottom eigenspace
+of $M_P$ is a high-variance data direction with relative curvature $\approx\bar w$ (resp.\ $1$), so (I4)
+with the global $\mu_P$ becomes the loosest step ($r_{\mathrm{sc}}\approx\lambda/((\sigma_1+\lambda)\bar w)$,
+resp.\ $\lambda/(\sigma_1^w+\lambda)$), while $r_{\mathrm{coco}}$ rises to $\approx4\bar w\,\overline{n\ell}/d_\infty(\lambda)$
+(Lemma~\ref{lem:B1-asymptotic}): it moves closer to $1$ when the per-sample curvature is homogeneous and
+close to its maximum $\frac14$ (data near the decision boundary) \emph{and} the leverage scores are
+homogeneous ($\overline{n\ell}\approx d_{\mathrm{eff}}\approx d_\infty$); it remains bounded by $4\bar w\le1$.
+\item \emph{Effective rate.} By \eqref{eq:B1-effective-rate} the parameter part contracts at
+$1-(1-\frac58r_{\mathrm{coco}})\muEff^P/(2R_P^2)$; the predicted late-phase effective condition numbers
+$R_P^2/\muEff^P$ are the last row of Table~\ref{tab:B1-predictions-late}: of order
+$(\tr\hat\Sigma/4+\lambda)/(\sigma^w_d+\lambda)$ for $P=I$ (the anisotropy of $\hat\Sigma$),
+$\lesssim(Cd_{\mathrm{eff}}/4+1)/\bar w$ for the statistical metric (no anisotropy), $\to R_H^2$ for the
+Newton metric, the Jacobi metric sitting in between by the factor $\operatorname{cond}(C_{\mathrm{corr}})$
+(Proposition~\ref{prop:B1-diag}). On the hard instances of (A4) ($\kappa\gg n$), preconditioning should
+thus bring the \emph{effective} regime back to $n\gg\kappa_{\mathrm{eff}}$, where the memory term
+$\frac1{3n}$ is the bottleneck (Remark~\ref{rem:B1-memory-bottleneck}).
+\item \emph{The other ratios.} $r_{\mathrm{min}}\to1$ iff $V^P$ is dominated by the term with the smaller
+certified contraction (the parameter term under global constants, since $\frac{3}{16\kappaP}<\frac1{3n}$ for
+every $P$ on the hard instances by Proposition~\ref{prop:B1-nofreelunch}). Heuristically, in the late
+phase the memory errors $z_i^{(t-1)}-\fip(\etastar)\approx H_i\delta_{\tau_i}$ are built from comparable
+past errors, so $\norm{\bar z}_{P^{-1}}^2/\frac1n\sum_i\norm{z_i^{(t-1)}-\fip(\etastar)}_{P^{-1}}^2\approx
+\muEff^P/\LEff^P$ and $r_{\mathrm{var}}\approx1-\muEff^P/\LEff^P$: close to $1$ when the effective condition
+number is large, hence \emph{smaller} under preconditioning. Similarly $r_{\mathrm{init}}=
+r_{\mathrm{coco}}(1)\,\muEff^P(\theta_0)/R_P^2$ exactly, by \eqref{eq:B1-rinit-identity}, which increases
+under preconditioning, and $r_{\mathrm{sq}}\le\frac12$
+up to the correlation of $a_{t,i}$ and $b_{t,i}$, which is negative (both are built from $H_i\delta$ at
+different times) and less so when $M_P\approx I$ contracts all directions at the same speed.
+\item \emph{Check of the transfer.} Running Euclidean SAGA on $(\tilde f_i)$ with the same seed must
+reproduce $P$-SAGA exactly, up to rounding (Proposition~\ref{prop:B1-transfer}(iii)); this is a sanity
+check of the implementation, and the six ratios computed either way must coincide.
+\end{enumerate}

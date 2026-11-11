@@ -1,0 +1,527 @@
+\section{Proposition~5.9 as a chain of inequalities: exact one-step identity, tightness ratios, optimal \texorpdfstring{$(\gamma,\Delta)$}{(gamma,Delta)}, trajectory-dependent version}
+\label{sec:B3_prop59_tightness}
+
+This note takes the proof of Proposition~5.9 of \cite{bach2024learning} (linear convergence of SAGA \cite{defazio2014saga}) and splits it into an \emph{exact} one-step identity followed by six inequalities (I1)--(I6). Each inequality receives a tightness ratio in $[0,1]$ (in $(0,1]$ for all of them except $r_{\mathrm{var}}$) that is computable from the state of the algorithm, so that the experiments of hypothesis (B3) can measure, on $\ell_2$-regularised logistic regression, which inequality is responsible for the gap between the worst-case contraction factor $1-\min\{1/(3n),\,3\mu/(16R^2)\}$ and the contraction actually observed. We then prove that no choice of the two constants $(\gamma,\Delta)$ of the proof can improve the certified one-step rate $1-\rho_{\mathrm{bound}}$ by more than a factor $3$ (a factor $4/3$ when $\kappa\ge9n/16$), the optimal constants being exactly those of \cite{hofmann2015variance}, so that a larger gap must come from the inequalities themselves; we show by an elementary argument, valid for every $n$ and every constant step, that the exponent $1$ of $\kappa$ in the complexity of SAGA cannot be removed by a better analysis; and we derive the trajectory-dependent version of the proposition that hypothesis (B2) builds on.
+
+\subsection{Setting, the SAGA iteration and Proposition 5.9}
+
+\begin{assumption}[finite sum; notation of the book]\label{ass:B3-setting}
+$F(\theta)=\frac1n\sum_{i=1}^n f_i(\theta)$ on $\R^d$, where each $f_i$ is convex, differentiable and $R^2$-smooth, i.e.\ (Definition~5.3 of the book, Lipschitz-gradient form)
+$\norm{\fip(\theta)-\fip(\eta)}\le R^2\norm{\theta-\eta}$ for all $\theta,\eta\in\R^d$;
+and $F$ is $\mu$-strongly convex, $\mu>0$ (Definition~5.2 of the book: $F(\eta)\ge F(\theta)+\Fp(\theta)^\top(\eta-\theta)+\frac{\mu}{2}\norm{\eta-\theta}^2$ for all $\theta,\eta$). We write $\kappa=R^2/\mu$.
+\end{assumption}
+
+\begin{lemma}[consequences of the assumptions]\label{lem:B3-consequences}
+Under Assumption~\ref{ass:B3-setting}:
+\begin{enumerate}[label=(\alph*)]
+\item $F$ has a unique minimiser $\etastar$, characterised by $\Fp(\etastar)=0$, i.e.\ $\sum_{i=1}^n\fip(\etastar)=0$;
+\item for all $\theta$, $\inner{\Fp(\theta)}{\theta-\etastar}\ge\mu\norm{\theta-\etastar}^2$;
+\item $F$ is $R^2$-smooth and $\mu\le R^2$, i.e.\ $\kappa\ge 1$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(a) is Proposition~5.2 and Exercise~5.6 of the book: a strongly convex function is coercive and strictly convex, hence has exactly one minimiser, and for a differentiable convex function the minimisers are exactly the stationary points.
+(b) Write the strong convexity inequality at the pairs $(\theta,\eta)=(\theta,\etastar)$ and $(\etastar,\theta)$ and add: $0\ge (\Fp(\theta)-\Fp(\etastar))^\top(\etastar-\theta)+\mu\norm{\theta-\etastar}^2$; conclude with $\Fp(\etastar)=0$.
+(c) $\norm{\Fp(\theta)-\Fp(\eta)}\le\frac1n\sum_i\norm{\fip(\theta)-\fip(\eta)}\le R^2\norm{\theta-\eta}$ by the triangle inequality. For $\theta\ne\etastar$, (b) and Cauchy--Schwarz give $\mu\norm{\theta-\etastar}^2\le\norm{\Fp(\theta)}\,\norm{\theta-\etastar}\le R^2\norm{\theta-\etastar}^2$.
+\end{proof}
+
+\paragraph{SAGA.}
+Let $i(1),i(2),\dots$ be i.i.d.\ uniform on $\{1,\dots,n\}$, let $\mathcal F_t=\sigma(i(1),\dots,i(t))$ ($\mathcal F_0$ trivial) and $\Ei[\,\cdot\,]:=\E[\,\cdot\mid\mathcal F_{t-1}]$. Given $\theta_0\in\R^d$ and stored gradients $z^{(0)}_1,\dots,z^{(0)}_n\in\R^d$, the iteration of \cite[Sec.~5.4.4]{bach2024learning} is
+\begin{equation}\label{eq:B3-saga}
+\begin{aligned}
+\theta_t&=\theta_{t-1}-\gamma\,\omega_t,\qquad
+\omega_t:=f'_{i(t)}(\theta_{t-1})+\frac1n\sum_{j=1}^n z^{(t-1)}_j-z^{(t-1)}_{i(t)},\\
+z^{(t)}_{i(t)}&=f'_{i(t)}(\theta_{t-1}),\qquad z^{(t)}_j=z^{(t-1)}_j\ \ (j\ne i(t)).
+\end{aligned}
+\end{equation}
+We write $\bar z_{t-1}:=\frac1n\sum_j z^{(t-1)}_j$. The variables $\theta_t$, $z^{(t)}$ are $\mathcal F_t$-measurable, and $i(t)$ is independent of $\mathcal F_{t-1}$ and uniform, so that for any $\mathcal F_{t-1}$-measurable vectors $(v_i)_{i\le n}$, $\Ei[v_{i(t)}]=\frac1n\sum_i v_i$. The Lyapunov function of the book is, for a constant $\Delta>0$,
+\begin{equation}\label{eq:B3-lyapunov}
+V_t:=\norm{\theta_t-\etastar}^2+\Delta\sum_{i=1}^n\norm{z^{(t)}_i-\fip(\etastar)}^2,\qquad\text{with }\gamma=\frac{1}{4R^2},\ \Delta=3\gamma^2=\frac{3}{16R^4}\text{ in the book.}
+\end{equation}
+
+\begin{proposition}[Proposition~5.9 of \cite{bach2024learning}, convergence of SAGA]\label{prop:B3-prop59}
+Under Assumption~\ref{ass:B3-setting}, if $z^{(0)}_i=\fip(\theta_0)$ for all $i$ and $\gamma=\frac{1}{4R^2}$, then for all $t\ge0$,
+\begin{equation}\label{ineq:B3-prop59}
+\E\norm{\theta_t-\etastar}^2\le\Big(1-\min\Big\{\frac{1}{3n},\frac{3\mu}{16R^2}\Big\}\Big)^t\Big(1+\frac n4\Big)\norm{\theta_0-\etastar}^2 .
+\end{equation}
+\end{proposition}
+The book's proof (pp.~147--149) is reproduced in Section~\ref{sec:B3-chain} as the exact identity of Section~\ref{sec:B3-exact} followed by the six inequalities (I1)--(I6).
+
+\subsection{The exact one-step identity}\label{sec:B3-exact}
+
+Fix $t\ge1$ and write $(\theta,z)=(\theta_{t-1},z^{(t-1)})$ for the state before the $t$-th draw; everything below is $\mathcal F_{t-1}$-measurable. Define
+\begin{align*}
+D_{t-1}&:=\norm{\theta-\etastar}^2, &
+M_{t-1}&:=\sum_{i=1}^n\norm{z_i-\fip(\etastar)}^2, &
+G_{t-1}&:=(\theta-\etastar)^\top\Fp(\theta),\\
+S_{t-1}&:=\sum_{i=1}^n\norm{\fip(\theta)-\fip(\etastar)}^2, &
+a_i&:=\fip(\theta)-\fip(\etastar), &
+b_i&:=\fip(\etastar)-z_i+\bar z_{t-1},
+\end{align*}
+so that $\omega_t=a_{i(t)}+b_{i(t)}$ (indeed $a_i+b_i=\fip(\theta)-z_i+\bar z_{t-1}$), and
+\begin{align*}
+\Omega_{t-1}&:=\Ei\norm{\omega_t}^2=\frac1n\sum_{i=1}^n\norm{a_i+b_i}^2, &
+C_{t-1}&:=\frac1n\sum_{i=1}^n\inner{a_i}{b_i},\\
+B_{t-1}&:=\Ei\norm{b_{i(t)}}^2=\frac1n\sum_{i=1}^n\Big\|\fip(\etastar)-z_i+\frac1n\sum_{j=1}^n z_j\Big\|^2 .
+\end{align*}
+Thus $V_{t-1}=D_{t-1}+\Delta M_{t-1}$. We drop the index $t-1$ when no confusion is possible.
+
+\begin{lemma}[exact one-step identities]\label{lem:B3-identities}
+For every $t\ge1$, almost surely:
+\begin{enumerate}[label=(\alph*)]
+\item $\Ei[\omega_t]=\Fp(\theta_{t-1})$ and
+\begin{equation}\label{eq:B3-ED}
+\Ei\big[D_t\big]=D_{t-1}-2\gamma\,G_{t-1}+\gamma^2\,\Omega_{t-1};
+\end{equation}
+\item \begin{equation}\label{eq:B3-EM}
+\Ei\big[M_t\big]=\Big(1-\frac1n\Big)M_{t-1}+\frac1n S_{t-1};
+\end{equation}
+\item \begin{equation}\label{eq:B3-B}
+B_{t-1}=\frac1n M_{t-1}-\norm{\bar z_{t-1}}^2;
+\end{equation}
+\item $\Omega_{t-1}=\frac1n S_{t-1}+2C_{t-1}+B_{t-1}$, and $\Omega_{t-1}=\norm{\Fp(\theta_{t-1})}^2+\Ei\norm{\omega_t-\Fp(\theta_{t-1})}^2$;
+\item $\Ei\norm{a_{i(t)}}^2=S_{t-1}/n$, $\Ei[b_{i(t)}]=0$ and $\abs{C_{t-1}}\le\sqrt{(S_{t-1}/n)\,B_{t-1}}$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(a) Since $\theta_{t-1}$ and $z^{(t-1)}$ are $\mathcal F_{t-1}$-measurable and $i(t)$ is uniform and independent of $\mathcal F_{t-1}$, $\Ei[f'_{i(t)}(\theta_{t-1})]=\frac1n\sum_i\fip(\theta_{t-1})=\Fp(\theta_{t-1})$ and $\Ei[z^{(t-1)}_{i(t)}]=\bar z_{t-1}$, hence $\Ei[\omega_t]=\Fp(\theta_{t-1})+\bar z_{t-1}-\bar z_{t-1}=\Fp(\theta_{t-1})$. Expanding the square in $\theta_t-\etastar=(\theta_{t-1}-\etastar)-\gamma\omega_t$,
+$D_t=D_{t-1}-2\gamma\inner{\theta_{t-1}-\etastar}{\omega_t}+\gamma^2\norm{\omega_t}^2$; taking $\Ei$ and pulling the $\mathcal F_{t-1}$-measurable vector $\theta_{t-1}-\etastar$ out of the inner product gives \eqref{eq:B3-ED}.
+(b) Only the coordinate $i(t)$ of the memory changes, so
+$M_t=M_{t-1}-\norm{z^{(t-1)}_{i(t)}-f'_{i(t)}(\etastar)}^2+\norm{f'_{i(t)}(\theta_{t-1})-f'_{i(t)}(\etastar)}^2$, and $\Ei$ of the last two terms equals $M_{t-1}/n$ and $S_{t-1}/n$.
+(c) Let $Z:=f'_{i(t)}(\etastar)-z^{(t-1)}_{i(t)}$. Then $\Ei[Z]=\frac1n\sum_i\fip(\etastar)-\bar z_{t-1}=-\bar z_{t-1}$ by Lemma~\ref{lem:B3-consequences}(a), so $b_{i(t)}=Z-\Ei[Z]$ and $B_{t-1}=\Ei\norm{Z-\Ei Z}^2=\Ei\norm{Z}^2-\norm{\Ei Z}^2=M_{t-1}/n-\norm{\bar z_{t-1}}^2$.
+(d) Expand $\norm{a_i+b_i}^2=\norm{a_i}^2+2\inner{a_i}{b_i}+\norm{b_i}^2$ and average over $i$. The second identity is $\Ei\norm{\omega_t}^2=\norm{\Ei\omega_t}^2+\Ei\norm{\omega_t-\Ei\omega_t}^2$ with (a).
+(e) The first two claims are the computations in (a) and (c). For the third, Cauchy--Schwarz in $\R^d$ and then in $\R^n$:
+$\abs{C}\le\frac1n\sum_i\norm{a_i}\norm{b_i}\le\big(\frac1n\sum_i\norm{a_i}^2\big)^{1/2}\big(\frac1n\sum_i\norm{b_i}^2\big)^{1/2}$.
+\end{proof}
+
+\begin{proposition}[exact conditional contraction]\label{prop:B3-exact}
+For every $t\ge1$ and every $\gamma,\Delta>0$, almost surely,
+\begin{equation}\label{eq:B3-EV}
+\Ei[V_t]=D_{t-1}-2\gamma G_{t-1}+\gamma^2\Omega_{t-1}+\Delta\Big[\Big(1-\frac1n\Big)M_{t-1}+\frac1nS_{t-1}\Big] ,
+\end{equation}
+so that, on $\{V_{t-1}>0\}$, the exact conditional contraction factor is
+\begin{equation}\label{eq:B3-rho-exact}
+\rho_{\mathrm{exact}}(t):=\frac{\Ei[V_t]}{V_{t-1}}
+=1-\frac{2\gamma G_{t-1}-\gamma^2\Omega_{t-1}+\Delta\,(M_{t-1}-S_{t-1})/n}{D_{t-1}+\Delta M_{t-1}} .
+\end{equation}
+\end{proposition}
+\begin{proof}
+Add \eqref{eq:B3-ED} and $\Delta$ times \eqref{eq:B3-EM}, then subtract $V_{t-1}=D_{t-1}+\Delta M_{t-1}$.
+\end{proof}
+
+\begin{remark}[reading the identity]\label{rem:B3-reading}
+The numerator of \eqref{eq:B3-rho-exact} is the one-step \emph{progress}: $2\gamma G-\gamma^2\Omega$ is the progress of the parameter (as for gradient descent, with the second moment $\Omega=\norm{\Fp(\theta)}^2+\Var_{i(t)}(\omega_t)$ of the direction in place of $\norm{\Fp(\theta)}^2$), and $\Delta(M-S)/n$ is the progress of the memory: one stored error $\norm{z_i-\fip(\etastar)}^2$ (of average size $M/n$) is replaced by the current error $\norm{\fip(\theta)-\fip(\etastar)}^2$ (of average size $S/n$). For admissible constants (Proposition~\ref{prop:B3-general} below, in particular the textbook ones), the expected progress is bounded below by $(1-\rho_{\mathrm{bound}})V_{t-1}>0$ whenever $V_{t-1}>0$, by the chain (I1)--(I5) of Section~\ref{sec:B3-chain}: the memory progress $\Delta(M-S)/n$ alone can be negative (when $S>M$), but it is then compensated by the parameter term. Only the realised one-step change $V_t-V_{t-1}$ can be positive. In the experiments, a negative numerator in \eqref{eq:B3-rho-exact} with the textbook constants would therefore signal a bug, not a feature. Note that $V_{t-1}=0$ iff $\theta_{t-1}=\etastar$ and $z_i=\fip(\etastar)$ for all $i$; then $\omega_t=0$ and the state is absorbing, so $\rho_{\mathrm{exact}}$ is only needed on $\{V_{t-1}>0\}$.
+\end{remark}
+
+\subsection{The proof of Proposition 5.9 as a chain of six inequalities}\label{sec:B3-chain}
+
+We now follow the book's proof line by line; the only steps that are not identities are the six inequalities below (named as in the project description).
+
+\paragraph{(I1) Square-norm inequality.} For $a,b\in\R^d$, $\norm{a+b}^2=2\norm a^2+2\norm b^2-\norm{a-b}^2\le2\norm a^2+2\norm b^2$. Applied to $\omega_t=a_{i(t)}+b_{i(t)}$ and averaged with Lemma~\ref{lem:B3-identities}(e):
+\begin{equation}\label{ineq:B3-I1}\tag{I1}
+\Omega_{t-1}\ \le\ \frac2n S_{t-1}+2B_{t-1},\qquad\text{with}\quad \frac2nS_{t-1}+2B_{t-1}-\Omega_{t-1}=\frac1n\sum_{i=1}^n\norm{a_i-b_i}^2 .
+\end{equation}
+
+\paragraph{(I2) Co-coercivity (Proposition~5.4 of the book, eq.~(5.31)).} Proposition~5.4 states that for a convex $L$-smooth function $f$ and all $\theta,\eta$, $\frac1L\norm{f'(\theta)-f'(\eta)}^2\le(f'(\theta)-f'(\eta))^\top(\theta-\eta)$. Applied to each $f_i$ with $L=R^2$, $\eta=\etastar$, summed over $i$, divided by $n$, and using $\frac1n\sum_i\fip(\etastar)=\Fp(\etastar)=0$:
+\begin{equation}\label{ineq:B3-I2}\tag{I2}
+\frac1n S_{t-1}=\frac1n\sum_{i=1}^n\norm{\fip(\theta_{t-1})-\fip(\etastar)}^2\ \le\ \frac{R^2}{n}\sum_{i=1}^n\big(\fip(\theta_{t-1})-\fip(\etastar)\big)^\top(\theta_{t-1}-\etastar)=R^2\,G_{t-1}.
+\end{equation}
+This inequality is used \emph{twice}: once in the recursion for $D$ (through (I1)) and once in the recursion for $M$ (through \eqref{eq:B3-EM}).
+
+\paragraph{(I3) Variance $\le$ second moment.} By Lemma~\ref{lem:B3-identities}(c) and $\norm{\bar z_{t-1}}^2\ge0$:
+\begin{equation}\label{ineq:B3-I3}\tag{I3}
+B_{t-1}=\Ei\norm{Z-\Ei Z}^2\ \le\ \Ei\norm{Z}^2=\frac1nM_{t-1},\qquad Z=f'_{i(t)}(\etastar)-z^{(t-1)}_{i(t)} .
+\end{equation}
+
+\paragraph{Step 1 of the book (parameter recursion).} Inserting (I1), then (I2), then (I3) into \eqref{eq:B3-ED}:
+\begin{equation}\label{ineq:B3-step1}
+\Ei[D_t]\le D_{t-1}-2\gamma G_{t-1}+2\gamma^2\Big(\frac1nS_{t-1}+B_{t-1}\Big)
+\le D_{t-1}-2\gamma(1-\gamma R^2)\,G_{t-1}+\frac{2\gamma^2}{n}M_{t-1}.
+\end{equation}
+
+\paragraph{Step 2 of the book (memory recursion).} Inserting (I2) into \eqref{eq:B3-EM}:
+\begin{equation}\label{ineq:B3-step2}
+\Ei[M_t]\le\Big(1-\frac1n\Big)M_{t-1}+R^2\,G_{t-1}.
+\end{equation}
+
+\paragraph{Combination.} Adding \eqref{ineq:B3-step1} and $\Delta$ times \eqref{ineq:B3-step2}, for any $\gamma,\Delta>0$,
+\begin{equation}\label{ineq:B3-combined}
+\Ei[V_t]\le D_{t-1}-2\gamma\Big(1-\gamma R^2-\frac{R^2\Delta}{2\gamma}\Big)G_{t-1}+\Big[\frac{2\gamma^2}{n\Delta}+1-\frac1n\Big]\Delta M_{t-1}.
+\end{equation}
+With $\Delta=3\gamma^2$ and $\gamma=\frac1{4R^2}$: $1-\gamma R^2-\frac{R^2\Delta}{2\gamma}=1-\frac14-\frac38=\frac38$ and $\frac{2\gamma^2}{n\Delta}=\frac2{3n}$, so the memory coefficient is $1-\frac1n+\frac2{3n}=1-\frac1{3n}$ and
+\begin{equation}\label{ineq:B3-combined-book}
+\Ei[V_t]\le D_{t-1}-\frac{3\gamma}{4}\,G_{t-1}+\Big(1-\frac1{3n}\Big)\Delta M_{t-1}.
+\end{equation}
+
+\paragraph{(I4) Strong convexity.} By Lemma~\ref{lem:B3-consequences}(b),
+\begin{equation}\label{ineq:B3-I4}\tag{I4}
+G_{t-1}=(\theta_{t-1}-\etastar)^\top\Fp(\theta_{t-1})\ \ge\ \mu\,D_{t-1}.
+\end{equation}
+Since the coefficient $\frac{3\gamma}{4}$ of $G_{t-1}$ in \eqref{ineq:B3-combined-book} is positive, $-\frac{3\gamma}4G_{t-1}\le-\frac{3\gamma\mu}{4}D_{t-1}=-\frac{3\mu}{16R^2}D_{t-1}$, hence
+\begin{equation}\label{ineq:B3-two-coeff}
+\Ei[V_t]\le\Big(1-\frac{3\mu}{16R^2}\Big)D_{t-1}+\Big(1-\frac1{3n}\Big)\Delta M_{t-1}.
+\end{equation}
+
+\paragraph{(I5) The min step.} For $\alpha,\beta\ge0$ and $x,y\ge0$, $\alpha x+\beta y\le\max\{\alpha,\beta\}(x+y)$. With $\alpha=1-\frac{3\mu}{16R^2}\in(0,1)$ (recall $\mu\le R^2$) and $\beta=1-\frac1{3n}\in(0,1)$:
+\begin{equation}\label{ineq:B3-I5}\tag{I5}
+\Ei[V_t]\ \le\ \Big(1-\min\Big\{\frac1{3n},\frac{3\mu}{16R^2}\Big\}\Big)V_{t-1}=:\rho_{\mathrm{bound}}\,V_{t-1}.
+\end{equation}
+Taking expectations and iterating (tower property; $V_0$ is deterministic): $\E[V_t]\le\rho_{\mathrm{bound}}^t V_0$, and $\E\norm{\theta_t-\etastar}^2\le\E[V_t]$ because $\Delta M_t\ge0$.
+
+\paragraph{(I6) Initialisation (Lipschitz continuity of each $\fip$).} With $z^{(0)}_i=\fip(\theta_0)$ one has $M_0=S_0$ and
+\begin{equation}\label{ineq:B3-I6}\tag{I6}
+M_0=\sum_{i=1}^n\norm{\fip(\theta_0)-\fip(\etastar)}^2\ \le\ n\,R^4\norm{\theta_0-\etastar}^2,
+\end{equation}
+so that $V_0=D_0+\frac{3}{16R^4}M_0\le\big(1+\frac{3n}{16}\big)D_0\le\big(1+\frac n4\big)D_0$, which is \eqref{ineq:B3-prop59}. (The last step, $1+\frac{3n}{16}\le1+\frac n4$, is a cosmetic loss by a factor at most $4/3$ on the constant, not on the rate.) \qed
+
+\begin{remark}[the constant $R^2$ for logistic regression]\label{rem:B3-R2}
+For $f_i(\theta)=\ell(y_ix_i^\top\theta)+\frac\lambda2\norm\theta^2$ with $\ell(u)=\log(1+e^{-u})$, $y_i\in\{-1,1\}$, one has $\ell''(u)=\sigma(u)\sigma(-u)\in(0,\frac14]$ where $\sigma(u)=1/(1+e^{-u})$, so $f_i''(\theta)=\ell''(y_ix_i^\top\theta)\,x_ix_i^\top+\lambda I\preceq\big(\frac{\norm{x_i}^2}{4}+\lambda\big)I$. Hence $f_i$ is $L_i$-smooth with $L_i=\norm{x_i}^2/4+\lambda$, and the smallest constant valid for all $i$ is
+\[
+R^2:=\max_{i}\Big(\frac{\norm{x_i}^2}{4}+\lambda\Big).
+\]
+With features bounded by $R_x$ in $\ell_2$-norm, the book's constant $R^2:=R_x^2$ (``features bounded by $R$ in $\ell_2$-norm'') is therefore a valid smoothness constant whenever $\lambda\le\frac34R_x^2$, but a loose one: it ignores the factor $\frac14$ of the logistic second derivative (and $\lambda$), so that it exceeds $\max_iL_i$ by a factor close to $4$ when $\lambda\ll R_x^2$. Since every constant of the proof is expressed through $R^2$ ($\gamma=1/(4R^2)$, $\Delta=3/(16R^4)$, the rate $3\mu/(16R^2)$), using the loose value would divide the step and the guaranteed rate by about $4$; the experiments must use $R^2=\max_i(\norm{x_i}^2/4+\lambda)$. The global strong convexity constant is $\mu=\lambda$ (the logistic part is convex), typically much smaller than the curvature actually met along the trajectory, see Section~\ref{sec:B3-traj}.
+\end{remark}
+
+\subsection{Tightness ratios and attribution of the gap}\label{sec:B3-ratios}
+
+\begin{definition}[tightness ratios]\label{def:B3-ratios}
+For a state $(\theta,z)=(\theta_{t-1},z^{(t-1)})$ with $\theta\ne\etastar$, define, with the quantities of Section~\ref{sec:B3-exact},
+\begin{align*}
+r_{\mathrm{sq}}&:=\frac{\Omega}{\frac2nS+2B}\ \ \text{(I1)}, &
+r_{\mathrm{coco}}&:=\frac{S/n}{R^2G}=\frac{\LEff}{R^2},\quad \LEff:=\frac{S}{nG}\ \ \text{(I2)},\\
+r_{\mathrm{var}}&:=\frac{B}{M/n}=1-\frac{n\norm{\bar z}^2}{M}\ \ \text{(I3)}, &
+r_{\mathrm{sc}}&:=\frac{\mu D}{G}=\frac{\mu}{\muEff},\quad \muEff:=\frac GD\ \ \text{(I4)},\\
+r_{\min}&:=\frac{\big(1-\frac{3\mu}{16R^2}\big)D+\big(1-\frac1{3n}\big)\Delta M}{\big(1-\min\{\frac1{3n},\frac{3\mu}{16R^2}\}\big)(D+\Delta M)}\ \ \text{(I5)}, &
+r_{\mathrm{init}}&:=\frac{\sum_i\norm{\fip(\theta_0)-\fip(\etastar)}^2}{nR^4\norm{\theta_0-\etastar}^2}\ \ \text{(I6)},
+\end{align*}
+with the convention $r_{\mathrm{var}}:=1$ if $M=0$ (then (I3) is the equality $0\le0$; no convention is needed for $r_{\mathrm{sq}}$, since $S>0$ when $\theta\ne\etastar$, Lemma~\ref{lem:B3-ranges}(i)). Each ratio is the smaller side divided by the larger side of the corresponding inequality of Section~\ref{sec:B3-chain} (for (I4), $G\ge\mu D$, this is $\mu D/G$); $r_{\mathrm{sq}},r_{\mathrm{coco}},r_{\mathrm{var}},r_{\mathrm{sc}}$ depend on the state only (not on $\gamma,\Delta$), $r_{\min}$ also depends on $(\Delta,n,\mu,R^2)$.
+\end{definition}
+
+\begin{lemma}[ranges and degenerate cases]\label{lem:B3-ranges}
+Let $\theta\ne\etastar$. Then:
+\begin{enumerate}[label=(\roman*)]
+\item $G>0$, $S>0$ and $0<\mu\le\muEff\le\LEff\le R^2$; hence $r_{\mathrm{sc}}\in(0,1]$ and $r_{\mathrm{coco}}\in(0,1]$.
+\item $0\le r_{\mathrm{var}}\le1$; for $M>0$, $r_{\mathrm{var}}=0$ iff the memory errors $z_i-\fip(\etastar)$ are the same (nonzero) vector for all $i$; if $M=0$ then $B=0$ and $r_{\mathrm{var}}=1$ by convention.
+\item $S/n+B>0$, $\Omega>0$ and $r_{\mathrm{sq}}\in(0,1]$; moreover
+\[
+r_{\mathrm{sq}}=\frac12+\frac{C}{S/n+B},\qquad 1-r_{\mathrm{sq}}=\frac{\frac1n\sum_i\norm{a_i-b_i}^2}{2(S/n+B)},
+\]
+so $r_{\mathrm{sq}}=1$ iff $a_i=b_i$ for all $i$, and $r_{\mathrm{sq}}=\frac12$ iff $C=0$ (gradient changes $a_i$ and memory errors $b_i$ uncorrelated under $i(t)$).
+\item $r_{\min}\in(0,1]$, with $r_{\min}=1$ iff $\kappa=9n/16$ (the two coefficients coincide) or $M=0$ and $\kappa\ge9n/16$ (the Lyapunov mass sits on the parameter component, which is then the slower one). Since $D>0$, the mass never sits on the memory component alone.
+\item If $\theta_0\ne\etastar$ then $r_{\mathrm{init}}\in(0,1]$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(i) $G\ge\mu D>0$ by (I4), which is $\muEff\ge\mu$. By Jensen, $\norm{\Fp(\theta)}^2=\norm{\frac1n\sum_i a_i}^2\le\frac1n\sum_i\norm{a_i}^2=S/n$, and $\Fp(\theta)\ne0$ by Lemma~\ref{lem:B3-consequences}(a), so $S>0$. By Cauchy--Schwarz $G\le\norm{\Fp(\theta)}\sqrt D$, hence $S/n\ge\norm{\Fp(\theta)}^2\ge G^2/D$, i.e.\ $\LEff=S/(nG)\ge G/D=\muEff$. Finally $\LEff\le R^2$ is (I2).
+(ii) By \eqref{eq:B3-B}, $0\le B\le M/n$, and $B=0$ iff $Z=f'_{i(t)}(\etastar)-z^{(t-1)}_{i(t)}$ is almost surely equal to its mean, i.e.\ $\fip(\etastar)-z_i$ does not depend on $i$. If $M=0$ then $z_i=\fip(\etastar)$ for all $i$ and $B=0$.
+(iii) $S/n+B\ge S/n>0$ by (i). The two formulas follow from Lemma~\ref{lem:B3-identities}(d) and from the identity in (I1); $r_{\mathrm{sq}}\le1$ is (I1) and $r_{\mathrm{sq}}\ge0$ is $\Omega\ge0$ (equivalently $\abs C\le\sqrt{(S/n)B}\le\frac12(S/n+B)$ by Lemma~\ref{lem:B3-identities}(e)). Suppose $\Omega=0$; then $a_i+b_i=\fip(\theta)-z_i+\bar z=0$ for all $i$; averaging over $i$ gives $\Fp(\theta)=0$, so $\theta=\etastar$, which is excluded. Hence $\Omega>0$ and $r_{\mathrm{sq}}>0$.
+(iv) The numerator is $\alpha D+\beta\Delta M$ with $\alpha=1-\frac{3\mu}{16R^2}$ and $\beta=1-\frac1{3n}$ in $(0,1)$, and the denominator is $\max\{\alpha,\beta\}(D+\Delta M)$; the ratio is in $(0,1]$, with equality iff $\alpha=\beta$ (i.e.\ $16R^2=9n\mu$, $\kappa=9n/16$) or the component with the strictly smaller coefficient has zero mass. Since $D>0$ (because $\theta\ne\etastar$), the latter can only be the memory component: $M=0$ and $\beta\le\alpha$, i.e.\ $\frac1{3n}\ge\frac{3\mu}{16R^2}$, i.e.\ $\kappa\ge9n/16$.
+(v) $S_0>0$ by (i) and $S_0\le nR^4D_0$ is (I6).
+\end{proof}
+
+\begin{proposition}[the exact contraction in terms of the ratios]\label{prop:B3-representation}
+Let $\theta_{t-1}\ne\etastar$ and $M_{t-1}>0$, and let $\gamma,\Delta>0$. Then
+\begin{equation}\label{eq:B3-representation}
+\Ei[V_t]=c_D\,D_{t-1}+c_M\,\Delta M_{t-1},\qquad
+\begin{aligned}
+c_D&=1-2\gamma\,\muEff\Big(1-\gamma\,r_{\mathrm{sq}}\LEff-\frac{\LEff\Delta}{2\gamma}\Big),\\
+c_M&=1-\frac1n\Big(1-\frac{2\gamma^2}{\Delta}\,r_{\mathrm{sq}}\,r_{\mathrm{var}}\Big),
+\end{aligned}
+\end{equation}
+where $\muEff,\LEff,r_{\mathrm{sq}},r_{\mathrm{var}}$ are evaluated at the state $(\theta_{t-1},z^{(t-1)})$. For the textbook constants $\gamma=\frac1{4R^2}$, $\Delta=3\gamma^2$,
+\begin{equation}\label{eq:B3-representation-book}
+c_D=1-\frac{\muEff}{2R^2}\Big(1-\frac{\LEff}{R^2}\Big(\frac{r_{\mathrm{sq}}}4+\frac38\Big)\Big),\qquad
+c_M=1-\frac1n\Big(1-\frac23\,r_{\mathrm{sq}}\,r_{\mathrm{var}}\Big).
+\end{equation}
+Substituting the worst-case values $r_{\mathrm{sq}}=r_{\mathrm{var}}=1$, $\LEff=R^2$, $\muEff=\mu$ gives exactly the two coefficients $1-\frac{3\mu}{16R^2}$ and $1-\frac1{3n}$ of \eqref{ineq:B3-two-coeff}.
+\end{proposition}
+\begin{proof}
+By definition of the ratios, $S/n=\LEff G=\LEff\muEff D$, $B=r_{\mathrm{var}}M/n$ and $\Omega=r_{\mathrm{sq}}(2S/n+2B)=2r_{\mathrm{sq}}(\LEff\muEff D+r_{\mathrm{var}}M/n)$. Inserting into \eqref{eq:B3-EV}:
+\[
+\Ei[V_t]=D\big[1-2\gamma\muEff+2\gamma^2r_{\mathrm{sq}}\LEff\muEff+\Delta\LEff\muEff\big]+\Delta M\Big[1-\frac1n+\frac{2\gamma^2}{n\Delta}r_{\mathrm{sq}}r_{\mathrm{var}}\Big],
+\]
+and factoring $2\gamma\muEff$ in the first bracket gives $c_D$. With $\gamma=1/(4R^2)$, $\Delta=3\gamma^2$: $2\gamma\muEff=\muEff/(2R^2)$, $\gamma\LEff=\LEff/(4R^2)$, $\LEff\Delta/(2\gamma)=3\gamma\LEff/2=3\LEff/(8R^2)$ and $2\gamma^2/\Delta=2/3$.
+\end{proof}
+
+Proposition~\ref{prop:B3-representation} says that the book's proof \emph{is} the substitution of worst-case values into an exact formula: the two coefficients of \eqref{ineq:B3-two-coeff} are $c_D$ and $c_M$ at $(r_{\mathrm{sq}},\LEff,\muEff,r_{\mathrm{var}})=(1,R^2,\mu,1)$, and (I5) replaces the weighted mean $(c_DD+c_M\Delta M)/V$ by $\max\{c_D,c_M\}$. This gives a canonical way of attributing the gap $\rho_{\mathrm{bound}}-\rho_{\mathrm{exact}}$ to the individual inequalities: undo them one at a time.
+
+\begin{proposition}[attribution of the gap]\label{prop:B3-attribution}
+Let $\theta_{t-1}\ne\etastar$, $M_{t-1}>0$, $\gamma,\Delta>0$ with $\alpha:=1-\gamma R^2-\frac{R^2\Delta}{2\gamma}>0$, and write $D,M,G,S,B,\Omega,V$ for the state quantities. Define the coefficient functions
+\[
+c_D(r,L,m):=1-2\gamma m\Big(1-\gamma rL-\frac{L\Delta}{2\gamma}\Big),\qquad
+c_M(r,v):=1-\frac1n\Big(1-\frac{2\gamma^2}{\Delta}rv\Big),
+\]
+and
+\[
+\rho_{\mathrm{bound}}(\gamma,\Delta):=\max\{c_D(1,R^2,\mu),\,c_M(1,1)\}=1-\min\Big\{2\gamma\mu\alpha,\ \frac1n\Big(1-\frac{2\gamma^2}{\Delta}\Big)\Big\},
+\]
+which is the worst-case coefficient of Proposition~\ref{prop:B3-general} below (it is $<1$ iff $2\gamma^2<\Delta$) and equals the $\rho_{\mathrm{bound}}$ of (I5) for the textbook constants; in the rest of this proposition we write $\rho_{\mathrm{bound}}$ for $\rho_{\mathrm{bound}}(\gamma,\Delta)$.
+
+\emph{Order A (I4 $\to$ I2 $\to$ I3 $\to$ I1 $\to$ I5; the min is kept until the end).}
+\begin{align*}
+\rho^{A}_0&:=\max\{c_D(1,R^2,\mu),\,c_M(1,1)\}=\rho_{\mathrm{bound}},\\
+\rho^{A}_1&:=\max\{c_D(1,R^2,\muEff),\,c_M(1,1)\}
+ =\max\Big\{1-2\gamma\alpha\frac GD,\ 1-\frac1n+\frac{2\gamma^2}{n\Delta}\Big\},\\
+\rho^{A}_2&:=\max\{c_D(1,\LEff,\muEff),\,c_M(1,1)\}
+ =\max\Big\{1-2\gamma\frac GD+(2\gamma^2+\Delta)\frac{S}{nD},\ 1-\frac1n+\frac{2\gamma^2}{n\Delta}\Big\},\\
+\rho^{A}_3&:=\max\{c_D(1,\LEff,\muEff),\,c_M(1,r_{\mathrm{var}})\}
+ =\max\Big\{1-2\gamma\frac GD+(2\gamma^2+\Delta)\frac{S}{nD},\ 1-\frac1n+\frac{2\gamma^2B}{\Delta M}\Big\},\\
+\rho^{A}_4&:=\max\{c_D(r_{\mathrm{sq}},\LEff,\muEff),\,c_M(r_{\mathrm{sq}},r_{\mathrm{var}})\}\\
+&\phantom{:}=\max\Big\{1-2\gamma\frac GD+\frac{2\gamma^2r_{\mathrm{sq}}S}{nD}+\frac{\Delta S}{nD},\ 1-\frac1n+\frac{2\gamma^2r_{\mathrm{sq}}B}{\Delta M}\Big\},\\
+\rho^{A}_5&:=\frac{c_D(r_{\mathrm{sq}},\LEff,\muEff)\,D+c_M(r_{\mathrm{sq}},r_{\mathrm{var}})\,\Delta M}{D+\Delta M}=\rho_{\mathrm{exact}}(t),
+\end{align*}
+with $r_{\mathrm{sq}}=\Omega/(2S/n+2B)$.
+
+\emph{Order B (I5 $\to$ I4 $\to$ I2 $\to$ I3 $\to$ I1; reverse proof order, the min is undone first).}
+\begin{align*}
+\rho^{B}_0&:=\rho_{\mathrm{bound}},\\
+\rho^{B}_1&:=\frac{(1-2\gamma\mu\alpha)D+\big(1-\frac1n+\frac{2\gamma^2}{n\Delta}\big)\Delta M}{V}
+\ \ \big(=r_{\min}\,\rho_{\mathrm{bound}}\text{ for the textbook constants}\big),\\
+\rho^{B}_2&:=\frac{D-2\gamma\alpha G+\big(1-\frac1n+\frac{2\gamma^2}{n\Delta}\big)\Delta M}{V},\\
+\rho^{B}_3&:=\frac{D-2\gamma G+(2\gamma^2+\Delta)\frac Sn+\frac{2\gamma^2}{n}M+\big(1-\frac1n\big)\Delta M}{V},\\
+\rho^{B}_4&:=\frac{D-2\gamma G+(2\gamma^2+\Delta)\frac Sn+2\gamma^2B+\big(1-\frac1n\big)\Delta M}{V},\\
+\rho^{B}_5&:=\frac{D-2\gamma G+\gamma^2\Omega+\Delta\frac Sn+\big(1-\frac1n\big)\Delta M}{V}=\rho_{\mathrm{exact}}(t).
+\end{align*}
+Then both sequences are nonincreasing:
+\[
+\rho_{\mathrm{bound}}=\rho^{A}_0\ge\rho^{A}_1\ge\rho^{A}_2\ge\rho^{A}_3\ge\rho^{A}_4\ge\rho^{A}_5=\rho_{\mathrm{exact}}(t),\qquad
+\rho_{\mathrm{bound}}=\rho^{B}_0\ge\rho^{B}_1\ge\dots\ge\rho^{B}_5=\rho_{\mathrm{exact}}(t),
+\]
+and consequently the nonnegative increments $\delta_k:=\rho_{k-1}-\rho_k$ (additive attribution) and, when $\rho_{\mathrm{exact}}(t)>0$, $\lambda_k:=\log(\rho_{k-1}/\rho_k)$ (attribution in nats per iteration) satisfy
+\[
+\sum_{k=1}^5\delta_k=\rho_{\mathrm{bound}}-\rho_{\mathrm{exact}}(t),\qquad
+\sum_{k=1}^5\lambda_k=\log\frac1{\rho_{\mathrm{exact}}(t)}-\log\frac1{\rho_{\mathrm{bound}}},\qquad
+\prod_{k=1}^5\frac{\rho_k}{\rho_{k-1}}=\frac{\rho_{\mathrm{exact}}(t)}{\rho_{\mathrm{bound}}}.
+\]
+In order A the increments are attributed to (I4), (I2), (I3), (I1), (I5) in this order; in order B to (I5), (I4), (I2), (I3), (I1).
+\end{proposition}
+\begin{proof}
+The closed forms follow from $\muEff=G/D$, $\LEff\muEff=S/(nD)$, $r_{\mathrm{var}}M/n=B$ and $r_{\mathrm{sq}}(2S/n+2B)=\Omega$, exactly as in the proof of Proposition~\ref{prop:B3-representation}; e.g.\ $c_D(1,\LEff,\muEff)=1-2\gamma G/D+2\gamma^2\LEff\muEff+\Delta\LEff\muEff=1-2\gamma G/D+(2\gamma^2+\Delta)S/(nD)$, and $c_D(r_{\mathrm{sq}},\LEff,\muEff)D+c_M(r_{\mathrm{sq}},r_{\mathrm{var}})\Delta M$ equals the right-hand side of \eqref{eq:B3-EV}.
+
+Monotonicity. For $r\le1$ and $L\le R^2$ the bracket in $c_D$ satisfies $1-\gamma rL-\frac{L\Delta}{2\gamma}\ge1-\gamma R^2-\frac{R^2\Delta}{2\gamma}=\alpha>0$, so $m\mapsto c_D(r,L,m)$ is nonincreasing; moreover $c_D$ is nondecreasing in $L$ and in $r$, and $c_M$ is nondecreasing in $r$ and $v$. Lemma~\ref{lem:B3-ranges} gives $\mu\le\muEff$, $\LEff\le R^2$, $r_{\mathrm{var}}\le1$, $r_{\mathrm{sq}}\le1$, so each substitution lowers (weakly) the coefficient it touches; $\max$ and the weighted mean $(x,y)\mapsto(xD+y\Delta M)/V$ are monotone in both arguments; and finally $\max\{x,y\}\ge(xD+y\Delta M)/V$ since $D,\Delta M\ge0$. This proves both chains; the telescoping identities are immediate.
+\end{proof}
+
+\begin{remark}[reading the two orders]\label{rem:B3-orders}
+The attribution is path dependent, as for any decomposition of a difference of a nonlinear function. Order B (undo from the end) attributes to each inequality its full effect on the weighted contraction; order A keeps the max structure, so that undoing (I4) and (I2), which touch $c_D$ alone, has \emph{no} effect as long as the memory coefficient $c_M$ is the larger one (regime $\kappa<9n/16$ for the textbook constants), and undoing (I3), which touches $c_M$ alone, has no effect as long as $c_D$ is the larger one. Undoing (I1) is different: $r_{\mathrm{sq}}$ enters both coefficients (through $2\gamma^2r_{\mathrm{sq}}\LEff\muEff$ in $c_D$ and $2\gamma^2r_{\mathrm{sq}}r_{\mathrm{var}}/\Delta$ in $c_M$), so the step $\rho^A_3\to\rho^A_4$ lowers both of them and has an effect in both regimes, except in the degenerate cases $r_{\mathrm{sq}}=1$, or $r_{\mathrm{var}}=0$ with $c_M$ the larger coefficient. Reporting both orders therefore shows, in addition to the individual contributions, which component ($D$ or $M$) is the bottleneck of the bound. Since $\rho$ is close to $1$, $\lambda_k\approx\delta_k$; per effective pass the natural unit is $n\lambda_k$.
+\end{remark}
+
+\begin{remark}[(I1) throws away the control variate]\label{rem:B3-fresh}
+Suppose the memory is fresh, $z_i=\fip(\theta)$ for all $i$ (e.g.\ at $t=1$ with the book's initialisation, or approximately when the iterates move slowly). Then $\omega_t=\Fp(\theta)$ is deterministic, $\Omega=\norm{\Fp(\theta)}^2$, $M=S$, $B=S/n-\norm{\Fp(\theta)}^2$ and
+\[
+r_{\mathrm{sq}}=\frac{\norm{\Fp(\theta)}^2}{4S/n-2\norm{\Fp(\theta)}^2}\le\frac12,\qquad\text{with }r_{\mathrm{sq}}\ll\frac12\text{ when }\frac Sn\gg\norm{\Fp(\theta)}^2,
+\]
+i.e.\ when the per-sample gradient changes $a_i$ are diverse. In general, if index $i$ was last drawn at time $u_i\le t-1$, then $z_i=z^{(u_i)}_i=\fip(\theta_{u_i-1})$ by \eqref{eq:B3-saga}; writing $s_i:=u_i-1\in\{0,\dots,t-2\}$, and $s_i:=0$ for the indices not yet drawn (with the book's initialisation $z^{(0)}_i=\fip(\theta_0)$), one has $z_i=\fip(\theta_{s_i})$ in all cases, and
+\[
+C=\inner{\Fp(\theta)}{\bar z}-\frac1n\sum_{i=1}^n\inner{a_i(\theta)}{a_i(\theta_{s_i})},\qquad a_i(\theta'):=\fip(\theta')-\fip(\etastar):
+\]
+the correlation between the current gradient change and the stored one is exactly what the control variate $-z_{i(t)}+\bar z$ exploits, and (I1) discards it. One therefore expects $r_{\mathrm{sq}}\le\frac12$ along most of the trajectory: a factor $2$ in the $\gamma^2$ terms, which the experiments can confirm.
+\end{remark}
+
+\subsection{The best constants of the proof: general \texorpdfstring{$(\gamma,\Delta)$}{(gamma,Delta)}}\label{sec:B3-constants}
+
+The inequalities (I1)--(I3) and the identities do not depend on $\gamma$ or $\Delta$, so \eqref{ineq:B3-combined} holds for all $\gamma,\Delta>0$. We now optimise the two constants.
+
+\begin{proposition}[general step and weight]\label{prop:B3-general}
+Let $\gamma,\Delta>0$ satisfy
+\[
+\alpha(\gamma,\Delta):=1-\gamma R^2-\frac{R^2\Delta}{2\gamma}>0\qquad\text{and}\qquad \frac{2\gamma^2}{\Delta}<1 .
+\]
+Then for all $t\ge1$, almost surely,
+\begin{equation}\label{ineq:B3-general}
+\Ei[V_t]\le\Big(1-\min\Big\{2\gamma\mu\,\alpha(\gamma,\Delta),\ \frac1n\Big(1-\frac{2\gamma^2}{\Delta}\Big)\Big\}\Big)V_{t-1},
+\end{equation}
+and both arguments of the min lie in $(0,\frac12]$ and $(0,\frac1n)$ respectively.
+\end{proposition}
+\begin{proof}
+In \eqref{ineq:B3-combined} the coefficient $2\gamma\alpha$ of $G_{t-1}$ is positive, so (I4) gives $-2\gamma\alpha G_{t-1}\le-2\gamma\mu\alpha D_{t-1}$ and $\Ei[V_t]\le(1-2\gamma\mu\alpha)D_{t-1}+(1-\frac1n(1-\frac{2\gamma^2}{\Delta}))\Delta M_{t-1}$. Since $\alpha>0$ forces $\gamma R^2<1$, we have $2\gamma\mu\alpha\le2\gamma\mu(1-\gamma R^2)\le2x(1-x)\le\frac12$ with $x=\gamma R^2$ (using $\mu\le R^2$), and $0<\frac1n(1-\frac{2\gamma^2}\Delta)<\frac1n$. Both coefficients are thus in $[\frac12,1)$ and $(1-\frac1n,1)$, and (I5) concludes.
+\end{proof}
+
+\begin{corollary}[parametrisation $\Delta=c\gamma^2$]\label{cor:B3-c}
+Write $\Delta=c\gamma^2$ with $c>2$. Then $\alpha=1-\gamma R^2(1+\frac c2)$, the condition $\alpha>0$ reads $\gamma<\frac{2}{R^2(2+c)}$, and \eqref{ineq:B3-general} becomes
+\begin{equation}\label{ineq:B3-general-c}
+\begin{aligned}
+\Ei[V_t]&\le\big(1-\min\{\tau_D(\gamma,c),\tau_M(c)\}\big)V_{t-1},\\
+\tau_D(\gamma,c)&:=2\gamma\mu\Big(1-\gamma R^2\Big(1+\frac c2\Big)\Big),\qquad
+\tau_M(c):=\frac{1-2/c}{n}.
+\end{aligned}
+\end{equation}
+For fixed $c$, $\gamma\mapsto\tau_D(\gamma,c)$ is a concave parabola, maximal at
+\[
+\gamma^\star(c)=\frac{1}{R^2(2+c)},\qquad \tau_D(\gamma^\star(c),c)=\frac{\mu}{R^2(2+c)}=\frac{1}{\kappa(2+c)} ,
+\]
+while $\tau_M$ does not depend on $\gamma$. Hence the best rate of this proof for a given $c$ is
+\[
+\tau(c):=\min\Big\{\frac1{\kappa(2+c)},\ \frac{c-2}{cn}\Big\}.
+\]
+\end{corollary}
+\begin{proof}
+$\alpha=1-\gamma R^2-\frac{R^2c\gamma^2}{2\gamma}=1-\gamma R^2(1+\frac c2)$ and $\frac{2\gamma^2}{\Delta}=\frac2c$. Then $\partial_\gamma\tau_D=2\mu(1-2\gamma R^2(1+\frac c2))$ vanishes at $\gamma^\star=\frac1{2R^2(1+c/2)}=\frac1{R^2(2+c)}$, where $1-\gamma^\star R^2(1+\frac c2)=\frac12$. For fixed $c$ the min of a function of $\gamma$ and a constant is maximised by maximising the function.
+\end{proof}
+
+\begin{proposition}[optimal constants of the proof structure]\label{prop:B3-optimum}
+Let $s:=n/\kappa=n\mu/R^2$. The maximum over $c>2$ and admissible $\gamma$ of the rate $\min\{\tau_D,\tau_M\}$ in \eqref{ineq:B3-general-c} is attained at
+\begin{align*}
+c^\star&=\frac{s+\sqrt{s^2+16}}{2},\qquad \Delta^\star=c^\star(\gamma^\star)^2,\\
+\gamma^\star&=\frac{1}{R^2(2+c^\star)}=\frac{2}{R^2\big(4+s+\sqrt{s^2+16}\big)}=\frac{2}{4R^2+n\mu+\sqrt{n^2\mu^2+16R^4}},
+\end{align*}
+and equals
+\[
+\tau^\star=\frac{1}{\kappa(2+c^\star)}=\frac{2}{4\kappa+n+\sqrt{n^2+16\kappa^2}},\qquad
+\frac{1}{n+4\kappa}\ \le\ \tau^\star\ \le\ \frac{4-2\sqrt2}{n+4\kappa}\approx\frac{1.172}{n+4\kappa}.
+\]
+In particular $\tau^\star\to\frac1{4\kappa}$ with $\gamma^\star\to\frac1{4R^2}$, $c^\star\to2$ when $n/\kappa\to0$, and $\tau^\star\to\frac1n$ with $\gamma^\star\sim\frac{1}{n\mu}$, $c^\star\sim n/\kappa$ when $n/\kappa\to\infty$.
+\end{proposition}
+\begin{proof}
+By Corollary~\ref{cor:B3-c} we must maximise $\tau(c)=\min\{\frac1{\kappa(2+c)},\frac{c-2}{cn}\}$ over $c>2$. The first argument is decreasing in $c$, the second is increasing from $0$ (at $c=2$) to $\frac1n$; the maximum of the min is therefore attained where they cross: $cn=\kappa(c+2)(c-2)$, i.e.\ $\kappa c^2-nc-4\kappa=0$, whose positive root is $c^\star=\frac{n+\sqrt{n^2+16\kappa^2}}{2\kappa}=\frac{s+\sqrt{s^2+16}}2$; it satisfies $c^\star>2$ for $s>0$ because $\sqrt{s^2+16}>4-s$. Then $2+c^\star=\frac{4+s+\sqrt{s^2+16}}{2}$, which gives $\tau^\star$ and $\gamma^\star$; the last expression for $\gamma^\star$ follows from $R^2s=n\mu$ and $R^2\sqrt{s^2+16}=\sqrt{n^2\mu^2+16R^4}$. For the bounds, $\sqrt{n^2+16\kappa^2}\le n+4\kappa$ gives $\tau^\star\ge\frac{2}{2(n+4\kappa)}$, and $\sqrt{n^2+16\kappa^2}\ge\frac{n+4\kappa}{\sqrt2}$ (since $(a+b)^2\le2(a^2+b^2)$) gives $\tau^\star\le\frac{2}{(1+1/\sqrt2)(n+4\kappa)}=\frac{4-2\sqrt2}{n+4\kappa}$. The limits are read off the formulas ($c^\star=2+\frac s2+O(s^2)$ as $s\to0$; $c^\star=s+\frac4s+O(s^{-3})$ as $s\to\infty$).
+\end{proof}
+
+\paragraph{These are the constants of Hofmann et al.}
+Proposition~\ref{prop:B3-optimum} is not new: $\tau^\star$ and $\gamma^\star$ are exactly the optimal rate and step of \cite[Theorem~1 and Corollary~1]{hofmann2015variance} for SAGA, i.e.\ $q=1$ in their notation, with $L=R^2$. Their Theorem~1 states, for a ``uniform $q$-memorization algorithm'' (SAGA is the case $q=1$ of their Definition~1) and any step $\gamma=a/(4L)$ with $a<1$, a geometric rate $1-\rho(\gamma)$ with $\rho(\gamma)=\frac qn\cdot\frac{1-a}{1-a/2}$ if $\gamma\ge\gamma^\star(K)$ and $\rho(\gamma)=\mu\gamma$ otherwise, where $\gamma^\star(K):=a^\star(K)/(4L)$, $a^\star(K):=\frac{2K}{1+K+\sqrt{1+K^2}}$ and $K:=\frac{4qL}{n\mu}$; their Corollary~1 states that $\rho$ is maximised at $\gamma=\gamma^\star(K)$, with $\rho^\star(K)=\frac qn\big[\frac{2}{1+K+\sqrt{1+K^2}}\big]$. With $q=1$ and $K=4/s$,
+\begin{align*}
+a^\star(K)&=\frac{8}{4+s+\sqrt{s^2+16}},\qquad
+\gamma^\star(K)=\frac{a^\star(K)}{4R^2}=\frac{2}{R^2(4+s+\sqrt{s^2+16})}=\gamma^\star,\\
+\rho^\star(K)&=\frac1n\cdot\frac{2}{1+\frac4s+\sqrt{1+\frac{16}{s^2}}}=\frac{2s}{n(4+s+\sqrt{s^2+16})}=\frac{2}{\kappa(4+s+\sqrt{s^2+16})}=\tau^\star ,
+\end{align*}
+and moreover $c^\star=4/a^\star(K)-2$. Their Corollary~3 (``choosing $\gamma=\frac{a}{4L}$ with $a<1$ yields $\rho=\min\{\frac{1-a}{1-\frac12a}\frac qn,\frac a4\frac\mu L\}$; in particular, for $\gamma=\frac1{5L}$, $\rho=\min\{\frac13\frac qn,\frac15\frac\mu L\}$'') is Corollary~\ref{cor:B3-c} at $\gamma=\gamma^\star(c)$: with $a=4/(2+c)$ one has $\frac{1-a}{1-a/2}=1-\frac2c$ and $\frac a4\frac\mu L=\frac1{\kappa(2+c)}$, i.e.\ $\tau(c)$, and $\gamma=\frac1{5L}$ is $c=3$. The coincidence is structural. Their Lyapunov function $\mathcal L_\sigma(w,H)=\norm{w-w^\ast}^2+S\sigma\bar H$ with $S=\gamma n/(Lq)$ has the two-term form \eqref{eq:B3-lyapunov} with $\Delta=\gamma\sigma/(Lq)$ (their $H_i$ are upper bounds on $\norm{\alpha_i-f_i'(w^\ast)}^2$ obtained from the Bregman divergences of $f_i$ at the stored points, their eqs.~(10)--(12)), and their Lemma~1 uses the same square-norm inequality (I1) (``we sacrifice tightness and choose $\epsilon=1$''). The difference is that they apply strong convexity and co-coercivity through function values (their eqs.~(5), (7)--(8)) instead of through $G$, and that they require the resulting coefficient of $f(w)-f(w^\ast)$ to be nonnegative and drop it (their eq.~(31): $\gamma\le\frac{1-\sigma}{2L}$); this caps their parameter rate at $\mu\gamma$ (``we will have $\rho\le\gamma\mu$ based on the $\norm{w-w^\ast}^2$ part'', proof of their Lemma~3) and restricts their constants to $\Delta\le\gamma(1-2\gamma R^2)/R^2$, i.e.\ to $\gamma\le\gamma^\star(c)$ in the parametrisation $\Delta=c\gamma^2$. On the curve $\gamma=\gamma^\star(c)$, where the bracket $1-\gamma R^2(1+\frac c2)$ equals $\frac12$, the two one-step bounds coincide, and the joint maximiser lies on this curve: this is why the optima agree. Off the curve the bounds differ: for $\gamma<\gamma^\star(c)$ the book's argument certifies the parameter rate $2\gamma\mu(1-\gamma R^2(1+\frac c2))>\mu\gamma$, and the textbook constants $\gamma=\frac1{4R^2}$, $c=3$ (their $a=1$, excluded in their Theorem~1) are admissible in Proposition~\ref{prop:B3-general} but not in their Lemma~3.
+
+\paragraph{Comparison with the textbook choice.}
+The book takes $c=3$ and $\gamma=\frac1{4R^2}$, i.e.\ $\tau_{\mathrm{book}}=\min\{\frac1{3n},\frac{3}{16\kappa}\}$. (For $c=3$ the best step would be $\gamma^\star(3)=\frac1{5R^2}$, with $\tau_D=\frac{1}{5\kappa}$ instead of $\frac{3}{16\kappa}$: the step $\frac1{4R^2}$ is slightly too large for $c=3$, by $6.7\%$ on the rate; this is the choice of Corollary~3 of \cite{hofmann2015variance} quoted above.) The ratio $Q(s):=\tau^\star/\tau_{\mathrm{book}}$ between the best rate this proof structure can certify and the textbook rate is, with $s=n/\kappa$,
+\[
+Q(s)=\begin{cases}
+\dfrac{32}{3\big(4+s+\sqrt{s^2+16}\big)}, & s\le\frac{16}{9}\quad(\text{i.e.\ }\kappa\ge\frac{9n}{16},\ \text{parameter term is the bottleneck}),\\[3mm]
+\dfrac{6s}{4+s+\sqrt{s^2+16}}, & s\ge\frac{16}{9}\quad(\text{memory term is the bottleneck}),
+\end{cases}
+\]
+which decreases from $Q(0)=\frac43$ to $Q(\frac{16}9)\approx1.050$ and then increases to $Q(\infty)=3$; numerically $Q(0.5)\approx1.25$, $Q(1)\approx1.17$, $Q(5)\approx1.95$, $Q(20)\approx2.70$, $Q(100)\approx2.94$. Thus:
+\begin{itemize}[nosep]
+\item in the ill-conditioned regime $\kappa\ge\frac{9n}{16}$ (the regime of hypothesis (A4), $\kappa\gg n$), the textbook constants are within a factor $\frac43$ of the best this proof can give, and the optimal step is $\gamma^\star=\frac{\tau^\star\kappa}{R^2}\in[\frac{0.197}{R^2},\frac{1}{4R^2}]$;
+\item in the big-data regime $n\gg\kappa$ the textbook rate $\frac1{3n}$ can be improved to at most $\frac1n$ (factor $3$), at the price of the much smaller step $\gamma^\star\approx\frac1{n\mu}$ (this is the step $\frac{1}{2(\mu n+L)}$ of \cite{defazio2014saga} up to a factor $2$).
+\end{itemize}
+In both regimes the certified complexity is $\Theta\big((n+\kappa)\log(1/\varepsilon)\big)$: by Proposition~\ref{prop:B3-optimum} the best iteration complexity of the proof structure is $(n+4\kappa)\log(V_0/\varepsilon)$ up to a factor $1.172$, and the textbook's is $\max\{3n,\frac{16}{3}\kappa\}\log(V_0/\varepsilon)$.
+
+\begin{proposition}[SAGA with a constant step is not accelerated: a lower bound valid for every $n$]\label{prop:B3-lower}
+Let $n\ge1$, $0<\mu<R^2$, $d=2$, and $f_i(\theta)=\frac12(\mu\theta_1^2+R^2\theta_2^2)$ for all $i\le n$. Assumption~\ref{ass:B3-setting} holds with these constants, $F=f_1$, $\Fp(\theta)=Q\theta$ with $Q=\diag(\mu,R^2)$, and $\etastar=0$. Run \eqref{eq:B3-saga} with any constant step $\gamma>0$ (which may depend on $\mu$) and any deterministic initial memory $z^{(0)}$. Then for all $t\ge0$,
+\begin{equation}\label{eq:B3-lower}
+\E[\theta_t]=(I-\gamma Q)^t\theta_0\qquad\text{and}\qquad
+\E\norm{\theta_t-\etastar}^2\ \ge\ \norm{\E[\theta_t]-\etastar}^2\ \ge\ \Big(\frac{\kappa-1}{\kappa+1}\Big)^{2t}\min\{\theta_{0,1}^2,\theta_{0,2}^2\}.
+\end{equation}
+In particular, for $\theta_0=(r,r)$ with $r\ne0$ and $\varepsilon<\frac12$, reaching $\E\norm{\theta_t-\etastar}^2\le\varepsilon\norm{\theta_0-\etastar}^2$ requires $t\ge\frac{\kappa-1}{4}\log\frac1{2\varepsilon}$, whatever the step.
+\end{proposition}
+\begin{proof}
+By Lemma~\ref{lem:B3-identities}(a), $\E[\omega_t\mid\mathcal F_{t-1}]=\Fp(\theta_{t-1})=Q\theta_{t-1}$ whatever the content of the memory, so $\E[\theta_t\mid\mathcal F_{t-1}]=(I-\gamma Q)\theta_{t-1}$; taking expectations (the map is linear) and iterating from the deterministic $\theta_0$ gives the first identity. Next, $\E\norm X^2=\norm{\E X}^2+\E\norm{X-\E X}^2\ge\norm{\E X}^2$ with $X=\theta_t$. Finally, $Q$ is diagonal, so $\norm{(I-\gamma Q)^t\theta_0}^2=(1-\gamma\mu)^{2t}\theta_{0,1}^2+(1-\gamma R^2)^{2t}\theta_{0,2}^2\ge\max\{\abs{1-\gamma\mu},\abs{1-\gamma R^2}\}^{2t}\min\{\theta_{0,1}^2,\theta_{0,2}^2\}$, and $\max\{\abs{1-\gamma\mu},\abs{1-\gamma R^2}\}\ge\frac{\kappa-1}{\kappa+1}$ for every $\gamma>0$: if $\gamma\le\frac{2}{\mu+R^2}$ then $1-\gamma\mu\ge1-\frac{2\mu}{\mu+R^2}=\frac{R^2-\mu}{R^2+\mu}$, and if $\gamma\ge\frac{2}{\mu+R^2}$ then $\gamma R^2-1\ge\frac{2R^2}{\mu+R^2}-1=\frac{R^2-\mu}{R^2+\mu}$. For the last claim, $\min\{\theta_{0,1}^2,\theta_{0,2}^2\}=r^2=\frac12\norm{\theta_0-\etastar}^2$, so the target forces $(\frac{\kappa-1}{\kappa+1})^{2t}\le2\varepsilon$, i.e.\ $t\ge\log\frac1{2\varepsilon}\big/\big(2\log\frac{\kappa+1}{\kappa-1}\big)\ge\frac{\kappa-1}{4}\log\frac1{2\varepsilon}$, using $\log\frac{\kappa+1}{\kappa-1}=\log(1+\frac2{\kappa-1})\le\frac{2}{\kappa-1}$.
+\end{proof}
+The argument uses only that the SAGA direction is unbiased for $\Fp(\theta_{t-1})$ and that $\Fp$ is affine: on any finite sum with a quadratic $F$ (least squares, for instance), the \emph{mean} SAGA iterate is the gradient-descent iterate with the same step, and the variance $\E\norm{\theta_t-\E\theta_t}^2$ only adds to the error. Hence no analysis of SAGA with a constant step can certify, uniformly over Assumption~\ref{ass:B3-setting}, a per-iteration contraction of $\E\norm{\theta_t-\etastar}^2$ better than $(\frac{\kappa-1}{\kappa+1})^2\ge1-\frac{4}{\kappa+1}$. For $n=1$ the memory is useless and \eqref{eq:B3-saga} \emph{is} gradient descent; the proposition shows that the obstruction persists for every $n$.
+
+\begin{remark}[conclusion: the gap to practice is not a matter of constants]\label{rem:B3-conclusion}
+Within the proof structure of Proposition~5.9 (Lyapunov function $D+\Delta M$, inequalities (I1)--(I5)), optimising $(\gamma,\Delta)$ changes the certified one-step rate by a factor between $1.05$ and $3$, and by at most $4/3$ when $\kappa\ge 9n/16$. On the hard instances of hypothesis (A4) ($\kappa\gg n$), the rate per effective pass certified by any constants is at most $n\tau^\star\le\frac{1.172\,n}{4\kappa}\ll1$. Whenever SAGA is observed to contract $V_t$ much faster than $\rho_{\mathrm{bound}}^t$, the discrepancy must therefore be located in the state-dependent ratios $r_{\mathrm{sq}},r_{\mathrm{coco}},r_{\mathrm{var}},r_{\mathrm{sc}}$ (inequalities (I1)--(I4)) and in $r_{\min}$, which is exactly what the chains of Proposition~\ref{prop:B3-attribution} measure. Two caveats delimit the claim. (i) Other analyses give constants of the same order, not better ones. \cite{hofmann2015variance} give exactly $\tau^\star$ and $\gamma^\star$ (see the paragraph following Proposition~\ref{prop:B3-optimum}); \cite{defazio2014saga} (Theorem~1, Corollary~1 and the ``adaptivity to strong convexity'' comment at the end of the proof of Theorem~1) prove, with a Lyapunov function containing the Bregman divergences $f_i(\phi_i)-f_i(x^\ast)-\inner{f_i'(x^\ast)}{\phi_i-x^\ast}$ and assuming every $f_i$ to be $\mu$-strongly convex, the rate $1-\frac{\mu}{2(\mu n+L)}$ for $\gamma=\frac1{2(\mu n+L)}$ and the rate $1-\min\{\frac1{4n},\frac{\mu}{3L}\}$ for the $\mu$-free step $\gamma=\frac1{3L}$; when strong convexity only holds on average (our Assumption~\ref{ass:B3-setting}) they state the rate $1-\frac{\mu}{6(\mu n+L)}$ for $\gamma=\frac{1}{3(\mu n+L)}$; the LMI-based analysis of \cite{hu2017unified} (Corollary~3, eq.~(42)) certifies $1-\min\{\frac1{3n},\frac{\mu}{10L}\}$ for $\gamma=\frac1{3L}$ under assumptions implied by Assumption~\ref{ass:B3-setting}: each $f_i$ convex and $L$-smooth ($f_i\in\mathcal F(0,L)$ in their notation) and $F$ in their class $\mathcal S(m,L)$ of functions with sector-bounded gradients, which contains the $m$-strongly convex $L$-smooth functions but, as they stress, also non-convex ones. All of these have the form $1-\min\{\Theta(\frac1n),\Theta(\frac1\kappa)\}$. (ii) The exponent $1$ of $\kappa$ is intrinsic to SAGA with a constant step, not to its analysis. Proposition~\ref{prop:B3-lower} shows that on an instance of Assumption~\ref{ass:B3-setting} with $n$ identical quadratic components, for every $n$ and every constant step (whether or not it depends on $\mu$), $\E\norm{\theta_t-\etastar}^2$ decays no faster than $(1-\frac{2}{\kappa+1})^{2t}$, so that at least $\frac{\kappa-1}{4}\log\frac1{2\varepsilon}$ iterations are needed, against $O((n+\sqrt{n\kappa})\log\frac1\varepsilon)$ for accelerated methods (hypotheses (A2)--(A4)). For $\kappa\gg n$ the certified complexity $\Theta(\kappa\log\frac1\varepsilon)$ is therefore optimal for SAGA up to a constant factor: between the textbook bound, which guarantees the target after $\frac{16\kappa}{3}\log\frac{1+n/4}{\varepsilon}$ iterations, and the lower bound, the factor on the leading term $\kappa\log\frac1\varepsilon$ is $\frac{64}{3}\approx21$. For oblivious but non-constant step schedules the same conclusion follows from \cite[Theorem~2]{arjevani2016iteration}: ``Suppose that only $L$ the smoothness parameter is known, i.e.\ $\mathcal I(\cdot)=\{L\}$. If the iteration complexity of a given oblivious, possibly stochastic, p-CLI optimization algorithm is $\tilde O(\kappa(f)^\alpha\ln(1/\epsilon))$, then $\alpha\ge1$''; SAGA (with SAG, SVRG and SDCA) is listed there (Section~2.2) as a stationary stochastic p-CLI, and the book's step $\gamma=\frac1{4R^2}$, or any schedule depending on $R^2$ only, is oblivious in their sense (coefficients depending on the side-information $\{L\}$ and on time only). When $\mu$ is also known, their Theorem~1 only gives the lower bound $\tilde\Omega(\sqrt\kappa\ln(1/\epsilon))$ for oblivious schedules, which is what acceleration achieves; this does not contradict Proposition~\ref{prop:B3-lower}, which concerns constant steps. Improving $\kappa$ to $\sqrt{n\kappa}$ therefore requires changing the algorithm (acceleration, hypotheses (A2)--(A3)), consistently with the lower bound of hypothesis (A1). The computer-aided approach of \cite{taylor2019stochastic} automates exactly this kind of search over Lyapunov functions and constants, with tightness guarantees for the chosen potential class.
+\end{remark}
+
+\subsection{Trajectory-dependent version (hook for hypothesis (B2))}\label{sec:B3-traj}
+
+Strong convexity (I4) and co-coercivity (I2) are only used at the current point $\theta_{t-1}$. Define, as functions of $\theta\ne\etastar$ (they do not depend on the memory),
+\[
+\muEff(\theta):=\frac{(\theta-\etastar)^\top\Fp(\theta)}{\norm{\theta-\etastar}^2},\qquad
+\LEff(\theta):=\frac{\frac1n\sum_{i=1}^n\norm{\fip(\theta)-\fip(\etastar)}^2}{(\theta-\etastar)^\top\Fp(\theta)},
+\]
+and $\muEff(t-1):=\muEff(\theta_{t-1})$, $\LEff(t-1):=\LEff(\theta_{t-1})$. By Lemma~\ref{lem:B3-ranges}(i), $\mu\le\muEff(\theta)\le\LEff(\theta)\le R^2$.
+
+\begin{proposition}[a-posteriori rates]\label{prop:B3-traj}
+Let $\gamma=\frac1{4R^2}$ and $\Delta=3\gamma^2$. For every $t\ge1$, almost surely on $\{\theta_{t-1}\ne\etastar\}$:
+\begin{align}
+\E[V_t\mid\mathcal F_{t-1}]&\le\Big(1-\min\Big\{\frac1{3n},\ \frac{3\,\muEff(t-1)}{16R^2}\Big\}\Big)V_{t-1},\label{ineq:B3-traj-mu}\\
+\E[V_t\mid\mathcal F_{t-1}]&\le\Big(1-\min\Big\{\frac1{3n},\ \frac{\muEff(t-1)}{2R^2}\Big(1-\frac{5\,\LEff(t-1)}{8R^2}\Big)\Big\}\Big)V_{t-1},\label{ineq:B3-traj-L}
+\end{align}
+and the coefficient in \eqref{ineq:B3-traj-L} satisfies $\frac{3\muEff(t-1)}{16R^2}\le\frac{\muEff(t-1)}{2R^2}\big(1-\frac{5\LEff(t-1)}{8R^2}\big)\le\frac{\muEff(t-1)}{2R^2}\le\frac12$, so that both contraction factors lie in $[\frac12,1)$. More generally, for $\gamma,\Delta$ as in Proposition~\ref{prop:B3-general},
+\begin{equation}\label{ineq:B3-traj-general}
+\E[V_t\mid\mathcal F_{t-1}]\le\Big(1-\min\Big\{2\gamma\,\muEff(t-1)\Big(1-\gamma\LEff(t-1)-\frac{\LEff(t-1)\Delta}{2\gamma}\Big),\ \frac1n\Big(1-\frac{2\gamma^2}{\Delta}\Big)\Big\}\Big)V_{t-1}.
+\end{equation}
+On $\{\theta_{t-1}=\etastar\}$ one has $\E[V_t\mid\mathcal F_{t-1}]\le\big(1-\frac1n+\frac{2\gamma^2}{n\Delta}\big)V_{t-1}$, so that \eqref{ineq:B3-traj-mu}--\eqref{ineq:B3-traj-general} hold there with any value assigned to $\muEff(t-1)$ and $\LEff(t-1)$.
+\end{proposition}
+\begin{proof}
+Apply (I1) and (I3) to \eqref{eq:B3-ED} and keep (I2) as the identity $S/n=\LEff(t-1)\,G$: with $G=\muEff(t-1)D$,
+\[
+\Ei[D_t]\le D-2\gamma G+2\gamma^2\LEff G+\frac{2\gamma^2}{n}M,\qquad
+\Ei[M_t]=\Big(1-\frac1n\Big)M+\LEff G,
+\]
+hence $\Ei[V_t]\le\big[1-2\gamma\muEff\,\beta\big]D+\big[1-\frac1n(1-\frac{2\gamma^2}{\Delta})\big]\Delta M$ with $\beta:=1-\gamma\LEff-\frac{\LEff\Delta}{2\gamma}$ (this is \eqref{eq:B3-representation} with $r_{\mathrm{sq}}=r_{\mathrm{var}}=1$, and it follows from it since $c_D,c_M$ are nondecreasing in $r_{\mathrm{sq}},r_{\mathrm{var}}$). Since $0<\LEff\le R^2$, we have $\alpha(\gamma,\Delta)\le\beta\le1$, so $2\gamma\muEff\beta>0$; and since $\muEff\le\LEff$ (Lemma~\ref{lem:B3-ranges}(i)) and $\gamma\LEff\le\gamma R^2<1$, we have $2\gamma\muEff\beta\le2\gamma\LEff(1-\gamma\LEff)\le\frac12$. Hence the first coefficient lies in $[\frac12,1)$ and the second in $(1-\frac1n,1)$, and the step (I5) gives \eqref{ineq:B3-traj-general}. For the textbook constants, $2\gamma\muEff=\frac{\muEff}{2R^2}$, $\gamma\LEff+\frac{\LEff\Delta}{2\gamma}=\frac{5\LEff}{8R^2}$ and $\frac1n(1-\frac{2\gamma^2}\Delta)=\frac1{3n}$, which is \eqref{ineq:B3-traj-L}; replacing $\LEff(t-1)$ by its upper bound $R^2$ (the bracket is decreasing in $\LEff$) gives $\frac{\muEff}{2R^2}\cdot\frac38=\frac{3\muEff}{16R^2}$, which is \eqref{ineq:B3-traj-mu}; the chain of inequalities between the coefficients follows from $\mu\le\muEff\le R^2$ and $0\le\LEff\le R^2$. On $\{\theta_{t-1}=\etastar\}$: $S=G=D=0$, $\omega_t=b_{i(t)}$, so $\Ei[D_t]=\gamma^2B\le\gamma^2M/n$ by (I3) and $\Ei[M_t]=(1-\frac1n)M$; thus $\Ei[V_t]\le(1-\frac1n+\frac{\gamma^2}{n\Delta})\Delta M\le(1-\frac1n+\frac{2\gamma^2}{n\Delta})V_{t-1}$.
+\end{proof}
+
+\begin{remark}[the step is fixed in advance]\label{rem:B3-fixed-step}
+One may not replace $R^2$ by $\LEff(t-1)$ inside $\gamma$: the step was chosen before the trajectory was observed, and $\Delta=3\gamma^2$ with it. With $\gamma=\frac1{4R^2}$ fixed, a smaller effective smoothness $\LEff<R^2$ enters only through the bracket $1-\frac{5\LEff}{8R^2}\in[\frac38,1)$: the gain from (I2) being loose is at most a factor $\frac83$ on the parameter rate. By contrast $\muEff(t-1)$ enters linearly and may exceed $\mu$ by orders of magnitude (for logistic regression, $\mu=\lambda$ while $\muEff$ is of the order of the curvature of the data term), which is why hypothesis (B2) focuses on $\muEff$. A step adapted to $\LEff$ would be a different algorithm, and $\Delta$ would have to follow $\gamma$; see also the discussion of step-size selection in \cite[Sec.~3.A]{gower2020variance}.
+\end{remark}
+
+\paragraph{A posteriori versus a priori.}
+The factors in Proposition~\ref{prop:B3-traj} are random and $\mathcal F_{t-1}$-measurable: writing $\rho_{\mathrm{eff}}(t)$ for any of them, we have $\E[V_t\mid\mathcal F_{t-1}]\le\rho_{\mathrm{eff}}(t)V_{t-1}$, but \emph{not} $\E[V_T]\le\E\big[\prod_{t\le T}\rho_{\mathrm{eff}}(t)\big]V_0$ in general: $\rho_{\mathrm{eff}}(t)$ and $V_{t-1}$ are correlated, and $\rho_{\mathrm{eff}}(t)$ is not $\mathcal F_{t-2}$-measurable, so the conditional expectations cannot be iterated. The experiments can still report the realised products $\prod_{t\le T}\rho_{\mathrm{eff}}(t)$ (and $\prod_t\rho_{\mathrm{exact}}(t)$) next to the realised $V_T/V_0$; the difference is a martingale-type fluctuation. To obtain a rigorous a-priori statement one needs a deterministic bound on the effective constants over a region.
+
+\begin{proposition}[a-priori rate on a region]\label{prop:B3-region}
+Let $\Theta\subset\R^d$ and
+\begin{align*}
+\mu_\Theta&:=\inf_{\theta\in\Theta\setminus\{\etastar\}}\muEff(\theta)\ \ge\mu,\qquad
+L_\Theta:=\sup_{\theta\in\Theta\setminus\{\etastar\}}\LEff(\theta)\ \le R^2,\\
+\rho_\Theta&:=1-\min\Big\{\frac1{3n},\ \frac{\mu_\Theta}{2R^2}\Big(1-\frac{5L_\Theta}{8R^2}\Big)\Big\}\ \le\ 1-\min\Big\{\frac1{3n},\frac{3\mu_\Theta}{16R^2}\Big\},
+\end{align*}
+and let $\tau:=\inf\{t\ge0:\theta_t\notin\Theta\}$ (with $\inf\emptyset=+\infty$). For $\gamma=\frac1{4R^2}$, $\Delta=3\gamma^2$ and every $T\ge0$,
+\begin{equation}\label{ineq:B3-region}
+\E\big[V_T\,\mathbf 1_{\{\tau>T\}}\big]\le\rho_\Theta^{\,T}\,V_0 .
+\end{equation}
+In particular, if $\theta_t\in\Theta$ for all $t$ almost surely, then $\E[V_T]\le\rho_\Theta^TV_0$ and $\E\norm{\theta_T-\etastar}^2\le\rho_\Theta^T(1+\frac n4)\norm{\theta_0-\etastar}^2$ for the book's initialisation.
+\end{proposition}
+\begin{proof}
+Since $\theta_0,\dots,\theta_t$ are $\mathcal F_t$-measurable, $\{\tau>t\}\in\mathcal F_t$, and $\tau$ is a stopping time. Let $W_t:=\rho_\Theta^{-(t\wedge\tau)}V_{t\wedge\tau}$. On $\{\tau\le t\}$, $W_{t+1}=W_t$. On $\{\tau>t\}$, $\theta_t\in\Theta$, so Proposition~\ref{prop:B3-traj} (inequality \eqref{ineq:B3-traj-L} at time $t+1$, whose coefficient is nondecreasing in $\muEff$ and nonincreasing in $\LEff$, together with the case $\theta_t=\etastar$) gives $\E[V_{t+1}\mid\mathcal F_t]\le\rho_\Theta V_t$, hence
+$\E[W_{t+1}\mathbf 1_{\{\tau>t\}}\mid\mathcal F_t]=\mathbf 1_{\{\tau>t\}}\rho_\Theta^{-(t+1)}\E[V_{t+1}\mid\mathcal F_t]\le\mathbf 1_{\{\tau>t\}}\rho_\Theta^{-t}V_t=\mathbf 1_{\{\tau>t\}}W_t$.
+Thus $(W_t)$ is a supermartingale (all variables are integrable since $i(1),\dots,i(T)$ take finitely many values), $\E[W_T]\le W_0=V_0$, and $W_T\ge\mathbf 1_{\{\tau>T\}}\rho_\Theta^{-T}V_T$ gives \eqref{ineq:B3-region}. The last claim uses $\tau=\infty$ a.s., $D_T\le V_T$ and (I6).
+\end{proof}
+
+For $\ell_2$-regularised logistic regression the infimum $\mu_\Theta$ over a ball can be bounded below explicitly, thanks to the self-concordance-type property of the logistic loss that underlies the adaptivity results of \cite{bach2014adaptivity} (Assumption (A2) there: along any segment, $\abs{\varphi'''}\le R\norm{\theta_1-\theta_2}\varphi''$).
+
+\begin{proposition}[local strong convexity of logistic regression along segments]\label{prop:B3-logistic}
+Let $f_i(\theta)=\ell(y_ix_i^\top\theta)+\frac\lambda2\norm\theta^2$ as in Remark~\ref{rem:B3-R2}, $\lambda>0$, and $R_x:=\max_i\norm{x_i}$. Then for every $\theta\ne\etastar$,
+\[
+\muEff(\theta)\ \ge\ \psi\big(R_x\norm{\theta-\etastar}\big)\,\lmin\big(F''(\etastar)\big),\qquad \psi(x):=\frac{1-e^{-x}}{x}\ (\text{decreasing},\ \psi(0^+)=1),
+\]
+where $F''(\etastar)=\lambda I+\frac1n\sum_i\ell''(y_ix_i^\top\etastar)x_ix_i^\top\succeq\lambda I$. Consequently, on the ball $\Theta_r=\{\theta:\norm{\theta-\etastar}\le r\}$, $\mu_{\Theta_r}\ge\psi(R_xr)\lmin(F''(\etastar))$, and $\mu_{\Theta_r}\ge\frac12\lmin(F''(\etastar))$ as soon as $R_xr\le\frac32$ (since $\psi(3/2)\approx0.518$).
+\end{proposition}
+\begin{proof}
+Let $u=\theta-\etastar$ and $\varphi(s):=F(\etastar+su)$, $s\in[0,1]$. With $m_i(s)=y_ix_i^\top(\etastar+su)$ and $y_i^2=1$,
+\[
+\varphi''(s)=\lambda\norm u^2+\frac1n\sum_{i=1}^n\ell''(m_i(s))(x_i^\top u)^2>0,\qquad
+\varphi'''(s)=\frac1n\sum_{i=1}^n\ell'''(m_i(s))\,y_i(x_i^\top u)^3 .
+\]
+Since $\ell'''(u)=\ell''(u)(1-2\sigma(u))$, $\abs{\ell'''}\le\ell''$, hence
+\[
+\abs{\varphi'''(s)}\le\frac1n\sum_i\ell''(m_i(s))\abs{x_i^\top u}^3\le R_x\norm u\cdot\frac1n\sum_i\ell''(m_i(s))(x_i^\top u)^2\le R_x\norm u\,\varphi''(s).
+\]
+Therefore $(\log\varphi'')'(s)\ge-R_x\norm u$ and $\varphi''(s)\ge\varphi''(0)e^{-R_x\norm u s}$ for $s\in[0,1]$. Now
+\[
+G=\inner{u}{\Fp(\etastar+u)-\Fp(\etastar)}=\int_0^1\inner{u}{F''(\etastar+su)\,u}\,ds=\int_0^1\varphi''(s)\,ds\ \ge\ \varphi''(0)\,\psi(R_x\norm u),
+\]
+and $\varphi''(0)=u^\top F''(\etastar)u\ge\lmin(F''(\etastar))\norm u^2$. Divide by $D=\norm u^2$. The function $\psi$ is decreasing on $(0,\infty)$ (its derivative is $\frac{(1+x)e^{-x}-1}{x^2}\le0$ because $e^{x}\ge1+x$), which gives the statement on balls.
+\end{proof}
+
+Combining Propositions~\ref{prop:B3-region} and \ref{prop:B3-logistic}: as long as the SAGA iterates stay within distance $\frac{3}{2R_x}$ of $\etastar$, the Lyapunov function contracts in expectation at the rate $1-\min\{\frac1{3n},\frac{3\lmin(F''(\etastar))}{32R^2}\}$ instead of $1-\min\{\frac1{3n},\frac{3\lambda}{16R^2}\}$, i.e.\ the global constant $\lambda$ is replaced by half the smallest eigenvalue of the Hessian at the optimum, which is the quantity to which averaged SGD is shown to adapt in \cite{bach2014adaptivity}. The experiments of (B2) measure $\muEff(t)$ directly and compare it with $\lambda$, with $\lmin(F''(\etastar))$ and with the bound of Proposition~\ref{prop:B3-logistic}.
+
+\subsection{What to measure}\label{sec:B3-measure}
+
+At a measurement time (typically once per effective pass, i.e.\ every $n$ iterations, so that the $O(nd)$ cost of a full gradient pass does not dominate), the state is $(\theta,z)=(\theta_{t-1},z^{(t-1)})$. The code needs $\etastar$ (computed beforehand to a precision far below the smallest $V_t$ that will be reported, e.g.\ by a second-order method or by SAGA itself run to machine precision), the stored vectors $g^\ast_i:=\fip(\etastar)$ ($n\times d$, computed once), and, at each measurement, one pass computing $g_i:=\fip(\theta)$ for all $i$. For logistic regression, $\fip(\theta)=-y_i\sigma(-y_ix_i^\top\theta)x_i+\lambda\theta$, $R^2=\max_i(\norm{x_i}^2/4+\lambda)$, $\mu=\lambda$, $R_x=\max_i\norm{x_i}$.
+
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}p{1.2cm}p{2.2cm}p{3.8cm}p{2.3cm}p{5.7cm}@{}}
+\toprule
+Ineq. & Ratio & Closed form & State quantities & Code \tabularnewline
+\midrule
+\eqref{ineq:B3-I1} & $r_{\mathrm{sq}}$ & \raggedright $\Omega/(2S/n+2B)=\tfrac12+C/(S/n+B)$ & \raggedright $\Omega,S,B$ (or $C$) & \raggedright $a_i=g_i-g^\ast_i$, $b_i=g^\ast_i-z_i+\bar z$, $\Omega=\frac1n\sum_i\norm{a_i+b_i}^2$, $C=\frac1n\sum_i\inner{a_i}{b_i}$ \tabularnewline
+\eqref{ineq:B3-I2} & $r_{\mathrm{coco}}=\LEff/R^2$ & \raggedright $(S/n)/(R^2G)$ & \raggedright $S,G$ & \raggedright $S=\sum_i\norm{a_i}^2$, $\Fp(\theta)=\frac1n\sum_i g_i$, $G=(\theta-\etastar)^\top\Fp(\theta)$ \tabularnewline
+\eqref{ineq:B3-I3} & $r_{\mathrm{var}}$ & \raggedright $B/(M/n)=1-n\norm{\bar z}^2/M$ & \raggedright $B,M,\bar z$ & \raggedright $M=\sum_i\norm{z_i-g^\ast_i}^2$; compute $B=\frac1n\sum_i\norm{b_i}^2$ directly (avoids cancellation) \tabularnewline
+\eqref{ineq:B3-I4} & $r_{\mathrm{sc}}=\mu/\muEff$ & \raggedright $\mu D/G$ & \raggedright $D,G$ & \raggedright $D=\norm{\theta-\etastar}^2$; also report $\muEff=G/D$ (B2) \tabularnewline
+\eqref{ineq:B3-I5} & $r_{\min}$ & \raggedright Definition~\ref{def:B3-ratios} & \raggedright $D,M$ & \raggedright needs $\Delta,n,\mu,R^2$; equals $\rho^B_1/\rho_{\mathrm{bound}}$ \tabularnewline
+\eqref{ineq:B3-I6} & $r_{\mathrm{init}}$ & \raggedright $S_0/(nR^4D_0)$ & \raggedright $S_0,D_0$ & \raggedright at $t=0$ only \tabularnewline
+exact & $\rho_{\mathrm{exact}}(t)$ & \raggedright \eqref{eq:B3-rho-exact} & \raggedright $D,M,G,S,\Omega$ & \raggedright compare with the realised $V_t/V_{t-1}$ and with $\rho_{\mathrm{bound}}$ \tabularnewline
+chains & $\rho^A_k,\rho^B_k$ & \raggedright Proposition~\ref{prop:B3-attribution} & \raggedright all of the above & \raggedright report $\delta_k$, $\lambda_k$ and $n\lambda_k$ (per pass) for both orders \tabularnewline
+(B2) & $\rho_{\mathrm{eff}}(t)$ & \raggedright \eqref{ineq:B3-traj-mu}, \eqref{ineq:B3-traj-L} & \raggedright $\muEff,\LEff$ & \raggedright compare $\muEff(t)$ with $\lambda$, with $\lmin(F''(\etastar))$ and with Proposition~\ref{prop:B3-logistic} \tabularnewline
+\bottomrule
+\end{tabular}
+\end{center}
+
+Practical remarks. (a) The four ratios of (I1)--(I4) are independent of $(\gamma,\Delta)$; the same measured state can therefore be re-used to evaluate the chains of Proposition~\ref{prop:B3-attribution} for any $(\gamma,\Delta)$, e.g.\ the textbook constants and the optimal ones of Proposition~\ref{prop:B3-optimum}. (b) Stop measuring when $D$ or $M$ reaches the precision of $\etastar$ (the ratios become numerical noise). (c) Expect $r_{\mathrm{sq}}\lesssim\frac12$ (Remark~\ref{rem:B3-fresh}), $r_{\mathrm{var}}$ close to $1$ once the memory errors have no common direction, $r_{\mathrm{coco}}=\LEff/R^2$ well below $1$ (the per-sample curvature along $\theta-\etastar$ is typically much smaller than the maximal one), and $r_{\mathrm{sc}}=\lambda/\muEff$ very small when $\lambda$ is small compared with the curvature of the data term. With $(\gamma,\Delta)$ fixed to the textbook values, \eqref{eq:B3-representation-book} shows that $r_{\mathrm{sq}}$, $r_{\mathrm{var}}$ and $r_{\mathrm{coco}}$ each change the corresponding certified rate by a bounded factor only: the parameter rate $1-c_D=\frac{\muEff}{2R^2}\big(1-r_{\mathrm{coco}}(\frac{r_{\mathrm{sq}}}4+\frac38)\big)$ varies by at most a factor $\frac83$ with $r_{\mathrm{coco}}$ and by at most $\frac53$ with $r_{\mathrm{sq}}$ (the bracket lies in $[\frac38,1)$, Remark~\ref{rem:B3-fixed-step}), and the memory rate $1-c_M=\frac1n(1-\frac23r_{\mathrm{sq}}r_{\mathrm{var}})$ varies by at most a factor $3$ with $r_{\mathrm{sq}}r_{\mathrm{var}}$. Only $r_{\mathrm{sc}}$ (through $\muEff$, which is unbounded relative to $\mu$) and $r_{\min}$ (when the Lyapunov mass sits on the faster component: for $\kappa\ge9n/16$ and $\Delta M\gg D$, $(1-\rho^B_1)/(1-\rho_{\mathrm{bound}})\approx\frac{1/(3n)}{3/(16\kappa)}=\frac{16\kappa}{9n}$, e.g.\ $\approx1778$ for $n=10$, $\kappa=10^4$) can explain a gap larger than a constant factor.

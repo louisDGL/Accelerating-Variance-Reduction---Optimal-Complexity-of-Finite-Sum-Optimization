@@ -1,0 +1,2068 @@
+% references.bib -- bibliography for the project
+% "Accelerating Variance Reduction: Optimal Complexity of Finite-Sum Optimization"
+% (Statistical Learning Theory, UC Berkeley, November 2026; B. Yuan, P. Ruiz Alliata, L. Darrigol).
+% 162 entries generated from refs.json (164 list items; the keys nesterov2018lectures and
+% pedregosa2020acceleration appear twice in the list and are merged here).
+% Entries with verified = false in refs.json would be preceded by "% UNVERIFIED"; all entries
+% of the list are marked verified = true, so no such comment appears.
+% Keys follow <lastname><year><firstword>; the ordering follows the themes of the search agents:
+% foundations, lower bounds, acceleration, preconditioning, tightness/local constants, logistic geometry.
+
+%% ---------------------------------------------------------------------------
+%% Foundations: variance-reduced methods and their Lyapunov analyses
+%% ---------------------------------------------------------------------------
+
+@inproceedings{leroux2012stochastic,
+  author        = {Nicolas Le Roux and Mark Schmidt and Francis Bach},
+  title         = {A Stochastic Gradient Method with an Exponential Convergence Rate for Finite Training Sets},
+  booktitle     = {Advances in Neural Information Processing Systems 25 (NIPS 2012)},
+  year          = {2012},
+  url           = {https://proceedings.neurips.cc/paper/2012/hash/905056c1ac1dad141560467e0a99e1cf-Abstract.html},
+  eprint        = {1202.6258},
+  archivePrefix = {arXiv}
+}
+
+@article{schmidt2017minimizing,
+  author        = {Mark Schmidt and Nicolas Le Roux and Francis Bach},
+  title         = {Minimizing Finite Sums with the Stochastic Average Gradient},
+  journal       = {Mathematical Programming},
+  volume        = {162},
+  number        = {1--2},
+  pages         = {83--112},
+  year          = {2017},
+  doi           = {10.1007/s10107-016-1030-6},
+  url           = {https://doi.org/10.1007/s10107-016-1030-6},
+  eprint        = {1309.2388},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{johnson2013accelerating,
+  author        = {Rie Johnson and Tong Zhang},
+  title         = {Accelerating Stochastic Gradient Descent using Predictive Variance Reduction},
+  booktitle     = {Advances in Neural Information Processing Systems 26 (NIPS 2013)},
+  pages         = {315--323},
+  year          = {2013},
+  url           = {https://proceedings.neurips.cc/paper/2013/hash/ac1dd209cbcc5e5d1c6e28598e8cbbe8-Abstract.html}
+}
+
+@inproceedings{defazio2014saga,
+  author        = {Aaron Defazio and Francis Bach and Simon Lacoste-Julien},
+  title         = {{SAGA}: A Fast Incremental Gradient Method With Support for Non-Strongly Convex Composite Objectives},
+  booktitle     = {Advances in Neural Information Processing Systems 27 (NIPS 2014)},
+  year          = {2014},
+  url           = {https://proceedings.neurips.cc/paper_files/paper/2014/hash/937964195d6fb3a55cd7cc578165f058-Abstract.html},
+  eprint        = {1407.0202},
+  archivePrefix = {arXiv}
+}
+
+@article{shalevshwartz2013stochastic,
+  author        = {Shai Shalev-Shwartz and Tong Zhang},
+  title         = {Stochastic Dual Coordinate Ascent Methods for Regularized Loss Minimization},
+  journal       = {Journal of Machine Learning Research},
+  volume        = {14},
+  pages         = {567--599},
+  year          = {2013},
+  url           = {https://www.jmlr.org/papers/v14/shalev-shwartz13a.html},
+  eprint        = {1209.1873},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{defazio2014finito,
+  author        = {Aaron J. Defazio and Tiberio S. Caetano and Justin Domke},
+  title         = {Finito: A Faster, Permutable Incremental Gradient Method for Big Data Problems},
+  booktitle     = {Proceedings of the 31st International Conference on Machine Learning (ICML 2014)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {32},
+  number        = {2},
+  pages         = {1125--1133},
+  year          = {2014},
+  url           = {https://proceedings.mlr.press/v32/defazio14.html},
+  eprint        = {1407.2710},
+  archivePrefix = {arXiv}
+}
+
+@article{mairal2015incremental,
+  author        = {Julien Mairal},
+  title         = {Incremental Majorization-Minimization Optimization with Application to Large-Scale Machine Learning},
+  journal       = {SIAM Journal on Optimization},
+  volume        = {25},
+  number        = {2},
+  pages         = {829--855},
+  year          = {2015},
+  doi           = {10.1137/140957639},
+  url           = {https://doi.org/10.1137/140957639},
+  eprint        = {1402.4419},
+  archivePrefix = {arXiv}
+}
+
+@article{konecny2017semistochastic,
+  author        = {Jakub Kone{\v{c}}n{\'y} and Peter Richt{\'a}rik},
+  title         = {Semi-Stochastic Gradient Descent Methods},
+  journal       = {Frontiers in Applied Mathematics and Statistics},
+  volume        = {3},
+  pages         = {9},
+  year          = {2017},
+  doi           = {10.3389/fams.2017.00009},
+  url           = {https://doi.org/10.3389/fams.2017.00009},
+  eprint        = {1312.1666},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{nguyen2017sarah,
+  author        = {Lam M. Nguyen and Jie Liu and Katya Scheinberg and Martin Tak{\'a}{\v{c}}},
+  title         = {{SARAH}: A Novel Method for Machine Learning Problems Using Stochastic Recursive Gradient},
+  booktitle     = {Proceedings of the 34th International Conference on Machine Learning (ICML 2017)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {70},
+  pages         = {2613--2621},
+  year          = {2017},
+  url           = {https://proceedings.mlr.press/v70/nguyen17b.html},
+  eprint        = {1703.00102},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{hofmann2015variance,
+  author        = {Thomas Hofmann and Aurelien Lucchi and Simon Lacoste-Julien and Brian McWilliams},
+  title         = {Variance Reduced Stochastic Gradient Descent with Neighbors},
+  booktitle     = {Advances in Neural Information Processing Systems 28 (NIPS 2015)},
+  pages         = {2305--2313},
+  year          = {2015},
+  url           = {https://proceedings.neurips.cc/paper/2015/hash/effc299a1addb07e7089f9b269c31f2f-Abstract.html},
+  eprint        = {1506.03662},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{kovalev2020dont,
+  author        = {Dmitry Kovalev and Samuel Horv{\'a}th and Peter Richt{\'a}rik},
+  title         = {Don't Jump Through Hoops and Remove Those Loops: {SVRG} and {Katyusha} are Better Without the Outer Loop},
+  booktitle     = {Proceedings of the 31st International Conference on Algorithmic Learning Theory (ALT 2020)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {117},
+  pages         = {451--467},
+  year          = {2020},
+  url           = {https://proceedings.mlr.press/v117/kovalev20a.html},
+  eprint        = {1901.08689},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{defazio2016simple,
+  author        = {Aaron Defazio},
+  title         = {A Simple Practical Accelerated Method for Finite Sums},
+  booktitle     = {Advances in Neural Information Processing Systems 29 (NIPS 2016)},
+  year          = {2016},
+  url           = {https://proceedings.neurips.cc/paper/2016/hash/4f6ffe13a5d75b2d6a3923922b3922e5-Abstract.html},
+  eprint        = {1602.02442},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{qian2019saga,
+  author        = {Xun Qian and Zheng Qu and Peter Richt{\'a}rik},
+  title         = {{SAGA} with Arbitrary Sampling},
+  booktitle     = {Proceedings of the 36th International Conference on Machine Learning (ICML 2019)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {97},
+  pages         = {5190--5199},
+  year          = {2019},
+  url           = {https://proceedings.mlr.press/v97/qian19a.html},
+  eprint        = {1901.08669},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{schmidt2015nonuniform,
+  author        = {Mark Schmidt and Reza Babanezhad and Mohamed Osama Ahmed and Aaron Defazio and Ann Clifton and Anoop Sarkar},
+  title         = {Non-Uniform Stochastic Average Gradient Method for Training Conditional Random Fields},
+  booktitle     = {Proceedings of the 18th International Conference on Artificial Intelligence and Statistics (AISTATS 2015)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {38},
+  pages         = {819--828},
+  year          = {2015},
+  url           = {https://proceedings.mlr.press/v38/schmidt15.html},
+  eprint        = {1504.04406},
+  archivePrefix = {arXiv}
+}
+
+@article{gower2021stochastic,
+  author        = {Robert M. Gower and Peter Richt{\'a}rik and Francis Bach},
+  title         = {Stochastic Quasi-Gradient Methods: Variance Reduction via {Jacobian} Sketching},
+  journal       = {Mathematical Programming},
+  volume        = {188},
+  number        = {1},
+  pages         = {135--192},
+  year          = {2021},
+  doi           = {10.1007/s10107-020-01506-0},
+  url           = {https://doi.org/10.1007/s10107-020-01506-0},
+  eprint        = {1805.02632},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{gorbunov2020unified,
+  author        = {Eduard Gorbunov and Filip Hanzely and Peter Richt{\'a}rik},
+  title         = {A Unified Theory of {SGD}: Variance Reduction, Sampling, Quantization and Coordinate Descent},
+  booktitle     = {Proceedings of the 23rd International Conference on Artificial Intelligence and Statistics (AISTATS 2020)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {108},
+  pages         = {680--690},
+  year          = {2020},
+  url           = {https://proceedings.mlr.press/v108/gorbunov20a.html},
+  eprint        = {1905.11261},
+  archivePrefix = {arXiv}
+}
+
+@article{gower2020variance,
+  author        = {Robert M. Gower and Mark Schmidt and Francis Bach and Peter Richt{\'a}rik},
+  title         = {Variance-Reduced Methods for Machine Learning},
+  journal       = {Proceedings of the IEEE},
+  volume        = {108},
+  number        = {11},
+  pages         = {1968--1983},
+  year          = {2020},
+  doi           = {10.1109/JPROC.2020.3028013},
+  url           = {https://doi.org/10.1109/JPROC.2020.3028013},
+  eprint        = {2010.00892},
+  archivePrefix = {arXiv}
+}
+
+@book{bach2024learning,
+  author        = {Francis Bach},
+  title         = {Learning Theory from First Principles},
+  publisher     = {MIT Press},
+  series        = {Adaptive Computation and Machine Learning},
+  address       = {Cambridge, MA},
+  year          = {2024},
+  isbn          = {978-0-262-04944-3},
+  url           = {https://www.di.ens.fr/~fbach/ltfp_book.pdf},
+  note          = {Chapter 5, Section 5.4.4 (variance reduction, Proposition 5.9)}
+}
+
+@article{xiao2014proximal,
+  author        = {Lin Xiao and Tong Zhang},
+  title         = {A Proximal Stochastic Gradient Method with Progressive Variance Reduction},
+  journal       = {SIAM Journal on Optimization},
+  volume        = {24},
+  number        = {4},
+  pages         = {2057--2075},
+  year          = {2014},
+  doi           = {10.1137/140961791},
+  url           = {https://doi.org/10.1137/140961791},
+  eprint        = {1403.4699},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{gazagnadou2019optimal,
+  author        = {Nidham Gazagnadou and Robert M. Gower and Joseph Salmon},
+  title         = {Optimal Mini-Batch and Step Sizes for {SAGA}},
+  booktitle     = {Proceedings of the 36th International Conference on Machine Learning (ICML 2019)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {97},
+  pages         = {2142--2150},
+  year          = {2019},
+  url           = {https://proceedings.mlr.press/v97/gazagnadou19a.html},
+  eprint        = {1902.00071},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{sebbouh2019towards,
+  author        = {Othmane Sebbouh and Nidham Gazagnadou and Samy Jelassi and Francis Bach and Robert M. Gower},
+  title         = {Towards Closing the Gap between the Theory and Practice of {SVRG}},
+  booktitle     = {Advances in Neural Information Processing Systems 32 (NeurIPS 2019)},
+  year          = {2019},
+  url           = {https://proceedings.neurips.cc/paper/2019/hash/cd00692c3bfe59267d5ecfac5310286c-Abstract.html},
+  eprint        = {1908.02725},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{babanezhad2015stop,
+  author        = {Reza {Babanezhad Harikandeh} and Mohamed Osama Ahmed and Alim Virani and Mark Schmidt and Jakub Kone{\v{c}}n{\'y} and Scott Sallinen},
+  title         = {Stop Wasting My Gradients: Practical {SVRG}},
+  booktitle     = {Advances in Neural Information Processing Systems 28 (NIPS 2015)},
+  pages         = {2251--2259},
+  year          = {2015},
+  url           = {https://proceedings.neurips.cc/paper/2015/hash/a50abba8132a77191791390c3eb19fe7-Abstract.html},
+  eprint        = {1511.01942},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{hannah2018breaking,
+  author        = {Robert Hannah and Yanli Liu and Daniel O'Connor and Wotao Yin},
+  title         = {Breaking the Span Assumption Yields Fast Finite-Sum Minimization},
+  booktitle     = {Advances in Neural Information Processing Systems 31 (NeurIPS 2018)},
+  year          = {2018},
+  url           = {https://proceedings.neurips.cc/paper/2018/hash/abea47ba24142ed16b7d8fbf2c740e0d-Abstract.html},
+  eprint        = {1805.07786},
+  archivePrefix = {arXiv}
+}
+
+@book{nesterov2018lectures,
+  author        = {Yurii Nesterov},
+  title         = {Lectures on Convex Optimization},
+  edition       = {2},
+  publisher     = {Springer},
+  series        = {Springer Optimization and Its Applications},
+  volume        = {137},
+  address       = {Cham},
+  year          = {2018},
+  isbn          = {978-3-319-91577-7},
+  doi           = {10.1007/978-3-319-91578-4},
+  url           = {https://doi.org/10.1007/978-3-319-91578-4},
+  note          = {Second edition of \emph{Introductory Lectures on Convex Optimization: A Basic Course} (Kluwer, 2004); Assumption 2.1.4, Theorems 2.1.7 and 2.1.13 (lower bounds)}
+}
+
+@article{bottou2018optimization,
+  author        = {L{\'e}on Bottou and Frank E. Curtis and Jorge Nocedal},
+  title         = {Optimization Methods for Large-Scale Machine Learning},
+  journal       = {SIAM Review},
+  volume        = {60},
+  number        = {2},
+  pages         = {223--311},
+  year          = {2018},
+  doi           = {10.1137/16M1080173},
+  url           = {https://doi.org/10.1137/16M1080173},
+  eprint        = {1606.04838},
+  archivePrefix = {arXiv}
+}
+
+@article{blatt2007convergent,
+  author        = {Doron Blatt and Alfred O. Hero and Hillel Gauchman},
+  title         = {A Convergent Incremental Gradient Method with a Constant Step Size},
+  journal       = {SIAM Journal on Optimization},
+  volume        = {18},
+  number        = {1},
+  pages         = {29--51},
+  year          = {2007},
+  doi           = {10.1137/040615961},
+  url           = {https://doi.org/10.1137/040615961}
+}
+
+@article{gurbuzbalaban2017convergence,
+  author        = {Mert G{\"u}rb{\"u}zbalaban and Asuman Ozdaglar and Pablo A. Parrilo},
+  title         = {On the Convergence Rate of Incremental Aggregated Gradient Algorithms},
+  journal       = {SIAM Journal on Optimization},
+  volume        = {27},
+  number        = {2},
+  pages         = {1035--1048},
+  year          = {2017},
+  doi           = {10.1137/15M1049695},
+  url           = {https://doi.org/10.1137/15M1049695},
+  eprint        = {1506.02081},
+  archivePrefix = {arXiv}
+}
+
+%% ---------------------------------------------------------------------------
+%% Lower bounds for finite sums
+%% ---------------------------------------------------------------------------
+
+@inproceedings{agarwal2015lower,
+  author        = {Alekh Agarwal and L{\'e}on Bottou},
+  title         = {A Lower Bound for the Optimization of Finite Sums},
+  booktitle     = {Proceedings of the 32nd International Conference on Machine Learning (ICML 2015)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {37},
+  pages         = {78--86},
+  year          = {2015},
+  url           = {https://arxiv.org/abs/1410.0723},
+  eprint        = {1410.0723},
+  archivePrefix = {arXiv},
+  note          = {arXiv v4 (October 2015) adds an erratum: the bound holds for deterministic algorithms only}
+}
+
+@article{lan2018optimal,
+  author        = {Guanghui Lan and Yi Zhou},
+  title         = {An Optimal Randomized Incremental Gradient Method},
+  journal       = {Mathematical Programming},
+  volume        = {171},
+  number        = {1--2},
+  pages         = {167--215},
+  year          = {2018},
+  doi           = {10.1007/s10107-017-1173-0},
+  url           = {https://arxiv.org/abs/1507.02000},
+  eprint        = {1507.02000},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{woodworth2016tight,
+  author        = {Blake E. Woodworth and Nathan Srebro},
+  title         = {Tight Complexity Bounds for Optimizing Composite Objectives},
+  booktitle     = {Advances in Neural Information Processing Systems 29 (NIPS 2016)},
+  year          = {2016},
+  url           = {https://arxiv.org/abs/1605.08003},
+  eprint        = {1605.08003},
+  archivePrefix = {arXiv},
+  note          = {arXiv v3 (April 2019) corrects Appendix C}
+}
+
+@inproceedings{arjevani2016dimension,
+  author        = {Yossi Arjevani and Ohad Shamir},
+  title         = {Dimension-Free Iteration Complexity of Finite Sum Optimization Problems},
+  booktitle     = {Advances in Neural Information Processing Systems 29 (NIPS 2016)},
+  year          = {2016},
+  url           = {https://arxiv.org/abs/1606.09333},
+  eprint        = {1606.09333},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{arjevani2016iteration,
+  author        = {Yossi Arjevani and Ohad Shamir},
+  title         = {On the Iteration Complexity of Oblivious First-Order Optimization Algorithms},
+  booktitle     = {Proceedings of the 33rd International Conference on Machine Learning (ICML 2016)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {48},
+  pages         = {908--916},
+  year          = {2016},
+  url           = {https://arxiv.org/abs/1605.03529},
+  eprint        = {1605.03529},
+  archivePrefix = {arXiv}
+}
+
+@article{han2024lower,
+  author        = {Yuze Han and Guangzeng Xie and Zhihua Zhang},
+  title         = {Lower Complexity Bounds of Finite-Sum Optimization Problems: The Results and Construction},
+  journal       = {Journal of Machine Learning Research},
+  volume        = {25},
+  number        = {2},
+  pages         = {1--86},
+  year          = {2024},
+  url           = {https://jmlr.org/papers/v25/21-0264.html},
+  eprint        = {2103.08280},
+  archivePrefix = {arXiv}
+}
+
+@book{nemirovsky1983problem,
+  author        = {Arkadii S. Nemirovsky and David B. Yudin},
+  title         = {Problem Complexity and Method Efficiency in Optimization},
+  publisher     = {John Wiley \& Sons},
+  series        = {Wiley-Interscience Series in Discrete Mathematics},
+  address       = {New York},
+  year          = {1983},
+  isbn          = {0-471-10345-4},
+  url           = {https://find.library.upenn.edu/catalog/992960743503681},
+  note          = {Translated by E. R. Dawson from the 1979 Russian original}
+}
+
+@inproceedings{arjevani2017limitations,
+  author        = {Yossi Arjevani},
+  title         = {Limitations on Variance-Reduction and Acceleration Schemes for Finite Sums Optimization},
+  booktitle     = {Advances in Neural Information Processing Systems 30 (NIPS 2017)},
+  year          = {2017},
+  url           = {https://arxiv.org/abs/1706.01686},
+  eprint        = {1706.01686},
+  archivePrefix = {arXiv}
+}
+
+@misc{woodworth2017lower,
+  author        = {Blake Woodworth and Nathan Srebro},
+  title         = {Lower Bound for Randomized First Order Convex Optimization},
+  year          = {2017},
+  howpublished  = {arXiv preprint arXiv:1709.03594 (unpublished technical note, 8 pages)},
+  url           = {https://arxiv.org/abs/1709.03594},
+  eprint        = {1709.03594},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{zhou2019lower,
+  author        = {Dongruo Zhou and Quanquan Gu},
+  title         = {Lower Bounds for Smooth Nonconvex Finite-Sum Optimization},
+  booktitle     = {Proceedings of the 36th International Conference on Machine Learning (ICML 2019)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {97},
+  pages         = {7574--7583},
+  year          = {2019},
+  url           = {https://arxiv.org/abs/1901.11224},
+  eprint        = {1901.11224},
+  archivePrefix = {arXiv}
+}
+
+@misc{xie2019general,
+  author        = {Guangzeng Xie and Luo Luo and Zhihua Zhang},
+  title         = {A General Analysis Framework of Lower Complexity Bounds for Finite-Sum Optimization},
+  year          = {2019},
+  howpublished  = {arXiv preprint arXiv:1908.08394 (unpublished; superseded by Han, Xie and Zhang, JMLR 2024)},
+  url           = {https://arxiv.org/abs/1908.08394},
+  eprint        = {1908.08394},
+  archivePrefix = {arXiv}
+}
+
+@misc{zhang2020tight,
+  author        = {Min Zhang and Yao Shu and Kun He},
+  title         = {Tight Lower Complexity Bounds for Strongly Convex Finite-Sum Optimization},
+  year          = {2020},
+  howpublished  = {arXiv preprint arXiv:2010.08766 (v2, June 2022; unpublished)},
+  url           = {https://arxiv.org/abs/2010.08766},
+  eprint        = {2010.08766},
+  archivePrefix = {arXiv}
+}
+
+@misc{peng2026dense,
+  author        = {Yuxing Peng and Zhiqing Tang and Weijia Jia},
+  title         = {Dense Weak Hiding: Closing Complexity Gaps in Nonconvex and {PL} Finite-Sum Optimization under Individual Smoothness},
+  year          = {2026},
+  howpublished  = {arXiv preprint arXiv:2609.00045 (v3, October 2026; unrefereed)},
+  url           = {https://arxiv.org/abs/2609.00045},
+  eprint        = {2609.00045},
+  archivePrefix = {arXiv}
+}
+
+@article{hendrikx2021optimal,
+  author        = {Hadrien Hendrikx and Francis Bach and Laurent Massouli{\'e}},
+  title         = {An Optimal Algorithm for Decentralized Finite-Sum Optimization},
+  journal       = {SIAM Journal on Optimization},
+  volume        = {31},
+  number        = {4},
+  pages         = {2753--2783},
+  year          = {2021},
+  doi           = {10.1137/20M134842X},
+  url           = {https://arxiv.org/abs/2005.10675},
+  eprint        = {2005.10675},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{arjevani2017oracle,
+  author        = {Yossi Arjevani and Ohad Shamir},
+  title         = {Oracle Complexity of Second-Order Methods for Finite-Sum Problems},
+  booktitle     = {Proceedings of the 34th International Conference on Machine Learning (ICML 2017)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {70},
+  pages         = {205--213},
+  year          = {2017},
+  url           = {https://arxiv.org/abs/1611.04982},
+  eprint        = {1611.04982},
+  archivePrefix = {arXiv}
+}
+
+@article{arjevani2016lower,
+  author        = {Yossi Arjevani and Shai Shalev-Shwartz and Ohad Shamir},
+  title         = {On Lower and Upper Bounds in Smooth and Strongly Convex Optimization},
+  journal       = {Journal of Machine Learning Research},
+  volume        = {17},
+  number        = {126},
+  pages         = {1--51},
+  year          = {2016},
+  url           = {https://jmlr.org/papers/v17/15-106.html},
+  eprint        = {1503.06833},
+  archivePrefix = {arXiv}
+}
+
+@article{allenzhu2018katyusha,
+  author        = {Zeyuan Allen-Zhu},
+  title         = {{Katyusha}: The First Direct Acceleration of Stochastic Gradient Methods},
+  journal       = {Journal of Machine Learning Research},
+  volume        = {18},
+  number        = {221},
+  pages         = {1--51},
+  year          = {2018},
+  url           = {https://jmlr.org/papers/v18/16-410.html},
+  eprint        = {1603.05953},
+  archivePrefix = {arXiv},
+  note          = {Conference version in STOC 2017, pp. 1200--1205, doi 10.1145/3055399.3055448}
+}
+
+@article{carmon2020lower,
+  author        = {Yair Carmon and John C. Duchi and Oliver Hinder and Aaron Sidford},
+  title         = {Lower Bounds for Finding Stationary Points {I}},
+  journal       = {Mathematical Programming},
+  volume        = {184},
+  number        = {1--2},
+  pages         = {71--120},
+  year          = {2020},
+  doi           = {10.1007/s10107-019-01406-y},
+  url           = {https://arxiv.org/abs/1710.11606},
+  eprint        = {1710.11606},
+  archivePrefix = {arXiv}
+}
+
+%% ---------------------------------------------------------------------------
+%% Acceleration of variance reduction
+%% ---------------------------------------------------------------------------
+
+@inproceedings{lin2015universal,
+  author        = {Hongzhou Lin and Julien Mairal and Za{\"i}d Harchaoui},
+  title         = {A Universal Catalyst for First-Order Optimization},
+  booktitle     = {Advances in Neural Information Processing Systems 28 (NeurIPS 2015)},
+  pages         = {3384--3392},
+  year          = {2015},
+  url           = {https://arxiv.org/abs/1506.02186},
+  eprint        = {1506.02186},
+  archivePrefix = {arXiv}
+}
+
+@article{lin2018catalyst,
+  author        = {Hongzhou Lin and Julien Mairal and Za{\"i}d Harchaoui},
+  title         = {Catalyst Acceleration for First-Order Convex Optimization: From Theory to Practice},
+  journal       = {Journal of Machine Learning Research},
+  volume        = {18},
+  number        = {212},
+  pages         = {1--54},
+  year          = {2018},
+  url           = {https://arxiv.org/abs/1712.05654},
+  eprint        = {1712.05654},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{frostig2015unregularizing,
+  author        = {Roy Frostig and Rong Ge and Sham M. Kakade and Aaron Sidford},
+  title         = {Un-regularizing: Approximate Proximal Point and Faster Stochastic Algorithms for Empirical Risk Minimization},
+  booktitle     = {Proceedings of the 32nd International Conference on Machine Learning (ICML 2015)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {37},
+  pages         = {2540--2548},
+  year          = {2015},
+  url           = {https://proceedings.mlr.press/v37/frostig15.html},
+  eprint        = {1506.07512},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{shalevshwartz2014accelerated,
+  author        = {Shai Shalev-Shwartz and Tong Zhang},
+  title         = {Accelerated Proximal Stochastic Dual Coordinate Ascent for Regularized Loss Minimization},
+  booktitle     = {Proceedings of the 31st International Conference on Machine Learning (ICML 2014)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {32},
+  number        = {1},
+  pages         = {64--72},
+  year          = {2014},
+  url           = {https://proceedings.mlr.press/v32/shalev-shwartz14.html},
+  doi           = {10.1007/s10107-014-0839-0},
+  eprint        = {1309.2375},
+  archivePrefix = {arXiv},
+  note          = {DOI refers to the journal version: Mathematical Programming 155(1--2):105--145, 2016}
+}
+
+@article{lin2015accelerated,
+  author        = {Qihang Lin and Zhaosong Lu and Lin Xiao},
+  title         = {An Accelerated Randomized Proximal Coordinate Gradient Method and its Application to Regularized Empirical Risk Minimization},
+  journal       = {SIAM Journal on Optimization},
+  volume        = {25},
+  number        = {4},
+  pages         = {2244--2273},
+  year          = {2015},
+  doi           = {10.1137/141000270},
+  url           = {https://arxiv.org/abs/1407.1296},
+  eprint        = {1407.1296},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{zhang2015stochastic,
+  author        = {Yuchen Zhang and Lin Xiao},
+  title         = {Stochastic Primal-Dual Coordinate Method for Regularized Empirical Risk Minimization},
+  booktitle     = {Proceedings of the 32nd International Conference on Machine Learning (ICML 2015)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {37},
+  pages         = {353--361},
+  year          = {2015},
+  url           = {https://arxiv.org/abs/1409.3257},
+  eprint        = {1409.3257},
+  archivePrefix = {arXiv},
+  note          = {Journal version: Journal of Machine Learning Research 18(84):1--42, 2017}
+}
+
+@article{lan2018random,
+  author        = {Guanghui Lan and Yi Zhou},
+  title         = {Random Gradient Extrapolation for Distributed and Stochastic Optimization},
+  journal       = {SIAM Journal on Optimization},
+  volume        = {28},
+  number        = {4},
+  pages         = {2753--2782},
+  year          = {2018},
+  doi           = {10.1137/17M1157891},
+  url           = {https://arxiv.org/abs/1711.05762},
+  eprint        = {1711.05762},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{lan2019unified,
+  author        = {Guanghui Lan and Zhize Li and Yi Zhou},
+  title         = {A Unified Variance-Reduced Accelerated Gradient Method for Convex Optimization},
+  booktitle     = {Advances in Neural Information Processing Systems 32 (NeurIPS 2019)},
+  pages         = {10462--10472},
+  year          = {2019},
+  url           = {https://arxiv.org/abs/1905.12412},
+  eprint        = {1905.12412},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{zhou2018simple,
+  author        = {Kaiwen Zhou and Fanhua Shang and James Cheng},
+  title         = {A Simple Stochastic Variance Reduced Algorithm with Fast Convergence Rates},
+  booktitle     = {Proceedings of the 35th International Conference on Machine Learning (ICML 2018)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {80},
+  pages         = {5980--5989},
+  year          = {2018},
+  url           = {https://proceedings.mlr.press/v80/zhou18c.html},
+  eprint        = {1806.11027},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{zhou2019direct,
+  author        = {Kaiwen Zhou and Qinghua Ding and Fanhua Shang and James Cheng and Danli Li and Zhi-Quan Luo},
+  title         = {Direct Acceleration of {SAGA} using Sampled Negative Momentum},
+  booktitle     = {Proceedings of the 22nd International Conference on Artificial Intelligence and Statistics (AISTATS 2019)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {89},
+  pages         = {1602--1610},
+  year          = {2019},
+  url           = {https://proceedings.mlr.press/v89/zhou19c.html},
+  eprint        = {1806.11048},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{nitanda2014stochastic,
+  author        = {Atsushi Nitanda},
+  title         = {Stochastic Proximal Gradient Descent with Acceleration Techniques},
+  booktitle     = {Advances in Neural Information Processing Systems 27 (NeurIPS 2014)},
+  pages         = {1574--1582},
+  year          = {2014},
+  url           = {https://proceedings.neurips.cc/paper_files/paper/2014/hash/2d6cd90d4f3fa50e6d9bdbc81a2e3712-Abstract.html}
+}
+
+@inproceedings{kulunchakov2019estimate,
+  author        = {Andrei Kulunchakov and Julien Mairal},
+  title         = {Estimate Sequences for Variance-Reduced Stochastic Composite Optimization},
+  booktitle     = {Proceedings of the 36th International Conference on Machine Learning (ICML 2019)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {97},
+  pages         = {3541--3550},
+  year          = {2019},
+  url           = {https://proceedings.mlr.press/v97/kulunchakov19a.html},
+  eprint        = {1905.02374},
+  archivePrefix = {arXiv}
+}
+
+@article{kulunchakov2020estimate,
+  author        = {Andrei Kulunchakov and Julien Mairal},
+  title         = {Estimate Sequences for Stochastic Composite Optimization: Variance Reduction, Acceleration, and Robustness to Noise},
+  journal       = {Journal of Machine Learning Research},
+  volume        = {21},
+  number        = {155},
+  pages         = {1--52},
+  year          = {2020},
+  url           = {https://arxiv.org/abs/1901.08788},
+  eprint        = {1901.08788},
+  archivePrefix = {arXiv}
+}
+
+@article{driggs2022accelerating,
+  author        = {Derek Driggs and Matthias J. Ehrhardt and Carola-Bibiane Sch{\"o}nlieb},
+  title         = {Accelerating Variance-Reduced Stochastic Gradient Methods},
+  journal       = {Mathematical Programming},
+  volume        = {191},
+  number        = {2},
+  pages         = {671--715},
+  year          = {2022},
+  doi           = {10.1007/s10107-020-01566-2},
+  url           = {https://arxiv.org/abs/1910.09494},
+  eprint        = {1910.09494},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{song2020variance,
+  author        = {Chaobing Song and Yong Jiang and Yi Ma},
+  title         = {Variance Reduction via Accelerated Dual Averaging for Finite-Sum Optimization},
+  booktitle     = {Advances in Neural Information Processing Systems 33 (NeurIPS 2020)},
+  pages         = {833--844},
+  year          = {2020},
+  url           = {https://arxiv.org/abs/2006.10281},
+  eprint        = {2006.10281},
+  archivePrefix = {arXiv}
+}
+
+@misc{li2021anita,
+  author        = {Zhize Li},
+  title         = {{ANITA}: An Optimal Loopless Accelerated Variance-Reduced Gradient Method},
+  year          = {2021},
+  howpublished  = {arXiv preprint arXiv:2103.11333 (v3, September 2022; unpublished)},
+  url           = {https://arxiv.org/abs/2103.11333},
+  eprint        = {2103.11333},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{hu2018dissipativity,
+  author        = {Bin Hu and Stephen Wright and Laurent Lessard},
+  title         = {Dissipativity Theory for Accelerating Stochastic Variance Reduction: A Unified Analysis of {SVRG} and {Katyusha} Using Semidefinite Programs},
+  booktitle     = {Proceedings of the 35th International Conference on Machine Learning (ICML 2018)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {80},
+  pages         = {2038--2047},
+  year          = {2018},
+  url           = {https://proceedings.mlr.press/v80/hu18b.html},
+  eprint        = {1806.03677},
+  archivePrefix = {arXiv}
+}
+
+@book{lan2020first,
+  author        = {Guanghui Lan},
+  title         = {First-order and Stochastic Optimization Methods for Machine Learning},
+  publisher     = {Springer},
+  series        = {Springer Series in the Data Sciences},
+  address       = {Cham},
+  year          = {2020},
+  doi           = {10.1007/978-3-030-39568-1},
+  url           = {https://doi.org/10.1007/978-3-030-39568-1},
+  note          = {Chapter 5, Convex Finite-Sum and Distributed Optimization, pp. 221--303}
+}
+
+@inproceedings{defazio2019ineffectiveness,
+  author        = {Aaron Defazio and L{\'e}on Bottou},
+  title         = {On the Ineffectiveness of Variance Reduced Optimization for Deep Learning},
+  booktitle     = {Advances in Neural Information Processing Systems 32 (NeurIPS 2019)},
+  year          = {2019},
+  url           = {https://arxiv.org/abs/1812.04529},
+  eprint        = {1812.04529},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{kidambi2018insufficiency,
+  author        = {Rahul Kidambi and Praneeth Netrapalli and Prateek Jain and Sham M. Kakade},
+  title         = {On the Insufficiency of Existing Momentum Schemes for Stochastic Optimization},
+  booktitle     = {International Conference on Learning Representations (ICLR 2018)},
+  year          = {2018},
+  url           = {https://arxiv.org/abs/1803.05591},
+  eprint        = {1803.05591},
+  archivePrefix = {arXiv},
+  note          = {Workshop version: Information Theory and Applications Workshop (ITA) 2018, doi 10.1109/ITA.2018.8503173}
+}
+
+@article{devolder2014first,
+  author        = {Olivier Devolder and Fran{\c{c}}ois Glineur and Yurii Nesterov},
+  title         = {First-Order Methods of Smooth Convex Optimization with Inexact Oracle},
+  journal       = {Mathematical Programming},
+  volume        = {146},
+  number        = {1--2},
+  pages         = {37--75},
+  year          = {2014},
+  doi           = {10.1007/s10107-013-0677-5},
+  url           = {https://doi.org/10.1007/s10107-013-0677-5}
+}
+
+@article{qian2021lsvrg,
+  author        = {Xun Qian and Zheng Qu and Peter Richt{\'a}rik},
+  title         = {{L-SVRG} and {L-Katyusha} with Arbitrary Sampling},
+  journal       = {Journal of Machine Learning Research},
+  volume        = {22},
+  number        = {112},
+  pages         = {1--47},
+  year          = {2021},
+  url           = {https://arxiv.org/abs/1906.01481},
+  eprint        = {1906.01481},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{nitanda2016accelerated,
+  author        = {Atsushi Nitanda},
+  title         = {Accelerated Stochastic Gradient Descent for Minimizing Finite Sums},
+  booktitle     = {Proceedings of the 19th International Conference on Artificial Intelligence and Statistics (AISTATS 2016)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {51},
+  pages         = {195--203},
+  year          = {2016},
+  url           = {https://proceedings.mlr.press/v51/nitanda16.html},
+  eprint        = {1506.03016},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{allenzhu2017linear,
+  author        = {Zeyuan Allen-Zhu and Lorenzo Orecchia},
+  title         = {Linear Coupling: An Ultimate Unification of Gradient and Mirror Descent},
+  booktitle     = {8th Innovations in Theoretical Computer Science Conference (ITCS 2017)},
+  series        = {Leibniz International Proceedings in Informatics (LIPIcs)},
+  volume        = {67},
+  pages         = {3:1--3:22},
+  year          = {2017},
+  doi           = {10.4230/LIPIcs.ITCS.2017.3},
+  url           = {https://arxiv.org/abs/1407.1537},
+  eprint        = {1407.1537},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{schmidt2011convergence,
+  author        = {Mark Schmidt and Nicolas Le Roux and Francis Bach},
+  title         = {Convergence Rates of Inexact Proximal-Gradient Methods for Convex Optimization},
+  booktitle     = {Advances in Neural Information Processing Systems 24 (NeurIPS 2011)},
+  pages         = {1458--1466},
+  year          = {2011},
+  url           = {https://arxiv.org/abs/1109.2415},
+  eprint        = {1109.2415},
+  archivePrefix = {arXiv}
+}
+
+%% ---------------------------------------------------------------------------
+%% Preconditioned / variable-metric variance reduction and statistical preconditioning
+%% ---------------------------------------------------------------------------
+
+@inproceedings{hendrikx2020statistically,
+  author        = {Hadrien Hendrikx and Lin Xiao and S{\'e}bastien Bubeck and Francis Bach and Laurent Massouli{\'e}},
+  title         = {Statistically Preconditioned Accelerated Gradient Method for Distributed Optimization},
+  booktitle     = {Proceedings of the 37th International Conference on Machine Learning (ICML 2020)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {119},
+  pages         = {4203--4227},
+  year          = {2020},
+  url           = {https://arxiv.org/abs/2002.10726},
+  eprint        = {2002.10726},
+  archivePrefix = {arXiv}
+}
+
+@article{lu2018relatively,
+  author        = {Haihao Lu and Robert M. Freund and Yurii Nesterov},
+  title         = {Relatively Smooth Convex Optimization by First-Order Methods, and Applications},
+  journal       = {SIAM Journal on Optimization},
+  volume        = {28},
+  number        = {1},
+  pages         = {333--354},
+  year          = {2018},
+  doi           = {10.1137/16M1099546},
+  url           = {https://arxiv.org/abs/1610.05708},
+  eprint        = {1610.05708},
+  archivePrefix = {arXiv}
+}
+
+@article{bauschke2017descent,
+  author        = {Heinz H. Bauschke and J{\'e}r{\^o}me Bolte and Marc Teboulle},
+  title         = {A Descent Lemma Beyond {Lipschitz} Gradient Continuity: First-Order Methods Revisited and Applications},
+  journal       = {Mathematics of Operations Research},
+  volume        = {42},
+  number        = {2},
+  pages         = {330--348},
+  year          = {2017},
+  doi           = {10.1287/moor.2016.0817},
+  url           = {https://doi.org/10.1287/moor.2016.0817}
+}
+
+@inproceedings{dragomir2021fast,
+  author        = {Radu-Alexandru Dragomir and Mathieu Even and Hadrien Hendrikx},
+  title         = {Fast Stochastic {Bregman} Gradient Methods: Sharp Analysis and Variance Reduction},
+  booktitle     = {Proceedings of the 38th International Conference on Machine Learning (ICML 2021)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {139},
+  pages         = {2815--2825},
+  year          = {2021},
+  url           = {https://arxiv.org/abs/2104.09813},
+  eprint        = {2104.09813},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{gonen2016solving,
+  author        = {Alon Gonen and Francesco Orabona and Shai Shalev-Shwartz},
+  title         = {Solving Ridge Regression using Sketched Preconditioned {SVRG}},
+  booktitle     = {Proceedings of the 33rd International Conference on Machine Learning (ICML 2016)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {48},
+  pages         = {1397--1405},
+  year          = {2016},
+  url           = {https://arxiv.org/abs/1602.02350},
+  eprint        = {1602.02350},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{moritz2016linearly,
+  author        = {Philipp Moritz and Robert Nishihara and Michael I. Jordan},
+  title         = {A Linearly-Convergent Stochastic {L-BFGS} Algorithm},
+  booktitle     = {Proceedings of the 19th International Conference on Artificial Intelligence and Statistics (AISTATS 2016)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {51},
+  pages         = {249--258},
+  year          = {2016},
+  url           = {https://arxiv.org/abs/1508.02087},
+  eprint        = {1508.02087},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{gower2016stochastic,
+  author        = {Robert M. Gower and Donald Goldfarb and Peter Richt{\'a}rik},
+  title         = {Stochastic Block {BFGS}: Squeezing More Curvature out of Data},
+  booktitle     = {Proceedings of the 33rd International Conference on Machine Learning (ICML 2016)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {48},
+  pages         = {1869--1878},
+  year          = {2016},
+  url           = {https://arxiv.org/abs/1603.09649},
+  eprint        = {1603.09649},
+  archivePrefix = {arXiv}
+}
+
+@article{duboistaine2022svrg,
+  author        = {Benjamin Dubois-Taine and Sharan Vaswani and Reza Babanezhad and Mark Schmidt and Simon Lacoste-Julien},
+  title         = {{SVRG} meets {AdaGrad}: Painless Variance Reduction},
+  journal       = {Machine Learning},
+  volume        = {111},
+  number        = {12},
+  pages         = {4359--4409},
+  year          = {2022},
+  doi           = {10.1007/s10994-022-06265-x},
+  url           = {https://arxiv.org/abs/2102.09645},
+  eprint        = {2102.09645},
+  archivePrefix = {arXiv}
+}
+
+@article{derezinski2025stochastic,
+  author        = {Micha{\l} Derezi{\'n}ski},
+  title         = {Stochastic Variance-Reduced {Newton}: Accelerating Finite-Sum Minimization with Large Batches},
+  journal       = {Transactions on Machine Learning Research},
+  year          = {2025},
+  url           = {https://arxiv.org/abs/2206.02702},
+  eprint        = {2206.02702},
+  archivePrefix = {arXiv},
+  note          = {Also presented at the NeurIPS 2023 OPT workshop}
+}
+
+@article{mokhtari2018iqn,
+  author        = {Aryan Mokhtari and Mark Eisen and Alejandro Ribeiro},
+  title         = {{IQN}: An Incremental Quasi-{Newton} Method with Local Superlinear Convergence Rate},
+  journal       = {SIAM Journal on Optimization},
+  volume        = {28},
+  number        = {2},
+  pages         = {1670--1698},
+  year          = {2018},
+  doi           = {10.1137/17M1122943},
+  url           = {https://arxiv.org/abs/1702.00709},
+  eprint        = {1702.00709},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{rodomanov2016superlinearly,
+  author        = {Anton Rodomanov and Dmitry Kropotov},
+  title         = {A Superlinearly-Convergent Proximal {Newton}-type Method for the Optimization of Finite Sums},
+  booktitle     = {Proceedings of the 33rd International Conference on Machine Learning (ICML 2016)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {48},
+  pages         = {2597--2605},
+  year          = {2016},
+  url           = {https://proceedings.mlr.press/v48/rodomanov16.html}
+}
+
+@inproceedings{shamir2014communication,
+  author        = {Ohad Shamir and Nathan Srebro and Tong Zhang},
+  title         = {Communication-Efficient Distributed Optimization using an Approximate {Newton}-type Method},
+  booktitle     = {Proceedings of the 31st International Conference on Machine Learning (ICML 2014)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {32},
+  number        = {2},
+  pages         = {1000--1008},
+  year          = {2014},
+  url           = {https://arxiv.org/abs/1312.7853},
+  eprint        = {1312.7853},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{zhang2015disco,
+  author        = {Yuchen Zhang and Lin Xiao},
+  title         = {{DiSCO}: Distributed Optimization for Self-Concordant Empirical Loss},
+  booktitle     = {Proceedings of the 32nd International Conference on Machine Learning (ICML 2015)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {37},
+  pages         = {362--370},
+  year          = {2015},
+  url           = {https://arxiv.org/abs/1501.00263},
+  eprint        = {1501.00263},
+  archivePrefix = {arXiv},
+  note          = {Long version on arXiv under the title ``Communication-Efficient Distributed Optimization of Self-Concordant Empirical Loss''}
+}
+
+@inproceedings{liu2019acceleration,
+  author        = {Yanli Liu and Fei Feng and Wotao Yin},
+  title         = {Acceleration of {SVRG} and {Katyusha X} by Inexact Preconditioning},
+  booktitle     = {Proceedings of the 36th International Conference on Machine Learning (ICML 2019)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {97},
+  pages         = {4003--4012},
+  year          = {2019},
+  url           = {https://arxiv.org/abs/1905.09734},
+  eprint        = {1905.09734},
+  archivePrefix = {arXiv}
+}
+
+@article{frangella2024promise,
+  author        = {Zachary Frangella and Pratik Rathore and Shipu Zhao and Madeleine Udell},
+  title         = {{PROMISE}: Preconditioned Stochastic Optimization Methods by Incorporating Scalable Curvature Estimates},
+  journal       = {Journal of Machine Learning Research},
+  volume        = {25},
+  number        = {346},
+  pages         = {1--57},
+  year          = {2024},
+  url           = {https://arxiv.org/abs/2309.02014},
+  eprint        = {2309.02014},
+  archivePrefix = {arXiv}
+}
+
+@article{frangella2024sketchysgd,
+  author        = {Zachary Frangella and Pratik Rathore and Shipu Zhao and Madeleine Udell},
+  title         = {{SketchySGD}: Reliable Stochastic Optimization via Randomized Curvature Estimates},
+  journal       = {SIAM Journal on Mathematics of Data Science},
+  volume        = {6},
+  number        = {4},
+  pages         = {1173--1204},
+  year          = {2024},
+  doi           = {10.1137/23M1575330},
+  url           = {https://arxiv.org/abs/2211.08597},
+  eprint        = {2211.08597},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{agarwal2020leverage,
+  author        = {Naman Agarwal and Sham Kakade and Rahul Kidambi and Yin Tat Lee and Praneeth Netrapalli and Aaron Sidford},
+  title         = {Leverage Score Sampling for Faster Accelerated Regression and {ERM}},
+  booktitle     = {Proceedings of the 31st International Conference on Algorithmic Learning Theory (ALT 2020)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {117},
+  pages         = {22--47},
+  year          = {2020},
+  url           = {https://arxiv.org/abs/1711.08426},
+  eprint        = {1711.08426},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{lin2023stochastic,
+  author        = {Dachao Lin and Yuze Han and Haishan Ye and Zhihua Zhang},
+  title         = {Stochastic Distributed Optimization under Average Second-order Similarity: Algorithms and Analysis},
+  booktitle     = {Advances in Neural Information Processing Systems 36 (NeurIPS 2023)},
+  year          = {2023},
+  url           = {https://arxiv.org/abs/2304.07504},
+  eprint        = {2304.07504},
+  archivePrefix = {arXiv}
+}
+
+@article{dragomir2022optimal,
+  author        = {Radu-Alexandru Dragomir and Adrien B. Taylor and Alexandre d'Aspremont and J{\'e}r{\^o}me Bolte},
+  title         = {Optimal Complexity and Certification of {Bregman} First-Order Methods},
+  journal       = {Mathematical Programming},
+  volume        = {194},
+  number        = {1--2},
+  pages         = {41--83},
+  year          = {2022},
+  doi           = {10.1007/s10107-021-01618-1},
+  url           = {https://arxiv.org/abs/1911.08510},
+  eprint        = {1911.08510},
+  archivePrefix = {arXiv}
+}
+
+@article{hanzely2021fastest,
+  author        = {Filip Hanzely and Peter Richt{\'a}rik},
+  title         = {Fastest Rates for Stochastic Mirror Descent Methods},
+  journal       = {Computational Optimization and Applications},
+  volume        = {79},
+  number        = {3},
+  pages         = {717--766},
+  year          = {2021},
+  doi           = {10.1007/s10589-021-00284-5},
+  url           = {https://arxiv.org/abs/1803.07374},
+  eprint        = {1803.07374},
+  archivePrefix = {arXiv}
+}
+
+@article{sadiev2024stochastic,
+  author        = {Abdurakhmon Sadiev and Aleksandr Beznosikov and Abdulla Jasem Almansoori and Dmitry Kamzolov and Rachael Tappenden and Martin Tak{\'a}{\v{c}}},
+  title         = {Stochastic Gradient Methods with Preconditioned Updates},
+  journal       = {Journal of Optimization Theory and Applications},
+  volume        = {201},
+  number        = {2},
+  pages         = {471--489},
+  year          = {2024},
+  doi           = {10.1007/s10957-023-02365-3},
+  url           = {https://arxiv.org/abs/2206.00285},
+  eprint        = {2206.00285},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{wang2018giant,
+  author        = {Shusen Wang and Farbod Roosta-Khorasani and Peng Xu and Michael W. Mahoney},
+  title         = {{GIANT}: Globally Improved Approximate {Newton} Method for Distributed Optimization},
+  booktitle     = {Advances in Neural Information Processing Systems 31 (NeurIPS 2018)},
+  year          = {2018},
+  url           = {https://arxiv.org/abs/1709.03528},
+  eprint        = {1709.03528},
+  archivePrefix = {arXiv}
+}
+
+@misc{reddi2016aide,
+  author        = {Sashank J. Reddi and Jakub Kone{\v{c}}n{\'y} and Peter Richt{\'a}rik and Barnab{\'a}s P{\'o}czos and Alex Smola},
+  title         = {{AIDE}: Fast and Communication Efficient Distributed Optimization},
+  year          = {2016},
+  howpublished  = {arXiv preprint arXiv:1608.06879 (unpublished)},
+  url           = {https://arxiv.org/abs/1608.06879},
+  eprint        = {1608.06879},
+  archivePrefix = {arXiv}
+}
+
+@article{yuan2020convergence,
+  author        = {Xiao-Tong Yuan and Ping Li},
+  title         = {On Convergence of Distributed Approximate {Newton} Methods: Globalization, Sharper Bounds and Beyond},
+  journal       = {Journal of Machine Learning Research},
+  volume        = {21},
+  number        = {206},
+  pages         = {1--51},
+  year          = {2020},
+  url           = {https://arxiv.org/abs/1908.02246},
+  eprint        = {1908.02246},
+  archivePrefix = {arXiv}
+}
+
+@misc{lucchi2015variance,
+  author        = {Aurelien Lucchi and Brian McWilliams and Thomas Hofmann},
+  title         = {A Variance Reduced Stochastic {Newton} Method},
+  year          = {2015},
+  howpublished  = {arXiv preprint arXiv:1503.08316 (v4, June 2015; unpublished)},
+  url           = {https://arxiv.org/abs/1503.08316},
+  eprint        = {1503.08316},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{kovalev2022optimal,
+  author        = {Dmitry Kovalev and Aleksandr Beznosikov and Ekaterina Borodich and Alexander Gasnikov and Gesualdo Scutari},
+  title         = {Optimal Gradient Sliding and its Application to Optimal Distributed Optimization Under Similarity},
+  booktitle     = {Advances in Neural Information Processing Systems 35 (NeurIPS 2022)},
+  year          = {2022},
+  url           = {https://arxiv.org/abs/2205.15136},
+  eprint        = {2205.15136},
+  archivePrefix = {arXiv}
+}
+
+@article{frangella2023randomized,
+  author        = {Zachary Frangella and Joel A. Tropp and Madeleine Udell},
+  title         = {Randomized {Nystr{\"o}m} Preconditioning},
+  journal       = {SIAM Journal on Matrix Analysis and Applications},
+  volume        = {44},
+  number        = {2},
+  pages         = {718--752},
+  year          = {2023},
+  doi           = {10.1137/21M1466244},
+  url           = {https://arxiv.org/abs/2110.02820},
+  eprint        = {2110.02820},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{hendrikx2020dual,
+  author        = {Hadrien Hendrikx and Francis Bach and Laurent Massouli{\'e}},
+  title         = {Dual-Free Stochastic Decentralized Optimization with Variance Reduction},
+  booktitle     = {Advances in Neural Information Processing Systems 33 (NeurIPS 2020)},
+  year          = {2020},
+  url           = {https://arxiv.org/abs/2006.14384},
+  eprint        = {2006.14384},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{qu2016sdna,
+  author        = {Zheng Qu and Peter Richt{\'a}rik and Martin Tak{\'a}{\v{c}} and Olivier Fercoq},
+  title         = {{SDNA}: Stochastic Dual {Newton} Ascent for Empirical Risk Minimization},
+  booktitle     = {Proceedings of the 33rd International Conference on Machine Learning (ICML 2016)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {48},
+  pages         = {1823--1832},
+  year          = {2016},
+  url           = {https://arxiv.org/abs/1502.02268},
+  eprint        = {1502.02268},
+  archivePrefix = {arXiv}
+}
+
+@misc{sun2025sapphire,
+  author        = {Jingruo Sun and Zachary Frangella and Madeleine Udell},
+  title         = {{SAPPHIRE}: Preconditioned Stochastic Variance Reduction for Faster Large-Scale Statistical Learning},
+  year          = {2025},
+  howpublished  = {arXiv preprint arXiv:2501.15941 (unpublished as of November 2026)},
+  url           = {https://arxiv.org/abs/2501.15941},
+  eprint        = {2501.15941},
+  archivePrefix = {arXiv}
+}
+
+@misc{traore2025bregman,
+  author        = {Cheik Traor{\'e} and Peter Ochs},
+  title         = {{Bregman} Stochastic Proximal Point Algorithm with Variance Reduction},
+  year          = {2025},
+  howpublished  = {arXiv preprint arXiv:2510.16655 (v2, January 2026; unpublished)},
+  url           = {https://arxiv.org/abs/2510.16655},
+  eprint        = {2510.16655},
+  archivePrefix = {arXiv}
+}
+
+@misc{batardiere2023finite,
+  author        = {Bastien Batardi{\`e}re and Joon Kwon},
+  title         = {Finite-Sum Optimization: Adaptivity to Smoothness and Loopless Variance Reduction},
+  year          = {2023},
+  howpublished  = {arXiv preprint arXiv:2307.12615 (v2, April 2024; unpublished)},
+  url           = {https://arxiv.org/abs/2307.12615},
+  eprint        = {2307.12615},
+  archivePrefix = {arXiv}
+}
+
+@misc{zhang2026stochastic,
+  author        = {Wanyu Zhang and Wenzhi Gao and Yinyu Ye and Madeleine Udell},
+  title         = {Stochastic Gradient Methods with Online Scaling},
+  year          = {2026},
+  howpublished  = {arXiv preprint arXiv:2609.11751 (September 2026; unpublished)},
+  url           = {https://arxiv.org/abs/2609.11751},
+  eprint        = {2609.11751},
+  archivePrefix = {arXiv}
+}
+
+@article{wang2019utilizing,
+  author        = {Jialei Wang and Tong Zhang},
+  title         = {Utilizing Second Order Information in Minibatch Stochastic Variance Reduced Proximal Iterations},
+  journal       = {Journal of Machine Learning Research},
+  volume        = {20},
+  number        = {42},
+  pages         = {1--56},
+  year          = {2019},
+  url           = {https://www.jmlr.org/papers/v20/17-594.html},
+  eprint        = {1706.07001},
+  archivePrefix = {arXiv},
+  note          = {arXiv version titled ``Improved Optimization of Finite Sums with Minibatch Stochastic Variance Reduced Proximal Iterations''}
+}
+
+@inproceedings{kolte2015accelerating,
+  author        = {Ritesh Kolte and Murat Erdogdu and Ayfer {\"O}zg{\"u}r},
+  title         = {Accelerating {SVRG} via Second-Order Information},
+  booktitle     = {OPT 2015: 8th NIPS Workshop on Optimization for Machine Learning},
+  address       = {Montreal},
+  year          = {2015},
+  url           = {https://www.cs.toronto.edu/~erdogdu/papers/asvrg-opt.pdf},
+  note          = {Workshop paper}
+}
+
+@inproceedings{gower2019rsn,
+  author        = {Robert M. Gower and Dmitry Kovalev and Felix Lieder and Peter Richt{\'a}rik},
+  title         = {{RSN}: Randomized Subspace {Newton}},
+  booktitle     = {Advances in Neural Information Processing Systems 32 (NeurIPS 2019)},
+  year          = {2019},
+  url           = {https://arxiv.org/abs/1905.10874},
+  eprint        = {1905.10874},
+  archivePrefix = {arXiv}
+}
+
+@article{yang2018weighted,
+  author        = {Jiyan Yang and Yin-Lam Chow and Christopher R{\'e} and Michael W. Mahoney},
+  title         = {Weighted {SGD} for $\ell_p$ Regression with Randomized Preconditioning},
+  journal       = {Journal of Machine Learning Research},
+  volume        = {18},
+  number        = {211},
+  pages         = {1--43},
+  year          = {2018},
+  url           = {https://arxiv.org/abs/1502.03571},
+  eprint        = {1502.03571},
+  archivePrefix = {arXiv},
+  note          = {Conference version in Proceedings of the ACM-SIAM Symposium on Discrete Algorithms (SODA 2016)}
+}
+
+@article{byrd2016stochastic,
+  author        = {Richard H. Byrd and S. L. Hansen and Jorge Nocedal and Yoram Singer},
+  title         = {A Stochastic Quasi-{Newton} Method for Large-Scale Optimization},
+  journal       = {SIAM Journal on Optimization},
+  volume        = {26},
+  number        = {2},
+  pages         = {1008--1031},
+  year          = {2016},
+  doi           = {10.1137/140954362},
+  url           = {https://arxiv.org/abs/1401.7020},
+  eprint        = {1401.7020},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{arjevani2015communication,
+  author        = {Yossi Arjevani and Ohad Shamir},
+  title         = {Communication Complexity of Distributed Convex Learning and Optimization},
+  booktitle     = {Advances in Neural Information Processing Systems 28 (NIPS 2015)},
+  year          = {2015},
+  url           = {https://arxiv.org/abs/1506.01900},
+  eprint        = {1506.01900},
+  archivePrefix = {arXiv}
+}
+
+%% ---------------------------------------------------------------------------
+%% Tight analyses (PEP / IQC / SDP), expected smoothness and trajectory-dependent constants
+%% ---------------------------------------------------------------------------
+
+@article{drori2014performance,
+  author        = {Yoel Drori and Marc Teboulle},
+  title         = {Performance of First-Order Methods for Smooth Convex Minimization: A Novel Approach},
+  journal       = {Mathematical Programming},
+  volume        = {145},
+  number        = {1--2},
+  pages         = {451--482},
+  year          = {2014},
+  doi           = {10.1007/s10107-013-0653-0},
+  url           = {https://doi.org/10.1007/s10107-013-0653-0},
+  eprint        = {1206.3209},
+  archivePrefix = {arXiv}
+}
+
+@article{taylor2017smooth,
+  author        = {Adrien B. Taylor and Julien M. Hendrickx and Fran{\c{c}}ois Glineur},
+  title         = {Smooth Strongly Convex Interpolation and Exact Worst-Case Performance of First-Order Methods},
+  journal       = {Mathematical Programming},
+  volume        = {161},
+  number        = {1--2},
+  pages         = {307--345},
+  year          = {2017},
+  doi           = {10.1007/s10107-016-1009-3},
+  url           = {https://doi.org/10.1007/s10107-016-1009-3},
+  eprint        = {1502.05666},
+  archivePrefix = {arXiv}
+}
+
+@article{lessard2016analysis,
+  author        = {Laurent Lessard and Benjamin Recht and Andrew Packard},
+  title         = {Analysis and Design of Optimization Algorithms via Integral Quadratic Constraints},
+  journal       = {SIAM Journal on Optimization},
+  volume        = {26},
+  number        = {1},
+  pages         = {57--95},
+  year          = {2016},
+  doi           = {10.1137/15M1009597},
+  url           = {https://doi.org/10.1137/15M1009597},
+  eprint        = {1408.3595},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{taylor2018lyapunov,
+  author        = {Adrien Taylor and Bryan Van Scoy and Laurent Lessard},
+  title         = {Lyapunov Functions for First-Order Methods: Tight Automated Convergence Guarantees},
+  booktitle     = {Proceedings of the 35th International Conference on Machine Learning (ICML 2018)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {80},
+  pages         = {4897--4906},
+  year          = {2018},
+  url           = {https://proceedings.mlr.press/v80/taylor18a.html},
+  eprint        = {1803.06073},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{taylor2019stochastic,
+  author        = {Adrien Taylor and Francis Bach},
+  title         = {Stochastic First-Order Methods: Non-Asymptotic and Computer-Aided Analyses via Potential Functions},
+  booktitle     = {Proceedings of the 32nd Conference on Learning Theory (COLT 2019)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {99},
+  pages         = {2934--2992},
+  year          = {2019},
+  url           = {https://proceedings.mlr.press/v99/taylor19a.html},
+  eprint        = {1902.00947},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{hu2017unified,
+  author        = {Bin Hu and Peter Seiler and Anders Rantzer},
+  title         = {A Unified Analysis of Stochastic Optimization Methods Using Jump System Theory and Quadratic Constraints},
+  booktitle     = {Proceedings of the 30th Conference on Learning Theory (COLT 2017)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {65},
+  pages         = {1157--1189},
+  year          = {2017},
+  url           = {https://proceedings.mlr.press/v65/hu17b.html},
+  eprint        = {1706.08141},
+  archivePrefix = {arXiv}
+}
+
+@article{hu2021analysis,
+  author        = {Bin Hu and Peter Seiler and Laurent Lessard},
+  title         = {Analysis of Biased Stochastic Gradient Descent Using Sequential Semidefinite Programs},
+  journal       = {Mathematical Programming},
+  volume        = {187},
+  number        = {1--2},
+  pages         = {383--408},
+  year          = {2021},
+  doi           = {10.1007/s10107-020-01486-1},
+  url           = {https://doi.org/10.1007/s10107-020-01486-1},
+  eprint        = {1711.00987},
+  archivePrefix = {arXiv}
+}
+
+@article{bansal2019potential,
+  author        = {Nikhil Bansal and Anupam Gupta},
+  title         = {Potential-Function Proofs for First-Order Methods},
+  journal       = {Theory of Computing},
+  volume        = {15},
+  number        = {4},
+  pages         = {1--32},
+  year          = {2019},
+  doi           = {10.4086/toc.2019.v015a004},
+  url           = {https://doi.org/10.4086/toc.2019.v015a004},
+  eprint        = {1712.04581},
+  archivePrefix = {arXiv}
+}
+
+@article{upadhyaya2024automated,
+  author        = {Manu Upadhyaya and Sebastian Banert and Adrien B. Taylor and Pontus Giselsson},
+  title         = {Automated Tight {Lyapunov} Analysis for First-Order Methods},
+  journal       = {Mathematical Programming},
+  volume        = {209},
+  number        = {1--2},
+  pages         = {133--170},
+  year          = {2024},
+  doi           = {10.1007/s10107-024-02061-8},
+  url           = {https://doi.org/10.1007/s10107-024-02061-8},
+  eprint        = {2302.06713},
+  archivePrefix = {arXiv},
+  note          = {Online 2024; print volume 2025}
+}
+
+@article{goujaud2024pepit,
+  author        = {Baptiste Goujaud and C{\'e}line Moucer and Fran{\c{c}}ois Glineur and Julien M. Hendrickx and Adrien B. Taylor and Aymeric Dieuleveut},
+  title         = {{PEPit}: Computer-Assisted Worst-Case Analyses of First-Order Optimization Methods in {Python}},
+  journal       = {Mathematical Programming Computation},
+  volume        = {16},
+  number        = {3},
+  pages         = {337--367},
+  year          = {2024},
+  doi           = {10.1007/s12532-024-00259-7},
+  url           = {https://doi.org/10.1007/s12532-024-00259-7},
+  eprint        = {2201.04040},
+  archivePrefix = {arXiv}
+}
+
+@misc{upadhyaya2025autolyap,
+  author        = {Manu Upadhyaya and Shuvomoy {Das Gupta} and Adrien B. Taylor and Sebastian Banert and Pontus Giselsson},
+  title         = {The {AutoLyap} Software Suite for Computer-Assisted {Lyapunov} Analyses of First-Order Methods},
+  year          = {2025},
+  howpublished  = {arXiv preprint arXiv:2506.24076 (v2, March 2026)},
+  url           = {https://arxiv.org/abs/2506.24076},
+  eprint        = {2506.24076},
+  archivePrefix = {arXiv}
+}
+
+@article{bousselmi2024interpolation,
+  author        = {Nizar Bousselmi and Julien M. Hendrickx and Fran{\c{c}}ois Glineur},
+  title         = {Interpolation Conditions for Linear Operators and Applications to Performance Estimation Problems},
+  journal       = {SIAM Journal on Optimization},
+  volume        = {34},
+  number        = {3},
+  pages         = {3033--3063},
+  year          = {2024},
+  doi           = {10.1137/23M1575391},
+  url           = {https://doi.org/10.1137/23M1575391},
+  eprint        = {2302.08781},
+  archivePrefix = {arXiv}
+}
+
+@phdthesis{defazio2014new,
+  author        = {Aaron Defazio},
+  title         = {New Optimisation Methods for Machine Learning},
+  school        = {The Australian National University},
+  year          = {2014},
+  url           = {https://arxiv.org/abs/1510.02533},
+  eprint        = {1510.02533},
+  archivePrefix = {arXiv},
+  note          = {arXiv:1510.02533 (2015), 205 pages}
+}
+
+@inproceedings{gower2019sgd,
+  author        = {Robert M. Gower and Nicolas Loizou and Xun Qian and Alibek Sailanbayev and Egor Shulgin and Peter Richt{\'a}rik},
+  title         = {{SGD}: General Analysis and Improved Rates},
+  booktitle     = {Proceedings of the 36th International Conference on Machine Learning (ICML 2019)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {97},
+  pages         = {5200--5209},
+  year          = {2019},
+  url           = {https://proceedings.mlr.press/v97/qian19b.html},
+  eprint        = {1901.09401},
+  archivePrefix = {arXiv}
+}
+
+@article{needell2016stochastic,
+  author        = {Deanna Needell and Nathan Srebro and Rachel Ward},
+  title         = {Stochastic Gradient Descent, Weighted Sampling, and the Randomized {Kaczmarz} Algorithm},
+  journal       = {Mathematical Programming},
+  volume        = {155},
+  number        = {1--2},
+  pages         = {549--573},
+  year          = {2016},
+  doi           = {10.1007/s10107-015-0864-7},
+  url           = {https://doi.org/10.1007/s10107-015-0864-7},
+  eprint        = {1310.5715},
+  archivePrefix = {arXiv},
+  note          = {Conference version in NIPS 2014 (Needell, Ward, Srebro)}
+}
+
+@article{bach2010self,
+  author        = {Francis Bach},
+  title         = {Self-Concordant Analysis for Logistic Regression},
+  journal       = {Electronic Journal of Statistics},
+  volume        = {4},
+  pages         = {384--414},
+  year          = {2010},
+  doi           = {10.1214/09-EJS521},
+  url           = {https://doi.org/10.1214/09-EJS521},
+  eprint        = {0910.4627},
+  archivePrefix = {arXiv}
+}
+
+@article{bach2014adaptivity,
+  author        = {Francis Bach},
+  title         = {Adaptivity of Averaged Stochastic Gradient Descent to Local Strong Convexity for Logistic Regression},
+  journal       = {Journal of Machine Learning Research},
+  volume        = {15},
+  number        = {19},
+  pages         = {595--627},
+  year          = {2014},
+  url           = {https://jmlr.org/papers/v15/bach14a.html},
+  eprint        = {1303.6149},
+  archivePrefix = {arXiv}
+}
+
+@article{agarwal2012fast,
+  author        = {Alekh Agarwal and Sahand N. Negahban and Martin J. Wainwright},
+  title         = {Fast Global Convergence of Gradient Methods for High-Dimensional Statistical Recovery},
+  journal       = {The Annals of Statistics},
+  volume        = {40},
+  number        = {5},
+  pages         = {2452--2482},
+  year          = {2012},
+  doi           = {10.1214/12-AOS1032},
+  url           = {https://doi.org/10.1214/12-AOS1032},
+  eprint        = {1104.4824},
+  archivePrefix = {arXiv}
+}
+
+@misc{qu2016linear,
+  author        = {Chao Qu and Yan Li and Huan Xu},
+  title         = {Linear Convergence of {SVRG} in Statistical Estimation},
+  year          = {2016},
+  howpublished  = {arXiv preprint arXiv:1611.01957 (v3, 2017; unpublished)},
+  url           = {https://arxiv.org/abs/1611.01957},
+  eprint        = {1611.01957},
+  archivePrefix = {arXiv}
+}
+
+@misc{zhang2013gradient,
+  author        = {Hui Zhang and Wotao Yin},
+  title         = {Gradient Methods for Convex Minimization: Better Rates under Weaker Conditions},
+  year          = {2013},
+  howpublished  = {arXiv preprint arXiv:1303.4645 (UCLA CAM report 13-17)},
+  url           = {https://arxiv.org/abs/1303.4645},
+  eprint        = {1303.4645},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{karimi2016linear,
+  author        = {Hamed Karimi and Julie Nutini and Mark Schmidt},
+  title         = {Linear Convergence of Gradient and Proximal-Gradient Methods under the {Polyak}-{\L}ojasiewicz Condition},
+  booktitle     = {Machine Learning and Knowledge Discovery in Databases (ECML PKDD 2016)},
+  series        = {Lecture Notes in Computer Science},
+  volume        = {9851},
+  pages         = {795--811},
+  year          = {2016},
+  publisher     = {Springer},
+  doi           = {10.1007/978-3-319-46128-1_50},
+  url           = {https://doi.org/10.1007/978-3-319-46128-1_50},
+  eprint        = {1608.04636},
+  archivePrefix = {arXiv}
+}
+
+@article{necoara2019linear,
+  author        = {Ion Necoara and Yurii Nesterov and Fran{\c{c}}ois Glineur},
+  title         = {Linear Convergence of First Order Methods for Non-Strongly Convex Optimization},
+  journal       = {Mathematical Programming},
+  volume        = {175},
+  number        = {1--2},
+  pages         = {69--107},
+  year          = {2019},
+  doi           = {10.1007/s10107-018-1232-1},
+  url           = {https://doi.org/10.1007/s10107-018-1232-1},
+  eprint        = {1504.06298},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{guilleescuret2022gradient,
+  author        = {Charles Guille-Escuret and Adam Ibrahim and Baptiste Goujaud and Ioannis Mitliagkas},
+  title         = {Gradient Descent Is Optimal Under Lower Restricted Secant Inequality and Upper Error Bound},
+  booktitle     = {Advances in Neural Information Processing Systems 35 (NeurIPS 2022)},
+  pages         = {24893--24904},
+  year          = {2022},
+  doi           = {10.52202/068431-1805},
+  url           = {https://doi.org/10.52202/068431-1805},
+  eprint        = {2203.00342},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{guilleescuret2021study,
+  author        = {Charles Guille-Escuret and Baptiste Goujaud and Manuela Girotti and Ioannis Mitliagkas},
+  title         = {A Study of Condition Numbers for First-Order Optimization},
+  booktitle     = {Proceedings of the 24th International Conference on Artificial Intelligence and Statistics (AISTATS 2021)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {130},
+  pages         = {1261--1269},
+  year          = {2021},
+  url           = {https://proceedings.mlr.press/v130/guille-escuret21a.html},
+  eprint        = {2012.05782},
+  archivePrefix = {arXiv}
+}
+
+@article{fercoq2019adaptive,
+  author        = {Olivier Fercoq and Zheng Qu},
+  title         = {Adaptive Restart of Accelerated Gradient Methods under Local Quadratic Growth Condition},
+  journal       = {IMA Journal of Numerical Analysis},
+  volume        = {39},
+  number        = {4},
+  pages         = {2069--2095},
+  year          = {2019},
+  doi           = {10.1093/imanum/drz007},
+  url           = {https://doi.org/10.1093/imanum/drz007},
+  eprint        = {1709.02300},
+  archivePrefix = {arXiv}
+}
+
+@article{roulet2020sharpness,
+  author        = {Vincent Roulet and Alexandre d'Aspremont},
+  title         = {Sharpness, Restart, and Acceleration},
+  journal       = {SIAM Journal on Optimization},
+  volume        = {30},
+  number        = {1},
+  pages         = {262--289},
+  year          = {2020},
+  doi           = {10.1137/18M1224568},
+  url           = {https://doi.org/10.1137/18M1224568},
+  eprint        = {1702.03828},
+  archivePrefix = {arXiv},
+  note          = {Short version in NIPS 2017}
+}
+
+@inproceedings{poon2018local,
+  author        = {Clarice Poon and Jingwei Liang and Carola-Bibiane Sch{\"o}nlieb},
+  title         = {Local Convergence Properties of {SAGA}/{Prox-SVRG} and Acceleration},
+  booktitle     = {Proceedings of the 35th International Conference on Machine Learning (ICML 2018)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {80},
+  pages         = {4124--4132},
+  year          = {2018},
+  url           = {https://proceedings.mlr.press/v80/poon18a.html},
+  eprint        = {1802.02554},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{pedregosa2020acceleration,
+  author        = {Fabian Pedregosa and Damien Scieur},
+  title         = {Acceleration through Spectral Density Estimation},
+  booktitle     = {Proceedings of the 37th International Conference on Machine Learning (ICML 2020)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {119},
+  pages         = {7553--7562},
+  year          = {2020},
+  url           = {https://proceedings.mlr.press/v119/pedregosa20a.html},
+  eprint        = {2002.04756},
+  archivePrefix = {arXiv},
+  note          = {arXiv version titled ``Average-case Acceleration Through Spectral Density Estimation''}
+}
+
+@inproceedings{goujaud2023fundamental,
+  author        = {Baptiste Goujaud and Aymeric Dieuleveut and Adrien Taylor},
+  title         = {On Fundamental Proof Structures in First-Order Optimization},
+  booktitle     = {62nd IEEE Conference on Decision and Control (CDC 2023)},
+  pages         = {3023--3030},
+  year          = {2023},
+  doi           = {10.1109/CDC49753.2023.10383282},
+  url           = {https://doi.org/10.1109/CDC49753.2023.10383282},
+  eprint        = {2310.02015},
+  archivePrefix = {arXiv}
+}
+
+%% ---------------------------------------------------------------------------
+%% Geometry of logistic regression, random-matrix spectra, benchmark design and reference solvers
+%% ---------------------------------------------------------------------------
+
+@inproceedings{marteauferey2019beyond,
+  author        = {Ulysse Marteau-Ferey and Dmitrii Ostrovskii and Francis Bach and Alessandro Rudi},
+  title         = {Beyond Least-Squares: Fast Rates for Regularized Empirical Risk Minimization through Self-Concordance},
+  booktitle     = {Proceedings of the 32nd Conference on Learning Theory (COLT 2019)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {99},
+  pages         = {2294--2340},
+  year          = {2019},
+  url           = {https://proceedings.mlr.press/v99/marteau-ferey19a.html},
+  eprint        = {1902.03046},
+  archivePrefix = {arXiv}
+}
+
+@article{ostrovskii2021finitesample,
+  author        = {Dmitrii M. Ostrovskii and Francis Bach},
+  title         = {Finite-Sample Analysis of {M}-Estimators Using Self-Concordance},
+  journal       = {Electronic Journal of Statistics},
+  volume        = {15},
+  number        = {1},
+  pages         = {326--391},
+  year          = {2021},
+  doi           = {10.1214/20-EJS1780},
+  url           = {https://doi.org/10.1214/20-EJS1780},
+  eprint        = {1810.06838},
+  archivePrefix = {arXiv}
+}
+
+@article{hsu2014random,
+  author        = {Daniel Hsu and Sham M. Kakade and Tong Zhang},
+  title         = {Random Design Analysis of Ridge Regression},
+  journal       = {Foundations of Computational Mathematics},
+  volume        = {14},
+  number        = {3},
+  pages         = {569--600},
+  year          = {2014},
+  doi           = {10.1007/s10208-014-9192-1},
+  url           = {https://doi.org/10.1007/s10208-014-9192-1},
+  eprint        = {1106.2363},
+  archivePrefix = {arXiv}
+}
+
+@article{marchenko1967distribution,
+  author        = {Vladimir A. Mar{\v{c}}enko and Leonid A. Pastur},
+  title         = {Distribution of Eigenvalues for Some Sets of Random Matrices},
+  journal       = {Mathematics of the USSR-Sbornik},
+  volume        = {1},
+  number        = {4},
+  pages         = {457--483},
+  year          = {1967},
+  doi           = {10.1070/SM1967v001n04ABEH001994},
+  url           = {https://doi.org/10.1070/SM1967v001n04ABEH001994}
+}
+
+@article{silverstein1995strong,
+  author        = {Jack W. Silverstein},
+  title         = {Strong Convergence of the Empirical Distribution of Eigenvalues of Large Dimensional Random Matrices},
+  journal       = {Journal of Multivariate Analysis},
+  volume        = {55},
+  number        = {2},
+  pages         = {331--339},
+  year          = {1995},
+  doi           = {10.1006/jmva.1995.1083},
+  url           = {https://doi.org/10.1006/jmva.1995.1083}
+}
+
+@inproceedings{liao2021hessian,
+  author        = {Zhenyu Liao and Michael W. Mahoney},
+  title         = {Hessian Eigenspectra of More Realistic Nonlinear Models},
+  booktitle     = {Advances in Neural Information Processing Systems 34 (NeurIPS 2021)},
+  pages         = {20104--20117},
+  year          = {2021},
+  url           = {https://proceedings.neurips.cc/paper/2021/hash/a7d8ae4569120b5bec12e7b6e9648b86-Abstract.html},
+  eprint        = {2103.01519},
+  archivePrefix = {arXiv}
+}
+
+@article{edelman1988eigenvalues,
+  author        = {Alan Edelman},
+  title         = {Eigenvalues and Condition Numbers of Random Matrices},
+  journal       = {SIAM Journal on Matrix Analysis and Applications},
+  volume        = {9},
+  number        = {4},
+  pages         = {543--560},
+  year          = {1988},
+  doi           = {10.1137/0609045},
+  url           = {https://doi.org/10.1137/0609045}
+}
+
+@article{dieuleveut2017harder,
+  author        = {Aymeric Dieuleveut and Nicolas Flammarion and Francis Bach},
+  title         = {Harder, Better, Faster, Stronger Convergence Rates for Least-Squares Regression},
+  journal       = {Journal of Machine Learning Research},
+  volume        = {18},
+  number        = {101},
+  pages         = {1--51},
+  year          = {2017},
+  url           = {https://www.jmlr.org/papers/v18/16-335.html},
+  eprint        = {1602.05419},
+  archivePrefix = {arXiv}
+}
+
+@article{albert1984existence,
+  author        = {Adelin Albert and John A. Anderson},
+  title         = {On the Existence of Maximum Likelihood Estimates in Logistic Regression Models},
+  journal       = {Biometrika},
+  volume        = {71},
+  number        = {1},
+  pages         = {1--10},
+  year          = {1984},
+  doi           = {10.1093/biomet/71.1.1},
+  url           = {https://doi.org/10.1093/biomet/71.1.1}
+}
+
+@article{cover1965geometrical,
+  author        = {Thomas M. Cover},
+  title         = {Geometrical and Statistical Properties of Systems of Linear Inequalities with Applications in Pattern Recognition},
+  journal       = {IEEE Transactions on Electronic Computers},
+  volume        = {EC-14},
+  number        = {3},
+  pages         = {326--334},
+  year          = {1965},
+  doi           = {10.1109/PGEC.1965.264137},
+  url           = {https://doi.org/10.1109/PGEC.1965.264137}
+}
+
+@article{candes2020phase,
+  author        = {Emmanuel J. Cand{\`e}s and Pragya Sur},
+  title         = {The Phase Transition for the Existence of the Maximum Likelihood Estimate in High-Dimensional Logistic Regression},
+  journal       = {The Annals of Statistics},
+  volume        = {48},
+  number        = {1},
+  pages         = {27--42},
+  year          = {2020},
+  doi           = {10.1214/18-AOS1789},
+  url           = {https://doi.org/10.1214/18-AOS1789},
+  eprint        = {1804.09753},
+  archivePrefix = {arXiv}
+}
+
+@article{soudry2018implicit,
+  author        = {Daniel Soudry and Elad Hoffer and Mor Shpigel Nacson and Suriya Gunasekar and Nathan Srebro},
+  title         = {The Implicit Bias of Gradient Descent on Separable Data},
+  journal       = {Journal of Machine Learning Research},
+  volume        = {19},
+  number        = {70},
+  pages         = {1--57},
+  year          = {2018},
+  url           = {https://www.jmlr.org/papers/v19/18-188.html},
+  eprint        = {1710.10345},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{sridharan2008fast,
+  author        = {Karthik Sridharan and Shai Shalev-Shwartz and Nathan Srebro},
+  title         = {Fast Rates for Regularized Objectives},
+  booktitle     = {Advances in Neural Information Processing Systems 21 (NIPS 2008)},
+  pages         = {1545--1552},
+  year          = {2008},
+  url           = {https://proceedings.neurips.cc/paper/2008/hash/abd815286ba1007abfbb8415b83ae2cf-Abstract.html}
+}
+
+@book{boyd2004convex,
+  author        = {Stephen Boyd and Lieven Vandenberghe},
+  title         = {Convex Optimization},
+  publisher     = {Cambridge University Press},
+  address       = {Cambridge},
+  year          = {2004},
+  doi           = {10.1017/CBO9780511804441},
+  url           = {https://doi.org/10.1017/CBO9780511804441}
+}
+
+@article{lin2008trust,
+  author        = {Chih-Jen Lin and Ruby C. Weng and S. Sathiya Keerthi},
+  title         = {Trust Region {Newton} Method for Logistic Regression},
+  journal       = {Journal of Machine Learning Research},
+  volume        = {9},
+  number        = {22},
+  pages         = {627--650},
+  year          = {2008},
+  url           = {https://www.jmlr.org/papers/v9/lin08b.html},
+  note          = {Conference version in ICML 2007, pp. 561--568, doi 10.1145/1273496.1273567}
+}
+
+@article{fan2008liblinear,
+  author        = {Rong-En Fan and Kai-Wei Chang and Cho-Jui Hsieh and Xiang-Rui Wang and Chih-Jen Lin},
+  title         = {{LIBLINEAR}: A Library for Large Linear Classification},
+  journal       = {Journal of Machine Learning Research},
+  volume        = {9},
+  number        = {61},
+  pages         = {1871--1874},
+  year          = {2008},
+  url           = {https://www.jmlr.org/papers/v9/fan08a.html}
+}
+
+@article{lee2014proximal,
+  author        = {Jason D. Lee and Yuekai Sun and Michael A. Saunders},
+  title         = {Proximal {Newton}-Type Methods for Minimizing Composite Functions},
+  journal       = {SIAM Journal on Optimization},
+  volume        = {24},
+  number        = {3},
+  pages         = {1420--1443},
+  year          = {2014},
+  doi           = {10.1137/130921428},
+  url           = {https://doi.org/10.1137/130921428},
+  eprint        = {1206.1623},
+  archivePrefix = {arXiv}
+}
+
+@misc{minka2003comparison,
+  author        = {Thomas P. Minka},
+  title         = {A Comparison of Numerical Optimizers for Logistic Regression},
+  year          = {2003},
+  howpublished  = {Technical note, Microsoft Research (revised 21 October 2003); earlier version: ``Algorithms for maximum-likelihood logistic regression'', CMU Statistics Dept. Technical Report 758 (2001)},
+  url           = {https://tminka.github.io/papers/logreg/}
+}
+
+@article{chang2011libsvm,
+  author        = {Chih-Chung Chang and Chih-Jen Lin},
+  title         = {{LIBSVM}: A Library for Support Vector Machines},
+  journal       = {ACM Transactions on Intelligent Systems and Technology},
+  volume        = {2},
+  number        = {3},
+  pages         = {27:1--27:27},
+  year          = {2011},
+  doi           = {10.1145/1961189.1961199},
+  url           = {https://doi.org/10.1145/1961189.1961199}
+}
+
+@book{nesterov2004introductory,
+  author        = {Yurii Nesterov},
+  title         = {Introductory Lectures on Convex Optimization: A Basic Course},
+  publisher     = {Kluwer Academic Publishers / Springer US},
+  series        = {Applied Optimization},
+  volume        = {87},
+  address       = {Boston},
+  year          = {2004},
+  doi           = {10.1007/978-1-4419-8853-9},
+  url           = {https://doi.org/10.1007/978-1-4419-8853-9}
+}
+
+@misc{freund2018condition,
+  author        = {Robert M. Freund and Paul Grigas and Rahul Mazumder},
+  title         = {Condition Number Analysis of Logistic Regression, and its Implications for Standard First-Order Solution Methods},
+  year          = {2018},
+  howpublished  = {arXiv preprint arXiv:1810.08727 (also Optimization Online 6870; unpublished)},
+  url           = {https://arxiv.org/abs/1810.08727},
+  eprint        = {1810.08727},
+  archivePrefix = {arXiv}
+}
+
+@article{sun2019generalized,
+  author        = {Tianxiao Sun and Quoc Tran-Dinh},
+  title         = {Generalized Self-Concordant Functions: A Recipe for {Newton}-Type Methods},
+  journal       = {Mathematical Programming},
+  volume        = {178},
+  number        = {1--2},
+  pages         = {145--213},
+  year          = {2019},
+  doi           = {10.1007/s10107-018-1282-4},
+  url           = {https://doi.org/10.1007/s10107-018-1282-4},
+  eprint        = {1703.04599},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{salehi2019impact,
+  author        = {Fariborz Salehi and Ehsan Abbasi and Babak Hassibi},
+  title         = {The Impact of Regularization on High-Dimensional Logistic Regression},
+  booktitle     = {Advances in Neural Information Processing Systems 32 (NeurIPS 2019)},
+  pages         = {12005--12015},
+  year          = {2019},
+  url           = {https://papers.neurips.cc/paper_files/paper/2019/hash/ab49ef78e2877bfd2c2bfa738e459bf0-Abstract.html},
+  eprint        = {1906.03761},
+  archivePrefix = {arXiv}
+}
+
+@inproceedings{mai2019large,
+  author        = {Xiaoyi Mai and Zhenyu Liao and Romain Couillet},
+  title         = {A Large Scale Analysis of Logistic Regression: Asymptotic Performance and New Insights},
+  booktitle     = {ICASSP 2019 -- IEEE International Conference on Acoustics, Speech and Signal Processing},
+  pages         = {3357--3361},
+  year          = {2019},
+  doi           = {10.1109/ICASSP.2019.8683376},
+  url           = {https://doi.org/10.1109/ICASSP.2019.8683376}
+}
+
+% ADDED-FROM-THEORY-NOTES
+@misc{elalaoui2015fast,
+  title = {Fast randomized kernel ridge regression with statistical guarantees},
+  author = {Ahmed El Alaoui, Michael W. Mahoney},
+  year = {2015},
+  howpublished = {Advances in Neural Information Processing Systems 28 (NeurIPS 2015); arXiv version titled 'Fast Randomized Kernel Methods With Statistical Guarantees'},
+  url = {https://arxiv.org/abs/1411.0306}
+}
+
+% ADDED-FROM-THEORY-NOTES
+@misc{bach2013sharp,
+  title = {Sharp analysis of low-rank kernel matrix approximations},
+  author = {Francis Bach},
+  year = {2013},
+  howpublished = {Proceedings of the 26th Conference on Learning Theory (COLT 2013), PMLR 30},
+  url = {https://arxiv.org/abs/1208.2015}
+}
+
+% ADDED-FROM-THEORY-NOTES
+@misc{marshall2011inequalities,
+  title = {Inequalities: Theory of Majorization and Its Applications (2nd edition)},
+  author = {Albert W. Marshall, Ingram Olkin, Barry C. Arnold},
+  year = {2011},
+  howpublished = {Springer Series in Statistics, Springer},
+  url = {https://doi.org/10.1007/978-0-387-68276-1}
+}

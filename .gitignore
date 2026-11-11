@@ -1,0 +1,39 @@
+# Copyrighted material and local working files (not redistributable)
+Bach_optimization.pdf
+_scratch/
+
+# Result caches: only the small, costly ones are versioned; the others are rebuilt by their script
+results/*.pkl
+!results/A3.pkl
+!results/A4.pkl
+!results/A4b.pkl
+!results/B2.pkl
+!results/GammaDelta.pkl
+!results/validation_book.pkl
+results/*_quick*
+results/log_*.txt
+figures/*_quick.*
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# LaTeX build files
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+_check_*
+
+# Editors / OS
+.vscode/
+.idea/
+.claude/
+Thumbs.db
+desktop.ini

@@ -1,0 +1,93 @@
+% ---------------------------------------------------------------------------------------------
+% Setting, notation, the algorithm and the result under study (Bach, Sec. 5.4.4, Prop. 5.9)
+% ---------------------------------------------------------------------------------------------
+\paragraph{Finite sums.}
+We consider
+\begin{equation}\label{eq:finite-sum}
+  F(\theta) = \frac1n \sum_{i=1}^n f_i(\theta), \qquad \theta \in \R^d,
+\end{equation}
+and follow the notation of \cite{bach2024learning}: $\fip = \grad f_i$, $\Fp = \grad F$, $\etastar$ is the
+minimizer of $F$, each $f_i$ is convex and $R^2$-smooth ($\fip$ is $R^2$-Lipschitz continuous), $F$ is
+$\mu$-strongly convex, and $\kappa = R^2/\mu$ is the condition number. Note that $R^2 \ge L$, the smoothness
+constant of $F$, so that $\kappa \ge L/\mu$; this distinction matters for the comparison between stochastic and
+full-gradient methods. Smoothness and convexity of each $f_i$ give \emph{cocoercivity}
+(Proposition~5.4 of the book), $\norm{\fip(\theta) - \fip(\eta)}^2 \le R^2\,\inner{\fip(\theta) - \fip(\eta)}{\theta - \eta}$,
+which is the only property of the $f_i$ used by the SAGA proof.
+
+\paragraph{The main instance: $\ell_2$-regularized logistic regression.}
+For features $x_i \in \R^d$ and labels $y_i \in \{-1, 1\}$,
+\begin{equation}\label{eq:logistic}
+  f_i(\theta) = \log\big(1 + e^{-y_i x_i^\top \theta}\big) + \frac{\lambda}{2}\norm{\theta}^2,
+  \qquad
+  \fip(\theta) = -y_i\,\sigma(-y_i x_i^\top\theta)\,x_i + \lambda\theta,
+\end{equation}
+with $\sigma(u) = (1+e^{-u})^{-1}$. Since the second derivative of the logistic loss is $\sigma(u)\sigma(-u) \le 1/4$,
+each $f_i$ is $L_i$-smooth with $L_i = \norm{x_i}^2/4 + \lambda$, and we take \emph{$R^2 := \max_i L_i$}
+throughout (the book's "features bounded by $R$" is loose by the factor $4$). The global strong-convexity
+constant of $F$ is exactly $\mu = \lambda$: the data term of the Hessian, $\frac1n\sum_i \sigma'(y_i x_i^\top\theta)\,x_i x_i^\top$,
+is positive semidefinite and vanishes along directions where all margins go to infinity, so that no larger constant
+is valid globally, whereas locally (near $\etastar$) the curvature is $\lambda_{\min}(F''(\etastar)) \ge \lambda$. This
+gap between global and local curvature is the object of hypothesis B2.
+
+Synthetic problems are generated with $x_i = \Sigma^{1/2} g_i$, $g_i \sim \mathcal N(0, I_d)$, where $\Sigma$ has
+eigenvalues $j^{-\alpha}$, $j = 1, \dots, d$ (so $\alpha = 0$ is isotropic and the covariance condition number is
+$d^\alpha$), a random rotation, and a global rescaling so that $\max_i\norm{x_i} = 1$; labels are
+$y_i = \mathrm{sign}(x_i^\top w + \varepsilon_i)$ with $\mathrm{std}(Xw) = 2$ and $\varepsilon_i \sim \mathcal N(0,1)$
+(about $16\%$ label noise); the regularization $\lambda = (1/4)/(\kappa - 1)$ fixes $\kappa = R^2/\mu$ exactly. The
+minimizer $\etastar$ is computed by a damped Newton method until $\norm{\Fp(\etastar)} \le 10^{-15}$, which bounds
+$\norm{\etastar - \eta_{\rm exact}} \le 10^{-15}/\mu$ by strong convexity, and $\fip(\etastar)$ is stored for all $i$.
+
+\paragraph{SAGA and Proposition 5.9.}
+SAGA \cite{defazio2014saga} keeps a memory $z_i^{(t)} \in \R^d$ of the last gradient seen for each $i$. At iteration $t$ an index
+$i(t)$ is drawn uniformly in $\{1, \dots, n\}$ and
+\begin{equation}\label{eq:saga}
+  \theta_t = \theta_{t-1} - \gamma\,\omega_t,\quad
+  \omega_t = \fip[i(t)](\theta_{t-1}) + \frac1n\sum_{i=1}^n z_i^{(t-1)} - z_{i(t)}^{(t-1)},\quad
+  z_{i(t)}^{(t)} = \fip[i(t)](\theta_{t-1}),\ z_j^{(t)} = z_j^{(t-1)}\ (j \ne i(t)),
+\end{equation}
+where $\fip[i]$ denotes $\fip$ for the index $i$. The direction is unbiased, $\Ei[\omega_t] = \Fp(\theta_{t-1})$.
+\begin{proposition}[Prop.~5.9 of \cite{bach2024learning}]\label{prop:59}
+If $z_i^{(0)} = \fip(\theta_0)$ for all $i$ and $\gamma = 1/(4R^2)$, then
+\[
+  \E\norm{\theta_t - \etastar}^2 \le \Big(1 - \min\Big\{\frac{1}{3n}, \frac{3\mu}{16R^2}\Big\}\Big)^t \Big(1 + \frac n4\Big)\norm{\theta_0 - \etastar}^2 .
+\]
+\end{proposition}
+The proof uses the Lyapunov function
+\begin{equation}\label{eq:lyapunov}
+  V_t = \norm{\theta_t - \etastar}^2 + \Delta \sum_{i=1}^n \norm{z_i^{(t)} - \fip(\etastar)}^2, \qquad \Delta = 3\gamma^2,
+\end{equation}
+and consists of six inequalities, which we label once and for all:
+\begin{center}
+\begin{tabular}{llp{8.2cm}}
+\toprule
+label & name & statement \\
+\midrule
+I1 & square norm & $\Ei\norm{\omega_t}^2 \le 2\,\Ei\norm{a_t}^2 + 2\,\Ei\norm{b_t}^2$ with $a_t = \fip[i(t)](\theta_{t-1}) - \fip[i(t)](\etastar)$, $b_t = \omega_t - a_t$ \\
+I2 & cocoercivity & $\frac1n\sum_i \norm{\fip(\theta_{t-1}) - \fip(\etastar)}^2 \le R^2\,\inner{\Fp(\theta_{t-1})}{\theta_{t-1} - \etastar}$ (used twice) \\
+I3 & variance $\le$ second moment & $\Ei\norm{b_t}^2 \le \frac1n \sum_i \norm{z_i^{(t-1)} - \fip(\etastar)}^2$ \\
+I4 & strong convexity & $\inner{\Fp(\theta_{t-1})}{\theta_{t-1} - \etastar} \ge \mu\norm{\theta_{t-1} - \etastar}^2$ \\
+I5 & min of two rates & $\rho_D D + \rho_M \Delta M \le \max(\rho_D, \rho_M)(D + \Delta M)$ \\
+I6 & initialization & $\sum_i \norm{\fip(\theta_0) - \fip(\etastar)}^2 \le nR^4\norm{\theta_0 - \etastar}^2$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Section~\ref{sec:theory} rewrites the proof as an exact one-step identity plus this chain, defines a
+\emph{tightness ratio} in $(0,1]$ for each inequality, and shows how replacing the inequalities one at a time by
+the measured quantities attributes the gap between the certified rate and the observed one to each step.
+
+\paragraph{Other algorithms.}
+We also implement gradient descent (step $1/L$), Nesterov's accelerated gradient with constant momentum
+$(\sqrt{L/\mu}-1)/(\sqrt{L/\mu}+1)$, loopless SVRG \cite{hofmann2015variance,kovalev2020dont} (estimator
+$\fip(\theta) - \fip(w) + \Fp(w)$ with the reference point $w$ refreshed with probability $p = 1/n$), loopless
+Katyusha \cite{kovalev2020dont} with the parameters of its Theorem~4.6, and two "naive" accelerations of the
+SVRG estimator: Nesterov momentum applied to the estimator, and L-Katyusha with the negative-momentum weight
+$\theta_2$ set to zero (Section~\ref{sec:lkatyusha}). Gradient evaluations are counted as one per component
+gradient and $n$ per full gradient; SVRG-type methods pay two per iteration.
+
+\paragraph{The hard instance.}
+For hypothesis A4 we use the block-separable construction behind the lower bound of \cite{lan2018optimal}: $n$
+blocks of $m$ coordinates, $f_i(\theta) = n\,h(\theta_{B_i})$ with $h$ a scaled Nesterov chain quadratic
+$h(x) = c\,(\tfrac12 x^\top T x - e_1^\top x) + \tfrac{\mu_b}{2}\norm{x}^2$ ($T$ tridiagonal with $2$ on the
+diagonal and $-1$ off it), so that each $f_i$ is $n\lambda_{\max}(cT + \mu_b I)$-smooth, $F$ is
+$\lambda_{\min}(cT + \mu_b I)$-strongly convex, the minimizer is known in closed form, and $c$ is solved so that
+$\kappa = R^2/\mu$ takes a prescribed value (Section~\ref{sec:lowerbound}).

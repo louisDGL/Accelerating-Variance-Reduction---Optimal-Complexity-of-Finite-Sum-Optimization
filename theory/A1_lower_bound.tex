@@ -1,0 +1,649 @@
+\section{Lower bounds for finite-sum optimization and the hard instance (hypotheses A1, A4)}
+\label{sec:lower_bound}
+
+Throughout, as in \cite{bach2024learning}, Section~5.4.4, we consider
+\[
+F(\theta)=\frac1n\sum_{i=1}^n f_i(\theta),\qquad \theta\in\R^d,
+\]
+where every $f_i$ is convex and $R^2$-smooth (its gradient $\fip=\nabla f_i$ is $R^2$-Lipschitz), $F$ is $\mu$-strongly convex with minimizer $\etastar$, and $\kappa=R^2/\mu$. We write $\Fp=\nabla F$ and $L_F$ for the smoothness constant of $F$; since $L_F\le R^2$ one always has $L_F/\mu\le\kappa$, and the gap between these two numbers is the main theme of this note. The cost of a method is the number of individual gradients $\fip(\theta)$ it evaluates (one per SAGA iteration, $n$ per full-gradient step).
+
+The note has four parts. Section~\ref{sec:lb:oracle} fixes the oracle models and the span assumption and gives Nesterov's single-function construction with a complete proof. Section~\ref{sec:lb:statements} quotes, with their exact hypotheses, the finite-sum lower bounds of Agarwal--Bottou \cite{agarwal2015lower}, Lan--Zhou \cite{lan2018optimal}, Woodworth--Srebro \cite{woodworth2016tight}, Arjevani--Shamir \cite{arjevani2016dimension}, Hannah--Liu--O'Connor--Yin \cite{hannah2018breaking} and Han--Xie--Zhang \cite{han2024lower}, and settles the meaning of hypothesis (A1). Section~\ref{sec:lb:instance} builds the block-separable hard instance used for (A4), with every constant derived in the notation above, and proves the lower bound on it. Section~\ref{sec:lb:predictions} derives the predictions for the numerics (exponents $\kappa^1$ versus $\kappa^{1/2}$, crossover, finite-dimension effects) and explains why logistic regression is not a hard instance.
+
+\subsection{Oracle models, the span assumption, and Nesterov's chain}
+\label{sec:lb:oracle}
+
+\subsubsection{Oracle models and classes of algorithms}
+
+\begin{definition}[incremental first-order oracle]
+\label{def:ifo}
+Following \cite{agarwal2015lower} (Definition~2), the \emph{incremental first-order oracle} (IFO) takes as input a point $\theta\in\R^d$ and an index $i\in\{1,\dots,n\}$ and returns the pair $(f_i(\theta),\fip(\theta))$. An IFO algorithm is an algorithm whose specification depends on $F$ only through such calls; its cost is the number of calls. The \emph{proximal} IFO (PIFO) of \cite{woodworth2016tight,han2024lower} additionally returns $\operatorname{prox}_{f_i}(\theta,\beta)=\argmin_u\{f_i(u)+\frac\beta2\norm{u-\theta}^2\}$ for any requested $\beta>0$ (the parametrization of display (3) of \cite{woodworth2016tight}; since $\beta$ ranges over all positive numbers, writing $\frac1{2\beta}$ in place of $\frac\beta2$ describes the same oracle).
+\end{definition}
+
+A full gradient $\Fp(\theta)=\frac1n\sum_i\fip(\theta)$ costs $n$ IFO calls at the same point. The lower bounds below differ in \emph{how the algorithm may choose the sequence of indices} and in \emph{how it may combine the answers}.
+
+\begin{definition}[linear-span protocol]
+\label{def:span}
+An algorithm follows the \emph{linear-span protocol} (Nesterov's ``black-box'' assumption, \cite{nesterov2018lectures} Section~2.1, relation (3.41) of \cite{lan2018optimal}, relation (1.2) of \cite{hannah2018breaking}) if, when it has queried the oracle at the pairs $(\theta_{s-1},i_s)$, $s=1,\dots,t$, its iterate satisfies
+\begin{equation}
+\label{eq:span}
+\theta_t\in\theta_0+\operatorname{span}\big\{f'_{i_1}(\theta_0),\,f'_{i_2}(\theta_1),\,\dots,\,f'_{i_t}(\theta_{t-1})\big\}.
+\end{equation}
+We distinguish three classes according to the index sequence $(i_s)$:
+\begin{itemize}[nosep]
+\item[(S1)] \emph{span-based with i.i.d.\ sampling}: $(i_s)$ is i.i.d.\ from a fixed distribution $p$ on $\{1,\dots,n\}$ (uniform in the project), independent of the oracle answers \cite{lan2018optimal,hannah2018breaking}. This contains SGD, SAG, Finito/MISO, SDCA-without-duality, SAGA started from the zero memory $z^{(0)}=0$, and, on block-separable problems, randomized block-coordinate methods. With the book's initialization $z_i^{(0)}=\fip(\theta_0)$, SAGA is an (S1) method \emph{preceded by one full gradient at $\theta_0$} ($n$ deterministic queries); Lemma~\ref{lem:support}(ii) and Corollary~\ref{cor:sweep} treat this variant.
+\item[(S2)] \emph{span-based with an arbitrary index sequence}: $(i_s)$ is any sequence, deterministic (cyclic, or $n$ consecutive queries at the same point, which is a full gradient), random, or adaptive. This contains GD, Nesterov's accelerated gradient (AGD), cyclic incremental methods, and the hybrid methods SVRG, SARAH, L-SVRG, Katyusha and L-Katyusha, which mix i.i.d.\ single queries with full gradients.
+\item[(S3)] \emph{no span restriction}: arbitrary deterministic algorithms \cite{agarwal2015lower,woodworth2016tight} or arbitrary randomized algorithms \cite{woodworth2016tight}, and the \emph{oblivious canonical linear iterative} (CLI) class of \cite{arjevani2016dimension}, in which new iterates are linear combinations $\sum_j O_F(\theta^{(j)};\alpha^{(j)})$ of oracle outputs (gradients possibly multiplied by fixed matrices, coordinate steps, full gradients) whose coefficients $\alpha^{(j)}$ are chosen \emph{without looking at the oracle answers} (they may be random). Fixed step sizes, fixed momentum and fixed sampling schemes are allowed, line searches and quasi-Newton updates are not.
+\end{itemize}
+\end{definition}
+
+SAGA's update direction $f'_{i(t)}(\theta_{t-1})-z^{(t-1)}_{i(t)}+\frac1n\sum_j z_j^{(t-1)}$ is a linear combination of the current gradient and of the stored gradients $z_j^{(t-1)}$, each of which is either its initial value or a gradient $f'_j(\theta_{s})$ computed at an earlier iterate. Hence \eqref{eq:span} holds when $z^{(0)}=0$, whereas with the book's initialization $z_i^{(0)}=\fip(\theta_0)$ the span must be enlarged by the $n$ initial gradients $f'_1(\theta_0),\dots,f'_n(\theta_0)$, which are not sampled i.i.d.: this is the only point where SAGA, as analysed in Proposition~5.9 of \cite{bach2024learning}, leaves class (S1). \cite{han2024lower} make the same observation (SAGA and Point-SAGA ``only calculate the full gradient at the first iteration'') and let the full gradient at $\theta_0$ be free in their class. L-Katyusha \cite{kovalev2020dont} is \emph{not} in (S1) because of its full gradients at the reference points $w_k$ (each costs $n$ queries at one point); it is in (S2), in the oblivious CLI class (its coin flips and parameters do not depend on the answers) and in the class of \cite{han2024lower}.
+
+\paragraph{Dimension-free versus span-based bounds.} A lower bound is \emph{dimension-free} if it holds in every dimension $d$ \cite{arjevani2016dimension}. Span-based constructions are not: they reveal at most one new coordinate per query, so they can only certify as many iterations as there are unrevealed coordinates. This is Nesterov's caveat $t<d$ (in \cite{bach2024learning}, Section~15.2.1, the nonsmooth lower bounds ``are valid for $k<d$ only'' and, for the smooth convex construction $F_{2k+1}$, ``the number of iterations has to be less than half the dimension for the lower bound to hold''; the strongly convex construction of that section lives in $\ell_2$ and carries no such caveat), the condition $n\ge\underline n(m,k)$ in \cite{lan2018optimal}, and the condition $m\gtrsim\sqrt{\kappa/n}\log(1/\varepsilon)$ of \cite{han2024lower}; in the words of \cite{woodworth2016tight}, ``if we do assume that the queries lie in that span, the necessary dimension is only on the order of the number of oracle queries needed''. Removing the span assumption costs a much larger dimension (polynomial in $1/\varepsilon$ in \cite{woodworth2016tight}) or an obliviousness assumption \cite{arjevani2016dimension}. Quantitatively, Section~\ref{sec:lb:instance} shows that the block-separable instance certifies the bound at accuracy $\varepsilon$ only when each block has at least $\tfrac14\sqrt{1+(\kappa-1)/n}\,\log(1/\varepsilon)$ coordinates.
+
+\subsubsection{The chain matrix}
+
+For $m\ge1$ and $\zeta\in[1,3]$ let $A_m(\zeta)\in\R^{m\times m}$ be the symmetric tridiagonal matrix with entries $2$ on the diagonal except $(A_m(\zeta))_{mm}=\zeta$, and $-1$ on the two off-diagonals:
+\begin{equation}
+\label{eq:chainmatrix}
+A_m(\zeta)=\begin{pmatrix} 2&-1&&&\\ -1&2&-1&&\\ &\ddots&\ddots&\ddots&\\ &&-1&2&-1\\ &&&-1&\zeta\end{pmatrix}.
+\end{equation}
+The value $\zeta=2$ is Nesterov's original finite-dimensional chain (\cite{nesterov2018lectures}, Section~2.1.2; \cite{bach2024learning}, Section~15.2.1); the value $\zeta=\zeta_Q$ chosen in \eqref{eq:zetaQ} below makes the minimizer an exact geometric sequence in finite dimension \cite{lan2018optimal}.
+
+\begin{lemma}[quadratic form of the chain]
+\label{lem:chain}
+For every $s\in\R^m$ and $\zeta\in[1,3]$,
+\begin{equation}
+\label{eq:chainform}
+\inner{A_m(\zeta)s}{s}=s_1^2+\sum_{j=1}^{m-1}(s_j-s_{j+1})^2+(\zeta-1)s_m^2 ,
+\end{equation}
+so that $0\preceq A_m(\zeta)\preceq 4I$; more precisely
+\begin{equation}
+\label{ineq:chain-smooth}
+\inner{A_m(\zeta)s}{s}\le 4\norm{s}^2 .
+\end{equation}
+Moreover, for $\zeta\in[1,2]$, $\lmin(A_m(\zeta))\in\big[\,4\sin^2\tfrac{\pi}{2(2m+1)},\;4\sin^2\tfrac{\pi}{2(m+1)}\,\big]$, which is of order $1/m^2$.
+\end{lemma}
+
+\begin{proof}
+Expanding the right-hand side of \eqref{eq:chainform}: $\sum_{j=1}^{m-1}(s_j-s_{j+1})^2=s_1^2+2\sum_{j=2}^{m-1}s_j^2+s_m^2-2\sum_{j=1}^{m-1}s_js_{j+1}$, so the right-hand side equals $2s_1^2+2\sum_{j=2}^{m-1}s_j^2+\zeta s_m^2-2\sum_{j=1}^{m-1}s_js_{j+1}=\inner{A_m(\zeta)s}{s}$ (for $m=1$ both sides equal $\zeta s_1^2$). Nonnegativity follows from $\zeta\ge1$. For the upper bound, $(s_j-s_{j+1})^2\le 2s_j^2+2s_{j+1}^2$ gives $\inner{A_m(\zeta)s}{s}\le 3s_1^2+4\sum_{j=2}^{m-1}s_j^2+(\zeta+1)s_m^2\le 4\norm{s}^2$ because $\zeta\le3$. For the eigenvalue bounds: $A_m(\zeta)-A_m(1)=(\zeta-1)e_me_m^\top\succeq0$ and $A_m(2)-A_m(\zeta)=(2-\zeta)e_me_m^\top\succeq0$, so $\lmin(A_m(1))\le\lmin(A_m(\zeta))\le\lmin(A_m(2))$ by the Courant--Fischer theorem; the eigenvalues of $A_m(2)$ are $2-2\cos\frac{j\pi}{m+1}=4\sin^2\frac{j\pi}{2(m+1)}$ and those of $A_m(1)$ are $2-2\cos\frac{(2j-1)\pi}{2m+1}=4\sin^2\frac{(2j-1)\pi}{2(2m+1)}$, $j=1,\dots,m$ (the vectors $(\sin\frac{jk\pi}{m+1})_k$, resp.\ $(\sin\frac{(2j-1)k\pi}{2m+1})_k$, are eigenvectors, as one checks row by row; the last row is where the two boundary values $\zeta=2$, resp.\ $\zeta=1$, enter).
+\end{proof}
+
+\subsubsection{Nesterov's construction for a single function}
+
+Fix $L>\mu>0$, $Q=L/\mu$, and define on $\ell_2$ (square-summable sequences) the function of \cite{nesterov2018lectures}, Section~2.1.4 (also \cite{bach2024learning}, Section~15.2.1):
+\begin{equation}
+\label{eq:nesterovfun}
+f(\theta)=\frac{L-\mu}{4}\Big\{\frac12\Big[\theta_1^2+\sum_{j\ge1}(\theta_j-\theta_{j+1})^2\Big]-\theta_1\Big\}+\frac\mu2\norm{\theta}^2 .
+\end{equation}
+In the notation of \eqref{eq:chainform} the bracket is $\inner{A\theta}{\theta}$ for the infinite tridiagonal matrix $A$ with $2$ on the diagonal and $-1$ off it, so $f(\theta)=\frac{L-\mu}{4}\{\frac12\inner{A\theta}{\theta}-\theta_1\}+\frac\mu2\norm{\theta}^2$, $f'(\theta)=\frac{L-\mu}{4}(A\theta-e_1)+\mu\theta$, and $f''=\frac{L-\mu}{4}A+\mu I$ has spectrum in $[\mu,\mu+(L-\mu)]=[\mu,L]$ by \eqref{ineq:chain-smooth}: $f$ is $L$-smooth and $\mu$-strongly convex, with condition number exactly $Q$.
+
+\begin{proposition}[minimizer of the chain]
+\label{prop:nesterov-min}
+Let $q=\dfrac{\sqrt Q-1}{\sqrt Q+1}\in(0,1)$. The minimizer of \eqref{eq:nesterovfun} is $\theta^\ast_j=q^j$, $j\ge1$, with $\norm{\theta^\ast}^2=\dfrac{q^2}{1-q^2}$ and $f(\theta^\ast)=-\dfrac{(L-\mu)q}{8}$.
+\end{proposition}
+
+\begin{proof}
+The optimality condition $f'(\theta)=0$ reads $(A+\frac{4}{Q-1}I)\theta=e_1$, i.e.
+\[
+\Big(2+\tfrac{4}{Q-1}\Big)\theta_1-\theta_2=1,\qquad -\theta_{j-1}+\Big(2+\tfrac4{Q-1}\Big)\theta_j-\theta_{j+1}=0\quad(j\ge2).
+\]
+Since $q+q^{-1}=\frac{(\sqrt Q-1)^2+(\sqrt Q+1)^2}{Q-1}=\frac{2(Q+1)}{Q-1}=2+\frac4{Q-1}$, the sequence $\theta_j=q^j$ satisfies the $j$-th equation, $q^{j-1}[-1+(q+q^{-1})q-q^2]=0$, and the first one, $(q+q^{-1})q-q^2=1$. It belongs to $\ell_2$ and the strongly convex $f$ has a unique minimizer, hence $\theta^\ast_j=q^j$. Then $\norm{\theta^\ast}^2=\sum_{j\ge1}q^{2j}=q^2/(1-q^2)$ and, using $A\theta^\ast=e_1-\frac4{Q-1}\theta^\ast$, $f(\theta^\ast)=\frac{L-\mu}4\{\frac12\theta^\ast_1-\frac2{Q-1}\norm{\theta^\ast}^2-\theta^\ast_1\}+\frac\mu2\norm{\theta^\ast}^2=-\frac{(L-\mu)q}{8}$ because $\frac{L-\mu}{4}\cdot\frac{2}{Q-1}=\frac\mu2$.
+\end{proof}
+
+\begin{lemma}[one coordinate per gradient call]
+\label{lem:zerochain}
+For $\theta\in\ell_2$ (or $\R^m$) let $N(\theta)=\max\{j:\theta_j\ne0\}$ ($N(0)=0$). Then $N(f'(\theta))\le N(\theta)+1$ for the function \eqref{eq:nesterovfun}, and the same holds for $\theta\mapsto c(A_m(\zeta)\theta-e_1)+\mu\theta$ on $\R^m$ for any $c>0$ (with $N\le m$).
+\end{lemma}
+
+\begin{proof}
+$(A\theta)_j=-\theta_{j-1}+2\theta_j-\theta_{j+1}$ (with the obvious boundary modifications) vanishes as soon as $j-1>N(\theta)$, so $N(A\theta)\le N(\theta)+1$; $-e_1$ only touches coordinate $1$, and $\mu\theta$ does not enlarge the support.
+\end{proof}
+
+\begin{theorem}[Nesterov's lower bound, \cite{nesterov2018lectures} Theorem~2.1.13]
+\label{thm:nesterov}
+Let $\theta_0=0$ and let $(\theta_t)$ be produced by any method following the span protocol \eqref{eq:span} for the single function \eqref{eq:nesterovfun} (here all $i_s=1$). Then for every $t\ge0$
+\begin{equation}
+\label{ineq:nesterov}
+\norm{\theta_t-\theta^\ast}^2\;\ge\;q^{2t}\norm{\theta_0-\theta^\ast}^2,\qquad f(\theta_t)-f(\theta^\ast)\ \ge\ \frac\mu2\,q^{2t}\norm{\theta_0-\theta^\ast}^2 .
+\end{equation}
+Consequently, reaching $\norm{\theta_t-\theta^\ast}^2\le\varepsilon\norm{\theta_0-\theta^\ast}^2$ requires $t\ge\dfrac{\log(1/\varepsilon)}{2\log(1/q)}\ge\dfrac{\sqrt Q-1}{4}\log\dfrac1\varepsilon$ gradient evaluations, i.e.\ $\Omega(\sqrt{Q}\log(1/\varepsilon))$, which is the rate $(1-\sqrt{\mu/L})^t$ of accelerated gradient descent (\cite{bach2024learning}, Section~5.2.5) up to constants.
+\end{theorem}
+
+\begin{proof}
+By induction, $N(\theta_t)\le t$: this is true for $t=0$, and if $N(\theta_{s-1})\le s-1$ for all $s\le t$ then each $f'(\theta_{s-1})$ in \eqref{eq:span} has $N\le s\le t$ by Lemma~\ref{lem:zerochain}, so $N(\theta_t)\le t$. Hence $\norm{\theta_t-\theta^\ast}^2\ge\sum_{j>t}(\theta^\ast_j)^2=\sum_{j>t}q^{2j}=q^{2t}\frac{q^2}{1-q^2}=q^{2t}\norm{\theta^\ast}^2=q^{2t}\norm{\theta_0-\theta^\ast}^2$. The function-value bound follows from $\mu$-strong convexity, $f(\theta)-f(\theta^\ast)\ge\frac\mu2\norm{\theta-\theta^\ast}^2$ (since $f'(\theta^\ast)=0$). For the iteration count, $q^{2t}\le\varepsilon$ means $t\ge\log(1/\varepsilon)/(2\log(1/q))$ and $\log(1/q)=\log\big(1+\frac{2}{\sqrt Q-1}\big)\le\frac{2}{\sqrt Q-1}$.
+\end{proof}
+
+The mechanism is the whole story of this note: a gradient of the chain reveals one new coordinate, the minimizer has geometrically decaying coordinates with ratio $q\approx1-2/\sqrt Q$, and the energy in the unrevealed coordinates is $q^{2t}$ of the total. The finite-sum constructions below simply run $n$ chains in parallel, one per component, so that a query to component $i$ reveals a coordinate of chain $i$ only.
+\subsection{Precise statements of the finite-sum lower bounds}
+\label{sec:lb:statements}
+
+We quote the theorems in the notation of their authors, then translate them into the book's notation ($n$ components, per-component smoothness $R^2$, strong convexity $\mu$ of the average, $\kappa=R^2/\mu$). All sources were downloaded and read (arXiv 1410.0723, 1507.02000, 1605.08003, 1606.09333, 1805.07786, 2103.08280, and 1901.08689 for L-Katyusha); the arXiv identifier 1809.09608 given in the project description for Hannah et al.\ is wrong (it is an unrelated logic paper): the correct one is 1805.07786, and the paper has four authors (Hannah, Liu, O'Connor, Yin).
+
+\paragraph{Deterministic IFO algorithms (Agarwal--Bottou).}
+In \cite{agarwal2015lower} the problem is $f(x)=\frac\mu2\norm{x}^2+\frac1n\sum_{i=1}^n g_i(x)$ with each $g_i$ convex and $(L-\mu)$-smooth on $\ell_2$ (class $\mathcal F_n^{\mu,L}$), $\kappa=L/\mu$; so each component $\frac\mu2\norm{x}^2+g_i$ is $L$-smooth and $f$ is $\mu$-strongly convex: in our notation $R^2=L$ and their $\kappa$ is ours. The algorithms are deterministic IFO algorithms (Definition~\ref{def:ifo}); the span assumption is \emph{not} made: their Appendix~A removes it in two steps, first by showing that for the worst case one may assume that the algorithm's final point lies in the span of its previous queries and of the oracle's answers (their Section~A.1), then by a resisting oracle which builds, call after call, orthonormal families $S_k$ of dimension at most $2k+2$ (Gram--Schmidt, their Definition~11) and applies Nesterov's function to the coordinates in these bases, so that the final point is confined to a $(2K+2)$-dimensional subspace while the minimizer of the constructed function stays far from it (their Sections~A.2--A.3).
+
+\begin{theorem}[\cite{agarwal2015lower}, Theorem~1 and Corollary~1]
+\label{thm:AB}
+Consider a deterministic IFO algorithm that makes $K\ge0$ calls and outputs $x_K$. For any $\varepsilon>0$ there is $f\in\mathcal F_n^{\mu,L}(\ell_2)$ with $\norm{x_f^\ast}=\varepsilon$ and
+\[
+\norm{x_f^\ast-x_K}\ \ge\ \varepsilon\,q^{2t},\qquad q=\frac{\sqrt{1+\frac{\kappa-1}{n}}-1}{\sqrt{1+\frac{\kappa-1}{n}}+1},\qquad t=\begin{cases}0&\text{if }K<n,\\ K/n&\text{otherwise.}\end{cases}
+\]
+Hence an algorithm guaranteeing $\norm{x_f^\ast-x_K}\le\varepsilon\norm{x_f^\ast}$ for all $f$ in the class, with $\varepsilon<1$, must perform $K=\Omega\big(n+\sqrt{n(\kappa-1)}\log(1/\varepsilon)\big)$ IFO calls.
+\end{theorem}
+
+The number $1+\frac{\kappa-1}{n}$ is the condition number of $f$ restricted to one of $n$ disjoint coordinate blocks (their construction is block separable with the regularizer shared by all components, exactly as ours in Section~\ref{sec:lb:instance}); the bound is attained, on their own instance, by accelerated gradient descent, and \cite{woodworth2016tight} show that it is loose for deterministic algorithms in general (Theorem~\ref{thm:WS} below).
+
+\paragraph{Span-based randomized incremental methods (Lan--Zhou).}
+In \cite{lan2018optimal}, Section~3.3, the hard problem is
+\begin{equation}
+\label{eq:LZinstance}
+\min_{x_i\in\R^{\tilde n},\,i=1,\dots,m}\ \Psi(x):=\sum_{i=1}^m\Big[f_i(x_i)+\frac{\mu}{2}\norm{x_i}^2\Big],\qquad f_i(x_i)=\frac{\mu(\mathcal Q-1)}{4}\Big[\frac12\inner{Ax_i}{x_i}-\inner{e_1}{x_i}\Big],
+\end{equation}
+with $A=A_{\tilde n}(\zeta)$ as in \eqref{eq:chainmatrix} and $\zeta=\frac{\sqrt{\mathcal Q}+3}{\sqrt{\mathcal Q}+1}$ (their display (3.39), where the boundary entry is called $\kappa$); each $f_i$ is convex with Lipschitz constant $L_i=\mu(\mathcal Q-1)$. The class is: $i_t$ i.i.d.\ with $\Prob\{i_t=i\}=p_i$ for a fixed distribution $p$ (their (3.40)), and $x^k\in x^0+\operatorname{Lin}\{\nabla f_{i_1}(x^0),\dots,\nabla f_{i_k}(x^{k-1})\}$ (their (3.41)), i.e.\ class (S1).
+
+\begin{theorem}[\cite{lan2018optimal}, Theorem~3 and Corollary~3]
+\label{thm:LZ}
+Let $q=\frac{\sqrt{\mathcal Q}-1}{\sqrt{\mathcal Q}+1}$. The iterates of any randomized incremental gradient method of class (S1) applied to \eqref{eq:LZinstance} satisfy
+\[
+\frac{\E\norm{x^k-x^\ast}^2}{\norm{x^0-x^\ast}^2}\ \ge\ \frac12\exp\Big(-\frac{4k\sqrt{\mathcal Q}}{m(\sqrt{\mathcal Q}+1)^2-4\sqrt{\mathcal Q}}\Big)
+\qquad\text{for all }\ n\ge\underline n(m,k),
+\]
+\[
+\underline n(m,k):=\frac{m\log\big[(1-(1-q^2)/m)^k/2\big]}{2\log q},
+\]
+where $n=m\tilde n$ is the total dimension. Consequently the number of gradient evaluations needed by such a method to find $\bar x$ with $\E\norm{\bar x-x^\ast}^2\le\varepsilon$ cannot be smaller than
+\[
+\Omega\Big\{\big(m+\sqrt{m\,\mathcal C}\big)\log\frac{\norm{x^0-x^\ast}^2}{\varepsilon}\Big\},\qquad \mathcal C=\frac{L}{\mu},\ L=\sum_{i=1}^mL_i ,
+\]
+if $n$ is sufficiently large; precisely (their (3.45)) $k\ge\big[\frac m2\big(\frac{\sqrt{\mathcal Q}}2+1\big)-1\big]\log\frac{\norm{x^0-x^\ast}^2}{2\varepsilon}$.
+\end{theorem}
+
+\emph{Translation.} Write $\Psi=\frac1m\sum_i g_i$ with $g_i(x)=m[f_i(x_i)+\frac\mu2\norm{x_i}^2]$. Then $g_i$ is $m\mu\mathcal Q$-smooth (Lemma~\ref{lem:chain}), $\Psi$ is $\mu$-strongly convex, so in the book's notation $R^2=m\mu\mathcal Q$, $n_{\rm book}=m$, $\kappa=R^2/\mu=m\mathcal Q$, and $\sqrt{m\mathcal C}=m\sqrt{\mathcal Q-1}\asymp\sqrt{n_{\rm book}\,\kappa}$. Theorem~\ref{thm:LZ} is therefore the bound
+\[
+\Omega\big((n+\sqrt{n\kappa})\log(1/\varepsilon)\big)\qquad\text{for class (S1)},
+\]
+which is the first half of hypothesis (A1). Note that the proof minimizes the bound over the sampling distribution $p$ and that the minimum is the uniform distribution: the bound holds for every fixed $p$. Note also that on these block-separable instances $\kappa=m\mathcal Q\ge m$ always (the per-block condition number $\mathcal Q=\kappa/n_{\rm book}$ is what the chain mechanism sees), so the regime $\kappa\ll n$ cannot be probed with \eqref{eq:LZinstance}; our instance in Section~\ref{sec:lb:instance} shares the regularizer, as in \cite{agarwal2015lower}, which gives $\mathcal Q=1+(\kappa-1)/n$ and allows every $\kappa\ge1$.
+
+\paragraph{Arbitrary deterministic and randomized algorithms (Woodworth--Srebro).}
+In \cite{woodworth2016tight} the components are $\gamma$-smooth and $F$ is $\lambda$-strongly convex ($R^2=\gamma$, $\mu=\lambda$, $m=n_{\rm book}$ components), the oracle is the gradient-and-prox oracle $h_F$, and no span assumption is made.
+
+\begin{theorem}[\cite{woodworth2016tight}, Theorems~4 and~8]
+\label{thm:WS}
+\emph{(Deterministic.)} For any $\gamma,\lambda>0$ with $\gamma/\lambda>73$, any $\varepsilon>0$, any $\varepsilon_0>3\gamma\varepsilon/\lambda$, any $m\ge2$ and any deterministic algorithm $A$ with access to $h_F$, there exist a dimension $d=O\big(m\sqrt{\gamma/\lambda}\log\frac{\lambda\varepsilon_0}{\gamma\varepsilon}\big)$ and $m$ functions $f_i$ on $\mathcal X\subseteq\R^d$, $\gamma$-smooth and $\lambda$-strongly convex with $F(0)-F(x^\ast)=\varepsilon_0$, such that finding $\hat x$ with $F(\hat x)-F(x^\ast)<\varepsilon$ requires $\Omega\big(m\sqrt{\gamma/\lambda}\log\frac{\lambda\varepsilon_0}{\gamma\varepsilon}\big)$ queries.
+
+\emph{(Randomized.)} For any $m\ge2$, any $\gamma,\lambda>0$ with $\gamma/\lambda>161m$, any $\varepsilon>0$, any $\varepsilon_0>60\varepsilon\sqrt{\gamma/(\lambda m)}$ and any randomized algorithm $A$, there exist a dimension $d=O\big(\frac{\gamma m}{\lambda\varepsilon}\log^4\frac{\varepsilon_0^2\lambda m}{\gamma\varepsilon^2}\log\frac{\gamma m^2}{\lambda\varepsilon}\big)$, a domain $\mathcal X\subseteq\R^d$, $x_0\in\mathcal X$ and $m$ functions $f_i$, $\gamma$-smooth and $\lambda$-strongly convex with $F(x_0)-F(x^\ast)=\varepsilon_0$, such that finding $\hat x$ with $\E[F(\hat x)-F(x^\ast)]<\varepsilon$ requires $\Omega\big(m+\sqrt{m\gamma/\lambda}\,\log\big(\frac{\varepsilon_0}{\varepsilon}\sqrt{\frac{m\lambda}{\gamma}}\big)\big)$ queries.
+\end{theorem}
+
+In our notation: deterministic algorithms need $\Omega\big(n\sqrt\kappa\log\frac{\varepsilon_0}{\kappa\varepsilon}\big)$ queries (the argument of the logarithm is $\frac{\lambda\varepsilon_0}{\gamma\varepsilon}=\frac{\varepsilon_0}{\kappa\varepsilon}$, so the bound is informative only for relative accuracies $\varepsilon/\varepsilon_0\ll1/\kappa$; up to the constant inside the logarithm it is attained by AGD on $F$, since $L_F\le R^2$), and randomized algorithms with arbitrary adaptive queries need $\Omega\big(n+\sqrt{n\kappa}\log\big(\frac{\varepsilon_0}{\varepsilon}\sqrt{n/\kappa}\big)\big)$ in the regime $\kappa>161n$. Both theorems use components that are individually $\lambda$-strongly convex; this is a subclass of the book's class (where only $F$ is $\mu$-strongly convex), so the lower bounds apply a fortiori to the book's class. Two facts matter for (A1): the $\sqrt{n\kappa}\log(1/\varepsilon)$ term survives without any span or i.i.d.\ assumption, and the $n\log(1/\varepsilon)$ term of Theorem~\ref{thm:LZ} is replaced by a bare $n$ (no accuracy dependence).
+
+\paragraph{Oblivious CLI algorithms, dimension-free (Arjevani--Shamir).}
+
+\begin{theorem}[\cite{arjevani2016dimension}, Theorem~2]
+\label{thm:AS}
+The iteration complexity of oblivious (possibly stochastic) CLI algorithms for finite sums $\frac1n\sum_{i=1}^nf_i$ with $L$-smooth and $\mu$-strongly convex components (their problem (1); the sum is then $\mu$-strongly convex, and the bound transfers a fortiori to the book's class, which contains this one), $\kappa=L/\mu$, equipped with first-order and coordinate-descent oracles, is bounded from below by $\tilde\Omega\big(n+\sqrt{n(\kappa-1)}\ln(1/\varepsilon)\big)$, in every dimension $d$.
+\end{theorem}
+
+The proof is not a chain argument: on a parametrized family of quadratics, the coordinates of the $k$-th iterate of an oblivious CLI are polynomials of degree $\le k$ in the parameters, and approximating the minimizer well requires a high degree (Chebyshev-type approximation bounds). The ``$n$'' term holds for any algorithm using an incremental oracle (their Theorem~5), and the class covers deterministic schedules (cyclic coordinate/component orders), mini-batches and full-gradient steps.
+
+\paragraph{Breaking the span assumption (Hannah--Liu--O'Connor--Yin).}
+In \cite{hannah2018breaking}, $F=\frac1n\sum f_i+\psi$ with $f_i$ $L$-smooth (or $L_i$-smooth, $L_Q=\frac1n\sum L_i$) and $F$ $\mu$-strongly convex, $\kappa=L/\mu$ (so $R^2=L$ and their $\kappa$ is ours). Their span condition is relation \eqref{eq:span} ``for some fixed IID random variable $i_k$ over the indices'', i.e.\ class (S1); a full gradient step violates it because it uses all $n$ indices at the same point. The hard functions of their Theorems~2 and~4 are individually $L$-smooth and $\mu$-strongly convex, a subclass of the book's class to which the lower bounds therefore apply a fortiori.
+
+\begin{theorem}[\cite{hannah2018breaking}, Corollary~3, Corollary~2, Theorem~2/Theorem~4 and Corollary~1]
+\label{thm:HLOY}
+Let the components be $L$-smooth and $F$ be $\mu$-strongly convex, $\kappa=L/\mu$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item (Rewording of Theorem~\ref{thm:LZ}.) For every $\varepsilon$ and every randomized algorithm following the span assumption there are a dimension $d$ and $L$-smooth, $\mu$-strongly convex $f_i$ on $\R^d$ such that reaching $\E f(x^k)-f(x^\ast)<\varepsilon$ takes the algorithm at least $\Omega((n+\sqrt{\kappa n})\ln(1/\varepsilon))$ steps.
+\item (Upper bound.) With epoch length $m=n+121\kappa_Q$ and step size $\eta=\kappa_Q^{1/2}m^{-1/2}/(2L_Q)$, Prox-SVRG needs
+\[
+K(\varepsilon)=O\Big(\Big(\frac{n}{1+(\ln(n/\kappa_Q))_+}+\kappa_Q\Big)\ln\frac1\varepsilon+n+\kappa_Q\Big)
+\]
+gradient evaluations to reach $\E f(x^{K})-f(x^\ast)<\varepsilon$ (here $(a)_+=\max\{a,0\}$ and $\kappa_Q=L_Q/\mu$).
+\item (Lower bound.) For any oblivious $p$-CLI algorithm (in particular SVRG, SARAH, SAGA, SAG, Katyusha, L-Katyusha with fixed parameters) and all $\mu,L$ there exist $L$-smooth, $\mu$-strongly convex $f_i$ such that at least
+\[
+K(\varepsilon)=\tilde\Omega\Big(\Big(\frac{n}{1+(\ln(n/\kappa))_+}+\sqrt{n\kappa}\Big)\ln\frac1\varepsilon+n\Big)
+\]
+iterations are needed; equivalently (their (1.3)) $K(\varepsilon)=\Omega(n+\sqrt{n\kappa}\ln(1/\varepsilon))$ for $n=O(\kappa)$ and $K(\varepsilon)=\Omega\big(n+\frac{n}{1+(\ln(n/\kappa))_+}\ln(1/\varepsilon)\big)$ for $\kappa=O(n)$.
+\item (Example.) For $\varepsilon=1/n^\alpha$ and $\kappa=n^\beta$ with $\alpha,\beta\in(0,1)$, modified SVRG needs $O(n)$ iterations whereas algorithms following the span assumption need $\Omega(n\ln n)$ (the source writes ``require $O(n\ln(n))$ iterations'', quoting Theorem~\ref{thm:LZ}; the content is a lower bound).
+\end{enumerate}
+\end{theorem}
+
+Their Section~3 explains the mechanism on the block instance \eqref{eq:LZinstance}: after $k$ i.i.d.\ uniform queries, block $i$ has been touched a Binomial$(k,1/n)$ number of times, and the \emph{average} over blocks of the unrevealed energy is $(1-(1-q^2)/n)^k\ge(1-1/n)^k$ whatever the conditioning, which forces $n\ln(1/\varepsilon)$ queries; one full-gradient pass ($n$ queries) touches \emph{every} block once, so with full gradients the energy decreases by a factor $q^2$ per block per $n$ queries and the $n\ln(1/\varepsilon)$ term disappears when $q^2\le\varepsilon$ is reached quickly, i.e.\ when $\kappa\ll n$. Part~(c) shows that the gain is at most the factor $1+(\ln(n/\kappa))_+$, and part~(b) that SVRG with a well-chosen epoch length achieves it.
+
+\paragraph{Loopless methods and small dimension (Han--Xie--Zhang).}
+The class $\mathcal A$ of \cite{han2024lower} (their Definition~3.1) consists of randomized algorithms which at each step $t$ sample $i_t$ i.i.d.\ from a fixed distribution $\mathcal D$ and may query the PIFO of $f_{i_t}$ \emph{at all previous iterates} $x_0,\dots,x_{t-1}$ (``simultaneous queries''; earlier answers may be reused), and with an independent probability $\bar q\le c_0/n$ also query the full gradient at the current point; the set $\mathcal H$ of points where the full gradient is available is initialized with $x_0$, so the full gradient at $x_0$ is free. The iterate is then any point of the linear span of the previous iterates, of the oracle answers and of the full gradients at the points of $\mathcal H$, projected on the domain. By the authors' own account, this covers SAGA and Point-SAGA (whose only full gradient is the free one at $x_0$) and the loopless methods L-SVRG, L-Katyusha, KatyushaX, L2S, PAGE and Anita, but \emph{not} the two-loop methods SVRG and Katyusha, whose full gradients are computed at deterministic times.
+
+\begin{theorem}[\cite{han2024lower}, Theorem~E.6]
+\label{thm:HXZ}
+Let $n\ge2$ and consider the class $\mathcal F^{\rm C}(R,L,\mu)$ of finite sums $f=\frac1n\sum_if_i$ on a closed convex domain $\mathcal X$ of diameter at most $2R$, with $L$-smooth components and $\mu$-strongly convex $f$, $\kappa=L/\mu\ge2$, and let $\varepsilon\le LR^2/4$ (the hard instance is constrained to the ball $\{\norm x\le R\}$, which contains $x_0=0$ and $x^\ast$; its components are individually $\mu$-strongly convex, their Proposition~E.13). The number of PIFO queries that algorithms of class $\mathcal A$ need to find $\hat x\in\mathcal X$ with $\E f(\hat x)-\min_{\mathcal X} f<\varepsilon$ is
+\[
+\mathfrak m_\ast^{\rm C}(\varepsilon,R,L,\mu)=\begin{cases}\Omega\big((n+\sqrt{\kappa n})\log(1/\varepsilon)\big)&\text{for }\kappa=\Omega(n),\\[2pt] \Omega\big(n+\frac{n}{1+(\log(n/\kappa))_+}\log(1/\varepsilon)\big)&\text{for }\kappa=O(n),\end{cases}
+\]
+and the construction only requires the dimension to be $O\big(1+\sqrt{\kappa/n}\,\log(1/\varepsilon)\big)$.
+\end{theorem}
+
+Their instance is a single chain of length $m=O(1+\sqrt{\kappa/n}\log(1/\varepsilon))$ whose rows are distributed among the $n$ components (component $i$ owns the rows $l\equiv i-1 \pmod n$, scaled by $n$): only the component owning the next row can extend the support, so the time to extend it is geometric with mean $n$, which gives the $n$ factor without needing $n$ separate chains.
+
+\paragraph{Assessment of hypothesis (A1).}
+Hypothesis (A1) reads: ``lower bound $\Omega((n+\sqrt{n\kappa})\log(1/\varepsilon))$ for span-based methods with i.i.d.\ uniform sampling; for an arbitrary index sequence, $\sqrt{n\kappa}$ survives and $n\log(1/\varepsilon)$ weakens by $\log(n/\kappa)$ when $\kappa\ll n$.''
+\begin{enumerate}[nosep,label=(\roman*)]
+\item The first clause is exactly Theorem~\ref{thm:LZ} (class (S1), any fixed sampling distribution, dimension $\gtrsim$ number of iterations) and is correct.
+\item The second clause is correct \emph{if} ``arbitrary index sequence'' means ``index sequences that are not i.i.d.\ single queries, in particular full-gradient sweeps (SVRG, SARAH, L-SVRG, L-Katyusha)'', and if it is understood within the oblivious CLI class and with the precise factor $1+(\ln(n/\kappa))_+$: by Theorem~\ref{thm:HLOY}(c) and Theorem~\ref{thm:HXZ} the bound becomes $\Omega\big(n+\big(\frac{n}{1+(\ln(n/\kappa))_+}+\sqrt{n\kappa}\big)\ln\frac1\varepsilon\big)$, the $\sqrt{n\kappa}\ln(1/\varepsilon)$ term is untouched, and the $n\ln(1/\varepsilon)$ term is divided by $1+(\ln(n/\kappa))_+$ but never falls below the bare $n$ (one query per component is unavoidable, Theorem~\ref{thm:AS}). This is tight: Theorem~\ref{thm:HLOY}(b) attains it when $\kappa=O(n)$, and Katyusha/L-Katyusha attain $(n+\sqrt{n\kappa})\log(1/\varepsilon)$ when $n=O(\kappa)$ \cite{allenzhu2018katyusha,kovalev2020dont}.
+\item The clause is \emph{not} correct for other readings. For deterministic (adaptive) index sequences the worst case is $\Omega(n\sqrt\kappa\log(1/\varepsilon))$ (Theorem~\ref{thm:WS}, deterministic part): the $\sqrt{n\kappa}$ term does not merely survive, it deteriorates by $\sqrt n$, and the $\sqrt n$ saving of randomized methods is genuinely due to randomization. For randomized algorithms with fully adaptive queries and no span restriction, the known bound is $\Omega(n+\sqrt{n\kappa}\log(1/\varepsilon))$ (Theorem~\ref{thm:WS}, randomized part, stated for $\kappa>161n$), which says nothing about an $n\log(1/\varepsilon)$ term; whether cyclic (without-replacement) span-based methods can beat $n\log(1/\varepsilon)$ is not settled by these sources.
+\item Finally, the phrase ``$n\log(1/\varepsilon)$ weakens by $\log(n/\kappa)$'' should be read multiplicatively, as a division by $1+(\ln(n/\kappa))_+$, which is only a logarithmic gain and only in the big-data regime $\kappa\ll n$; in the regime $\kappa\gtrsim n$ of hypothesis (A4) the two bounds coincide, $\Theta((n+\sqrt{n\kappa})\log(1/\varepsilon))$.
+\end{enumerate}
+On the hard instance of the next section, Proposition~\ref{prop:anyseq} gives a self-contained proof that the $\sqrt{n\kappa}\log(1/\varepsilon)$ term is unavoidable for \emph{every} index sequence (class (S2)), and Theorem~\ref{thm:instance} proves the full $(n+\sqrt{n\kappa})\log(1/\varepsilon)$ bound for class (S1).
+\subsection{The block-separable hard instance (hypothesis A4)}
+\label{sec:lb:instance}
+
+\subsubsection{Definition and constants}
+
+Fix $n\ge1$ components, a block length $m\ge2$, $\mu>0$, a target condition number $\kappa>1$ and $\zeta\in[1,3]$. The variable is $\theta=(\theta^{(1)},\dots,\theta^{(n)})\in\R^{nm}$ with blocks $\theta^{(i)}\in\R^m$; $E_i:\R^m\to\R^{nm}$ denotes the embedding of block $i$ (so $E_i^\top\theta=\theta^{(i)}$). Let
+\begin{equation}
+\label{eq:instance}
+c=\frac{\mu(\kappa-1)}{4},\qquad \phi(x)=\frac12\inner{A_m(\zeta)x}{x}-x_1\ \ (x\in\R^m),\qquad
+f_i(\theta)=c\,\phi(\theta^{(i)})+\frac\mu2\norm{\theta}^2,\quad i=1,\dots,n .
+\end{equation}
+Then
+\begin{equation}
+\label{eq:instanceF}
+\begin{aligned}
+F(\theta)&=\frac1n\sum_{i=1}^nf_i(\theta)=\frac cn\sum_{i=1}^n\phi(\theta^{(i)})+\frac\mu2\norm{\theta}^2,\\
+\fip(\theta)&=c\,E_i\big(A_m(\zeta)\theta^{(i)}-e_1\big)+\mu\theta,\qquad
+\Fp(\theta)=\frac cn\sum_{i=1}^nE_i\big(A_m(\zeta)\theta^{(i)}-e_1\big)+\mu\theta .
+\end{aligned}
+\end{equation}
+In numpy, with $\theta$ stored as an $n\times m$ array $\Theta$ and $A=A_m(\zeta)$: $\fip(\theta)$ is $\mu\Theta$ plus, on row $i$ only, $c\,(A\Theta_{i,:}-e_1)$; $\Fp(\theta)=\frac cn(\Theta A-\mathbf 1e_1^\top)+\mu\Theta$ (row-wise matrix product, $\mathbf 1$ the all-ones column); the products with the tridiagonal $A$ cost $O(m)$ per row.
+
+\begin{proposition}[constants of the instance]
+\label{prop:constants}
+Let $Q:=1+\dfrac{\kappa-1}{n}$. For the instance \eqref{eq:instance}:
+\begin{enumerate}[nosep,label=(\alph*)]
+\item each $f_i$ is $\mu$-strongly convex and $R^2$-smooth with $R^2=\mu\kappa$ (its exact Lipschitz constant is $\mu+c\,\lmax(A_m(\zeta))\le\mu\kappa$, with equality only in the limit $m\to\infty$);
+\item $\nabla^2F=\diag\big(\tfrac cnA_m(\zeta)+\mu I,\dots,\tfrac cnA_m(\zeta)+\mu I\big)$ is block diagonal; $F$ is $\mu$-strongly convex, its smallest Hessian eigenvalue is $\muEff:=\mu+\frac cn\lmin(A_m(\zeta))=\mu\big(1+\frac{Q-1}{4}\lmin(A_m(\zeta))\big)\ge\mu$ and its smoothness constant is $L_F=\mu+\frac cn\lmax(A_m(\zeta))\le\mu Q$;
+\item hence $\kappa=R^2/\mu=1+n(Q-1)$ and
+\begin{equation}
+\label{ineq:LF}
+\frac{L_F}{\mu}\ \le\ Q=1+\frac{\kappa-1}{n}\ \le\ \kappa ,
+\end{equation}
+so that $(L_F/\mu)/\kappa\le\frac1n+\frac1\kappa$: the condition number of $F$ is about $n$ times smaller than $\kappa$ as soon as $\kappa\gg n$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+(a) $\nabla^2f_i=cE_iA_m(\zeta)E_i^\top+\mu I$ has eigenvalues $\mu$ (on the other blocks) and $\mu+c\lambda$ for $\lambda$ an eigenvalue of $A_m(\zeta)$; by Lemma~\ref{lem:chain} these lie in $[\mu,\mu+4c]=[\mu,\mu\kappa]$. (b) $\nabla^2F=\frac1n\sum_i\nabla^2f_i$ is block diagonal with blocks $\frac cnA_m(\zeta)+\mu I$, whose eigenvalues are $\mu+\frac cn\lambda\in[\mu,\mu+\frac{4c}n]$ and $\mu+\frac{4c}{n}=\mu(1+\frac{\kappa-1}{n})=\mu Q$. (c) is arithmetic.
+\end{proof}
+
+\paragraph{Why the chain of $f_i$ carries the factor $n$.} The restriction of $F$ to block $i$ is $\frac cn\phi+\frac\mu2\norm{\cdot}^2$: the chain that the $i$-th block of $F$ sees is the chain of $f_i$ divided by $n$. Nesterov's per-block function with condition number $Q$ is $\frac{\mu(Q-1)}4\phi+\frac\mu2\norm{\cdot}^2$ (compare \eqref{eq:nesterovfun} with $L=\mu Q$), so one needs $\frac cn=\frac{\mu(Q-1)}4$, i.e.\ $c=\frac{n\mu(Q-1)}{4}=\frac{\mu(\kappa-1)}4$: the component must carry $n$ times the chain of the block. Conversely, if one naively takes $f_i(\theta)=\psi(\theta^{(i)})$ with a single $\mu$-strongly convex, $L$-smooth $\psi$ (block-only regularizer, as in \eqref{eq:LZinstance}), then $F=\frac1n\sum_i\psi(\theta^{(i)})$ is only $\mu/n$-strongly convex, $R^2=L$, and the book's $\kappa$ equals $nL/\mu$ while the per-block condition number is $L/\mu=\kappa/n$. In both normalizations the quantity that drives the chain mechanism is the \emph{per-block} condition number $Q\approx\kappa/n$, and $\sqrt{n\kappa}\approx n\sqrt Q$ is ``$n$ blocks times $\sqrt Q$ touches per block''.
+
+\begin{proposition}[closed-form minimizer]
+\label{prop:minimizer}
+Let $Q=1+\frac{\kappa-1}n$ and $q=\dfrac{\sqrt Q-1}{\sqrt Q+1}$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item (Geometric chain.) If
+\begin{equation}
+\label{eq:zetaQ}
+\zeta=\zeta_Q:=\frac{\sqrt Q+3}{\sqrt Q+1}\in(1,2),
+\end{equation}
+then the minimizer is $\etastar=(x^\ast,\dots,x^\ast)$ with $x^\ast_j=q^j$, $j=1,\dots,m$, so that
+\[
+\norm{\etastar}^2=n\,\frac{q^2(1-q^{2m})}{1-q^2},\qquad F(\etastar)=-\frac{c\,q}{2}=-\frac{\mu(\kappa-1)\,q}{8}.
+\]
+\item (Nesterov's chain, $\zeta=2$.) The minimizer is $\etastar=(x^\ast,\dots,x^\ast)$ with
+\[
+x^\ast_j=\frac{q^{\,j}-q^{\,2(m+1)-j}}{1-q^{\,2(m+1)}}=\frac{\sinh\big((m+1-j)\tau\big)}{\sinh\big((m+1)\tau\big)},\qquad \tau=\log\frac1q=2\operatorname{artanh}\frac1{\sqrt Q},\quad j=1,\dots,m .
+\]
+\item (Any $\zeta\in[1,3]$.) $x^\ast$ is the solution of the tridiagonal system $\big(A_m(\zeta)+\frac{4}{Q-1}I\big)x=e_1$, computable in $O(m)$ by the Thomas algorithm (forward elimination, backward substitution), which is numerically stable here because the matrix is symmetric positive definite and diagonally dominant.
+\end{enumerate}
+In all cases $F(\theta)-F(\etastar)=\frac12\inner{\nabla^2F(\theta-\etastar)}{\theta-\etastar}$ lies between $\frac{\muEff}2\norm{\theta-\etastar}^2$ and $\frac{L_F}2\norm{\theta-\etastar}^2$.
+\end{proposition}
+
+\begin{proof}
+Since $F$ is block separable and the blocks play symmetric roles, $\etastar=(x^\ast,\dots,x^\ast)$ where $x^\ast$ minimizes $\frac cn\phi(x)+\frac\mu2\norm{x}^2$, i.e.\ solves $\frac cn(A_m(\zeta)x-e_1)+\mu x=0$, or $(A_m(\zeta)+\frac{n\mu}cI)x=e_1$; and $\frac{n\mu}{c}=\frac{4n}{\kappa-1}=\frac4{Q-1}$, which proves (c). Written row by row, with $a:=2+\frac4{Q-1}=q+q^{-1}$ (see the proof of Proposition~\ref{prop:nesterov-min}):
+\[
+a\,x_1-x_2=1,\qquad -x_{j-1}+a\,x_j-x_{j+1}=0\ (2\le j\le m-1),\qquad -x_{m-1}+\Big(\zeta+\frac4{Q-1}\Big)x_m=0 .
+\]
+(a) The first $m-1$ equations are satisfied by $x_j=q^j$ exactly as in Proposition~\ref{prop:nesterov-min}. The last one holds iff $\zeta+\frac4{Q-1}=q^{-1}$; since $q^{-1}=\frac{\sqrt Q+1}{\sqrt Q-1}=\frac{(\sqrt Q+1)^2}{Q-1}$, this means $\zeta=\frac{(\sqrt Q+1)^2-4}{Q-1}=\frac{(\sqrt Q-1)(\sqrt Q+3)}{(\sqrt Q-1)(\sqrt Q+1)}=\zeta_Q$, and $1<\zeta_Q<2$ for $Q>1$. Then $\norm{x^\ast}^2=\sum_{j=1}^mq^{2j}=q^2(1-q^{2m})/(1-q^2)$. For the value, $A_m(\zeta_Q)x^\ast=e_1-\frac4{Q-1}x^\ast$ gives $\phi(x^\ast)=-\frac{x_1^\ast}2-\frac2{Q-1}\norm{x^\ast}^2$ and $F(\etastar)=c\,\phi(x^\ast)+\frac{n\mu}2\norm{x^\ast}^2=-\frac{cq}2$ because $\frac{2c}{Q-1}=\frac{\mu(\kappa-1)}{2(Q-1)}=\frac{n\mu}2$.
+(b) The general solution of the three-term recursion $x_{j+1}=a\,x_j-x_{j-1}$ is $x_j=\alpha q^j+\beta q^{-j}$ ($q$ and $q^{-1}$ are the roots of $z^2-az+1=0$). The first equation says that the recursion extends to $j=1$ with $x_0:=1$, and the last one, with $\zeta=2$, that it extends to $j=m$ with $x_{m+1}:=0$. Hence $\alpha+\beta=1$ and $\alpha q^{m+1}+\beta q^{-(m+1)}=0$, i.e.\ $\beta=-\alpha q^{2(m+1)}$ and $\alpha=1/(1-q^{2(m+1)})$, which is the stated formula; the $\sinh$ form follows by multiplying numerator and denominator by $q^{-(m+1)}$, and $\tau=\log\frac{\sqrt Q+1}{\sqrt Q-1}=2\operatorname{artanh}(Q^{-1/2})$. The formula with $q$ is the one to implement (all powers are in $(0,1]$). The last claim is Taylor's formula for the quadratic $F$ with $\Fp(\etastar)=0$.
+\end{proof}
+
+\subsubsection{The zero-chain property and the sequence-free bound}
+
+For $\theta\in\R^{nm}$ and $j\in\{1,\dots,n\}$ let $N_j(\theta)=\max\{l:\theta^{(j)}_l\neq0\}$ ($N_j=0$ if the block vanishes). Consider a method following the linear-span protocol \eqref{eq:span} with $\theta_0=0$ and an \emph{arbitrary} index sequence $(i_s)_{s\ge1}$ (class (S2); full gradients are $n$ consecutive queries at the same point, and the indices may be chosen adaptively). Write $\tau_j(t)=\#\{s\le t: i_s=j\}$ for the number of queries to component $j$ among the first $t$ queries, so that $\sum_j\tau_j(t)=t$. (Starting from $\theta_0\neq0$ amounts to translating the instance, $f_i(\cdot+\theta_0)$; the bounds below then hold with $\etastar-\theta_0$ in place of $\etastar$.)
+
+\begin{lemma}[zero chain, block version]
+\label{lem:blockchain}
+For every $\theta$ and $i,j$: $N_j(\fip(\theta))\le N_j(\theta)+\ind[i=j]$.
+\end{lemma}
+
+\begin{proof}
+By \eqref{eq:instanceF}, the $j$-th block of $\fip(\theta)$ is $\mu\theta^{(j)}$ if $j\ne i$ and $c(A_m(\zeta)\theta^{(i)}-e_1)+\mu\theta^{(i)}$ if $j=i$; apply Lemma~\ref{lem:zerochain}.
+\end{proof}
+
+\begin{lemma}[support under the span protocol]
+\label{lem:support}
+(i) For every $t\ge0$ and $j$: $N_j(\theta_t)\le\tau_j(t)$. (ii) If the span in \eqref{eq:span} is enlarged by the $n$ initial gradients $f'_1(\theta_0),\dots,f'_n(\theta_0)$ (an initial full gradient, as for SAGA with $z_i^{(0)}=\fip(\theta_0)$), then $N_j(\theta_t)\le1+\tau_j(t)$, where $\tau_j(t)$ counts the queries made after the initial full gradient; equivalently, $N_j(\theta_t)\le\tau_j(t)$ still holds if the initial full gradient is counted as one query to every component.
+\end{lemma}
+
+\begin{proof}
+(i) Induction on $t$; the case $t=0$ is $\theta_0=0$. If the claim holds up to $t-1$, each generator $f'_{i_s}(\theta_{s-1})$, $s\le t$, of the span in \eqref{eq:span} satisfies $N_j\le\tau_j(s-1)+\ind[i_s=j]=\tau_j(s)\le\tau_j(t)$ by Lemma~\ref{lem:blockchain}, and the support of a linear combination is contained in the union of the supports. (ii) Same induction: the $n$ additional generators $f'_l(\theta_0)=f'_l(0)$ satisfy $N_j(f'_l(0))\le\ind[l=j]\le1$ by Lemma~\ref{lem:blockchain}, and if $N_j(\theta_{s-1})\le1+\tau_j(s-1)$ for all $s\le t$ then each generator $f'_{i_s}(\theta_{s-1})$ has $N_j\le1+\tau_j(s-1)+\ind[i_s=j]=1+\tau_j(s)\le1+\tau_j(t)$.
+\end{proof}
+
+\begin{proposition}[tail bound]
+\label{prop:tail}
+Let $\zeta=\zeta_Q$. If $N_j(\theta)\le\tau_j\le m$ for all $j$, then
+\begin{equation}
+\label{ineq:tail}
+\frac{\norm{\theta-\etastar}^2}{\norm{\etastar}^2}\ \ge\ \frac1n\sum_{j=1}^n\frac{q^{2\tau_j}-q^{2m}}{1-q^{2m}} .
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+$\norm{\theta-\etastar}^2=\sum_j\norm{\theta^{(j)}-x^\ast}^2\ge\sum_j\sum_{l>\tau_j}(x^\ast_l)^2=\sum_j\sum_{l=\tau_j+1}^mq^{2l}=\frac{q^2}{1-q^2}\sum_j\big(q^{2\tau_j}-q^{2m}\big)$, and $\norm{\etastar}^2=n\frac{q^2(1-q^{2m})}{1-q^2}$ by Proposition~\ref{prop:minimizer}.
+\end{proof}
+
+\begin{proposition}[the $\sqrt{n\kappa}$ term for an arbitrary index sequence]
+\label{prop:anyseq}
+Let $\zeta=\zeta_Q$ and consider any method of class (S2) started at $\theta_0=0$. After $G$ gradient evaluations in total (full gradients counted as $n$), every iterate $\theta$ in the span of the answers satisfies
+\begin{equation}
+\label{ineq:jensen}
+\frac1n\sum_{j=1}^nq^{2\tau_j}\ \ge\ q^{2G/n},\qquad\text{hence}\qquad
+\frac{\norm{\theta-\etastar}^2}{\norm{\etastar}^2}\ \ge\ \frac{q^{2G/n}-q^{2m}}{1-q^{2m}} .
+\end{equation}
+Consequently, if $q^{2m}\le\varepsilon<\frac12$, reaching $\norm{\theta-\etastar}^2\le\varepsilon\norm{\etastar}^2$ requires
+\begin{equation}
+\label{eq:anyseqcount}
+G\ \ge\ \frac{n\log\frac1{2\varepsilon}}{2\log(1/q)}\ \ge\ \frac{n(\sqrt Q-1)}{4}\log\frac1{2\varepsilon}\ \ge\ \frac{\sqrt{n(\kappa-1)}}{8}\log\frac1{2\varepsilon}\quad(\text{the last step for }\kappa-1\ge2n).
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Let $\bar\tau_j=\min(\tau_j(G),m)$. By Lemma~\ref{lem:support} and $N_j\le m$, the hypothesis of Proposition~\ref{prop:tail} holds with $\tau_j=\bar\tau_j$, and $q^{2\bar\tau_j}\ge q^{2\tau_j(G)}$. The map $\tau\mapsto q^{2\tau}$ is convex and $\sum_j\tau_j(G)=G$, so Jensen's inequality gives $\frac1n\sum_jq^{2\bar\tau_j}\ge\frac1n\sum_jq^{2\tau_j(G)}\ge q^{2G/n}$, and \eqref{ineq:tail} yields the second inequality in \eqref{ineq:jensen}. If $\norm{\theta-\etastar}^2\le\varepsilon\norm{\etastar}^2$ then $q^{2G/n}\le\varepsilon(1-q^{2m})+q^{2m}\le\varepsilon+q^{2m}\le2\varepsilon$, i.e.\ $\frac{2G}n\log\frac1q\ge\log\frac1{2\varepsilon}$. Finally $\log\frac1q=\log\big(1+\frac2{\sqrt Q-1}\big)\le\frac2{\sqrt Q-1}$, and for $y=\frac{\kappa-1}n\ge2$ one has $\sqrt{1+y}-1\ge\frac{\sqrt y}2$ (the function $y\mapsto\sqrt{1+y}-1-\frac{\sqrt y}2$ is positive at $y=2$ and increasing for $y>\frac13$), so $n(\sqrt Q-1)\ge\frac12\sqrt{n(\kappa-1)}$.
+\end{proof}
+
+Proposition~\ref{prop:anyseq} applies verbatim to GD, AGD, cyclic incremental methods, SAGA, SVRG, SARAH, Katyusha and L-Katyusha, whatever their randomization: on this instance none of them can beat $\Omega(\sqrt{n\kappa}\log(1/\varepsilon))$ gradient evaluations, and accelerated gradient descent on $F$ attains this order (it needs $O(\sqrt{L_F/\mu}\log(1/\varepsilon))\le O(\sqrt Q\log(1/\varepsilon))$ iterations of $n$ gradients, i.e.\ $O(n\sqrt Q\log(1/\varepsilon))$ gradient evaluations, where $n\sqrt Q=\sqrt{n^2+n(\kappa-1)}$). What the sequence-free argument cannot produce is the $n\log(1/\varepsilon)$ term: a full-gradient sweep advances all $n$ chains at once, and this is exactly the point of \cite{hannah2018breaking}.
+
+\subsubsection{The i.i.d.\ bound}
+
+\begin{theorem}[Lan--Zhou's bound on the instance, book notation]
+\label{thm:instance}
+Let $\zeta=\zeta_Q$, $\theta_0=0$, and let the method belong to class (S1) with a fixed sampling distribution $p$ (uniform or not). Then for every $t\ge0$,
+\begin{equation}
+\label{ineq:expected}
+\frac{\E\norm{\theta_t-\etastar}^2}{\norm{\etastar}^2}\ \ge\ \frac{\big(1-\frac{1-q^2}n\big)^t-q^{2m}}{1-q^{2m}},
+\end{equation}
+and, whenever $q^{2m}\le\frac12\big(1-\frac{1-q^2}n\big)^t$,
+\begin{equation}
+\label{ineq:exp}
+\frac{\E\norm{\theta_t-\etastar}^2}{\norm{\etastar}^2}\ \ge\ \frac12\Big(1-\frac{1-q^2}n\Big)^t\ \ge\ \frac12\exp\Big(-\frac{4\sqrt Q\,t}{n(\sqrt Q+1)^2-4\sqrt Q}\Big).
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Under (S1), $\tau_j(t)\sim\mathrm{Binomial}(t,p_j)$, so $\E q^{2\tau_j(t)}=\sum_{k=0}^t\binom tkp_j^k(1-p_j)^{t-k}q^{2k}=\big(1-(1-q^2)p_j\big)^t$. Taking expectations in \eqref{ineq:tail} (with $\tau_j=\min(\tau_j(t),m)$ as in the previous proof),
+\[
+\frac{\E\norm{\theta_t-\etastar}^2}{\norm{\etastar}^2}\ \ge\ \frac{\frac1n\sum_j\big(1-(1-q^2)p_j\big)^t-q^{2m}}{1-q^{2m}}\ \ge\ \frac{\big(1-\frac{1-q^2}n\big)^t-q^{2m}}{1-q^{2m}},
+\]
+where the last step is Jensen's inequality for the convex map $p\mapsto(1-(1-q^2)p)^t$ on $[0,1]$ and $\frac1n\sum_jp_j=\frac1n$: the uniform distribution is the most favourable one for the algorithm, and the bound is the same for all $p$. For \eqref{ineq:exp}, write $a=(1-\frac{1-q^2}n)^t$ and $b=q^{2m}$; if $b\le a/2$ then $\frac{a-b}{1-b}\ge a-b\ge\frac a2$. Next, $1-q^2=\frac{(\sqrt Q+1)^2-(\sqrt Q-1)^2}{(\sqrt Q+1)^2}=\frac{4\sqrt Q}{(\sqrt Q+1)^2}$, so $a=(1-x)^t$ with $x=\frac{4\sqrt Q}{n(\sqrt Q+1)^2}\in(0,1)$, and $\log(1-x)=-\sum_{k\ge1}x^k/k\ge-\sum_{k\ge1}x^k=-\frac x{1-x}$ gives $(1-x)^t\ge\exp(-\frac{tx}{1-x})$ with $\frac{x}{1-x}=\frac{4\sqrt Q}{n(\sqrt Q+1)^2-4\sqrt Q}$.
+\end{proof}
+
+\begin{corollary}[iteration count and dimension requirement]
+\label{cor:count}
+Let $\varepsilon\in(0,\frac12)$ and assume the block length satisfies
+\begin{equation}
+\label{ineq:dim}
+m\ \ge\ \frac{\log(1/\varepsilon)}{2\log(1/q)},\qquad\text{for which it suffices that}\qquad m\ \ge\ \frac{\sqrt Q}4\log\frac1\varepsilon=\frac14\sqrt{1+\frac{\kappa-1}n}\,\log\frac1\varepsilon .
+\end{equation}
+Then any method of class (S1) needs
+\begin{equation}
+\label{eq:iidcount}
+t\ \ge\ \Big(\frac{n(\sqrt Q+1)^2}{4\sqrt Q}-1\Big)\log\frac1{2\varepsilon}\ \ge\ \Big(\frac{n+\sqrt{n(\kappa-1)}}{8}+\frac n2-1\Big)\log\frac1{2\varepsilon}=\Omega\Big((n+\sqrt{n\kappa})\log\frac1\varepsilon\Big)
+\end{equation}
+gradient evaluations to reach $\E\norm{\theta_t-\etastar}^2\le\varepsilon\norm{\etastar}^2$. In particular $t\ge(n-1)\log\frac1{2\varepsilon}$ for every $\kappa>1$, because $(\sqrt Q+1)^2\ge4\sqrt Q$.
+\end{corollary}
+
+\begin{proof}
+Let $x=\frac{4\sqrt Q}{n(\sqrt Q+1)^2}$ and $t^\ast=(\frac1x-1)\log\frac1{2\varepsilon}$. For $t\le t^\ast$ the condition $q^{2m}\le\frac12(1-x)^t$ of \eqref{ineq:exp} holds: indeed $t\log\frac1{1-x}\le t^\ast\frac{x}{1-x}=\log\frac1{2\varepsilon}$, so $\frac12(1-x)^t\ge\varepsilon\ge q^{2m}$ by \eqref{ineq:dim} (the sufficient form uses $\log\frac1q=2\operatorname{artanh}(Q^{-1/2})\ge2Q^{-1/2}$). Hence for $t\le t^\ast$, \eqref{ineq:exp} gives $\E\norm{\theta_t-\etastar}^2/\norm{\etastar}^2\ge\frac12\exp(-\frac{tx}{1-x})$, which is $\le\varepsilon$ only if $t\ge t^\ast$: so at least $t^\ast$ iterations are needed. Finally $\frac{n(\sqrt Q+1)^2}{4\sqrt Q}=\frac n4(\sqrt Q+2+Q^{-1/2})\ge\frac{n\sqrt Q}4+\frac n2$ and $n\sqrt Q=\sqrt{n^2+n(\kappa-1)}\ge\max\{n,\sqrt{n(\kappa-1)}\}\ge\frac12(n+\sqrt{n(\kappa-1)})$.
+\end{proof}
+
+\begin{corollary}[initial full gradient]
+\label{cor:sweep}
+Let $\zeta=\zeta_Q$, $\theta_0=0$, and let the method be of class (S1) preceded by one full gradient at $\theta_0$ (Lemma~\ref{lem:support}(ii)), $t$ denoting the number of i.i.d.\ queries made after this initial full gradient. Then for every $t\ge0$
+\begin{equation}
+\label{ineq:expected-sweep}
+\frac{\E\norm{\theta_t-\etastar}^2}{\norm{\etastar}^2}\ \ge\ \frac{q^2\big(1-\frac{1-q^2}n\big)^t-q^{2m}}{1-q^{2m}},
+\end{equation}
+and, under \eqref{ineq:dim} and for $\varepsilon<q^2/2$, reaching $\E\norm{\theta_t-\etastar}^2\le\varepsilon\norm{\etastar}^2$ requires
+\[
+t\ \ge\ \Big(\frac{n(\sqrt Q+1)^2}{4\sqrt Q}-1\Big)\log\frac{q^2}{2\varepsilon}\ \ge\ (n-1)\log\frac{q^2}{2\varepsilon}
+\]
+i.i.d.\ queries, i.e.\ $G=n+t$ gradient evaluations in total. Compared with \eqref{eq:iidcount}, $\varepsilon$ is replaced by $\varepsilon/q^2$: the initial full gradient reveals the first coordinate of every block, which carries the fraction $1-q^2$ of the energy of each block, and this is worth about $n$ i.i.d.\ queries since $(\frac1x-1)\cdot2\log\frac1q\le\frac{n(\sqrt Q+1)^2}{\sqrt Q(\sqrt Q-1)}$, which is $n(1+O(Q^{-1/2}))$ for large $Q$ (for $\kappa\le n$, however, $q^2\le0.03$ and the shift $(n-1)\log(1/q^2)$ is a noticeable part of the count).
+\end{corollary}
+
+\begin{proof}
+By Lemma~\ref{lem:support}(ii) and $N_j\le m$, Proposition~\ref{prop:tail} applies with $\tau_j=\min(1+\tau_j(t),m)$, and $q^{2\min(1+\tau_j(t),m)}\ge q^{2(1+\tau_j(t))}$. Under (S1), $\tau_j(t)\sim\mathrm{Binomial}(t,p_j)$, so $\E q^{2(1+\tau_j(t))}=q^2(1-(1-q^2)p_j)^t$, and Jensen's inequality in $p$ gives \eqref{ineq:expected-sweep} exactly as in the proof of Theorem~\ref{thm:instance}. For the count, let $x=\frac{1-q^2}n$ and $t^\ast_1=(\frac1x-1)\log\frac{q^2}{2\varepsilon}>0$. For $t\le t^\ast_1$, $\frac{q^2}2(1-x)^t\ge\frac{q^2}2\exp(-\frac{tx}{1-x})\ge\varepsilon\ge q^{2m}$ (the middle inequality is the definition of $t^\ast_1$, the last one is \eqref{ineq:dim}), so the right-hand side of \eqref{ineq:expected-sweep} is at least $q^2(1-x)^t-q^{2m}\ge\frac{q^2}2(1-x)^t\ge\varepsilon$; hence at least $t^\ast_1$ i.i.d.\ queries are needed, and $\frac1x-1\ge n-1$ as in Corollary~\ref{cor:count}. For the last claim, $\log\frac1q\le\frac2{\sqrt Q-1}$ and $\frac1x=\frac{n(\sqrt Q+1)^2}{4\sqrt Q}$.
+\end{proof}
+
+The dimension requirement \eqref{ineq:dim} is the precise form of ``$m$ must exceed the number of touches an accelerated method needs per block'': $\frac{\log(1/\varepsilon)}{2\log(1/q)}$ is exactly the number of coordinates of a single chain that must be revealed before the unrevealed energy $q^{2\tau}$ drops below $\varepsilon$ (Theorem~\ref{thm:nesterov}), and it is of order $\frac{\sqrt Q}4\log\frac1\varepsilon=\frac14\sqrt{\kappa/n}\log\frac1\varepsilon$ for $\kappa\gg n$ (the project's ``$m\gtrsim\sqrt\kappa\log(1/\varepsilon)$'' should read $\sqrt{\kappa/n}$, since each block only sees the per-block condition number $Q$). It is also necessary for the argument: since $\log(1/q)\le2/(\sqrt Q-1)$, the condition \eqref{ineq:dim} forces $m\ge\frac{\sqrt Q-1}4\log\frac1\varepsilon$. The total dimension is $nm\gtrsim\frac14\sqrt{n\kappa}\log(1/\varepsilon)$, of the order of the number of iterations certified, in agreement with the discussion of Section~\ref{sec:lb:oracle}.
+\subsection{Predictions for the numerics, finite-dimension effects, and logistic regression}
+\label{sec:lb:predictions}
+
+\subsubsection{Gradient counts on the instance}
+
+Write $T_{\rm alg}(\varepsilon)$ for the number of gradient evaluations an algorithm needs on the instance \eqref{eq:instance} to reach $\E\norm{\theta-\etastar}^2\le\varepsilon\norm{\theta_0-\etastar}^2$. For SAGA with the book's initialization $z_i^{(0)}=\fip(\theta_0)$ the $n$ gradients of the initial sweep are counted; for L-Katyusha, whose iteration costs $1+n\,\ind[\text{coin}]$ gradients with $\Prob[\text{coin}]=p=\frac1n$, i.e.\ $2$ in expectation, $T_{\rm LK}$ is twice the number of iterations. For the function-value criterion divide and multiply by $\muEff/2$ and $L_F/2$ (Proposition~\ref{prop:minimizer}); for a guarantee stated for a Lyapunov function, such as Theorem~4.6 of \cite{kovalev2020dont}, the conversion to the distance criterion puts the ratio $\Psi^0/\norm{\theta_0-\etastar}^2$ inside the logarithm, see \eqref{eq:LKconst} below. The mechanism is the one of Lemma~\ref{lem:support}: a block only moves when its component is queried, and a block with per-block condition number $Q\approx\kappa/n$ needs about $\sqrt Q$ touches with an accelerated scheme and about $Q$ touches with a plain gradient scheme (the per-touch contraction of the slow mode of a block is $1-\gamma\muEff$ for a gradient step of size $\gamma\le1/R^2$, and $1-c/\sqrt Q$ for momentum schemes). With i.i.d.\ uniform sampling each block is touched once per $n$ queries on average, and $n\log(1/\varepsilon)$ queries are needed before the \emph{average} unrevealed energy $(1-(1-q^2)/n)^t$ is small (Theorem~\ref{thm:instance}), whatever $Q$. This gives:
+
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}p{3.0cm}p{5.9cm}p{6.6cm}@{}}
+\toprule
+method & upper bound on $T$ (gradient evaluations) & lower bound on $T$ \\
+\midrule
+SAGA, $\gamma=\frac1{4R^2}$, $z_i^{(0)}=\fip(\theta_0)$ & $n+\max\{3n,\frac{16\kappa_{\rm eff}}3\}\log\frac{1+n/4}\varepsilon$ (Cor.~\ref{cor:saga}) & $(\kappa-\frac12)\log\frac\rho\varepsilon$ with $\rho\ge\frac1{105}$ (Cor.~\ref{cor:saga}, Lem.~\ref{lem:overlap}); $n+(n-1)\log\frac{q^2}{2\varepsilon}$ (Cor.~\ref{cor:sweep})\\[2pt]
+L-Katyusha & $2\max\{8n,2\sqrt6\sqrt{n\kappa}\}\log\frac{C_0}\varepsilon$, \eqref{eq:LKupper} & $\frac{\sqrt{n(\kappa-1)}}8\log\frac1{2\varepsilon}$ for $\kappa-1\ge2n$, and $\frac{n\log(1/(2\varepsilon))}{2\log(1/q)}$ for all $\kappa$ (Prop.~\ref{prop:anyseq})\\[2pt]
+GD on $F$, $\gamma=1/L_F$ & $\frac{nQ}2\log\frac1\varepsilon$ ($Q\ge L_F/\mu$) & $n(\frac{L_F}{4\mu}-\frac12)\log\frac\rho\varepsilon$ (slow modes, Lem.~\ref{lem:overlap})\\[2pt]
+AGD on $F$ & $O(n\sqrt Q\log\frac1\varepsilon)$ (\cite{bach2024learning}, Sec.~5.2.5) & $\frac{\sqrt{n(\kappa-1)}}8\log\frac1{2\varepsilon}$ (Prop.~\ref{prop:anyseq})\\[2pt]
+any method of class (S1) & -- & $(\frac{n+\sqrt{n(\kappa-1)}}8+\frac n2-1)\log\frac1{2\varepsilon}$ (Cor.~\ref{cor:count})\\[2pt]
+any method of class (S2) & -- & $\frac{\sqrt{n(\kappa-1)}}8\log\frac1{2\varepsilon}$ (Prop.~\ref{prop:anyseq})\\
+\bottomrule
+\end{tabular}
+\end{center}
+The lower bounds of the first four rows are stated for $4n+1\le\kappa\le\kappa_{\max}(m,\varepsilon)$, the window \eqref{eq:window} in which $m$ is large enough both for the dimension condition \eqref{ineq:dim} and for the slow-mode mass of Lemma~\ref{lem:overlap}, and for $\varepsilon<\frac1{105}$; the sequence-free bound $\frac{n\log(1/(2\varepsilon))}{2\log(1/q)}$ only needs $q^{2m}\le\varepsilon<\frac12$; the slow-mode bound for GD uses the exact identity $e_t=(I-\gamma\nabla^2F)^te_0$ and $\nu'=2\mu\le L_F$ (Proposition~\ref{prop:A4}). In orders of magnitude, for $\kappa\gtrsim n$: SAGA and GD cost $\Theta((n+\kappa)\log\frac1\varepsilon)$, L-Katyusha and AGD $\Theta((n+\sqrt{n\kappa})\log\frac1\varepsilon)$, up to the logarithmic factors inside the bounds (Proposition~\ref{prop:A4}).
+
+Two corrections to the counts announced in the project description (``AGD $\sim n\sqrt\kappa\log(1/\varepsilon)$, GD $\sim n\kappa\log(1/\varepsilon)$'') are necessary. Those figures are the worst-case costs over all instances with the same $(n,R^2,\mu)$, obtained from $L_F\le R^2$; they are attained only when $L_F\approx R^2$, i.e.\ when the stiff directions of the components are aligned (for instance identical components). On the block-separable instance $L_F\le\mu Q\approx R^2/n$ (Proposition~\ref{prop:constants}), so GD costs about as much as SAGA and AGD about as much as L-Katyusha; AGD even attains the lower bound of Proposition~\ref{prop:anyseq}. This is not a defect of the instance: the lower bound $\Omega((n+\sqrt{n\kappa})\log(1/\varepsilon))$ is a statement about the worst case over instances, and on the worst-case instance for variance-reduced methods full-gradient methods happen to be as good. What variance reduction buys is the \emph{uniform} guarantee $(n+\sqrt{n\kappa})\log(1/\varepsilon)$ over all instances, including the aligned ones where AGD needs $n\sqrt\kappa\log(1/\varepsilon)$. To exhibit the four distinct orders $\kappa$, $\sqrt{n\kappa}$, $n\kappa$, $n\sqrt\kappa$ on one problem one can use the aligned variant $f_i(\theta)=c\,\phi(\theta)+\frac\mu2\norm\theta^2$ for all $i$ (one chain in $\R^m$, $L_F=R^2=\mu\kappa$): there GD needs $\Theta(n\kappa\log(1/\varepsilon))$, AGD $\Theta(n\sqrt\kappa\log(1/\varepsilon))$, SAGA $\Theta(\kappa\log(1/\varepsilon))$ (Corollary~\ref{cor:saga} applies to every convex quadratic instance, and Lemma~\ref{lem:overlap} with $n=1$, $Q=\kappa$ provides the slow-mode mass $\rho$ for this aligned instance, which has the block structure of \eqref{eq:instance} with a single block), and L-Katyusha $O((n+\sqrt{n\kappa})\log(\kappa/\varepsilon))$ by \eqref{eq:LKupper}--\eqref{eq:LKconst} with $L_F/\mu=\kappa$; but on that instance no chain argument certifies more than $\Omega(\sqrt\kappa\log(1/\varepsilon))$ for randomized methods, so only the block instance certifies the exponent $1/2$ as optimal.
+
+\subsubsection{SAGA on quadratic instances: the exponent \texorpdfstring{$1$}{1} is a theorem}
+
+\begin{proposition}[mean iterate of SAGA on quadratics]
+\label{prop:sagamean}
+Let the $f_i$ be convex quadratics with Hessians $H_i\succeq0$, let $\bar H=\frac1n\sum_iH_i=\nabla^2F$ have eigenpairs $(\nu_l,w_l)_{l=1}^d$ ($w_l$ orthonormal) and $\muEff=\lmin(\bar H)$, and for $\nu'\ge\muEff$ let $P_{\nu'}=\sum_{l:\nu_l\le\nu'}w_lw_l^\top$ be the orthogonal projector onto the sum of the eigenspaces of $\bar H$ with eigenvalues at most $\nu'$. For SAGA with step $\gamma>0$, uniform sampling and any initial memory $z^{(0)}$ (deterministic, or random and independent of the sampling), $e_t=\theta_t-\etastar$ satisfies $\E[e_t]=(I-\gamma\bar H)^te_0$; hence, for every $\nu'\in[\muEff,1/\gamma]$,
+\begin{equation}
+\label{ineq:saga-mean}
+\E\norm{\theta_t-\etastar}^2\ \ge\ \norm{(I-\gamma\bar H)^t(\theta_0-\etastar)}^2=\sum_{l=1}^d(1-\gamma\nu_l)^{2t}\inner{\theta_0-\etastar}{w_l}^2\ \ge\ (1-\gamma\nu')^{2t}\norm{P_{\nu'}(\theta_0-\etastar)}^2 .
+\end{equation}
+With $\nu'=\muEff$ and a simple smallest eigenvalue with unit eigenvector $v_{\min}$, the last term is $(1-\gamma\muEff)^{2t}\inner{\theta_0-\etastar}{v_{\min}}^2$.
+\end{proposition}
+
+\begin{proof}
+Since $\fip(\theta)=\fip(\etastar)+H_i(\theta-\etastar)$ and $\sum_i\fip(\etastar)=n\Fp(\etastar)=0$, the SAGA direction (Section~5.4.4 of \cite{bach2024learning}) at time $t$, with $i=i(t)$ and $u_j^{(t-1)}=z_j^{(t-1)}-f'_j(\etastar)$, equals
+\[
+\omega_t=\fip(\theta_{t-1})-z_i^{(t-1)}+\frac1n\sum_jz_j^{(t-1)}=H_ie_{t-1}-u_i^{(t-1)}+\frac1n\sum_ju_j^{(t-1)} .
+\]
+Conditionally on the past (which determines $\theta_{t-1}$ and $z^{(t-1)}$), $i(t)$ is uniform and independent, so $\Ei[H_ie_{t-1}]=\bar He_{t-1}$ and $\Ei[u^{(t-1)}_{i}]=\frac1n\sum_ju_j^{(t-1)}$: the memory terms cancel in expectation, whatever the memory, and $\Ei[e_t]=(I-\gamma\bar H)e_{t-1}$. Taking expectations and iterating gives $\E[e_t]=(I-\gamma\bar H)^te_0$. Then $\E\norm{e_t}^2\ge\norm{\E e_t}^2$ (Jensen), and expanding $e_0$ in the eigenbasis of $\bar H$ gives the equality in \eqref{ineq:saga-mean}. Finally, for $\nu_l\le\nu'\le1/\gamma$ one has $0\le1-\gamma\nu'\le1-\gamma\nu_l$, so $(1-\gamma\nu_l)^{2t}\ge(1-\gamma\nu')^{2t}$ for every $l$ in the range of $P_{\nu'}$, and the remaining terms of the sum are nonnegative.
+\end{proof}
+
+\begin{corollary}[SAGA sandwich]
+\label{cor:saga}
+Consider an instance with convex quadratic components such that $\lmax(H_i)\le R^2$ for all $i$ (each $f_i$ is then convex and $R^2$-smooth), let $\kappa_{\rm eff}=R^2/\muEff$ and $\gamma=1/(4R^2)$.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item (Lower bound, any initial memory.) If $\norm{P_{\nu'}(\theta_0-\etastar)}^2\ge\rho\norm{\theta_0-\etastar}^2$ for some $\nu'\in[\muEff,4R^2]$ and $\rho\in(0,1]$, then for $\varepsilon<\rho$
+\[
+T_{\rm SAGA}(\varepsilon)\ \ge\ \Big(\frac{2R^2}{\nu'}-\frac12\Big)\log\frac\rho\varepsilon ,\qquad\text{i.e.}\quad \Big(\kappa-\frac12\Big)\log\frac\rho\varepsilon\ \text{ for }\nu'=2\mu,\qquad \Big(2\kappa_{\rm eff}-\frac12\Big)\log\frac\rho\varepsilon\ \text{ for }\nu'=\muEff .
+\]
+\item (Upper bound.) With the initialization $z_i^{(0)}=\fip(\theta_0)$ of Proposition~5.9 of \cite{bach2024learning}, the number of iterations needed is at most
+\[
+\max\Big\{3n,\frac{16\kappa_{\rm eff}}3\Big\}\log\frac{1+n/4}{\varepsilon}\qquad(\text{add $n$ gradient evaluations for the initial sweep}),
+\]
+and with $z^{(0)}=0$ the same bound holds with $1+n/4$ replaced by $1+\frac{3\sum_i\norm{\fip(\etastar)}^2}{16R^4\norm{\theta_0-\etastar}^2}$.
+\end{enumerate}
+\end{corollary}
+
+\begin{proof}
+(a) By \eqref{ineq:saga-mean} with $x=\gamma\nu'=\nu'/(4R^2)\in(0,1]$, $\E\norm{e_t}^2\le\varepsilon\norm{e_0}^2$ forces $(1-x)^{2t}\le\varepsilon/\rho$, i.e.\ $2t\log\frac1{1-x}\ge\log\frac\rho\varepsilon$, and $\log\frac1{1-x}\le\frac x{1-x}$ gives $t\ge\frac{1-x}{2x}\log\frac\rho\varepsilon=(\frac{2R^2}{\nu'}-\frac12)\log\frac\rho\varepsilon$; for $\nu'=2\mu$, $\frac{2R^2}{\nu'}=\frac{R^2}\mu=\kappa$. (b) The proof of Proposition~5.9 of \cite{bach2024learning} (transcribed in the SAGA note) uses the convexity and $R^2$-smoothness of each $f_i$ through cocoercivity (Proposition~5.4 of the book, which requires each $f_i$ to be convex), and strong convexity only through $\inner{\theta_{t-1}-\etastar}{\Fp(\theta_{t-1})}\ge\mu\norm{\theta_{t-1}-\etastar}^2$; for a quadratic $F$ the latter holds with $\muEff=\lmin(\nabla^2F)$ in place of $\mu$, and the proof gives, for any initial memory,
+\[
+\E\norm{\theta_t-\etastar}^2\ \le\ \Big(1-\min\Big\{\frac1{3n},\frac{3\muEff}{16R^2}\Big\}\Big)^t\Big[\norm{\theta_0-\etastar}^2+\frac3{16R^4}\sum_i\norm{\fip(\etastar)-z_i^{(0)}}^2\Big].
+\]
+For $z_i^{(0)}=\fip(\theta_0)$ the bracket is at most $(1+\frac{3n}{16})\norm{\theta_0-\etastar}^2\le(1+\frac n4)\norm{\theta_0-\etastar}^2$ by the $R^2$-Lipschitz continuity of each $\fip$, and for $z^{(0)}=0$ it is the stated constant times $\norm{\theta_0-\etastar}^2$; in both cases the right-hand side is $\le\varepsilon\norm{\theta_0-\etastar}^2$ as soon as $t\ge\max\{3n,\frac{16\kappa_{\rm eff}}3\}\log\frac{C}{\varepsilon}$, $C$ the constant in the bracket (using $(1-y)^t\le e^{-ty}$).
+\end{proof}
+
+On the instance \eqref{eq:instance}, $\muEff=\mu\big(1+\frac{Q-1}4\lmin(A_m(\zeta))\big)$ (Proposition~\ref{prop:constants}), so for large $m$ ($\lmin(A_m)\approx\pi^2/m^2\to0$) $\kappa_{\rm eff}\approx\kappa$ and the upper bound of Corollary~\ref{cor:saga} is $O(\kappa\log(1/\varepsilon))$ for $\kappa\gtrsim n$. The matching lower bound requires the initial error to carry a fixed fraction of its energy on the eigenspaces of $\nabla^2F$ with curvature at most $2\mu$; this is the object of Lemma~\ref{lem:overlap} below, and the two together make the log-log slope $1$ of hypothesis (A4) a theorem for SAGA with the book's step size. The exponent is \emph{not} a consequence of the lower bound of Section~\ref{sec:lb:instance} (which only says $\sqrt{n\kappa}$), but of the fact that the step must be $O(1/R^2)$ while a fixed fraction of the initial error sits on modes of curvature between $\mu$ and $2\mu$. Note also that on the instance, since $A_m(\zeta_Q)x^\ast=e_1-\frac4{Q-1}x^\ast$ and $c\cdot\frac4{Q-1}=n\mu$, one has $\fip(\etastar)=\mu(\etastar-nE_ix^\ast)$: its block $i$ equals $-\mu(n-1)x^\ast$ and its other blocks equal $\mu x^\ast$, so $\norm{\fip(\etastar)}^2=\mu^2n(n-1)\norm{x^\ast}^2$ and $\sum_i\norm{\fip(\etastar)}^2=\mu^2n(n-1)\norm{\etastar}^2$. The constant of Corollary~\ref{cor:saga}(b) for the zero memory is therefore $1+\frac{3n(n-1)}{16\kappa^2}\le1+\frac3{16}$ when $\kappa\ge n$: on this instance the zero memory, which keeps SAGA literally in class (S1) and dispenses with the initial sweep, is at least as good as the book's initialization.
+
+For L-Katyusha, Theorem~4.6 of \cite{kovalev2020dont} (parameters $\theta_1=\min\{\sqrt{2n\sigma/3},\frac12\}$, $\theta_2=\frac12$, $p=\frac1n$, $\sigma=\mu/L$, $\eta=\theta_2/((1+\theta_2)\theta_1)=1/(3\theta_1)$, with $L=R^2$ the component smoothness of their Assumption~1.1 and $\mu$ the strong convexity of $F$ of their Assumption~1.2) states that the Lyapunov function
+\[
+\Psi^k=\frac{L(1+\eta\sigma)}{2\eta}\norm{z^k-\etastar}^2+\frac1{\theta_1}\big(F(y^k)-F(\etastar)\big)+\frac{\theta_2(1+\theta_1)}{p\,\theta_1}\big(F(w^k)-F(\etastar)\big)
+\]
+satisfies $\E\Psi^{k+1}\le(1-\theta)\E\Psi^k$ with $\theta=\min\{\frac{\sigma}{6\theta_1},\frac{\theta_1}{2n}\}$ (their proof of Theorem~4.6; the second term is $\theta_1/(2n)$), whence $\E\Psi^k\le\varepsilon\Psi^0$ after $k=O((n+\sqrt{nL/\mu})\log(1/\varepsilon))$ iterations. Explicitly, $\frac1\theta=\max\{\frac{6\theta_1}\sigma,\frac{2n}{\theta_1}\}$ equals $\max\{3\kappa,4n\}\le8n$ when $\kappa\le\frac{8n}3$ (then $\theta_1=\frac12$), and $2\sqrt6\sqrt{n\kappa}$ when $\kappa>\frac{8n}3$ (then $\theta_1=\sqrt{2n\sigma/3}<\frac12$, $\frac{6\theta_1}\sigma=2\sqrt6\sqrt{n\kappa}$ and $\frac{2n}{\theta_1}=\sqrt6\sqrt{n\kappa}$). For the distance criterion on the sequence $z^k$, started from $y^0=z^0=w^0=\theta_0$, one has $\E\norm{z^k-\etastar}^2\le\frac{2\eta}{L(1+\eta\sigma)}\E\Psi^k\le(1-\theta)^kC_0\norm{\theta_0-\etastar}^2$ with, using $F(\theta_0)-F(\etastar)\le\frac{L_F}2\norm{\theta_0-\etastar}^2$ and $\frac{\eta}{\theta_1}=\frac1{3\theta_1^2}$,
+\begin{equation}
+\label{eq:LKconst}
+C_0=1+\frac{L_F}{3L\theta_1^2}\Big(1+\frac{n(1+\theta_1)}2\Big)\ \le\ \begin{cases}1+\frac58\,\frac{L_F}{\mu}\ \le\ 1+\frac58Q&\text{if }\kappa\ge\frac{8n}3\ \text{and}\ n\ge2,\\[3pt] n+\frac73&\text{if }\kappa<\frac{8n}3,\end{cases}
+\end{equation}
+because in the first case $\frac1{3\theta_1^2}=\frac1{2\sigma n}=\frac\kappa{2n}$, so that $\frac{L_F}{3L\theta_1^2}(1+\frac{n(1+\theta_1)}2)=\frac{L_F}\mu(\frac1{2n}+\frac{1+\theta_1}4)\le\frac{L_F}\mu(\frac14+\frac38)$, and in the second case $\frac1{3\theta_1^2}=\frac43$ and $L_F\le L$. Hence, in expected gradient evaluations,
+\begin{equation}
+\label{eq:LKupper}
+T_{\rm LK}(\varepsilon)\ \le\ \frac2\theta\log\frac{C_0}\varepsilon\ \le\ 2\max\{8n,\,2\sqrt6\sqrt{n\kappa}\}\log\frac{C_0}\varepsilon ,
+\end{equation}
+where the logarithm carries the extra term $\log(1+\frac58Q)\approx\log(\kappa/n)$ in the regime $\kappa\gg n$ (for the sequence $y^k$, bounded through $F(y^k)-F(\etastar)\le\theta_1\Psi^k$ and $\muEff$-strong convexity, the constant is $O(n(1+L_F/\mu))=O(\kappa)$ instead); this must be kept in mind when reading slopes. The lower bounds of Proposition~\ref{prop:anyseq} and Theorem~\ref{thm:instance} then give $T_{\rm LK}(\varepsilon)=\Theta(\sqrt{n\kappa}\log(1/\varepsilon))$ for $\kappa\ge3n$, up to the constants and the $\log(\kappa/n)$ just mentioned, as long as \eqref{ineq:dim} holds: this is the slope $1/2$, and this exponent is certified optimal within classes (S1), (S2) and the class of \cite{han2024lower}.
+
+\subsubsection{The testable prediction (A4) and the finite-dimension effect}
+
+Corollary~\ref{cor:saga}(a) needs the initial error to carry a fixed fraction of its energy on the slow modes of $\nabla^2F$. On the instance, the eigenvectors of the chain are explicit enough for this fraction to be bounded below uniformly in $\kappa$, as long as the chain is long compared with the decay length $1/\log(1/q)\approx\sqrt Q/2$ of the minimizer (the slow modes are the sine waves whose wavelength exceeds this decay length; the slowest mode alone carries a fraction of order $m^{-3}$ only when $m\gg\sqrt Q$, which is why the full slow subspace, and not a single eigenvector, must be used).
+
+\begin{lemma}[mass of the initial error on the slow modes]
+\label{lem:overlap}
+Let $m\ge2$, $\zeta\in[1,2]$ and $s\in(0,1]$. Let $0<\lambda_1<\dots<\lambda_m<4$ be the eigenvalues of $A_m(\zeta)$ with orthonormal eigenvectors $v_1,\dots,v_m$, and let $\Pi_s=\sum_{k:\lambda_k\le s}v_kv_k^\top$ be the orthogonal projector onto the eigenspaces with eigenvalue at most $s$. For $x^\ast=(A_m(\zeta)+sI)^{-1}e_1$ and $K_0:=\lfloor(m+1)\sqrt s/\pi\rfloor$,
+\begin{equation}
+\label{ineq:slowmass}
+\norm{\Pi_sx^\ast}^2\ \ge\ \frac{7\pi^2(1-s/4)}{96\,m\,s^2(2m+1)^2}\,K_0\big(4K_0^2-1\big).
+\end{equation}
+If moreover $\zeta=\zeta_Q$ and $s=\frac4{Q-1}$ (so that $x^\ast=(q^j)_{j\le m}$ is the block of $\etastar$, Proposition~\ref{prop:minimizer}(a)), the slow-mode fraction $\rho:=\norm{\Pi_sx^\ast}^2/\norm{x^\ast}^2$ satisfies, with $y:=(m+1)\sqrt s/\pi$,
+\begin{equation}
+\label{ineq:rho}
+\rho\ \ge\ \frac{7(1-s/4)}{192\pi}\cdot\frac{K_0(4K_0^2-1)}{y^3}\ \ge\ \begin{cases}1/105&\text{if }y\ge2,\\ 1/310&\text{if }y\ge1.\end{cases}
+\end{equation}
+On the instance \eqref{eq:instance} with $\theta_0=0$, $\norm{P_{2\mu}(\theta_0-\etastar)}^2=\rho\,\norm{\theta_0-\etastar}^2$, where $P_{2\mu}$ is the projector of Proposition~\ref{prop:sagamean} for $\nu'=2\mu$.
+\end{lemma}
+
+\begin{proof}
+\emph{Step 1: the eigenvectors are sampled sines.} Write $A=A_m(\zeta)$. By Lemma~\ref{lem:chain}, $A_m(1)\preceq A\preceq A_m(2)$, so Weyl's monotonicity theorem (the Courant--Fischer characterization of the $k$-th eigenvalue) gives, with the eigenvalues of $A_m(1)$ and $A_m(2)$ computed in Lemma~\ref{lem:chain},
+\begin{equation}
+\label{eq:weyl}
+4\sin^2\frac{(2k-1)\pi}{2(2m+1)}\ \le\ \lambda_k\ \le\ 4\sin^2\frac{k\pi}{2(m+1)},\qquad k=1,\dots,m .
+\end{equation}
+In particular $0<\lambda_k<4$, and we may write $\lambda_k=2-2\cos\theta_k=4\sin^2(\theta_k/2)$ with $\theta_k\in(0,\pi)$. Let $Av=\lambda v$, $v\neq0$, $\lambda=2-2\cos\theta$. Rows $1$ to $m-1$ of this system read $v_2=2\cos\theta\,v_1$ and $v_{j+1}=2\cos\theta\,v_j-v_{j-1}$ for $2\le j\le m-1$; the sequence $u_j=\sin(j\theta)$ satisfies the same recursion with $u_0=0$, since $\sin((j+1)\theta)+\sin((j-1)\theta)=2\cos\theta\sin(j\theta)$, and a solution of this second-order recursion with prescribed $v_0=0$ is determined by $v_1$. Hence $v_j=(v_1/\sin\theta)\sin(j\theta)$ for $j=1,\dots,m$; in particular $v_1\neq0$ and every eigenvalue is simple (the last row of the system is the equation that selects $\theta$). Normalizing, $1=\norm v^2=(v_1^2/\sin^2\theta)S(\theta)$ with $S(\theta)=\sum_{j=1}^m\sin^2(j\theta)\le m$, hence
+\begin{equation}
+\label{ineq:firstcoord}
+(v_k)_1^2=\frac{\sin^2\theta_k}{S(\theta_k)}\ \ge\ \frac{\sin^2\theta_k}m=\frac{\lambda_k(1-\lambda_k/4)}m ,
+\end{equation}
+because $\sin^2\theta=4\sin^2\frac\theta2\cos^2\frac\theta2=\lambda(1-\frac\lambda4)$.
+
+\emph{Step 2: Fourier coefficients of $x^\ast$.} With $B=A+sI$, $Bv_k=(\lambda_k+s)v_k$ and $B$ symmetric, $\inner{x^\ast}{v_k}=\inner{e_1}{B^{-1}v_k}=(v_k)_1/(\lambda_k+s)$, so that
+\[
+\norm{\Pi_sx^\ast}^2=\sum_{k:\lambda_k\le s}\frac{(v_k)_1^2}{(\lambda_k+s)^2},\qquad \norm{x^\ast}^2=\sum_{k=1}^m\frac{(v_k)_1^2}{(\lambda_k+s)^2}.
+\]
+By \eqref{eq:weyl} and $\sin x\le x$, $\lambda_k\le(k\pi/(m+1))^2\le s$ for $k\le K_0$: the slow set $\{k:\lambda_k\le s\}$ contains $\{1,\dots,K_0\}$. For such $k$, $(\lambda_k+s)^2\le4s^2$ and $1-\lambda_k/4\ge1-s/4$, so \eqref{ineq:firstcoord} gives
+\[
+\norm{\Pi_sx^\ast}^2\ \ge\ \frac{1-s/4}{4ms^2}\sum_{k=1}^{K_0}\lambda_k .
+\]
+
+\emph{Step 3: lower bound on the slow eigenvalues.} For $k\le K_0$ put $x_k=\frac{(2k-1)\pi}{2(2m+1)}$. Then $x_k\le\frac{K_0\pi}{2m+1}\le\frac{(m+1)\sqrt s}{2m+1}\le\frac35\sqrt s\le\frac35$ (as $m\ge2$ and $s\le1$), and $\sin x\ge x-\frac{x^3}6\ge x\big(1-\frac{9}{25\cdot6}\big)=\frac{47}{50}x$ on $[0,\frac35]$, so $\sin^2x_k\ge\frac{2209}{2500}x_k^2\ge\frac78x_k^2$. By \eqref{eq:weyl}, $\lambda_k\ge4\sin^2x_k\ge\frac72x_k^2=\frac{7\pi^2(2k-1)^2}{8(2m+1)^2}$, and $\sum_{k=1}^{K_0}(2k-1)^2=\frac{K_0(4K_0^2-1)}3$. Inserting this in Step~2 gives \eqref{ineq:slowmass}.
+
+\emph{Step 4: the fraction for $\zeta=\zeta_Q$.} By Proposition~\ref{prop:minimizer}(a), $\norm{x^\ast}^2=\frac{q^2(1-q^{2m})}{1-q^2}\le\frac{q^2}{1-q^2}=\frac{(\sqrt Q-1)^2}{4\sqrt Q}\le\frac{Q-1}{4\sqrt Q}=\frac1{s\sqrt Q}\le\frac1{2\sqrt s}$, using $(\sqrt Q-1)^2\le(\sqrt Q-1)(\sqrt Q+1)=Q-1=\frac4s$ and $\sqrt Q\ge\sqrt{4/s}=\frac2{\sqrt s}$. Hence $\rho\ge2\sqrt s\cdot\frac{7\pi^2(1-s/4)K_0(4K_0^2-1)}{96ms^2(2m+1)^2}$; substituting $s=\pi^2y^2/(m+1)^2$, i.e.\ $s^{-3/2}=(m+1)^3/(\pi^3y^3)$, and using $\frac{(m+1)^3}{m(2m+1)^2}=\frac{m+1}m\big(\frac{m+1}{2m+1}\big)^2\ge\frac14$, we obtain the first inequality in \eqref{ineq:rho}. For $y\in[K,K+1)$ one has $K_0=K$ and $\frac{K_0(4K_0^2-1)}{y^3}\ge g(K):=\frac{K(4K^2-1)}{(K+1)^3}$; writing $u=K+1$, $g=4-\frac{12}u+\frac{11}{u^2}-\frac3{u^3}$ has derivative $\frac{12u^2-22u+9}{u^4}>0$ for $u\ge2$ (the larger root of $12u^2-22u+9$ is $\frac{22+\sqrt{52}}{24}<2$), so $g$ is increasing on $K\ge1$, with $g(1)=\frac38$ and $g(2)=\frac{30}{27}$. With $1-\frac s4\ge\frac34$: for $y\ge2$, $\rho\ge\frac7{192\pi}\cdot\frac34\cdot\frac{30}{27}=\frac{35}{1152\pi}>\frac1{105}$, and for $y\ge1$, $\rho\ge\frac7{192\pi}\cdot\frac34\cdot\frac38=\frac{63}{6144\pi}>\frac1{310}$.
+
+\emph{Step 5: the instance.} $\nabla^2F=\diag(H_b,\dots,H_b)$ with $H_b=\frac cnA_m(\zeta_Q)+\mu I=\frac\mu s\big(A_m(\zeta_Q)+sI\big)$, because $\frac cn=\frac{\mu(Q-1)}4=\frac\mu s$; its eigenvalues are $\mu(1+\lambda_k/s)$, each with the $n$ eigenvectors $E_1v_k,\dots,E_nv_k$, and $\mu(1+\lambda_k/s)\le2\mu$ iff $\lambda_k\le s$. Since $\theta_0-\etastar=-(x^\ast,\dots,x^\ast)$, $\norm{P_{2\mu}(\theta_0-\etastar)}^2=\sum_{i=1}^n\norm{\Pi_sx^\ast}^2=\rho\,n\norm{x^\ast}^2=\rho\norm{\theta_0-\etastar}^2$.
+\end{proof}
+
+\begin{remark}[sharpness of \eqref{ineq:rho}, and the exhausted chain]
+\label{rem:rho}
+The constants in \eqref{ineq:rho} are not sharp: the proof loses a factor $2$ in $S(\theta)\le m$ (for all but the first mode $S(\theta_k)\approx m/2$), a factor up to $4$ in $(\lambda_k+s)^2\le4s^2$, and the rounding in $K_0$. The exact $\rho$ is computable from the $m\times m$ tridiagonal eigenproblem and is the quantity to report in the experiments; for $n=100$, $m=200$ and $\kappa\in[10^3,3\cdot10^5]$ we computed $\rho\in[0.18,0.35]$, against $0.027$--$0.045$ for the bound \eqref{ineq:rho}. For the infinite chain ($m=\infty$) the spectral measure of $e_1$ for $A$ is $d\nu(\lambda)=\frac1{2\pi}\sqrt{\lambda(4-\lambda)}\,d\lambda$ on $[0,4]$ (the orthogonal polynomials of the recursion of Step~1 are Chebyshev polynomials of the second kind), $\norm{x^\ast}^2=\int_0^4(\lambda+s)^{-2}d\nu(\lambda)$, and the slow fraction $\int_0^s(\lambda+s)^{-2}d\nu/\int_0^4(\lambda+s)^{-2}d\nu$ tends, as $s\to0$, to $\frac{\int_0^1\sqrt u\,(1+u)^{-2}du}{\int_0^\infty\sqrt u\,(1+u)^{-2}du}=\frac{\pi/4-1/2}{\pi/2}=\frac12-\frac1\pi\approx0.18$; this is the value approached by the exact $\rho$ when $m\sqrt s\to\infty$ and then $s\to0$, and it is not used in the proofs. At the other extreme, when $\kappa\to\infty$ with $m$ fixed ($s\to0$, $y\to0$), eventually no eigenvalue of $A_m(\zeta_Q)$ lies below $s$ and the slow set is empty; the relevant quantity is then the single-mode overlap $\delta:=\inner{x^\ast}{v_1}^2/\norm{x^\ast}^2$ of Corollary~\ref{cor:saga}(a) with $\nu'=\muEff$ (the eigenspace of $\muEff$ is spanned by $E_1v_1,\dots,E_nv_1$, so $\norm{P_{\muEff}(\theta_0-\etastar)}^2=n\inner{x^\ast}{v_1}^2=\delta\norm{\theta_0-\etastar}^2$). Since $\zeta_Q\to1$, $x^\ast=(A_m(\zeta_Q)+sI)^{-1}e_1\to A_m(1)^{-1}e_1$ and $v_1(\zeta_Q)\to v_1(1)$ (simple eigenvalue, eigenvectors normalized with positive first coordinate), so $\delta\to\delta_\infty(m):=\inner{A_m(1)^{-1}e_1}{v_1(1)}^2/\norm{A_m(1)^{-1}e_1}^2$, which is positive because both vectors have positive entries: $v_1(1)$ by the Perron--Frobenius theorem applied to the irreducible nonnegative matrix $4I-A_m(1)$, whose top eigenvector is the bottom eigenvector of $A_m(1)$, and $A_m(1)^{-1}e_1$ because $A_m(1)=4I-N$ with $N\ge0$ irreducible and $\lmax(N)=4-\lmin(A_m(1))<4$, so that $A_m(1)^{-1}=\frac14\sum_{k\ge0}(N/4)^k$ is entrywise positive. Numerically $\delta\approx0.18$ for $m=200$, $n=100$ and $\kappa=10^6$.
+\end{remark}
+
+\begin{proposition}[testable prediction]
+\label{prop:A4}
+Fix $n\ge2$, $m\ge2$, $\mu$ and a relative accuracy $\varepsilon\in(0,\frac1{105})$, start at $\theta_0=0$ (for SAGA with $z_i^{(0)}=\fip(0)$, the $n$ gradients of this sweep being counted in $T_{\rm SAGA}$), and let $\kappa$ vary. On the instance \eqref{eq:instance} with $\zeta=\zeta_Q$, with $C_0$ from \eqref{eq:LKconst}:
+\begin{enumerate}[nosep,label=(\roman*)]
+\item (Plateau, $\kappa\le n$.) For SAGA, under \eqref{ineq:dim} and $\varepsilon<q^2/2$,
+\[
+n+(n-1)\log\frac{q^2}{2\varepsilon}\ \le\ T_{\rm SAGA}(\varepsilon)\ \le\ n+3n\log\frac{1+n/4}\varepsilon ,
+\]
+both sides being $\Theta(n\log(1/\varepsilon))$ once $\varepsilon\ll q^2$ and $\varepsilon\ll1/n$ (the upper bound is $\Theta(n\log(n/\varepsilon))$ in general): the plateau with slope $\approx0$ is a theorem for SAGA. For L-Katyusha only
+\[
+\frac{n\log(1/(2\varepsilon))}{2\log(1/q)}\ \le\ T_{\rm LK}(\varepsilon)\ \le\ 16n\log\frac{C_0}\varepsilon,\qquad C_0\le n+\tfrac73,
+\]
+is proved (the lower bound under \eqref{ineq:dim}); the two sides are of the same order $n\log(1/\varepsilon)$ only when $\log(1/q)=O(1)$, i.e.\ when $\kappa$ is of order $n$ (for $\kappa=n$, $\log(1/q)\approx1.76$). For $\kappa\ll n$, $\log(1/q)\approx\log\frac{4n}{\kappa-1}$, and a gain of this logarithmic order over $n\log(1/\varepsilon)$ is not excluded for L-Katyusha; it is realized by GD on $F$ with step $1/L_F$, which contracts the error by $1-\frac{\muEff}{L_F}\le1-\frac1Q\approx\frac\kappa n$ per full gradient, in agreement with Theorem~\ref{thm:HLOY}(c) and with the assessment of (A1)(ii). In the upper bounds, the second term takes over at $\kappa=\frac9{16}n$ for SAGA ($\frac{16\kappa}3=3n$) and at $\kappa=\frac83n$ for L-Katyusha ($\theta_1$ reaches $\frac12$).
+\item (Power laws.) Let
+\begin{equation}
+\label{eq:window}
+\kappa_{\max}(m,\varepsilon):=1+n\min\Big\{\frac{16m^2}{\log^2(1/\varepsilon)}-1,\ \frac{(m+1)^2}{\pi^2}\Big\},
+\end{equation}
+where the first term is the sufficient form $m\ge\frac{\sqrt Q}4\log\frac1\varepsilon$ of the dimension condition \eqref{ineq:dim} solved for $\kappa$ (so that $q^{2m}\le\varepsilon$), and the second is the condition $y\ge2$ of Lemma~\ref{lem:overlap} solved for $\kappa$. In the window $4n+1\le\kappa\le\kappa_{\max}(m,\varepsilon)$,
+\begin{align}
+\label{eq:sagawindow}
+\Big(\kappa-\frac12\Big)\log\frac{\rho}{\varepsilon}\ &\le\ T_{\rm SAGA}(\varepsilon)\ \le\ n+\frac{16\kappa}3\log\frac{1+n/4}\varepsilon,\qquad \rho=\rho(m,\kappa)\ge\frac1{105},\\
+\label{eq:lkwindow}
+\frac{\sqrt{n(\kappa-1)}}8\log\frac1{2\varepsilon}\ &\le\ T_{\rm LK}(\varepsilon)\ \le\ 4\sqrt6\,\sqrt{n\kappa}\,\log\frac{C_0}\varepsilon,\qquad C_0\le1+\frac58Q ,
+\end{align}
+so that $T_{\rm SAGA}=\Theta(\kappa\log(1/\varepsilon))$ and $T_{\rm LK}=\Theta(\sqrt{n\kappa}\log(1/\varepsilon))$ up to the displayed constants and the $\log(1+\frac58Q)$ of \eqref{eq:lkwindow}: the log-log slopes of $T$ against $\kappa$ are $1$ and $\frac12$, and $T_{\rm SAGA}/T_{\rm LK}\asymp\sqrt{\kappa/n}$. GD on $F$ (step $1/L_F$) and AGD on $F$ follow the same two slopes: $n(\frac{L_F}{4\mu}-\frac12)\log\frac\rho\varepsilon\le T_{\rm GD}\le\frac{nQ}2\log\frac1\varepsilon$ with $L_F\ge\mu(1+\frac{13}{20}(Q-1))$, and $\frac{\sqrt{n(\kappa-1)}}8\log\frac1{2\varepsilon}\le T_{\rm AGD}=O(n\sqrt Q\log\frac1\varepsilon)$.
+\item (Saturation.) For $\kappa\gg nm^2$ the chain is exhausted: $\muEff/\mu=1+\frac{\kappa-1}{4n}\lmin(A_m(\zeta_Q))$ grows linearly in $\kappa$, so
+\begin{equation}
+\label{eq:kappaeff}
+\kappa_{\rm eff}=\frac{R^2}{\muEff}=\frac{\kappa}{1+\frac{\kappa-1}{4n}\lmin(A_m(\zeta_Q))}\ \xrightarrow[\kappa\to\infty]{}\ \frac{4n}{\lmin(A_m(1))}=\frac{n}{\sin^2\frac{\pi}{2(2m+1)}}\approx\frac{4n(2m+1)^2}{\pi^2},
+\end{equation}
+because $\zeta_Q\to1$ and $\lmin$ is continuous in the matrix; for every finite $\kappa$, Lemma~\ref{lem:chain} gives the two-sided bound $\frac{\kappa}{1+\frac{\kappa-1}{n}\sin^2\frac{\pi}{2(m+1)}}\le\kappa_{\rm eff}\le\frac{\kappa}{1+\frac{\kappa-1}{n}\sin^2\frac{\pi}{2(2m+1)}}$. Then $(2\kappa_{\rm eff}-\frac12)\log\frac\delta\varepsilon\le T_{\rm SAGA}(\varepsilon)\le n+\frac{16\kappa_{\rm eff}}3\log\frac{1+n/4}\varepsilon$ for $\varepsilon<\delta$, with $\delta\to\delta_\infty(m)>0$ (Remark~\ref{rem:rho}): $T_{\rm SAGA}$ saturates at $\Theta(\kappa_{\rm eff}\log(1/\varepsilon))=\Theta(nm^2\log(1/\varepsilon))$, while $T_{\rm LK}$ is still bounded above by \eqref{eq:LKupper} but no longer bounded below by $\sqrt{n\kappa}$ (the hypothesis $q^{2m}\le\varepsilon$ of Proposition~\ref{prop:anyseq} fails); the measured slopes decrease towards $0$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+(i) For SAGA, the lower bound is Corollary~\ref{cor:sweep} (the sweep is one query to every component, Lemma~\ref{lem:support}(ii)) plus the $n$ gradients of the sweep, and the upper bound is Corollary~\ref{cor:saga}(b) with $\max\{3n,\frac{16\kappa_{\rm eff}}3\}=3n$, since $\kappa_{\rm eff}\le\kappa\le n$. For L-Katyusha, the lower bound is \eqref{eq:anyseqcount}, valid for every index sequence under \eqref{ineq:dim}, and the upper bound is \eqref{eq:LKupper} with $2\max\{8n,2\sqrt6\sqrt{n\kappa}\}=16n$ for $\kappa\le n$ and $C_0\le n+\frac73$ from \eqref{eq:LKconst}. For $\kappa\ll n$: $Q-1=\frac{\kappa-1}n$, $\sqrt Q-1\approx\frac{Q-1}2$ and $q=\frac{\sqrt Q-1}{\sqrt Q+1}\approx\frac{Q-1}4=\frac{\kappa-1}{4n}$. The GD contraction follows from $\norm{(I-\frac1{L_F}\nabla^2F)e}\le(1-\frac{\muEff}{L_F})\norm e$ and $\frac{L_F}{\muEff}\le\frac{L_F}\mu\le Q$ (Proposition~\ref{prop:constants}).
+
+(ii) The window conditions: $\kappa\ge4n+1$ means $Q\ge5$, i.e.\ $s=\frac4{Q-1}\le1$; $\kappa\le1+\frac{n(m+1)^2}{\pi^2}$ means $Q-1\le\frac{(m+1)^2}{\pi^2}$, i.e.\ $(m+1)\sqrt s\ge2\pi$, i.e.\ $y\ge2$; and $\kappa\le1+n(\frac{16m^2}{\log^2(1/\varepsilon)}-1)$ is $m\ge\frac{\sqrt Q}4\log\frac1\varepsilon$, the sufficient form of \eqref{ineq:dim}. For SAGA, Lemma~\ref{lem:overlap} gives $\norm{P_{2\mu}(\theta_0-\etastar)}^2=\rho\norm{\theta_0-\etastar}^2$ with $\rho\ge\frac1{105}>\varepsilon$, so Corollary~\ref{cor:saga}(a) with $\nu'=2\mu\le4R^2$ gives the lower bound, for any initial memory and in particular after the sweep (the mean-iterate identity of Proposition~\ref{prop:sagamean} holds whatever the memory, and the sweep only adds $n$ to the count); the upper bound is Corollary~\ref{cor:saga}(b) with $\kappa_{\rm eff}\le\kappa$ and $\frac{16\kappa}3\ge3n$ for $\kappa\ge\frac9{16}n$. For L-Katyusha, the lower bound is \eqref{eq:anyseqcount}, which needs $q^{2m}\le\varepsilon$ and $\kappa-1\ge2n$, both true in the window, and the upper bound is \eqref{eq:LKupper}--\eqref{eq:LKconst} with $\kappa>\frac83n$. For GD, $e_t=(I-\frac1{L_F}\nabla^2F)^te_0$ exactly, so the second inequality of \eqref{ineq:saga-mean} applies with $\gamma=1/L_F$ and $\nu'=2\mu$, which is $\le1/\gamma=L_F$ because $\lmax(A_m(\zeta_Q))\ge\lmax(A_m(1))=4\sin^2\frac{(2m-1)\pi}{2(2m+1)}\ge4\sin^2\frac{3\pi}{10}>\frac{13}5$ for $m\ge2$ (Lemma~\ref{lem:chain} and Weyl's inequality), whence $L_F=\mu(1+\frac{Q-1}4\lmax(A_m(\zeta_Q)))\ge\mu(1+\frac{13}{20}(Q-1))\ge\frac{18}5\mu$ for $Q\ge5$; the argument of Corollary~\ref{cor:saga}(a) then gives $t\ge(\frac{L_F}{4\mu}-\frac12)\log\frac\rho\varepsilon$ iterations of $n$ gradients, while $(1-\frac{\muEff}{L_F})^{2t}\le\varepsilon$ for $t\ge\frac{L_F}{2\muEff}\log\frac1\varepsilon$ with $\frac{L_F}{\muEff}\le Q$. For AGD, Proposition~\ref{prop:anyseq} and Section~5.2.5 of \cite{bach2024learning} ($O(\sqrt{L_F/\muEff}\log\frac1\varepsilon)$ iterations of $n$ gradients, and $L_F/\muEff\le Q$) give the two sides. Since $\rho\ge\frac1{105}$ and $C_0\le1+\frac58Q$ depend on $\kappa$ only through the displayed logarithm, all four pairs of bounds have the announced orders.
+
+(iii) As $\kappa\to\infty$ with $m$ fixed, $\zeta_Q=\frac{\sqrt Q+3}{\sqrt Q+1}\to1$, the eigenvalues of $A_m(\zeta)$ depend continuously on $\zeta$, and $\frac{\kappa}{1+\frac{\kappa-1}{4n}\lambda}\to\frac{4n}\lambda$; the two-sided bound is Lemma~\ref{lem:chain} inserted in Proposition~\ref{prop:constants}(b). The bounds on $T_{\rm SAGA}$ are Corollary~\ref{cor:saga} with $\nu'=\muEff$ and the value of $\norm{P_{\muEff}(\theta_0-\etastar)}^2$ computed in Remark~\ref{rem:rho}, which also gives the limit of $\delta$; for the upper bound, $\frac{16\kappa_{\rm eff}}3\ge3n$ for $\kappa$ large. For $T_{\rm LK}$, \eqref{eq:LKupper} holds for all $\kappa$ (Theorem~4.6 of \cite{kovalev2020dont} has no dimension hypothesis), whereas \eqref{eq:anyseqcount} requires $q^{2m}\le\varepsilon$, which fails for $\kappa>\kappa_{\max}$.
+\end{proof}
+
+\begin{remark}[what to expect in a plot]
+\label{rem:plot}
+For $\varepsilon=10^{-6}$ ($\log(1/\varepsilon)\approx13.8$), $n=100$ and $m=200$: the dimension condition gives $1+n(\frac{16m^2}{\log^2(1/\varepsilon)}-1)\approx3.4\cdot10^5$ and the slow-mode condition $1+\frac{n(m+1)^2}{\pi^2}\approx4.1\cdot10^5$, so $\kappa_{\max}\approx3.4\cdot10^5$ and the window $401\le\kappa\le3.4\cdot10^5$ of (ii) spans almost three decades, enough to read the slopes $1$ and $\frac12$, with the plateau below $\kappa\approx n$ and the bend above $\kappa_{\max}$. Two caveats. First, a sandwich $c_1\kappa\le T\le c_2\kappa$ pins the slope of a line fitted over $D$ decades only up to $\pm\log_{10}(c_2/c_1)/D$; for SAGA, $c_2/c_1=\frac{16}3\cdot\frac{\log((1+n/4)/\varepsilon)}{\log(\rho/\varepsilon)}\approx7$ with the exact $\rho\approx0.2$, and for L-Katyusha the ratio of the two constants in \eqref{eq:lkwindow} exceeds $10^2$. The order of growth is a theorem; the numerical value of the slope must be read from exact quantities: the mean-iterate time $t^\ast(\kappa)=\min\{t:\norm{(I-\gamma\nabla^2F)^t(\theta_0-\etastar)}^2\le\varepsilon\norm{\theta_0-\etastar}^2\}$, computable from the $m$ eigenpairs of $A_m(\zeta_Q)$, is a lower bound on $T_{\rm SAGA}$ (first inequality of \eqref{ineq:saga-mean}), and for these parameters we found $t^\ast\approx1.4\,\kappa\log(1/\varepsilon)$ with log-log slope $0.99$ over $\kappa\in[10^3,3\cdot10^5]$. Second, with $m=20$ the window collapses ($\kappa_{\max}\approx3.3\cdot10^3$, less than a decade above $4n+1$): the slopes measured over $\kappa\in[10^3,10^6]$ would be far below $1$ and $\frac12$. This finite-dimension effect is quantified by \eqref{eq:kappaeff}: plotting $T_{\rm SAGA}$ against $\kappa_{\rm eff}$ instead of $\kappa$ restores a linear growth (Corollary~\ref{cor:saga} with $\nu'=\muEff$), which is the cleanest test of the ``effective constants'' idea of hypothesis (B2) on an instance where $\muEff=\lmin(\nabla^2F)$ is known exactly.
+\end{remark}
+
+\subsubsection{Logistic regression is not a hard instance}
+
+The lower bounds of Section~\ref{sec:lb:statements} are statements about the worst case over all instances with given $(n,R^2,\mu)$; for a given instance only the upper bounds are informative, and the $\ell_2$-regularized logistic problems of the project, $f_i(\theta)=\log(1+e^{-y_ix_i^\top\theta})+\frac\lambda2\norm\theta^2$ with $R^2=\max_i\norm{x_i}^2/4+\lambda$ and $\mu=\lambda$, are far from the worst case, for three reasons.
+\begin{enumerate}[nosep,label=(\alph*)]
+\item \emph{No chain.} Every component acts on the whole vector $\theta$ through $x_i$; after one pass the span of the gradients is typically all of $\R^d$ (generic $x_i$), so nothing prevents the iterates from moving in every direction. The ``one coordinate per query'' mechanism, which is the only source of the $\sqrt{n\kappa}$ term, is absent.
+\item \emph{Slack in the constants.} The certified smoothness $R^2$ is reached only at $\sigma'(y_ix_i^\top\theta)=1/4$, i.e.\ on the decision boundary, and only for the sample with the largest $\norm{x_i}$; along the trajectory the per-sample curvature is $\sigma'(y_ix_i^\top\theta)\norm{x_i}^2+\lambda$, often much smaller (this is the cocoercivity slack measured in (B3)). Likewise the strong convexity $\mu=\lambda$ ignores the data term: the trajectory-dependent constant of (B2),
+\begin{equation}
+\label{ineq:mueff}
+\muEff(t)=\frac{\inner{\theta_t-\etastar}{\Fp(\theta_t)}}{\norm{\theta_t-\etastar}^2}\ \ge\ \lambda+\lmin\Big(\frac1n\sum_i\bar\sigma'_{i,t}\,x_ix_i^\top\Big)\ \ge\ \lambda ,
+\end{equation}
+where $\bar\sigma'_{i,t}\in(0,\frac14]$ is the average of $\sigma'$ on the segment $[\etastar,\theta_t]$ (mean-value form of $\Fp(\theta_t)-\Fp(\etastar)$). When $n\ge d$ and the data are not separable, the data Hessian is positive definite and $\muEff(t)\ge\lambda+\mu_{\rm data}$ with $\mu_{\rm data}>0$ independent of $\lambda$; the proof of Proposition~5.9 of \cite{bach2024learning} then runs with $\muEff(t)$ in place of $\mu$, so SAGA converges at the rate dictated by $R^2/\min_t\muEff(t)$ rather than by $\kappa=R^2/\lambda$.
+\item \emph{$L_F\ll R^2$ by isotropy rather than by block structure.} For isotropic features ($x_i$ with i.i.d.\ unit-variance coordinates), $\norm{x_i}^2\approx d$ so $R^2\approx d/4$, while $L_F\le\lambda+\frac14\lmax(\frac1n\sum_ix_ix_i^\top)\approx\lambda+\frac14(1+\sqrt{d/n})^2$; thus $L_F/R^2\approx1/d$ for $n\gg d$ (compare with $1/n$ on the block instance). Full-gradient methods are therefore much faster on these problems than the worst-case counts $n\kappa$, $n\sqrt\kappa$ suggest, by a factor about $d$.
+\end{enumerate}
+Consequently, when $\kappa=R^2/\lambda$ is increased by decreasing $\lambda$ at fixed data, the number of gradient evaluations of SAGA and L-Katyusha should grow like $\kappa_{\rm eff}^{1}$ and $\kappa_{\rm eff}^{1/2}$ at most, with $\kappa_{\rm eff}=R^2/\muEff$ saturating as soon as $\lambda\ll\mu_{\rm data}$: the empirical log-log slopes against the nominal $\kappa$ are expected to be strictly smaller than $1$ and $1/2$ and to decrease towards $0$ for small $\lambda$ (for $d>n$ or separable data $\mu_{\rm data}=0$ and the slopes can stay close to their hard-instance values, with large constants). Measuring the slopes against $R^2/\muEff$ (with $\muEff$ the time average or the terminal value of \eqref{ineq:mueff}) is the natural way to connect (A4) with (B2); the hard instance, where $\muEff=\lmin(\nabla^2F)$ is known in closed form, serves as the calibration of that procedure.
+
+\subsubsection{Inequalities to instrument}
+\label{sec:lb:instrument}
+
+For a lower-bound inequality ${\rm LHS}\ge{\rm RHS}$ the tightness ratio is ${\rm RHS}/{\rm LHS}$, which lies in $(0,1]$ whenever ${\rm RHS}>0$; for an upper bound ${\rm LHS}\le{\rm RHS}$ it is ${\rm LHS}/{\rm RHS}$. On the instance \eqref{eq:instance} every quantity below is computable exactly from the iterates ($\etastar$ is known in closed form, and the eigenpairs of the $m\times m$ tridiagonal matrix $A_m(\zeta_Q)$ are cheap). Every gradient query is counted, including the initial sweep of SAGA ($\tau_j=1$ for all $j$ and $G=n$ right after the sweep) and the full gradients of L-Katyusha ($n$ queries each).
+\begin{itemize}[nosep]
+\item \eqref{ineq:chain-smooth} \emph{chain smoothness}: ratio $\inner{A_m(\zeta)s}{s}/(4\norm s^2)$ at $s=\theta_t^{(i)}-x^\ast$ (how much of the error sits in the stiff directions; also certifies the slack between $R^2=\mu\kappa$ and the true Lipschitz constant of $\fip$).
+\item \eqref{ineq:LF} \emph{condition number of $F$ versus $\kappa$}: ratio $(L_F/\mu)/\kappa$ ($\approx1/n$ on the instance; on logistic data compare with $1/d$).
+\item Lemma~\ref{lem:support} \emph{support growth}: ratio $N_j(\theta_t)/\min(\tau_j(t),m)$ per block, with $\tau_j$ counting the sweep (equal to $1$ for SAGA and L-Katyusha generically, which validates the zero-chain mechanism).
+\item \eqref{ineq:tail} \emph{tail bound}: ratio $\big[\frac1n\sum_j\frac{q^{2\min(\tau_j(t),m)}-q^{2m}}{1-q^{2m}}\big]\big/\big[\norm{\theta_t-\etastar}^2/\norm{\etastar}^2\big]$ (how much of the error is the unrevealed energy; a ratio near $1$ means the method is optimal on the revealed coordinates; the cap at $m$ keeps the right-hand side nonnegative once a block has been touched more than $m$ times).
+\item \eqref{ineq:jensen} \emph{Jensen over blocks}: ratio $q^{2G/n}/\frac1n\sum_jq^{2\tau_j}$ (equal to $1$ for cyclic or full-gradient schedules, smaller for i.i.d.\ sampling: this is the price of i.i.d.\ sampling isolated by \cite{hannah2018breaking}).
+\item \eqref{ineq:expected} and \eqref{ineq:expected-sweep} \emph{i.i.d.\ bound}: ratio of the right-hand side to the empirical mean of $\norm{\theta_t-\etastar}^2/\norm{\etastar}^2$ over seeds, using \eqref{ineq:expected-sweep} for SAGA with $z_i^{(0)}=\fip(\theta_0)$ ($t$ = number of i.i.d.\ iterations after the sweep) and \eqref{ineq:expected} for $z^{(0)}=0$; report the ratio only while the right-hand side is positive, i.e.\ for $t\le t^\ast$ of Corollary~\ref{cor:count} (this is the dimension condition), since beyond that point the bound is vacuous.
+\item \eqref{ineq:exp} \emph{exponential bound}: ratio $\exp(-\frac{tx}{1-x})/(1-x)^t$ with $x=\frac{1-q^2}n$.
+\item \eqref{ineq:dim} \emph{dimension condition}: the scalar $q^{2m}/\varepsilon$ ($\le1$ required; report it next to each measured slope), together with $y=(m+1)\sqrt s/\pi$ ($\ge2$ required for \eqref{eq:sagawindow}).
+\item \eqref{ineq:rho} \emph{slow-mode mass}: the exact $\rho=\sum_{k:\lambda_k\le s}\inner{x^\ast}{v_k}^2/\norm{x^\ast}^2$ from the eigenpairs of $A_m(\zeta_Q)$, and the ratio of the bound \eqref{ineq:rho} to it (expected between $0.1$ and $0.2$, Remark~\ref{rem:rho}); also the single-mode overlap $\delta=\inner{x^\ast}{v_1}^2/\norm{x^\ast}^2$ for the saturation regime.
+\item \eqref{ineq:saga-mean} \emph{SAGA mean iterate}: ratio $\norm{(I-\gamma\nabla^2F)^t(\theta_0-\etastar)}^2/\E\norm{\theta_t-\etastar}^2$ (exact mean iterate versus the empirical mean square error over seeds) and, for the second inequality, $(1-2\gamma\mu)^{2t}\rho\norm{\theta_0-\etastar}^2/\norm{(I-\gamma\nabla^2F)^t(\theta_0-\etastar)}^2$ with $\nu'=2\mu$ (or $(1-\gamma\muEff)^{2t}\delta\norm{\theta_0-\etastar}^2$ in the numerator with $\nu'=\muEff$); the mean-iterate time $t^\ast(\kappa)$ of Remark~\ref{rem:plot} is the natural reference curve for $T_{\rm SAGA}(\kappa)$.
+\item \eqref{eq:LKupper} \emph{L-Katyusha upper bound}: ratio of the measured $T_{\rm LK}$ to $\frac2\theta\log(C_0/\varepsilon)$, and the Lyapunov ratio $\Psi^{k+1}/((1-\theta)\Psi^k)$ along the run (the individual steps of that proof are instrumented in the L-Katyusha note).
+\item \eqref{ineq:mueff} \emph{effective strong convexity}: the ratio $\mu/\muEff(t)$, on the instance (it converges there to $\mu/\lmin(\nabla^2F)$) and on logistic data.
+\item \eqref{ineq:nesterov} \emph{single chain} ($n=1$ version of the instance, finite $m$): ratio of $\frac{q^{2t}-q^{2m}}{1-q^{2m}}\norm{\etastar}^2$, i.e.\ the right-hand side of \eqref{ineq:tail} with $n=1$, to $\norm{\theta_t-\etastar}^2$, for AGD and for GD; the infinite-chain form $q^{2t}\norm{\etastar}^2$ of \eqref{ineq:nesterov} is not a valid lower bound on the finite instance (at $t=m$ an optimal span method has zero error), so the ratio defined with it could exceed $1$.
+\end{itemize}

@@ -1,0 +1,46 @@
+% Shared preamble for the theory notes (loaded by theory/main.tex and report/main.tex)
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{bm}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage[margin=1in]{geometry}
+
+% ---- theorem environments ----
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+
+% ---- notation (matches Bach, Learning Theory from First Principles, Ch. 5) ----
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\norm}[1]{\left\|#1\right\|}
+\newcommand{\inner}[2]{\left\langle #1, #2 \right\rangle}
+\newcommand{\abs}[1]{\left|#1\right|}
+\newcommand{\etastar}{\eta_\ast}          % minimizer, as in the book
+\newcommand{\thetat}{\theta_t}
+\newcommand{\grad}{\nabla}
+\newcommand{\fip}{f'_i}                   % f'_i = \nabla f_i, book notation
+\newcommand{\Fp}{F'}                      % F' = \nabla F
+\newcommand{\muEff}{\mu_{\mathrm{eff}}}
+\newcommand{\LEff}{L_{\mathrm{eff}}}
+\newcommand{\kappaP}{\kappa_P}
+\newcommand{\Ei}{\E_{i(t)}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\argmin}{\operatorname*{arg\,min}}
+\newcommand{\lmin}{\lambda_{\min}}
+\newcommand{\lmax}{\lambda_{\max}}
+\newcommand{\ind}{\mathbf{1}}
+\DeclareMathOperator{\Var}{Var}

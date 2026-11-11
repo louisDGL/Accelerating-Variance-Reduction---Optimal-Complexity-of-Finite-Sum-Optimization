@@ -1,0 +1,306 @@
+[
+  {
+    "key": "agarwal2015lower",
+    "title": "A Lower Bound for the Optimization of Finite Sums",
+    "authors": "Alekh Agarwal, Leon Bottou",
+    "year": 2015,
+    "venue": "Proceedings of the 32nd International Conference on Machine Learning (ICML 2015), PMLR 37",
+    "url": "https://arxiv.org/abs/1410.0723"
+  },
+  {
+    "key": "allenzhu2017katyusha",
+    "title": "Katyusha: The First Direct Acceleration of Stochastic Gradient Methods",
+    "authors": "Zeyuan Allen-Zhu",
+    "year": 2017,
+    "venue": "Proceedings of the 49th Annual ACM Symposium on Theory of Computing (STOC 2017); full version Journal of Machine Learning Research 18(221):1-51, 2018; arXiv:1603.05953",
+    "url": "https://arxiv.org/abs/1603.05953"
+  },
+  {
+    "key": "allenzhu2017linear",
+    "title": "Linear Coupling: An Ultimate Unification of Gradient and Mirror Descent",
+    "authors": "Zeyuan Allen-Zhu, Lorenzo Orecchia",
+    "year": 2017,
+    "venue": "Innovations in Theoretical Computer Science (ITCS 2017); arXiv:1407.1537",
+    "url": "https://arxiv.org/abs/1407.1537"
+  },
+  {
+    "key": "arjevani2016dimension",
+    "title": "Dimension-Free Iteration Complexity of Finite Sum Optimization Problems",
+    "authors": "Yossi Arjevani, Ohad Shamir",
+    "year": 2016,
+    "venue": "Advances in Neural Information Processing Systems 29 (NeurIPS 2016)",
+    "url": "https://arxiv.org/abs/1606.09333"
+  },
+  {
+    "key": "arjevani2016iteration",
+    "title": "On the Iteration Complexity of Oblivious First-Order Optimization Algorithms",
+    "authors": "Yossi Arjevani, Ohad Shamir",
+    "year": 2016,
+    "venue": "Proceedings of the 33rd International Conference on Machine Learning (ICML 2016), PMLR 48:908-916; Theorem 2 and Section 2.2 quoted from arXiv v1",
+    "url": "https://arxiv.org/abs/1605.03529"
+  },
+  {
+    "key": "bach2010selfconcordant",
+    "title": "Self-concordant analysis for logistic regression",
+    "authors": "Francis Bach",
+    "year": 2010,
+    "venue": "Electronic Journal of Statistics 4:384-414",
+    "url": "https://arxiv.org/abs/0910.4627"
+  },
+  {
+    "key": "bach2013sharp",
+    "title": "Sharp analysis of low-rank kernel matrix approximations",
+    "authors": "Francis Bach",
+    "year": 2013,
+    "venue": "Proceedings of the 26th Conference on Learning Theory (COLT 2013), PMLR 30",
+    "url": "https://arxiv.org/abs/1208.2015"
+  },
+  {
+    "key": "bach2014adaptivity",
+    "title": "Adaptivity of averaged stochastic gradient descent to local strong convexity for logistic regression",
+    "authors": "Francis Bach",
+    "year": 2014,
+    "venue": "Journal of Machine Learning Research 15(19):595-627",
+    "url": "https://jmlr.org/papers/v15/bach14a.html"
+  },
+  {
+    "key": "bach2024learning",
+    "title": "Learning Theory from First Principles",
+    "authors": "Francis Bach",
+    "year": 2024,
+    "venue": "MIT Press (Adaptive Computation and Machine Learning series); Chapter 5, Section 5.4.4, Proposition 5.9",
+    "url": "https://www.di.ens.fr/~fbach/ltfp_book.pdf"
+  },
+  {
+    "key": "defazio2014saga",
+    "title": "SAGA: A Fast Incremental Gradient Method With Support for Non-Strongly Convex Composite Objectives",
+    "authors": "Aaron Defazio, Francis Bach, Simon Lacoste-Julien",
+    "year": 2014,
+    "venue": "Advances in Neural Information Processing Systems 27 (NeurIPS 2014), pp. 1646-1654; arXiv:1407.0202",
+    "url": "https://arxiv.org/abs/1407.0202"
+  },
+  {
+    "key": "dragomir2021fast",
+    "title": "Fast stochastic Bregman gradient methods: sharp analysis and variance reduction",
+    "authors": "Radu-Alexandru Dragomir, Mathieu Even, Hadrien Hendrikx",
+    "year": 2021,
+    "venue": "Proceedings of the 38th International Conference on Machine Learning (ICML 2021), PMLR 139",
+    "url": "https://arxiv.org/abs/2104.09813"
+  },
+  {
+    "key": "driggs2022accelerating",
+    "title": "Accelerating variance-reduced stochastic gradient methods",
+    "authors": "Derek Driggs, Matthias J. Ehrhardt, Carola-Bibiane Schönlieb",
+    "year": 2022,
+    "venue": "Mathematical Programming 191:671-715; arXiv:1910.09494",
+    "url": "https://arxiv.org/abs/1910.09494"
+  },
+  {
+    "key": "elalaoui2015fast",
+    "title": "Fast randomized kernel ridge regression with statistical guarantees",
+    "authors": "Ahmed El Alaoui, Michael W. Mahoney",
+    "year": 2015,
+    "venue": "Advances in Neural Information Processing Systems 28 (NeurIPS 2015); arXiv version titled 'Fast Randomized Kernel Methods With Statistical Guarantees'",
+    "url": "https://arxiv.org/abs/1411.0306"
+  },
+  {
+    "key": "gonen2016solving",
+    "title": "Solving ridge regression using sketched preconditioned SVRG",
+    "authors": "Alon Gonen, Francesco Orabona, Shai Shalev-Shwartz",
+    "year": 2016,
+    "venue": "Proceedings of the 33rd International Conference on Machine Learning (ICML 2016), PMLR 48",
+    "url": "https://arxiv.org/abs/1602.02350"
+  },
+  {
+    "key": "gower2016stochastic",
+    "title": "Stochastic block BFGS: squeezing more curvature out of data",
+    "authors": "Robert M. Gower, Donald Goldfarb, Peter Richtarik",
+    "year": 2016,
+    "venue": "Proceedings of the 33rd International Conference on Machine Learning (ICML 2016), PMLR 48",
+    "url": "https://arxiv.org/abs/1603.09649"
+  },
+  {
+    "key": "gower2019sgd",
+    "title": "SGD: General analysis and improved rates",
+    "authors": "Robert M. Gower, Nicolas Loizou, Xun Qian, Alibek Sailanbayev, Egor Shulgin, Peter Richtarik",
+    "year": 2019,
+    "venue": "Proceedings of the 36th International Conference on Machine Learning (ICML 2019), PMLR 97:5200-5209",
+    "url": "https://arxiv.org/abs/1901.09401"
+  },
+  {
+    "key": "gower2020variance",
+    "title": "Variance-Reduced Methods for Machine Learning",
+    "authors": "Robert M. Gower, Mark Schmidt, Francis Bach, Peter Richtarik",
+    "year": 2020,
+    "venue": "Proceedings of the IEEE 108(11):1968-1983; Section 3 'Practical Considerations', paragraph A 'Setting the stepsize for SAG/SAGA/SVRG' verified",
+    "url": "https://arxiv.org/abs/2010.00892"
+  },
+  {
+    "key": "gower2021stochastic",
+    "title": "Stochastic quasi-gradient methods: variance reduction via Jacobian sketching",
+    "authors": "Robert M. Gower, Peter Richtarik, Francis Bach",
+    "year": 2021,
+    "venue": "Mathematical Programming 188:135-192 (arXiv 1805.02632, 2018)",
+    "url": "https://arxiv.org/abs/1805.02632"
+  },
+  {
+    "key": "han2021lower",
+    "title": "Lower Complexity Bounds of Finite-Sum Optimization Problems: The Results and Construction",
+    "authors": "Yuze Han, Guangzeng Xie, Zhihua Zhang",
+    "year": 2021,
+    "venue": "arXiv preprint 2103.08280 (Journal of Machine Learning Research, 2024)",
+    "url": "https://arxiv.org/abs/2103.08280"
+  },
+  {
+    "key": "hannah2018breaking",
+    "title": "Breaking the Span Assumption Yields Fast Finite-Sum Minimization",
+    "authors": "Robert Hannah, Yanli Liu, Daniel O'Connor, Wotao Yin",
+    "year": 2018,
+    "venue": "Advances in Neural Information Processing Systems 31 (NeurIPS 2018); arXiv:1802.02554",
+    "url": "https://arxiv.org/abs/1802.02554"
+  },
+  {
+    "key": "hendrikx2020statistically",
+    "title": "Statistically preconditioned accelerated gradient method for distributed optimization",
+    "authors": "Hadrien Hendrikx, Lin Xiao, Sebastien Bubeck, Francis Bach, Laurent Massoulie",
+    "year": 2020,
+    "venue": "Proceedings of the 37th International Conference on Machine Learning (ICML 2020), PMLR 119",
+    "url": "https://arxiv.org/abs/2002.10726"
+  },
+  {
+    "key": "hofmann2015variance",
+    "title": "Variance Reduced Stochastic Gradient Descent with Neighbors",
+    "authors": "Thomas Hofmann, Aurelien Lucchi, Simon Lacoste-Julien, Brian McWilliams",
+    "year": 2015,
+    "venue": "Advances in Neural Information Processing Systems 28 (NeurIPS 2015); Theorem 1, Corollaries 1-3, Lemmas 1-3 verified on arXiv v4",
+    "url": "https://arxiv.org/abs/1506.03662"
+  },
+  {
+    "key": "hu2017unified",
+    "title": "A Unified Analysis of Stochastic Optimization Methods Using Jump System Theory and Quadratic Constraints",
+    "authors": "Bin Hu, Peter Seiler, Anders Rantzer",
+    "year": 2017,
+    "venue": "Proceedings of the 2017 Conference on Learning Theory (COLT 2017), PMLR 65:1157-1189; arXiv:1706.08141; Corollary 3, eq. (42), and the class S(m,L) of Section 2 verified",
+    "url": "https://arxiv.org/abs/1706.08141"
+  },
+  {
+    "key": "hu2018dissipativity",
+    "title": "Dissipativity Theory for Accelerating Stochastic Variance Reduction: A Unified Analysis of SVRG and Katyusha Using Semidefinite Programs",
+    "authors": "Bin Hu, Stephen Wright, Laurent Lessard",
+    "year": 2018,
+    "venue": "Proceedings of the 35th International Conference on Machine Learning (ICML 2018), PMLR 80:2038-2047; arXiv:1806.03677",
+    "url": "https://arxiv.org/abs/1806.03677"
+  },
+  {
+    "key": "johnson2013accelerating",
+    "title": "Accelerating Stochastic Gradient Descent using Predictive Variance Reduction",
+    "authors": "Rie Johnson, Tong Zhang",
+    "year": 2013,
+    "venue": "Advances in Neural Information Processing Systems 26 (NeurIPS 2013)",
+    "url": "https://papers.nips.cc/paper/4937-accelerating-stochastic-gradient-descent-using-predictive-variance-reduction"
+  },
+  {
+    "key": "kovalev2020dont",
+    "title": "Don't Jump Through Hoops and Remove Those Loops: SVRG and Katyusha are Better Without the Outer Loop",
+    "authors": "Dmitry Kovalev, Samuel Horváth, Peter Richtárik",
+    "year": 2020,
+    "venue": "Proceedings of the 31st International Conference on Algorithmic Learning Theory (ALT 2020), PMLR 117:451-467; arXiv:1901.08689",
+    "url": "https://arxiv.org/abs/1901.08689"
+  },
+  {
+    "key": "lan2018optimal",
+    "title": "An optimal randomized incremental gradient method",
+    "authors": "Guanghui Lan, Yi Zhou",
+    "year": 2018,
+    "venue": "Mathematical Programming 171:167-215; arXiv:1507.02000",
+    "url": "https://arxiv.org/abs/1507.02000"
+  },
+  {
+    "key": "lin2015universal",
+    "title": "A Universal Catalyst for First-Order Optimization",
+    "authors": "Hongzhou Lin, Julien Mairal, Zaid Harchaoui",
+    "year": 2015,
+    "venue": "Advances in Neural Information Processing Systems 28 (NeurIPS 2015); arXiv:1506.02186",
+    "url": "https://arxiv.org/abs/1506.02186"
+  },
+  {
+    "key": "lu2018relatively",
+    "title": "Relatively smooth convex optimization by first-order methods, and applications",
+    "authors": "Haihao Lu, Robert M. Freund, Yurii Nesterov",
+    "year": 2018,
+    "venue": "SIAM Journal on Optimization 28(1):333-354",
+    "url": "https://arxiv.org/abs/1610.05708"
+  },
+  {
+    "key": "marshall2011inequalities",
+    "title": "Inequalities: Theory of Majorization and Its Applications (2nd edition)",
+    "authors": "Albert W. Marshall, Ingram Olkin, Barry C. Arnold",
+    "year": 2011,
+    "venue": "Springer Series in Statistics, Springer",
+    "url": "https://doi.org/10.1007/978-0-387-68276-1"
+  },
+  {
+    "key": "moritz2016linearly",
+    "title": "A linearly-convergent stochastic L-BFGS algorithm",
+    "authors": "Philipp Moritz, Robert Nishihara, Michael I. Jordan",
+    "year": 2016,
+    "venue": "Proceedings of the 19th International Conference on Artificial Intelligence and Statistics (AISTATS 2016), PMLR 51",
+    "url": "https://arxiv.org/abs/1508.02087"
+  },
+  {
+    "key": "nesterov2018lectures",
+    "title": "Lectures on Convex Optimization",
+    "authors": "Yurii Nesterov",
+    "year": 2018,
+    "venue": "Springer Optimization and Its Applications, vol. 137, 2nd edition",
+    "url": "https://doi.org/10.1007/978-3-319-91578-4"
+  },
+  {
+    "key": "nitanda2014stochastic",
+    "title": "Stochastic Proximal Gradient Descent with Acceleration Techniques",
+    "authors": "Atsushi Nitanda",
+    "year": 2014,
+    "venue": "Advances in Neural Information Processing Systems 27 (NeurIPS 2014)",
+    "url": "https://papers.nips.cc/paper/5610-stochastic-proximal-gradient-descent-with-acceleration-techniques"
+  },
+  {
+    "key": "nitanda2016accelerated",
+    "title": "Accelerated Stochastic Gradient Descent for Minimizing Finite Sums",
+    "authors": "Atsushi Nitanda",
+    "year": 2016,
+    "venue": "Proceedings of the 19th International Conference on Artificial Intelligence and Statistics (AISTATS 2016), PMLR 51:195-203",
+    "url": "http://proceedings.mlr.press/v51/nitanda16.html"
+  },
+  {
+    "key": "qian2019saga",
+    "title": "SAGA with arbitrary sampling",
+    "authors": "Xun Qian, Zheng Qu, Peter Richtarik",
+    "year": 2019,
+    "venue": "Proceedings of the 36th International Conference on Machine Learning (ICML 2019), PMLR 97",
+    "url": "https://arxiv.org/abs/1901.08669"
+  },
+  {
+    "key": "schmidt2017minimizing",
+    "title": "Minimizing finite sums with the stochastic average gradient",
+    "authors": "Mark Schmidt, Nicolas Le Roux, Francis Bach",
+    "year": 2017,
+    "venue": "Mathematical Programming 162(1-2):83-112",
+    "url": "https://arxiv.org/abs/1309.2388"
+  },
+  {
+    "key": "taylor2019stochastic",
+    "title": "Stochastic first-order methods: non-asymptotic and computer-aided analyses via potential functions",
+    "authors": "Adrien Taylor, Francis Bach",
+    "year": 2019,
+    "venue": "Proceedings of the 32nd Conference on Learning Theory (COLT 2019), PMLR 99",
+    "url": "https://arxiv.org/abs/1902.00947"
+  },
+  {
+    "key": "woodworth2016tight",
+    "title": "Tight Complexity Bounds for Optimizing Composite Objectives",
+    "authors": "Blake Woodworth, Nathan Srebro",
+    "year": 2016,
+    "venue": "Advances in Neural Information Processing Systems 29 (NeurIPS 2016); arXiv:1605.08003",
+    "url": "https://arxiv.org/abs/1605.08003"
+  }
+]
