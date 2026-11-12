@@ -1,0 +1,98 @@
+% -----------------------------------------------------------------------------------------------------
+% Hypothesis B2: statements restated from theory/B2_effective_curvature.tex (Appendix B2). Numbers quoted:
+%   outcome of (P1)-(P2): Remark rem:B2-P2-outcome and findings.md Sec. 2 (results/B2_summary.json; 9 runs, one seed);
+%     (P2) is confirmed exactly in the four runs with crit_9n_lmin_over_16R2 > 1; initial share of q_min in the
+%     two refuting runs (kappa = 1e4, alpha = 0, 1): pi_min(theta_0) = 0.984 and 0.888 (digest.md, B2 bottom-spectrum table);
+%   order-B shares of I4 + I2 for kappa >= 1e4: 0.769--0.961 (digest.md, B3 attribution table, passes 2--20);
+%   order-A shares of I4 + I2 for kappa >= 1e4: 0.590--0.964 (digest.md, order-A table, passes 2--20).
+% -----------------------------------------------------------------------------------------------------
+\subsection{Effective curvature and smoothness along trajectories}\label{sec:th-B2}
+
+Hypothesis B2 asks whether the constants of the strong-convexity step I4 and of the cocoercivity step I2, evaluated
+along the trajectory actually followed by the algorithm, describe its convergence better than their worst-case values
+$\mu$ and $R^2$. Appendix~\ref{sec:B2} works under the following assumption, in which $L$ is the smoothness constant $L_F$
+of Section~\ref{sec:setting}, and defines the two constants that make I4 and I2 identities at the current iterate.
+\restate{ass:B2}
+\restate{def:B2-eff}
+Both quotients are well defined and positive, by \resref{lem:B2-mueff} and by \resref*{lem:B2-Leff} below, and
+$\mu/\muEff$ and $\LEff/R^2$ are the tightness ratios $r_{\rm sc}$ and $r_{\rm coco}$ of I4 and I2 in \resref{def:B3-ratios}.
+
+\paragraph{Ranges and directional limits.}
+For $C^2$ functions, $\muEff$ is the curvature, in the direction of the error, of an averaged Hessian, and both constants
+lie between the worst-case ones.
+\restate{lem:B2-integral}
+\restate{lem:B2-Leff}
+The effective condition number $\LEff/\muEff$ is thus at least $1$, and \eqref{eq:B2-Leff-variance} writes $\LEff$, and
+hence the tightness ratio $r_{\rm coco}=\LEff/R^2$ of I2, as the sum of two terms: the diversity of the gradient
+differences $h_i$, which vanishes iff all $h_i$ coincide, and the part of $R^2$ that the full gradient uses in the
+direction of the error. Near the optimum, the two constants become functions of this direction.
+\restate{prop:B2-limits}
+As $u$ ranges over the unit sphere, $u^\top H_\ast u$ spans $[\lmin(H_\ast),\lmax(H_\ast)]$ and equals the local
+strong-convexity constant $\lmin(H_\ast)$ only on the bottom eigenspace of $H_\ast$: near $\etastar$, the slack of I4 is
+set by the direction in which the algorithm approaches $\etastar$.
+
+\paragraph{Logistic regression.}
+For $\ell_2$-regularized logistic regression, the global strong-convexity constant $\mu_{\mathrm{glob}}$ (the largest $\mu$
+for which $F$ is $\mu$-strongly convex) is exactly $\lambda$, whatever the data, but, when the features span $\R^d$, the
+value $\lambda$ is approached only at infinity.
+\restate{prop:B2-global}
+\restate{cor:B2-ball}
+An algorithm whose iterates stay in a bounded region thus never experiences the curvature $\lambda$ unless
+$\lmin(\hat\Sigma)=0$. Gradient descent with $\gamma\le1/L$ stays in the ball of radius $\norm{\theta_0-\etastar}$ around
+$\etastar$; with the step and initialization of Proposition~\ref{prop:59}, the SAGA iterates are almost surely bounded
+but not, in general, confined to a deterministic ball (Section~\ref{sec:B2-logistic}). Near $\etastar$,
+\resref{lem:B2-selfconc} yields a comparison of $\muEff$ with the curvature at the optimum in the direction of the error.
+\restate{cor:B2-local}
+Once $R_x\norm{\theta_t-\etastar}\le1$, $\muEff(\theta_t)/\lambda$ is therefore within a factor $e^{\pm1}$ of
+$u_t^\top H_\ast u_t/\lambda$, where $u_t$ is the direction of the error. This ratio is close to $1$ in every direction
+under strong regularization, $\lambda\gg\lmax(\hat\Sigma)/4$, which forces $\kappa\ll n$; under intermediate
+regularization, $\lmin(H_\ast-\lambda I)\ll\lambda\ll\lmax(H_\ast-\lambda I)$, typical of anisotropic features, it is
+close to $1$ along the bottom eigenvectors of $H_\ast$ and of order $\lmax(H_\ast)/\lambda$ along the top ones; under weak
+regularization with well-conditioned features, $\lambda\ll p_{\min}\lmin(\hat\Sigma)$, it is large in every direction
+(Section~\ref{sec:B2-logistic}).
+
+\paragraph{Which curvature does an algorithm meet?}
+On a quadratic, gradient descent concentrates its error on the bottom eigenspace of the Hessian, unless the initial
+error is orthogonal to it. In the statement, $\pi_k(t)=(q_k^\top v_t)^2/\norm{v_t}^2$ is the share of $\norm{v_t}^2$
+carried by the eigenvector $q_k$ (the spectral profile \eqref{eq:B2-profile}).
+\restate{prop:B2-gd}
+The alignment time is of order $1/(\gamma(\lambda'-\lmin))$ iterations, which can exceed the horizon of an experiment
+when the spectrum is dense near $\lmin$; monotonicity~(b) is then the robust prediction, as \resref{rem:B2-gd-scope} explains. For
+SAGA, the mean error follows gradient descent exactly, while the second moment adds the estimator noise accumulated along
+the trajectory.
+\restate{lem:B2-saga-quadratic}
+Assuming that the noise covariance decays at the certified rate of Proposition~\ref{prop:59}, which is slower than every
+mode of the mean dynamics, a quasi-stationary heuristic predicted that the error of SAGA stays spread over the directions
+fed by the noise, with $\muEff(\theta_t)$ fluctuating above $\lmin(H_\ast)$ (prediction (P2) of
+Section~\ref{sec:B2-direction}; (P1) predicts that along gradient descent $\muEff(\theta_t)$ decreases to $\lmin(H_\ast)$
+when the features span $\R^d$). In nine runs on logistic regression ($n=1000$, $d=50$, one seed; SAGA with
+$\gamma=\frac1{4R^2}$, gradient descent with step $1/L$), (P1) is confirmed up to the speed of convergence, whereas (P2) is
+confirmed only in the four runs with $9n\lmin(H_\ast)/(16R^2)=\frac94n\gamma\lmin(H_\ast)>1$ ($\kappa=10^2$, all $\alpha$;
+$\kappa=10^3$, $\alpha=0$). It is refuted for $\kappa=10^4$, $\alpha\in\{0,1\}$, where SAGA, started from an error that
+already carries $89$--$98\%$ of its squared norm on the flattest direction of $H_\ast$, keeps and sharpens this alignment,
+like gradient descent; the three other runs are intermediate. Thus (P2) holds only for $\kappa$ at most of the order of $n$,
+and not in every such run. \resref{rem:B2-P2-outcome} reports the nine runs and explains the alignment heuristically;
+Section~\ref{sec:exp-B2} discusses them.
+
+\paragraph{How the effective constants enter the bound.}
+Keeping I4 and I2 as identities in the proof of Proposition~\ref{prop:59} gives the a-posteriori one-step factors of
+\resref{prop:B3-traj}, rederived as \resref{prop:B2-saga-traj}. As noted after \resref*{prop:B3-traj},
+$\muEff(\theta_{t-1})$ enters them linearly, whereas, at the fixed step $\gamma=\frac1{4R^2}$, $\LEff<R^2$ improves the
+parameter rate by a factor at most $\frac83$; moreover, once $\muEff$ exceeds $16R^2/(9n)$, the memory rate $\frac1{3n}$
+binds and no further gain in curvature shows in the bound, as \resref{rem:B2-what-explains} details. In order~B of
+\resref{prop:B3-attribution}, undoing I4 and I2 replaces $\mu$ and $R^2$ by $\muEff$ and $\LEff$; for $\kappa\ge10^4$
+($n=1000$, $d=50$, $\alpha\in\{0,1,2\}$, 5 seeds) these two steps carry 77--96\% of the logarithmic gap
+(Section~\ref{sec:exp-B3}). In order~A, which keeps the minimum until the end and whose first two steps give the two
+one-step factors of \resref*{prop:B3-traj}, I4 and I2 carry 59--96\% of the gap in the same runs
+(Section~\ref{sec:exp-B2}).
+
+\paragraph{Known and new.}
+That algorithms meet the local curvature is classical: the local strong-convexity constant tends to $\lmin(H_\ast)$
+\cite[Section~5.2.3]{bach2024learning}, averaged SGD adapts to it on logistic regression \cite{bach2014adaptivity} through
+self-concordance \cite{bach2010self}, $\muEff(\theta)$ is the constant of the restricted secant inequality at $\theta$
+\cite{zhang2013gradient}, and $\LEff$ is a trajectory-wise version of the expected-smoothness constant
+\cite{gower2019sgd,gower2021stochastic}. To our knowledge, the precise form of \resref{prop:B2-global} and
+\resref{cor:B2-local}, and the comparison of the directions selected by gradient descent and SAGA, whose heuristic
+prediction the experiments partly refute, are not in the sources we reviewed in this form; the integral form, the ranges
+and the directional limits (\resref*{lem:B2-integral}, \resref*{lem:B2-Leff} and \resref*{prop:B2-limits}) are elementary
+consequences of standard facts, collected here for the trajectory constants.

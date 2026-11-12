@@ -40,6 +40,16 @@ def test_logistic_derivatives():
     assert abs(prob.kappa - 30.0) < 1e-9
 
 
+def test_newton_no_stall_near_optimum():
+    """Regression test: on the B3 problem kappa = 10, alpha = 1 (n = 1000, d = 50, data seed 0), the Armijo test on F
+    is decided by rounding near the optimum; the solver used to stall at ||F'(eta_*)|| = 1.3e-12 after 26-40
+    iterations. It must now reach the tolerance 1e-15 in a few iterations."""
+    prob = problems.make_logistic(1000, 50, kappa=10.0, alpha=1.0, seed=0)
+    theta, info = solvers.newton_solve(prob)
+    assert info["grad_norm"] <= 1e-15 and info["iters"] <= 10, info
+    assert np.linalg.norm(prob.grad(theta)) <= 1e-15
+
+
 def test_newton_optimum():
     prob = _small_logistic()
     assert prob.opt_info["grad_norm"] < 1e-12
@@ -91,9 +101,12 @@ def _check_identity(prob, P=None):
     assert abs(chain[0] - st["rho_exact"]) < 1e-12
     loo = analysis.leave_one_out(st, gamma, Delta, R2, mu, n)
     for k in ["I1", "I3", "I2", "I4", "I5"]:
-        # each leave-one-out rate keeps the other inequalities at their worst case, hence upper-bounds the exact
-        # contraction; it need not stay below the certified bound (the substitutions are not nested), see the B3 note
+        # each leave-one-out rate applies only valid inequalities, hence upper-bounds the exact contraction; 'I1' and
+        # 'I2' need not stay below the certified bound (single substitutions, not nested; see analysis.leave_one_out)
         assert chain[0] - 1e-12 <= loo[k], (k, loo[k], chain[0])
+    for k in ["I3", "I4", "I5"]:
+        assert loo[k] <= loo["bound"] + 1e-12, (k, loo[k], loo["bound"])
+    assert loo["I4"] == chain[3] and loo["I5"] == chain[4]       # = rho_I2 and rho_I4 of the cumulative chain
     # order A of the B3 note is monotone and connects the bound to the exact rate
     chainA = analysis.cumulative_chain_A(st, gamma, Delta, R2, mu, n)
     assert np.all(np.diff(chainA) <= 1e-12), chainA
@@ -111,6 +124,24 @@ def test_saga_exact_identity_metric():
     P = A @ A.T + 0.5 * np.eye(prob.d)
     _check_identity(prob, P=P)
     _check_identity(prob, P=np.diag(P).copy())
+
+
+def test_preconditioned_saga_converges():
+    """SAGA in a diagonal and in a dense quadratic metric P (theta <- theta - gamma P^{-1} omega), with the P-constants
+    (R_P^2, mu_P) of Metric.constants and the textbook step 1/(4 R_P^2), converges to eta_* on a small anisotropic
+    logistic problem; the recorded D_P is the P-norm of the final error."""
+    prob = _small_logistic(n=60, d=6, kappa=40.0, alpha=2.0)
+    theta0 = np.zeros(prob.d)
+    P_dense = prob.Sigma_hat + prob.lam * np.eye(prob.d)
+    for P, kind in [(np.diag(P_dense).copy(), "diag"), (P_dense, "dense")]:
+        metric = instrumentation.Metric(P, prob.d)
+        cst = metric.constants(prob)
+        assert cst["kappa_P"] >= 1.0
+        r = algorithms.saga(prob, theta0, P=P, R2=cst["R2_P"], mu=cst["mu_P"], passes=60, seed=0, record_every=10)
+        assert r["metric"] == kind and abs(r["gamma"] - 1.0 / (4 * cst["R2_P"])) < 1e-15
+        assert np.all(np.isfinite(r["D"]))
+        assert r["D"][-1] < 1e-10 * r["D"][0], (kind, r["D"][-1] / r["D"][0])
+        assert r["D_P"][-1] == metric.norm2(r["theta"] - prob.theta_star)
 
 
 def test_saga_matches_bound_in_expectation():
@@ -219,9 +250,46 @@ def test_stochastic_methods_converge():
     assert np.isfinite(r["D"][-1])
 
 
+def test_lkatyusha_without_negative_momentum_well_conditioned():
+    """L-Katyusha with theta_2 = 0 (no anchor, default eta = 1/(3 theta_1)) stays finite and converges on
+    well-conditioned problems (kappa = 5 and 20); it diverges on the hard instance for kappa >= 1e3 (A2, A4)."""
+    for kappa in (5.0, 20.0):
+        prob = _small_logistic(n=80, d=6, kappa=kappa, alpha=0.5)
+        r = algorithms.lkatyusha(prob, np.zeros(prob.d), theta2=0.0, passes=30, seed=0, record_every=8)
+        assert r["theta2"] == 0.0 and r["stopped"] is None
+        assert np.all(np.isfinite(r["D"]))
+        assert r["D"][-1] < 1e-10 * r["D"][0], (kappa, r["D"][-1] / r["D"][0])
+
+
+def test_naive_nesterov_svrg_converges():
+    """The naive scheme (Nesterov momentum beta = (sqrt(kappa)-1)/(sqrt(kappa)+1) with the loopless-SVRG estimator,
+    step 1/(6R^2)) converges on an easy instance: ||theta - eta_*||^2 decreases by more than ten orders of magnitude."""
+    prob = _small_logistic(n=80, d=6, kappa=60.0, alpha=0.5)
+    q = np.sqrt(prob.kappa)
+    for seed in (0, 1):
+        r = algorithms.nesterov_svrg(prob, np.zeros(prob.d), gamma=1.0 / (6 * prob.R2), beta=(q - 1) / (q + 1), passes=40,
+                                     seed=seed, record_every=8)
+        assert r["stopped"] is None and np.all(np.isfinite(r["D"]))
+        assert r["D"][-1] < 1e-10 * r["D"][0], (seed, r["D"][-1] / r["D"][0])
+        # accounting: n initially, 2 per iteration, n per refresh of the reference point (3 per iteration in expectation)
+        assert (r["grad_evals"][-1] - prob.n - 2 * 40 * prob.n) % prob.n == 0
+
+
+def test_sgd_decreases():
+    """SGD with the decreasing step gamma_t = 1/(R^2 + mu t): the error decreases (O(1/t) regime, no linear rate)."""
+    prob = _small_logistic(n=80, d=6, kappa=60.0, alpha=0.5)
+    r = algorithms.sgd(prob, np.zeros(prob.d), passes=20, seed=0, record_every=8)
+    D, Fgap = r["D"], r["Fgap"]
+    k = len(D) // 4
+    assert np.all(np.isfinite(D)) and r["gamma0"] == 1.0 / prob.R2
+    assert D[-1] < 0.1 * D[0] and Fgap[-1] < 0.1 * Fgap[0]
+    assert D[-k:].mean() < 0.5 * D[:k].mean()                 # last quarter of the run against the first quarter
+
+
 def test_lkatyusha_exact_identity_and_lemma():
     """E[Psi_{k+1} | state] from lkatyusha_state_stats equals the average over all indices of the realized
-    Psi_{k+1}; the variance-bound ratio lies in (0,1]; Lemma 4.5 of Kovalev et al. holds (rho_exact <= rho_lemma)."""
+    Psi_{k+1}; the variance-bound ratio lies in (0,1]; the contraction max{c_Z, c_Y, c_W} given by Lemma 10 of
+    Kovalev et al. (ALT 2020; Lemma 4.5 in the arXiv version 1901.08689) holds (rho_exact <= rho_lemma)."""
     prob = _small_logistic(n=50, d=6, kappa=80.0)
     rng = np.random.default_rng(5)
     n, d = prob.n, prob.d
@@ -278,6 +346,44 @@ def test_bounds_helpers():
     att = analysis.attribution(r["instr"], r["gamma"], r["Delta"], r["R2"], r["mu"], r["n"])
     assert abs(np.nansum(att["shares"]) - 1) < 1e-8
     assert att["speedup_total"] >= 1.0
+
+
+def test_trajectory_bounds_general_constants():
+    """For (gamma, Delta) other than the textbook pair, trajectory_bounds uses the factor of inequality
+    ineq:B3-traj-general of the B3 note, max{rho_M, 1 - 2 gamma c_D mu_eff} with rho_M = 1 - 1/n + 2 gamma^2/(n Delta)
+    (not the textbook 1 - 1/(3n)), and these a-posteriori factors dominate the exact conditional contractions."""
+    prob = _small_logistic()
+    n, R2, mu = prob.n, prob.R2, prob.mu
+    gamma = 1.0 / (4 * R2)
+    Delta = 2.2 * gamma ** 2                                  # admissible (2 gamma^2 < Delta, c_D > 0), not textbook
+    cD, rho_D, rho_M = instrumentation.rate_coefficients(gamma, Delta, R2, mu, n)
+    assert cD > 0 and rho_M > 1 - 1 / (3 * n) and rho_D < rho_M  # the memory factor binds for every mu_eff >= mu
+    r = algorithms.saga(prob, np.zeros(prob.d), gamma=gamma, Delta=Delta, passes=10, seed=0, record_every=4, instrument_every=4)
+    assert r["Delta"] == Delta
+    for q in r["instr"]:
+        Le = min(q["L_eff"], R2)
+        factor = max(rho_M, 1 - 2 * gamma * (1 - gamma * Le - Le * Delta / (2 * gamma)) * q["mu_eff"])
+        assert q["rho_exact"] <= factor + 1e-12
+    tb = analysis.trajectory_bounds(r)
+    grid = np.asarray(r["iters"], dtype=np.float64)
+    assert np.allclose(tb["mu_eff"], r["V"][0] * rho_M ** grid, rtol=1e-9, atol=0)
+    assert np.all(tb["mu_eff"] >= tb["mu_eff+L_eff"] * (1 - 1e-12))
+    assert np.all(tb["mu_eff+L_eff"] >= tb["exact"] * (1 - 1e-9))
+
+
+def test_loglog_slope_interval():
+    x = np.repeat([1e2, 1e3, 1e4, 1e5], 3)
+    f = analysis.loglog_slope(x, 5.0 * x ** 0.5)
+    assert abs(f["slope"] - 0.5) < 1e-12 and f["half_width"] < 1e-8 and f["n_points"] == 12
+    rng = np.random.default_rng(0)
+    y = 5.0 * x ** 0.5 * np.exp(0.1 * rng.standard_normal(x.size))
+    y[0] = np.nan                                    # missing points are dropped
+    g = analysis.loglog_slope(x, y, xmin=1e3)
+    assert g["n_points"] == 9 and g["n_x"] == 3 and g["ci_low"] < g["slope"] < g["ci_high"]
+    # balanced replicates: same slope as the fit to the per-x geometric means
+    xm = np.array([1e3, 1e4, 1e5])
+    gm = np.exp(np.log(y[3:]).reshape(3, 3).mean(1))
+    assert abs(g["slope"] - np.polyfit(np.log(xm), np.log(gm), 1)[0]) < 1e-12
 
 
 if __name__ == "__main__":

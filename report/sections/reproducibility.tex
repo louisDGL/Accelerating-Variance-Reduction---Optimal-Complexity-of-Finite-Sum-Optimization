@@ -1,25 +1,108 @@
-\paragraph{Code.} The repository contains the Python package \texttt{vrlab} (problems, high-precision optimum,
-algorithms, exact instrumentation, bounds, gap attribution), a test suite (\texttt{tests/test\_vrlab.py}), one script
-per hypothesis in \texttt{experiments/}, the theory notes in \texttt{theory/} and the bibliography in
-\texttt{bibliography/}. Dependencies: numpy, scipy, matplotlib (see \texttt{requirements.txt}); Python~3.14 was used.
+% File names are typeset with \nolinkurl (hyperref) so that they can break after '/', '.' or '_'.
+% Sources: README.md (commands, CPU budget), tests/test_vrlab.py (as of Nov. 11), vrlab/algorithms.py (time.process_time),
+% experiments/exp_A4_hard_instance.py (VRLAB_MAX_TIME, default 600 s; 45 s per grid run of the naive scheme),
+% results/log_A4.txt and log_A4b.txt (4000 s, then 8000 s for the last A4b runs), results/A4.pkl and A4b.pkl (statuses:
+% 264 stop_D and 30 diverged; 128 stop_D), results/B3_summary.json (grad_star_norm, final_D), vrlab/solvers.py,
+% experiments/run_all.py (list SCRIPTS, then make_digest.py unless --quick), report/make_restated.py, report/build.py.
+\paragraph{Code and data.} The code, the small cached results, the summaries and the figures are available at
+\begin{center}\small
+\url{https://github.com/louisDGL/Accelerating-Variance-Reduction---Optimal-Complexity-of-Finite-Sum-Optimization}
+\end{center}
+The repository contains the Python package \nolinkurl{vrlab} (problems, high-precision optimum, algorithms, exact
+instrumentation, bounds, gap attribution), a test suite (\nolinkurl{tests/test_vrlab.py}), the experiment scripts in
+\nolinkurl{experiments/}, the theory notes in \nolinkurl{theory/}, the bibliography in \nolinkurl{bibliography/}, this
+report in \nolinkurl{report/}, the summaries (\nolinkurl{results/*_summary.json} and \nolinkurl{results/digest.md}) and
+their analysis (\nolinkurl{results/findings.md}), the small cached runs (\nolinkurl{A3.pkl}, \nolinkurl{A4.pkl},
+\nolinkurl{A4b.pkl}, \nolinkurl{B2.pkl}, \nolinkurl{GammaDelta.pkl} and \nolinkurl{validation_book.pkl} in
+\nolinkurl{results/}) and the figures in \nolinkurl{figures/}. The large caches
+\nolinkurl{results/A2.pkl}, \nolinkurl{results/B1.pkl} and \nolinkurl{results/B3.pkl} are not versioned and are
+rebuilt by the scripts that produce them. Dependencies: numpy, scipy, matplotlib (see \nolinkurl{requirements.txt});
+Python~3.14 was used.
 
-\paragraph{Tests.} The test suite checks, among other things, that the exact conditional expectations used in the
-tightness analysis coincide with the average over the $n$ possible indices of the realized next state (for SAGA in
-the Euclidean and in a quadratic metric, and for the Lyapunov function of L-Katyusha), that every tightness ratio
-lies in $(0,1]$, that the attribution chain is monotone and ends at the certified rate, that Proposition~\ref{prop:59}
-holds in expectation along runs, and that each algorithm converges on a small problem.
+\paragraph{Commands.} The commands of \nolinkurl{README.md}, each run from the root of the repository, install the
+dependencies, run the tests and the experiments, rebuild the digest and compile the documents:
+\begin{small}
+\begin{verbatim}
+pip install -r requirements.txt
+python tests/test_vrlab.py              # or: python -m pytest tests -q
+python experiments/run_all.py --quick   # smoke test (a few minutes)
+python experiments/run_all.py           # full experiments (many CPU hours)
+python experiments/retry_timeouts.py A4 A4b   # drop the entries that hit the CPU budget
+export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 VRLAB_MAX_TIME=4000
+python experiments/exp_A4_hard_instance.py
+python experiments/exp_A4b_instances.py
+python experiments/make_digest.py
+cd theory && pdflatex main.tex && bibtex main && pdflatex main.tex && pdflatex main.tex
+python report/build.py                  # make_restated.py, main.pdf, synthesis.pdf
+\end{verbatim}
+\end{small}
+\nolinkurl{experiments/run_all.py} runs the scripts of all the experiments, those of hypotheses B3, B2, B1, A3, A2 and
+A4 (\nolinkurl{exp_A4_hard_instance.py} and \nolinkurl{exp_A4b_instances.py}), of Section~\ref{sec:exp-constants} and of
+Section~\ref{sec:exp-validation}, together with \nolinkurl{check_B2_fp_heuristic.py}, the sanity check of
+\resref{rem:B2-gd-heuristic} (it writes \nolinkurl{results/B2_fp_check_summary.json}), and then
+\nolinkurl{experiments/make_digest.py}; with \texttt{-{}-quick} it runs a smoke test, whose figures get a
+\nolinkurl{_quick} suffix, and skips the digest. Results are cached in \nolinkurl{results/*.pkl} (delete a cache to
+recompute its experiment) and summarised in \nolinkurl{results/*_summary.json}, which
+\nolinkurl{experiments/make_digest.py} collects in \nolinkurl{results/digest.md}; every number quoted in this report is
+read from these files or computed from them and from the cached runs. The statements restated in
+Section~\ref{sec:theory} are not typed in the report: \nolinkurl{report/make_restated.py} copies them from the theory
+notes into \nolinkurl{report/restated/} (one file per labelled result of the notes, and
+\nolinkurl{report/restated/names.tex} with the type, appendix and name of each), so that the notes remain their only
+source. It must be run before \nolinkurl{report/main.tex} and \nolinkurl{report/synthesis.tex}, the standalone extract
+of Section~\ref{sec:theory}, are compiled. \nolinkurl{report/build.py} runs it, then compiles \nolinkurl{main.tex} and
+\nolinkurl{synthesis.tex} in this order (pdflatex, bibtex and pdflatex twice for each), since the cross-references of
+the extract are read from \nolinkurl{main.aux}.
 
-\paragraph{Experiments.} \texttt{python experiments/run\_all.py} regenerates every result and figure
-(\texttt{exp\_A4b\_instances.py} and \texttt{exp\_validation\_book.py} are run separately); results are cached in
-\texttt{results/*.pkl}, summarised in \texttt{results/*\_summary.json} and collected in \texttt{results/digest.md}
-by \texttt{experiments/make\_digest.py}; every number quoted in this report comes from that digest. Seeds: the data
-set of a configuration is generated with seed~0, the algorithms are run with seeds $0, \dots, S-1$ (the number of
-seeds $S$ is stated with each figure). Every "expectation" of a one-step quantity is computed exactly by enumerating
-the sampled index; curves labelled "mean over seeds" are empirical averages over the $S$ runs. Trajectories are
-analysed only while the Lyapunov value is above the rounding floor ($10^{-18}$ for SAGA, whose floor is set by the
-precision of $\etastar$; $10^{-10}$ for the Lyapunov function of L-Katyusha, whose $W$-term amplifies the rounding
-error of $F(w) - F_\ast$ by a factor $\theta_2(1+\theta_1)/(p\theta_1) \approx 1500$). Running times on one core:
-about five minutes for the logistic experiments, about one hour for each $\kappa$ sweep.
+\paragraph{Tests.} The test suite (\nolinkurl{tests/test_vrlab.py}) checks the gradients and Hessians of logistic
+regression against finite differences and its per-sample smoothness constants; the Newton solver, on a small problem
+($\norm{\Fp(\etastar)}<10^{-12}$) and on the problem $\kappa=10$, $\alpha=1$ of Section~\ref{sec:exp-B3}, where the
+corrected line search must reach $\norm{\Fp(\etastar)}\le10^{-15}$ within ten iterations; the constants and the exact
+minimizers of the instances (H), (S) and (A), including the geometric minimizers of (S) and (A); that the exact
+conditional expectations used in the tightness analysis coincide with the average over the $n$ possible indices of the
+realized next state, for SAGA in the Euclidean metric, in a dense and in a diagonal quadratic metric and on (S), and for
+the Lyapunov function of L-Katyusha (both outcomes of the coin included); that the tightness ratios of I1--I5 lie in
+$(0,1]$ at a random state; that the attribution chains of orders~A and~B (\resref*{prop:B3-attribution}) are monotone
+and connect the exact contraction to the certified rate; that, for a pair $(\gamma,\Delta)$ other than the textbook
+one, the a-posteriori factors of the trajectory-dependent bound (\resref*{prop:B3-traj}) dominate the exact one-step
+contractions; that the exact one-step contraction of the Lyapunov function of L-Katyusha stays below the largest
+coefficient of the one-step inequality of \resref{thm:lk}, at a random state and along a short run; that the mean of
+$\norm{\theta_t-\etastar}^2$ over six SAGA runs on a small problem stays below the bound of Proposition~\ref{prop:59};
+that SAGA, SAGA in a diagonal and in a dense quadratic metric, L-SVRG, L-Katyusha, GD and AGD converge on small
+problems, and so do L-Katyusha with $\theta_2=0$ on two well-conditioned problems ($\kappa=5$ and $20$) and the naive
+scheme (Nesterov momentum with the SVRG estimator) on an easy problem, whose gradient count is also checked; that the
+error of SGD decreases; and the log--log slope fit with its interval. The divergence of L-Katyusha with $\theta_2=0$ on
+ill-conditioned instances is observed in the experiments only.
+
+\paragraph{Experiments.} Seeds: the logistic data sets are generated with seed~$0$ (for each $\alpha$, one data set
+shared by all values of $\kappa$, which only set $\lambda$), the random block quadratics (R) with the sampling seed (one
+instance per seed), and the chain instances (H), (S) and (A) are deterministic; the algorithms are run with seeds
+$0, \dots, S-1$ (the number of seeds $S$ is stated with each figure). Every ``expectation'' of a one-step quantity is
+computed exactly by enumerating the sampled index; curves labelled ``mean over seeds'' are empirical averages over the
+$S$ runs. Trajectories are analysed only above the rounding floor ($10^{-18}$ on $V_t$ for SAGA and on
+$\norm{\theta_t-\etastar}^2$ in Section~\ref{sec:exp-B2}, a floor set by the precision of $\etastar$; $10^{-10}$ for the
+Lyapunov function of L-Katyusha, whose $W$-term amplifies the rounding error of $F(w) - F(\etastar)$ by the factor
+$\theta_2(1+\theta_1)/(p\theta_1)$, from about $250$ to about $2400$ in our runs). Running times on one core range from
+tens of seconds per logistic configuration of Section~\ref{sec:exp-B3} to several hours for each $\kappa$ sweep.
+
+\paragraph{CPU-time budget of the $\kappa$ sweeps.} In the sweeps of Section~\ref{sec:exp-A4}, every solver run is capped
+by \nolinkurl{VRLAB_MAX_TIME} seconds of CPU time, measured with \texttt{time.process\_time} (default $600$; a suspended
+machine consumes no budget), and a run that reaches the cap does not enter the fits. The reported sweeps were run with
+single-threaded BLAS and a budget of $4000$\,s per run, raised to $8000$\,s for the last runs of the A4b sweep, among them
+SAGA at the nominal $\kappa=10^6$ on (S); every run reached its target, except the runs of L-Katyusha without negative
+momentum, which diverge for $\kappa\ge10^3$. The grid search of the naive scheme gives each grid run $45$\,s of CPU time;
+the grid runs have the same cost per iteration, so a run cut by this budget had already used more gradients than the
+selected setting needed in total, and the cap does not affect the selection.
+
+\paragraph{Minimizers.} For the quadratic instances, $\etastar$ is obtained by a direct solve. For logistic regression,
+the cached results were computed with a damped Newton method whose Armijo test, decided by the rounding error of $F$ near
+the optimum, stalled at $\norm{\Fp(\etastar)}=1.3\cdot10^{-12}$ on one problem ($\kappa=10$, $\alpha=1$; at most
+$9\cdot10^{-16}$ on the fourteen other problems of Section~\ref{sec:exp-B3}). By strong convexity the squared error of
+$\etastar$ is at most $\norm{\Fp(\etastar)}^2/\mu^2$: $2.1\cdot10^{-21}$ on that problem, where the corrected solver
+moves $\etastar$ by a squared distance of $1.3\cdot10^{-21}$, and $7\cdot10^{-20}$ at most over the fifteen problems,
+attained at $\kappa=10^5$, $\alpha=0$, whose runs stay above $10^{-13}$. On the problems whose runs reach the analysis
+floor, these errors change $\norm{\theta_t-\etastar}^2=10^{-18}$ by at most about $10\%$. The line search has since been
+corrected in \nolinkurl{vrlab/solvers.py} (near the optimum, a step is accepted as soon as it decreases $\norm{\Fp}$);
+the results reported here were computed before this correction.
 
 \paragraph{Figures.} Colours follow a fixed, colour-blind-safe categorical palette: a given algorithm or a given
 inequality keeps its colour across all figures; sequential magnitudes use a single-hue ramp.

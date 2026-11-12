@@ -1,0 +1,35 @@
+% Standalone extract of the report: the Theory section (sections/theory_overview.tex) as its own PDF.
+% Cross-references to the other sections, to the appendices and to the figures resolve to the numbering of the full
+% report (main.pdf) through xr-hyper. Build: python make_restated.py, compile main.tex (pdflatex, bibtex,
+% pdflatex x2), then   pdflatex synthesis && bibtex synthesis && pdflatex synthesis && pdflatex synthesis
+\documentclass[11pt]{article}
+\usepackage{xr-hyper}            % must be loaded before hyperref, which the preamble loads
+\input{../theory/preamble}
+\externaldocument{main}[main.pdf]
+\newcommand{\rsproofwhere}[2]{Appendix~#1 of the full report, p.~\pageref{#2}}  % pointer of the restated results
+\input{restate_defs}             % \restate, \resref (statements generated from the notes by make_restated.py)
+\graphicspath{{../figures/}}
+\hypersetup{colorlinks=true, linkcolor=blue!60!black, citecolor=blue!60!black, urlcolor=blue!60!black}
+\setlength{\emergencystretch}{2em}  % as in main.tex, so that the restated statements break lines as in the report
+
+\title{Accelerating Variance Reduction: Optimal Complexity of Finite-Sum Optimization\\[4pt]
+\large Theory overview (standalone extract of the project report)}
+\author{Beline Yuan \and Paul Ruiz Alliata \and Louis Darrigol}
+\date{\today}
+
+\begin{document}
+\maketitle
+\noindent This document reproduces the Theory section of the project report (\texttt{main.pdf}). Its results are
+stated with the numbers they have in the appendices of the report (the five theory notes), which contain their
+proofs. The bracket after each statement gives the page of the report where the appendix proves it (after
+``proof:''), or, for definitions, assumptions and results quoted from the literature, the page where the appendix
+states it. References to the other sections (Proposition~5.9 of the book and its notation are in Section~2), to the
+appendices and to the figures use the numbering of the full report.
+
+\setcounter{section}{3}          % the Theory section is Section 4 of the report (checked against main.aux at build time)
+\section{Theory}
+\input{sections/theory_overview}
+
+\bibliographystyle{plain}
+\bibliography{../bibliography/references}
+\end{document}

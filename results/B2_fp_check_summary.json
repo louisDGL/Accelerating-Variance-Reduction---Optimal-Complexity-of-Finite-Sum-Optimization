@@ -1,0 +1,83 @@
+{
+ "config": {
+  "n": 20,
+  "d": 40,
+  "lambda": 0.0001,
+  "iterations": 3000,
+  "step": "1/L_F",
+  "labels": "sign(<x, w> + 0.5 noise), w and noise standard Gaussian",
+  "features": "unit-norm Gaussian"
+ },
+ "seed0": {
+  "lambda": 0.0001,
+  "lambda_plus_lambda_plus_min": 0.00013456501465386767,
+  "lambda_min_hessian": 9.999999999999945e-05,
+  "grad_norm_at_eta_star": 2.3897087982278936e-18,
+  "theta0_zero": {
+   "mu_eff_final": 0.0001356445922811276,
+   "rel_gap_to_target": 0.008022721433478467,
+   "rel_gap_to_lambda": 0.35644592281127596,
+   "frac_nonincreasing_steps": 1.0,
+   "perp_norm_initial": 1.0091692750489592e-14,
+   "perp_norm_max_after_0": 1.5919596373577527e-14,
+   "perp_norm_final": 9.408172544129234e-15
+  },
+  "theta0_gaussian": {
+   "mu_eff_final": 0.00010000263217313554,
+   "rel_gap_to_target": -0.2568452325415679,
+   "rel_gap_to_lambda": 2.632173135540001e-05,
+   "frac_nonincreasing_steps": 1.0,
+   "perp_norm_initial": 3.4645480626116636,
+   "perp_norm_max_after_0": 3.454357136816475,
+   "perp_norm_final": 0.0005030177084751985
+  }
+ },
+ "seed1": {
+  "lambda": 0.0001,
+  "lambda_plus_lambda_plus_min": 0.00011249194687275608,
+  "lambda_min_hessian": 9.999999999999965e-05,
+  "grad_norm_at_eta_star": 2.715742447100182e-18,
+  "theta0_zero": {
+   "mu_eff_final": 0.00011351083510321685,
+   "rel_gap_to_target": 0.009057432632162254,
+   "rel_gap_to_lambda": 0.13510835103216842,
+   "frac_nonincreasing_steps": 1.0,
+   "perp_norm_initial": 8.530313917483712e-15,
+   "perp_norm_max_after_0": 1.1820421306683902e-14,
+   "perp_norm_final": 9.389971072682296e-15
+  },
+  "theta0_gaussian": {
+   "mu_eff_final": 0.00010000124848723202,
+   "rel_gap_to_target": -0.11103637844985266,
+   "rel_gap_to_lambda": 1.2484872320136587e-05,
+   "frac_nonincreasing_steps": 1.0,
+   "perp_norm_initial": 5.268702121305967,
+   "perp_norm_max_after_0": 5.252778307407904,
+   "perp_norm_final": 0.0005997677120339547
+  }
+ },
+ "seed2": {
+  "lambda": 0.0001,
+  "lambda_plus_lambda_plus_min": 0.00010365081809264354,
+  "lambda_min_hessian": 9.999999999999945e-05,
+  "grad_norm_at_eta_star": 1.3873686040171003e-18,
+  "theta0_zero": {
+   "mu_eff_final": 0.0001036511459966867,
+   "rel_gap_to_target": 3.1635451528414605e-06,
+   "rel_gap_to_lambda": 0.036511459966867006,
+   "frac_nonincreasing_steps": 1.0,
+   "perp_norm_initial": 9.951718964291343e-15,
+   "perp_norm_max_after_0": 1.492497710349348e-14,
+   "perp_norm_final": 1.027946617556117e-14
+  },
+  "theta0_gaussian": {
+   "mu_eff_final": 0.00010000016470306619,
+   "rel_gap_to_target": -0.03522069055272082,
+   "rel_gap_to_lambda": 1.647030661812085e-06,
+   "frac_nonincreasing_steps": 1.0,
+   "perp_norm_initial": 5.316630121884798,
+   "perp_norm_max_after_0": 5.300360004396154,
+   "perp_norm_final": 0.0005400060345679928
+  }
+ }
+}

@@ -8,8 +8,8 @@ We consider
 \end{equation}
 and follow the notation of \cite{bach2024learning}: $\fip = \grad f_i$, $\Fp = \grad F$, $\etastar$ is the
 minimizer of $F$, each $f_i$ is convex and $R^2$-smooth ($\fip$ is $R^2$-Lipschitz continuous), $F$ is
-$\mu$-strongly convex, and $\kappa = R^2/\mu$ is the condition number. Note that $R^2 \ge L$, the smoothness
-constant of $F$, so that $\kappa \ge L/\mu$; this distinction matters for the comparison between stochastic and
+$\mu$-strongly convex, and $\kappa = R^2/\mu$ is the condition number. Note that $R^2 \ge L_F$, the smoothness
+constant of $F$, so that $\kappa \ge L_F/\mu$; this distinction matters for the comparison between stochastic and
 full-gradient methods. Smoothness and convexity of each $f_i$ give \emph{cocoercivity}
 (Proposition~5.4 of the book), $\norm{\fip(\theta) - \fip(\eta)}^2 \le R^2\,\inner{\fip(\theta) - \fip(\eta)}{\theta - \eta}$,
 which is the only property of the $f_i$ used by the SAGA proof.
@@ -23,71 +23,112 @@ For features $x_i \in \R^d$ and labels $y_i \in \{-1, 1\}$,
 \end{equation}
 with $\sigma(u) = (1+e^{-u})^{-1}$. Since the second derivative of the logistic loss is $\sigma(u)\sigma(-u) \le 1/4$,
 each $f_i$ is $L_i$-smooth with $L_i = \norm{x_i}^2/4 + \lambda$, and we take \emph{$R^2 := \max_i L_i$}
-throughout (the book's "features bounded by $R$" is loose by the factor $4$). The global strong-convexity
-constant of $F$ is exactly $\mu = \lambda$: the data term of the Hessian, $\frac1n\sum_i \sigma'(y_i x_i^\top\theta)\,x_i x_i^\top$,
-is positive semidefinite and vanishes along directions where all margins go to infinity, so that no larger constant
-is valid globally, whereas locally (near $\etastar$) the curvature is $\lambda_{\min}(F''(\etastar)) \ge \lambda$. This
-gap between global and local curvature is the object of hypothesis B2.
+throughout; as \resref{rem:B3-R2} details, the book's ``features bounded by $R$'' is loose by a factor close to $4$
+when $\lambda\ll\max_i\norm{x_i}^2$. The global strong-convexity constant of $F$ is exactly $\mu = \lambda$
+(\resref*{prop:B2-global}): the data term of the Hessian, $\frac1n\sum_i \sigma'(y_i x_i^\top\theta)\,x_i x_i^\top$,
+is positive semidefinite and vanishes along directions where all margins go to infinity, so that no larger constant is
+valid globally, whereas locally (near $\etastar$) the curvature is $\lambda_{\min}(F''(\etastar)) \ge \lambda$, as
+\resref{prop:B3-logistic} quantifies. This gap between global and local curvature is the object of hypothesis B2.
 
 Synthetic problems are generated with $x_i = \Sigma^{1/2} g_i$, $g_i \sim \mathcal N(0, I_d)$, where $\Sigma$ has
 eigenvalues $j^{-\alpha}$, $j = 1, \dots, d$ (so $\alpha = 0$ is isotropic and the covariance condition number is
 $d^\alpha$), a random rotation, and a global rescaling so that $\max_i\norm{x_i} = 1$; labels are
 $y_i = \mathrm{sign}(x_i^\top w + \varepsilon_i)$ with $\mathrm{std}(Xw) = 2$ and $\varepsilon_i \sim \mathcal N(0,1)$
-(about $16\%$ label noise); the regularization $\lambda = (1/4)/(\kappa - 1)$ fixes $\kappa = R^2/\mu$ exactly. The
-minimizer $\etastar$ is computed by a damped Newton method until $\norm{\Fp(\etastar)} \le 10^{-15}$, which bounds
-$\norm{\etastar - \eta_{\rm exact}} \le 10^{-15}/\mu$ by strong convexity, and $\fip(\etastar)$ is stored for all $i$.
+(on the data sets of Section~\ref{sec:experiments}, $n=1000$, $d=50$, data seed $0$, the labels differ from
+$\mathrm{sign}(x_i^\top w)$ for $15.0\%$, $16.6\%$ and $15.7\%$ of the samples when $\alpha=0$, $1$ and $2$); the
+regularization $\lambda = (1/4)/(\kappa - 1)$ fixes $\kappa = R^2/\mu$ exactly. The minimizer $\etastar$ is computed by
+a damped Newton method until $\norm{\Fp(\etastar)} \le 10^{-15}$ or stagnation, which bounds
+$\norm{\etastar - \eta_{\rm exact}} \le \norm{\Fp(\etastar)}/\mu$ by strong convexity, and $\fip(\etastar)$ is stored
+for all $i$. For the cached results, the worst of the fifteen problems of Section~\ref{sec:exp-B3} stopped at
+$\norm{\Fp(\etastar)}=1.3\cdot10^{-12}$, where the Armijo test of the line search had reached the rounding level of $F$
+(Appendix~\ref{app:repro}).
 
 \paragraph{SAGA and Proposition 5.9.}
 SAGA \cite{defazio2014saga} keeps a memory $z_i^{(t)} \in \R^d$ of the last gradient seen for each $i$. At iteration $t$ an index
 $i(t)$ is drawn uniformly in $\{1, \dots, n\}$ and
 \begin{equation}\label{eq:saga}
-  \theta_t = \theta_{t-1} - \gamma\,\omega_t,\quad
-  \omega_t = \fip[i(t)](\theta_{t-1}) + \frac1n\sum_{i=1}^n z_i^{(t-1)} - z_{i(t)}^{(t-1)},\quad
-  z_{i(t)}^{(t)} = \fip[i(t)](\theta_{t-1}),\ z_j^{(t)} = z_j^{(t-1)}\ (j \ne i(t)),
+\begin{gathered}
+  \theta_t = \theta_{t-1} - \gamma\,\omega_t,\qquad
+  \omega_t = f'_{i(t)}(\theta_{t-1}) + \frac1n\sum_{i=1}^n z_i^{(t-1)} - z_{i(t)}^{(t-1)},\\
+  z_{i(t)}^{(t)} = f'_{i(t)}(\theta_{t-1}),\qquad z_j^{(t)} = z_j^{(t-1)}\ \ (j \ne i(t)).
+\end{gathered}
 \end{equation}
-where $\fip[i]$ denotes $\fip$ for the index $i$. The direction is unbiased, $\Ei[\omega_t] = \Fp(\theta_{t-1})$.
-\begin{proposition}[Prop.~5.9 of \cite{bach2024learning}]\label{prop:59}
+The direction is unbiased, $\Ei[\omega_t] = \Fp(\theta_{t-1})$.
+% Restated with the book's number (5.9), so that the report never calls it by another number.
+{\renewcommand{\thetheorem}{5.9}%
+\begin{proposition}[convergence of SAGA, \cite{bach2024learning}]\label{prop:59}
 If $z_i^{(0)} = \fip(\theta_0)$ for all $i$ and $\gamma = 1/(4R^2)$, then
 \[
   \E\norm{\theta_t - \etastar}^2 \le \Big(1 - \min\Big\{\frac{1}{3n}, \frac{3\mu}{16R^2}\Big\}\Big)^t \Big(1 + \frac n4\Big)\norm{\theta_0 - \etastar}^2 .
 \]
-\end{proposition}
+\end{proposition}}\addtocounter{theorem}{-1}% the restatement does not consume a number of Section 2
 The proof uses the Lyapunov function
 \begin{equation}\label{eq:lyapunov}
   V_t = \norm{\theta_t - \etastar}^2 + \Delta \sum_{i=1}^n \norm{z_i^{(t)} - \fip(\etastar)}^2, \qquad \Delta = 3\gamma^2,
 \end{equation}
 and consists of six inequalities, which we label once and for all:
 \begin{center}
-\begin{tabular}{llp{8.2cm}}
+\begin{tabular}{llp{9.8cm}}
 \toprule
 label & name & statement \\
 \midrule
-I1 & square norm & $\Ei\norm{\omega_t}^2 \le 2\,\Ei\norm{a_t}^2 + 2\,\Ei\norm{b_t}^2$ with $a_t = \fip[i(t)](\theta_{t-1}) - \fip[i(t)](\etastar)$, $b_t = \omega_t - a_t$ \\
+I1 & square norm & \raggedright $\Ei\norm{\omega_t}^2 \le 2\,\Ei\norm{a_t}^2 + 2\,\Ei\norm{b_t}^2$ with $a_t = f'_{i(t)}(\theta_{t-1}) - f'_{i(t)}(\etastar)$, $b_t = \omega_t - a_t$ \tabularnewline
 I2 & cocoercivity & $\frac1n\sum_i \norm{\fip(\theta_{t-1}) - \fip(\etastar)}^2 \le R^2\,\inner{\Fp(\theta_{t-1})}{\theta_{t-1} - \etastar}$ (used twice) \\
 I3 & variance $\le$ second moment & $\Ei\norm{b_t}^2 \le \frac1n \sum_i \norm{z_i^{(t-1)} - \fip(\etastar)}^2$ \\
 I4 & strong convexity & $\inner{\Fp(\theta_{t-1})}{\theta_{t-1} - \etastar} \ge \mu\norm{\theta_{t-1} - \etastar}^2$ \\
-I5 & min of two rates & $\rho_D D + \rho_M \Delta M \le \max(\rho_D, \rho_M)(D + \Delta M)$ \\
+I5 & min of two rates & \raggedright $\rho_D D + \rho_M \Delta M \le \max(\rho_D, \rho_M)(D + \Delta M)$, with
+$D=\norm{\theta_{t-1}-\etastar}^2$, $M=\sum_i\norm{z_i^{(t-1)}-\fip(\etastar)}^2$, and $\rho_D=1-\frac{3\mu}{16R^2}$,
+$\rho_M=1-\frac1{3n}$ the coefficients left by I1--I4 \tabularnewline
 I6 & initialization & $\sum_i \norm{\fip(\theta_0) - \fip(\etastar)}^2 \le nR^4\norm{\theta_0 - \etastar}^2$ \\
 \bottomrule
 \end{tabular}
 \end{center}
-Section~\ref{sec:theory} rewrites the proof as an exact one-step identity plus this chain, defines a
-\emph{tightness ratio} in $(0,1]$ for each inequality, and shows how replacing the inequalities one at a time by
-the measured quantities attributes the gap between the certified rate and the observed one to each step.
+The cumulative attribution of Section~\ref{sec:experiments} applies them in the order I1, I3, I2, I4, I5
+(\emph{proof order}: the proof uses I2 in both recursions, the first time right after I1, and the attribution applies
+it to both at once, after I3). With $\Delta=3\gamma^2$, I6 gives $V_0\le(1+\frac{3n}{16})\norm{\theta_0-\etastar}^2$,
+which the statement of Proposition~\ref{prop:59} rounds up to $1+\frac n4$.
+Section~\ref{sec:theory} rewrites the proof as an exact one-step identity, \resref{prop:B3-exact}, followed by
+this chain, defines a \emph{tightness ratio} in $[0,1]$ for each inequality (\resref*{def:B3-ratios}), and shows how
+replacing the inequalities one at a time by the measured quantities attributes the gap between the certified
+contraction factor and the exact one-step contraction to each step (\resref*{prop:B3-attribution}).
 
 \paragraph{Other algorithms.}
-We also implement gradient descent (step $1/L$), Nesterov's accelerated gradient with constant momentum
-$(\sqrt{L/\mu}-1)/(\sqrt{L/\mu}+1)$, loopless SVRG \cite{hofmann2015variance,kovalev2020dont} (estimator
+We also implement gradient descent (step $1/L_F$), Nesterov's accelerated gradient with constant momentum
+$(\sqrt{L_F/\mu}-1)/(\sqrt{L_F/\mu}+1)$, loopless SVRG \cite{hofmann2015variance,kovalev2020dont} (estimator
 $\fip(\theta) - \fip(w) + \Fp(w)$ with the reference point $w$ refreshed with probability $p = 1/n$), loopless
-Katyusha \cite{kovalev2020dont} with the parameters of its Theorem~4.6, and two "naive" accelerations of the
-SVRG estimator: Nesterov momentum applied to the estimator, and L-Katyusha with the negative-momentum weight
-$\theta_2$ set to zero (Section~\ref{sec:lkatyusha}). Gradient evaluations are counted as one per component
-gradient and $n$ per full gradient; SVRG-type methods pay two per iteration.
+Katyusha \cite{kovalev2020dont} with the parameters of its Theorem~11 (Theorem~4.6 of
+arXiv:1901.08689v2),\footnote{In the main text and in the appendices, the assumptions, lemmas and theorems
+of~\cite{kovalev2020dont} are numbered as in the proceedings version listed in the bibliography (ALT~2020, PMLR~117).
+Its Assumptions~1--2, Theorem~5 (L-SVRG), Lemmas~6--10 and Theorem~11 (L-Katyusha) are Assumptions~1.1--1.2,
+Theorem~3.5, Lemmas~4.1--4.5 and Theorem~4.6 of version~2 of the arXiv preprint (arXiv:1901.08689v2; version~1
+numbers them differently); algorithms, equations, sections and appendices are numbered identically in both.} and two
+``naive'' accelerations of the SVRG estimator: Nesterov momentum applied to the estimator, and L-Katyusha with the
+negative-momentum weight ($\theta_2$ in the notation of~\cite{kovalev2020dont}) set to zero and its other parameters
+unchanged, an instance of \resref{def:naive}. Gradient evaluations are counted as one per component gradient and $n$
+per full gradient. SAGA pays $n$ for its initial sweep and one per iteration. L-SVRG, L-Katyusha and the naive schemes
+pay $n$ initially, two per iteration ($f'_{i(t)}$ at the current point and at the reference point, the latter charged
+as if it were recomputed, although the code stores the $n$ gradients $\fip(w)$) and $n$ per refresh of the reference
+point, i.e.\ three per iteration on average when $p=1/n$ (Section~\ref{sec:exp-protocol}). \resref{prop:A4}, like the
+other bounds of Appendix~\ref{sec:lower_bound}, counts L-Katyusha with stored reference gradients: $n$ for the initial
+full gradient $\Fp(w_0)$, then two per iteration on average. Measured counts are about $\frac32$ times the counts of
+that convention, and log--log slopes are essentially unaffected.
 
-\paragraph{The hard instance.}
-For hypothesis A4 we use the block-separable construction behind the lower bound of \cite{lan2018optimal}: $n$
-blocks of $m$ coordinates, $f_i(\theta) = n\,h(\theta_{B_i})$ with $h$ a scaled Nesterov chain quadratic
-$h(x) = c\,(\tfrac12 x^\top T x - e_1^\top x) + \tfrac{\mu_b}{2}\norm{x}^2$ ($T$ tridiagonal with $2$ on the
-diagonal and $-1$ off it), so that each $f_i$ is $n\lambda_{\max}(cT + \mu_b I)$-smooth, $F$ is
-$\lambda_{\min}(cT + \mu_b I)$-strongly convex, the minimizer is known in closed form, and $c$ is solved so that
-$\kappa = R^2/\mu$ takes a prescribed value (Section~\ref{sec:lowerbound}).
+\paragraph{Hard instances.}
+For hypotheses A2--A4 we use quadratic instances with $n=16$ components (Section~\ref{sec:exp-protocol}). The first,
+denoted (H), is the block-separable construction behind the lower bound of \cite{lan2018optimal}
+(\resref*{thm:LZ}), as built by our code: $n$ blocks $B_i$ of $m$ coordinates and $f_i(\theta) = n\,h(\theta_{B_i})$,
+where $h(x) = c\,(\tfrac12 x^\top T x - e_1^\top x) + \tfrac{\mu_b}{2}\norm{x}^2$ is a scaled Nesterov chain quadratic,
+$T$ is tridiagonal with $2$ on the whole diagonal and $-1$ off it, and $\mu_b=1$: the regularizer of $f_i$ acts on its
+own block only. Each $f_i$ is then $n\lmax(cT + \mu_b I)$-smooth and $F=\sum_ih(\theta_{B_i})$ is $\mu$-strongly convex with
+$\mu=\lmin(cT + \mu_b I)$, so that $\kappa=R^2/\mu>n$. The constant $c=\mu_b(\kappa-n)/(n\lmax(T)-\kappa\lmin(T))$,
+computed from the extreme eigenvalues of $T$ (which requires $n<\kappa<n\lmax(T)/\lmin(T)$), makes $\kappa=R^2/\mu$
+hold exactly with this $\mu$, which exceeds $\mu_b$ (by $30\%$ at $\kappa=10^5$, $m=256$). The minimizer, the same on
+every block, solves the tridiagonal system $(cT+\mu_bI)x=ce_1$ and is computed by a direct solve; its closed form is
+that of part~(b) of \resref{prop:minimizer}, with $Q=1+4c/\mu_b$. The lower bounds that
+Appendix~\ref{sec:lower_bound} proves on a hard finite-sum instance, \resref{prop:anyseq}, \resref{thm:instance},
+\resref{cor:count} and \resref{cor:sweep}, as well as \resref*{prop:A4}, which delimits the window of certified
+exponents, concern a variant of (H), denoted (S) and defined in Section~\ref{sec:th-A1}: one chain per component as in
+(H), but with the regularizer $\frac\mu2\norm\theta^2$ shared by all components, which allows every $\kappa>1$, the
+constant $c=\mu(\kappa-1)/4$, and the last diagonal entry of the chain modified so that the minimizer is an exact
+geometric sequence. None of these results is proved for (H) itself. Section~\ref{sec:exp-A4} also uses the aligned variant (A) of (S), all of whose
+components are equal to one chain, and block quadratics with random spectra (R).

@@ -44,3 +44,11 @@
 \newcommand{\lmax}{\lambda_{\max}}
 \newcommand{\ind}{\mathbf{1}}
 \DeclareMathOperator{\Var}{Var}
+
+% Table of contents: room for the appendix numbers (B3, A1, ...) and their subsection numbers (B3.10, ...)
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd{\l@section}{1.5em}{2.4em}{}{}
+\renewcommand*\l@subsection{\@dottedtocline{2}{2.4em}{3.0em}}
+\renewcommand*\l@subsubsection{\@dottedtocline{3}{5.4em}{3.6em}}
+\makeatother

@@ -1,0 +1,151 @@
+% -----------------------------------------------------------------------------------------------------
+% Hypotheses A3 and A2. Statements restated from theory/A3_lkatyusha_lyapunov.tex (\restate); numbers quoted:
+%   A3_summary.json (3 seeds; hard instance, logistic kappa = 1e3, 1e4): speedup_exact_over_lemma 4.668, 2.775, 4.117;
+%     speedup_exact_over_rho 9.33, 3.70, 8.23; contraction_componentwise_max < 0; q_plus_frac_ge_1 0.0986, 0.0519,
+%     0.1929.
+%   A2_summary.json (one seed, kappa = 1e4): theta2 = 0 diverged on (H) (m = 64); stable anchor-free schemes 8.1-8.5
+%     (logistic) and 20.1 ((H)) times fewer gradients than L-SVRG (A3 note, Outcome: "8 to 20 times").
+%   A4_summary.json (3 seeds, kappa >= 10n): slopes of the re-tuned naive scheme 0.806 ((H)) and 0.814 (random spectra).
+% -----------------------------------------------------------------------------------------------------
+\subsection{L-Katyusha: Lyapunov proof, negative momentum, and naive acceleration}\label{sec:th-A3}
+
+Hypothesis A3 asks where the negative momentum of loopless Katyusha (L-Katyusha) \cite{kovalev2020dont} enters a
+Lyapunov proof written in the style of the book. For hypothesis A2, whether naive acceleration fails (Nesterov's
+momentum applied to the loopless SVRG estimator, without negative momentum), we ask why the same proof does not close in
+this case. Appendix~\ref{sec:lkatyusha} rewrites the proof of \cite{kovalev2020dont} in the notation of the book, under
+the following assumption.
+\restate{ass:lk}
+In this subsection $L=R^2$ is the per-sample smoothness constant, not the smoothness constant $L_F$ of $F$, which
+Section~\ref{sec:th-B2} denotes $L$.
+L-Katyusha keeps a gradient sequence $y_t$, a mirror sequence $z_t$ and a reference point $w_t$ at which the full
+gradient $\Fp(w_t)$ is known. We keep the notation of \cite{kovalev2020dont} for its parameters: $\theta_1,\theta_2$ are
+momentum weights, not iterates, $\eta$ is a step parameter, not the minimizer $\etastar$, and $z_t$ is the mirror
+sequence, not the SAGA memory. Let $\theta_1,\theta_2>0$ with $\theta_1+\theta_2\le1$, $p\in(0,1]$, and
+\begin{equation*}
+\eta:=\frac{\theta_2}{(1+\theta_2)\theta_1}.\tag{\ref*{eq:lk-eta}}
+\end{equation*}
+From $y_0=z_0=w_0=\theta_0$, with $\Fp(w_0)$ computed, an iteration reads
+\begin{align*}
+x_t &= \theta_1 z_t+\theta_2 w_t+(1-\theta_1-\theta_2)y_t, \tag{K1}\\
+g_t &= f'_{i(t)}(x_t)-f'_{i(t)}(w_t)+\Fp(w_t), \tag{K2}\\
+z_{t+1} &= \frac1{1+\eta\sigma}\Big(\eta\sigma\,x_t+z_t-\frac\eta L\,g_t\Big), \tag{K3}\\
+y_{t+1} &= x_t+\theta_1(z_{t+1}-z_t), \tag{K4}\\
+w_{t+1} &= y_t\ \text{with probability $p$},\qquad w_{t+1}=w_t\ \text{otherwise}, \tag{K5}
+\end{align*}
+where $i(t)$ is uniform on $\{1,\dots,n\}$ and the coin of \eqref{eq:K5} is independent of $i(t)$ and of the past;
+$\Ei$ denotes the expectation over both given $(y_t,z_t,w_t)$, so that $\Ei[g_t]=\Fp(x_t)$. Step \eqref{eq:K3} is a
+mirror step, \eqref{eq:K4} a gradient step, and \eqref{eq:K1} couples them \cite{allenzhu2017linear}. The term
+$\theta_2w_t$ of \eqref{eq:K1}, the anchor, is the \emph{negative momentum} of Katyusha \cite{allenzhu2018katyusha}: it
+pulls the query point towards the point where the estimator has no variance. With $\theta_2=0$ and a free step $\eta$,
+$x_{t+1}=y_{t+1}+(1-\theta_1)(y_{t+1}-y_t)$ and the method is a variant of Nesterov's momentum applied to the loopless
+SVRG estimator, the naive acceleration of hypothesis A2; see \resref{rem:naive-book}. Theorem~11
+of \cite{kovalev2020dont} takes
+\begin{equation*}
+\theta_2=\tfrac12,\qquad \theta_1=\min\Big\{\sqrt{\tfrac{2\sigma n}{3}},\,\tfrac12\Big\}=\min\Big\{\sqrt{\tfrac{2n}{3\kappa}},\,\tfrac12\Big\},\qquad p=\tfrac1n,\qquad \eta=\frac{\theta_2}{(1+\theta_2)\theta_1}=\frac1{3\theta_1},\tag{\ref*{eq:lk-param}}
+\end{equation*}
+and its proof tracks the Lyapunov function
+\begin{equation*}
+\begin{aligned}
+\Psi_t &:= Z_t+Y_t+W_t,\\
+Z_t&:=\frac{L(1+\eta\sigma)}{2\eta}\norm{z_t-\etastar}^2,\qquad Y_t:=\frac1{\theta_1}\big(F(y_t)-F_\ast\big),\qquad W_t:=\frac{\theta_2(1+\theta_1)}{p\theta_1}\big(F(w_t)-F_\ast\big),
+\end{aligned}\tag{\ref*{eq:lk-lyap}}
+\end{equation*}
+the sum of a distance of the mirror sequence, of a function value of the gradient sequence and of a memory term, which
+measures the quality of the reference point. Finally, $D_F(w,x):=F(w)-F(x)-\inner{\Fp(x)}{w-x}\ge0$ denotes the Bregman
+divergence of $F$.
+
+The proof certifies a contraction of $\Psi$ in conditional expectation at every step, for all admissible parameters,
+and a global rate for the parameters \eqref{eq:lk-param}.
+\restate{thm:lk}
+We write $c_Z$, $c_Y$ and $c_W$ for the three coefficients of \eqref{ineq:contraction}, so that $\Ei[\Psi_{t+1}]$ is
+at most $\max\{c_Z,c_Y,c_W\}\,\Psi_t$, a factor that the proof of \eqref{ineq:rate} bounds by $1-\rho$. The two
+terms of $\rho$ are lower bounds on $1-c_Z$, the contraction rate of the distance $Z_t$ of the mirror sequence, whose
+step $\eta/L=1/(3\theta_1L)$ grows as $\theta_1$ decreases, and on $1-c_W$, that of the memory term $W_t$, refreshed with
+probability $\frac1n$; for $\kappa\ge\frac{8n}3$, the value $\theta_1=\sqrt{2n/(3\kappa)}$ of \eqref{eq:lk-param} balances
+them up to a factor $2$. Along L-Katyusha runs, with
+$\Ei[\Psi_{t+1}]$ computed exactly, \eqref{ineq:contraction} holds at every recorded state, and the exact one-step
+contraction exponent is on average $2.8$ to $4.7$ times the certified exponent $-\log\max\{c_Z,c_Y,c_W\}$ and $3.7$ to
+$9.3$ times $-\log(1-\rho)$ (three problems, 3 seeds; Section~\ref{sec:exp-A3}). In gradient evaluations, the rate gives
+the following count.
+\restate{cor:lk-complexity}
+The count without storage, three gradients per iteration in expectation, is the convention of the experiments and of
+Table~\ref{tab:th-complexity}; the count with storage is that of the bounds of Appendix~\ref{sec:lower_bound}. The
+condition on $\varepsilon$ lets the constants absorb the rounding of the number of iterations to an integer. For
+$\kappa\gg n$, the leading term $\sqrt{n\kappa}\log\frac1\varepsilon$ is of the order of the lower bounds of
+Section~\ref{sec:th-A1}.
+
+\paragraph{The proof, and where the negative momentum acts.}
+The proof of the one-step contraction \eqref{ineq:contraction} chains five lemmas, L1--L5, which reproduce Lemmas~6--10
+of \cite{kovalev2020dont} and use seven elementary inequalities, listed with their tightness ratios in
+Table~\ref{tab:lk-instrument} of Appendix~\ref{sec:lkatyusha}. L1 (\resref*{lem:L1}) bounds the variance of the
+estimator; L2 (\resref*{lem:L2}) bounds the mirror step by the three-point identity; L3 (\resref*{lem:L3}) bounds the
+gradient step by smoothness and Young's inequality; L4 (\resref*{lem:L4}) is the identity \eqref{eq:wstep} for the
+refresh of $w$; and L5 (\resref*{lem:L5}) combines them with strong convexity at $x_t$ and convexity towards $y_t$. The
+form of L1 matters for hypothesis A3: it bounds the variance by a Bregman divergence, whose inner-product part the
+negative momentum cancels.
+\restate{lem:L1}
+It is the one-sided (Bregman) form of co-coercivity in \eqref{ineq:var-coco}, instead of the symmetric form used in the
+proof of Proposition~\ref{prop:59}, that produces this divergence; Section~\ref{sec:exp-A3} measures the two steps of
+\eqref{ineq:var} along trajectories. In the proof of L5 (\resref*{lem:L5}), $\theta_2$ is used for something other
+than bookkeeping at a single step, Step~6, the identity
+\begin{equation*}
+\frac{\theta_2}{\theta_1}\inner{\Fp(x_t)}{x_t-w_t}-\frac{\theta_2}{\theta_1}\Big(F(w_t)-F(x_t)-\inner{\Fp(x_t)}{w_t-x_t}\Big)=-\frac{\theta_2}{\theta_1}\big(F(w_t)-F(x_t)\big),\tag{\ref*{eq:cancel}}
+\end{equation*}
+in which the first term comes from the anchor $\theta_2w_t$ of \eqref{eq:K1} and the second is the variance term, which
+enters through L3 and L1:
+\restate{prop:cancel}
+The inner-product part of $D_F(w_t,x_t)$ must be cancelled rather than absorbed. By smoothness,
+$D_F(w_t,x_t)\le\frac L2\norm{w_t-x_t}^2$ is a squared distance at the scale $L$, while the certified decrease per step
+is of order $\rho\Psi_t$, with $\rho=1/\sqrt{24n\kappa}$ when $\kappa\ge\frac{8n}3$: absorbing this term would require
+converting a squared distance into function values, at the price of a factor $\kappa$, which \resref{prop:naive-kappa}
+makes precise for the naive scheme; and the inner product $\inner{\Fp(x_t)}{x_t-w_t}$ has no sign and is not a
+difference of function values that a potential could pay. The negative momentum costs a constant factor: $Y_t$
+contracts by $\theta_1(1-\theta_2)$ instead of $\theta_1$, half as fast for $\theta_2=\frac12$. It also ties the step to
+$\theta_2$, as \resref{rem:eta-theta2} explains: for a general step, Young's inequality in L3 (\resref*{lem:L3})
+produces the variance coefficient $\nu/(2L\theta_1)$ with $\nu=\eta\theta_1/(1-\eta\theta_1)$, and the cancellation is
+exact only for $\nu=\theta_2$, that is, for the step \eqref{eq:lk-eta}: a larger step leaves the residual
+$\frac{\nu-\theta_2}{\theta_1}D_F(w_t,x_t)$, the extra term of the naive scheme (\resref*{prop:naive}) with
+$\nu-\theta_2$ in place of $\nu$, and a smaller one wastes part of the pull. Along the L-Katyusha runs of
+Section~\ref{sec:exp-A3}, the cancelled term $\frac{\theta_2}{\theta_1}\inner{\Fp(x_t)}{x_t-w_t}$ is positive and larger
+than the certified one-step decrease $(1-\max\{c_Z,c_Y,c_W\})\Psi_t$ on $9.9\%$, $5.2\%$ and $19.3\%$ of the recorded
+states of the three problems; only there could it not have been absorbed into that decrease, since where it is
+negative, $D_F(w_t,x_t)\le F(w_t)-F(x_t)$ is bounded by a difference of function values.
+
+\paragraph{Naive acceleration (hypothesis A2).}
+Without the anchor, the naive scheme is the same iteration with $\theta_2=0$ and a free step.
+\restate{def:naive}
+With exact gradients, the same lemmas prove acceleration, so that what fails with the estimator is the treatment of
+its variance.
+\restate{prop:agd-lc}
+With the estimator, Steps~1--5 and~7 of the proof of L5 (\resref*{lem:L5}) go through, but no step produces the inner
+product that cancelled the variance term.
+\restate{prop:naive}
+The decrease of the potential that \eqref{ineq:naive} can certify per step is at most
+$\frac{\eta\sigma}{1+\eta\sigma}Z_t+\theta_1Y_t$, plus, with a reference term $a_W(F(w_t)-F_\ast)$, the expected
+decrease $pa_W(F(w_t)-F_\ast)-pa_W(F(y_t)-F_\ast)$ of that term; none of these involves the query point $x_t$.
+Bounding the extra term through smoothness and strong convexity costs a factor $\kappa$:
+\restate{prop:naive-kappa}
+This is a limit of the Lyapunov argument, not a lower bound for the naive scheme, as \resref{rem:naive-honest}
+details: bounding the extra term through $Z_t$ instead of $\mu$ is no better, paying it by the reference term alone is
+impossible, and no lower bound specific to the scheme is known to us. It agrees with the literature:
+with one sample per iteration, the guarantee of Nesterov's momentum on the SVRG estimator is that of SVRG
+\cite{nitanda2014stochastic}, the anchor-free acceleration of \cite{driggs2022accelerating} needs mini-batches of size
+of order $n^{2/3}$, and the semidefinite certificate of \cite{hu2018dissipativity} is stated for negative-momentum
+weights of at least $\frac15$. In the experiments at $\kappa=10^4$ (one seed; Section~\ref{sec:exp-A2}), L-Katyusha
+with $\theta_2=0$ and otherwise unchanged parameters diverges on the instance (H) ($n=16$ blocks of length $64$) and
+converges on logistic regression, and Nesterov's momentum applied to the estimator, at its best grid setting, converges
+on both problems; where they converge, these anchor-free schemes need $8$ to $20$ times fewer gradient evaluations
+than L-SVRG. Re-tuned at every $\kappa$, Nesterov's momentum applied to the estimator has fitted slopes of about $0.8$
+in $\kappa$ on block quadratics (Section~\ref{sec:exp-A4}). Prediction (P3) of Section~\ref{sec:lk-naive}, that a
+stable naive scheme keeps the exponent $1$ of $\kappa$ and does no better than L-SVRG, is thus refuted in its second
+part and not supported in its first: \resref*{prop:naive} and \resref*{prop:naive-kappa} describe a limitation of the
+certificate, not the observed behaviour.
+
+\paragraph{Known and new.}
+\resref*{thm:lk} and its constants are those of \cite{kovalev2020dont}, the negative momentum is that of
+\cite{allenzhu2018katyusha}, and its role of cancelling an inner product of the variance bound is stated in
+\cite{allenzhu2018katyusha,zhou2019direct}. To our knowledge, the following are not in the sources we reviewed in this
+form: the rewriting of the proof as a chain of labelled inequalities with tightness ratios, the isolation of the
+cancellation as a single identity tied to the choice of the step (\resref*{prop:cancel} and \resref*{rem:eta-theta2}),
+and \resref*{prop:naive} and \resref*{prop:naive-kappa}, which quantify what the same argument certifies without the
+anchor.

@@ -1,0 +1,170 @@
+% =====================================================================================================
+% Related work (the \section and the label sec:related are in main.tex).
+% Sources: bibliography/literature_review.md (verified state of the art) and the related-work parts of the
+% theory notes (B3: Hofmann et al. paragraph and Rem. B3-conclusion; B2: Sec. B2-related; B1: Rem. B1-dragomir
+% and Prop. B1-nofreelunch; A1: Sec. lb:statements; A3: Sec. lk-naive). Every key is in references.bib.
+% Quotations checked in the downloaded texts: Hofmann et al. (arXiv 1506.03662, Sec. 3), Schmidt et al. (arXiv
+% 1309.2388, Sec. 4.5), Zhou et al. (AISTATS 2019, experiments); Allen-Zhu (Sec. 7.1) as quoted in the A3 note.
+% Numbers of the A4/A4b sweeps: final (results/A4_summary.json, results/A4b_summary.json, findings.md Sec. 7).
+% A1 wording: assessment of hypothesis (A1) in theory/A1_lower_bound.tex (Sec. lb:statements; item (iii): the
+% deterministic part of Thm. WS excludes, when kappa > 73, any gain of the type 1 + ln(n/kappa) for deterministic
+% index sequences, cyclic ones included; randomly reshuffled methods are not settled). PEPit SAGA example:
+% PEPit/examples/stochastic_and_randomized_convex_minimization/saga.py (gamma = 1/(2(mu n + L)), rate 1 - gamma mu).
+% =====================================================================================================
+\paragraph{Variance-reduced methods.}
+In SAG~\cite{leroux2012stochastic,schmidt2017minimizing} the iterate follows a biased average of stored gradients,
+in SVRG~\cite{johnson2013accelerating} stochastic gradients are corrected by a full gradient computed at a
+periodically refreshed snapshot, and SAGA~\cite{defazio2014saga} stores one gradient per component and uses an
+unbiased direction;
+SDCA~\cite{shalevshwartz2013stochastic}, Finito and MISO~\cite{defazio2014finito,mairal2015incremental},
+SARAH~\cite{nguyen2017sarah} and loopless versions of SVRG~\cite{hofmann2015variance,kovalev2020dont} complete the
+family, surveyed in~\cite{gower2020variance}. These methods need $O((n+\kappa)\log(1/\varepsilon))$ component
+gradients, with $\kappa$ defined from the largest smoothness constant of the components (Finito and MISO under a
+big-data condition $n\gtrsim\kappa$). The proof of Proposition~\ref{prop:59} belongs to a family of analyses whose Lyapunov
+function adds to $\norm{\theta-\etastar}^2$ a weighted sum of squared errors of the stored gradients, or of bounds
+on them~\cite{schmidt2015nonuniform,hofmann2015variance,hu2017unified,gorbunov2020unified,kovalev2020dont},
+whereas the original analysis of SAGA~\cite{defazio2014saga} uses Bregman divergences of the components; all certify
+contraction factors of the form $1-\min\{\Theta(1/n),\Theta(1/\kappa)\}$, with constants that differ by small factors
+between analyses. The analysis closest to the book is that of~\cite{hofmann2015variance}, which uses the same
+square-norm inequality (``we sacrifice tightness'') and whose optimal step and rate are exactly the best ones that
+the proof structure of Proposition~\ref{prop:59} can certify (\resref*{prop:B3-optimum}). Two sources of slack have
+been identified: this square-norm inequality, and cocoercivity
+with the worst-case constant $\max_iL_i$ (our $R^2$) instead of the average of the $L_i$, which non-uniform sampling
+exploits~\cite{xiao2014proximal,schmidt2015nonuniform,needell2016stochastic}, or of an expected-smoothness
+constant~\cite{gower2019sgd,gower2021stochastic}. Practical steps also exceed the theoretical ones: for SAG, the step
+$1/L$ ``always converged and often performed better than the step size of $1/16L$ suggested by our
+analysis''~\cite{schmidt2017minimizing}. We add a measurement along trajectories of the slack of every inequality of
+the proof (the tightness ratios of \resref*{def:B3-ratios}), which also shows that strong convexity with the global
+constant $\mu$ carries a sizeable share of the logarithmic gap when $\kappa\ge10n$ (Section~\ref{sec:exp-B3}).
+
+\paragraph{Acceleration of variance-reduced methods.}
+Indirect acceleration wraps a linearly convergent method in an inexact accelerated proximal-point loop:
+Catalyst~\cite{lin2015universal,lin2018catalyst} and APPA~\cite{frostig2015unregularizing} turn the complexity of SAGA
+or SVRG into $(n+\sqrt{n\kappa})\log(1/\varepsilon)$ up to logarithmic factors, and accelerated proximal
+SDCA~\cite{shalevshwartz2014accelerated} has the same inner--outer structure. Direct optimal methods include
+APCG~\cite{lin2015accelerated}, SPDC~\cite{zhang2015stochastic}, the primal--dual and gradient-extrapolation methods
+of~\cite{lan2018optimal,lan2018random}, Varag~\cite{lan2019unified}, Point-SAGA~\cite{defazio2016simple}, which uses
+proximal steps and no momentum, and Katyusha~\cite{allenzhu2018katyusha}. Katyusha writes Nesterov's method in the
+linear-coupling form of~\cite{allenzhu2017linear} and adds to the coupling a pull towards the snapshot, the
+``Katyusha momentum'', which keeps the query point close to the point where the estimator has no variance.
+MiG~\cite{zhou2018simple} keeps only this negative momentum, SSNM~\cite{zhou2019direct} transfers it to SAGA, and
+L-Katyusha~\cite{kovalev2020dont} replaces the outer loop by a coin flip and admits a one-step Lyapunov proof,
+extended to arbitrary sampling in~\cite{qian2021lsvrg}; estimate sequences give the same
+rate~\cite{kulunchakov2019estimate}. Our note on L-Katyusha (Appendix~\ref{sec:lkatyusha}) reproduces the proof
+of~\cite{kovalev2020dont} with its constants (\resref*{thm:lk}); it adds the presentation in the style of the book,
+the identification of the single exact cancellation performed by the negative momentum (\resref*{prop:cancel}), and
+exact measurements of the certified contraction, of the variance bound and of the cancelled term along trajectories
+(Section~\ref{sec:exp-A3}).
+
+\paragraph{Why naive acceleration fails.}
+Nesterov's momentum on the SVRG estimator is the accelerated proximal SVRG of~\cite{nitanda2014stochastic}, which
+with one sample per iteration has the complexity of SVRG; growing mini-batches give a complexity of order
+$(n+\min\{\kappa,n\sqrt\kappa\})\log(1/\varepsilon)$~\cite{nitanda2016accelerated}. In~\cite{allenzhu2018katyusha},
+this scheme is identified with Katyusha without negative momentum and found, after careful tuning, to be sometimes
+faster, but on some tasks ``without Katyusha momentum the algorithm does not even enjoy an accelerated convergence
+rate''. Acceleration without a reference point is obtained in~\cite{driggs2022accelerating}, with mini-batches of
+size of order $n^{2/3}$ and a dependence on $n$ of order $n^{2/3}$ instead of $\sqrt n$. The mechanisms invoked are error
+accumulation in accelerated methods~\cite{schmidt2011convergence,devolder2014first}, an inner product in the tight
+variance bound of the SVRG estimator, which the negative momentum cancels~\cite{allenzhu2018katyusha,zhou2019direct},
+and the weakness of classical momentum with stochastic gradients~\cite{kidambi2018insufficiency}; the semidefinite
+certificate of~\cite{hu2018dissipativity} for Katyusha is stated for negative-momentum weights of at least $1/5$.
+To our knowledge, no lower bound excludes the acceleration of the naive scheme, and we do not claim one:
+\resref{prop:naive-kappa} only shows that, without the cancellation, the Lyapunov argument of L-Katyusha certifies at
+best a contraction $1-\kappa^{-2}$ per iteration. Our experiments agree
+with~\cite{allenzhu2018katyusha}: divergence, or an exponent of $\kappa$ of about $0.8$ even with re-tuning at every
+$\kappa$, on block quadratics, and competitive speed on logistic regression (Sections~\ref{sec:exp-A2}
+and~\ref{sec:exp-A4}).
+
+\paragraph{Lower bounds for finite sums.}
+Lower bounds descend from the oracle model of~\cite{nemirovsky1983problem} and from Nesterov's chain quadratic, on
+which a method whose iterates stay in the span of the observed gradients discovers one coordinate per
+gradient~\cite[Theorem~2.1.13]{nesterov2018lectures} (a ``zero chain'' in the terminology of~\cite{carmon2020lower}).
+For finite sums, deterministic incremental methods need $\Omega(n+\sqrt{n\kappa}\log(1/\varepsilon))$
+gradients~\cite{agarwal2015lower}; span-based methods that sample the components i.i.d.\ from a fixed distribution
+need $\Omega((n+\sqrt{n\kappa})\log(1/\varepsilon))$, in a dimension that grows with the number of
+iterations~\cite{lan2018optimal}; the $\sqrt{n\kappa}\log(1/\varepsilon)$ term remains without the span assumption for
+randomized algorithms with proximal oracles, for $\kappa$ larger than a constant multiple of $n$ (the
+$n\log(1/\varepsilon)$ term becoming an additive $n$), and deterministic ones need $\Omega(n\sqrt\kappa\log(1/\varepsilon))$ at small enough
+$\varepsilon$~\cite{woodworth2016tight}; and the $\sqrt{n\kappa}$ term holds, up to logarithmic factors, in every
+dimension for oblivious methods, which include SAGA with a constant step~\cite{arjevani2016dimension}. The
+$n\log(1/\varepsilon)$ term is proved for i.i.d.\ sampling: full-gradient steps can divide it by $1+\log(n/\kappa)$
+when $\kappa\ll n$, and, for oblivious methods, not by more, up to logarithmic factors~\cite{hannah2018breaking}; the
+corresponding bounds hold for loopless protocols such as those of L-SVRG and L-Katyusha in a dimension of order
+$\sqrt{\kappa/n}\log(1/\varepsilon)$ only~\cite{han2024lower}. For
+deterministic methods, cyclic ones included, the deterministic bound of~\cite{woodworth2016tight} already excludes a
+gain of this type when $\kappa>73$; whether randomly reshuffled span-based methods, or deterministic ones when
+$\kappa\le73$, can beat $n\log(1/\varepsilon)$ is not settled by these results. Our note
+(Appendix~\ref{sec:lower_bound}) restates these results with their exact hypotheses in the notation of the book,
+corrects hypothesis A1 accordingly, and builds an instance in the spirit of~\cite{agarwal2015lower,lan2018optimal}
+(block-separable chains with a shared regularizer, so that every $\kappa>1$ is allowed) with the explicit dimension
+condition of \resref{cor:count} and the explicit window of certified exponents of \resref{prop:A4}. Among the
+works we reviewed, the only comment on the empirical exponent is in~\cite{zhou2019direct}: on two data sets,
+multiplying $\kappa$ by $10$ slows accelerated methods down by about $3\approx\sqrt{10}$ and SAGA significantly more;
+we fit the exponents over several decades of $\kappa$ on lower-bound instances (Section~\ref{sec:exp-A4}).
+
+\paragraph{Tightness of convergence proofs and computer-assisted analyses.}
+Performance estimation computes the worst case of a method by semidefinite programming~\cite{drori2014performance},
+exactly for smooth strongly convex classes thanks to interpolation conditions~\cite{taylor2017smooth}; integral
+quadratic constraints certify linear rates with small linear matrix inequalities~\cite{lessard2016analysis}; the best
+rate certifiable by a quadratic Lyapunov function can be computed~\cite{taylor2018lyapunov}, also for stochastic
+methods~\cite{taylor2019stochastic} and automatically~\cite{upadhyaya2024automated,upadhyaya2025autolyap}, and
+PEPit~\cite{goujaud2024pepit} implements these tools. For variance reduction, the jump-system analysis
+of~\cite{hu2017unified} certifies SAGA-type methods with a small linear matrix inequality whose Lyapunov function has
+the structure of the one of Proposition~\ref{prop:59}, the dissipativity analysis of~\cite{hu2018dissipativity}
+treats SVRG and Katyusha, and the SAGA example distributed with PEPit (file
+\path{PEPit/examples/stochastic_and_randomized_convex_minimization/saga.py}, documented at
+\url{https://pepit.readthedocs.io}) finds the one-step contraction proved in~\cite{defazio2014saga} tight for its
+Bregman Lyapunov function at the
+parameters it tests; the dual multipliers of such programs indicate which inequalities of a worst-case proof are
+active~\cite{goujaud2023fundamental}. These tools compute the worst case over a class of functions, whereas our
+tightness ratios measure how far each inequality of a given proof is from equality along one trajectory of one
+instance. The two views are complementary: a guarantee can have the right order in the worst case
+(\resref*{prop:B3-lower} shows that the exponent of $\kappa$ in Proposition~\ref{prop:59} cannot be improved for SAGA
+with a constant step) and still be very pessimistic on the instances met in practice (Section~\ref{sec:exp-B3}). Our
+optimization of $(\gamma,\Delta)$, \resref{prop:B3-optimum}, is the analytic counterpart of a Lyapunov search within
+the two-parameter family of the book's proof; to our knowledge, the exact worst-case one-step contraction of the
+Lyapunov function of Proposition~\ref{prop:59} has not been computed, and we do not compute it.
+
+\paragraph{Local curvature and effective constants.}
+The effective curvature $\muEff(\theta)$ of \resref{def:B2-eff} is the constant of the restricted secant
+inequality~\cite{zhang2013gradient} at the point $\theta$, and linear convergence under such one-point or growth
+conditions is classical~\cite{karimi2016linear,necoara2019linear}; the SAGA certificate of~\cite{hu2017unified} only
+needs a sector condition at the minimizer, in line with our trajectory-dependent versions of
+Proposition~\ref{prop:59}, the a-posteriori rates of \resref*{prop:B3-traj} and the a-priori rate on a region of
+\resref*{prop:B3-region}. Our $\LEff$ is a
+trajectory-wise version of the expected-smoothness constant~\cite{gower2019sgd,gower2021stochastic}, for which the
+valid value given in~\cite{gower2021stochastic} for single-element uniform sampling is again $\max_iL_i$. For logistic
+regression,
+self-concordance compares Hessians at nearby points~\cite{bach2010self,sun2019generalized}, averaged stochastic
+gradient descent adapts to the smallest eigenvalue of the Hessian at the optimum~\cite{bach2014adaptivity}, the
+curvature at the optimum can be bounded through a measure of non-separability~\cite{freund2018condition}, SAGA-type
+methods reach a local regime after identifying the active manifold of composite problems~\cite{poon2018local}, and
+average-case analyses replace $\kappa$ by the spectral density of the Hessian~\cite{pedregosa2020acceleration}.
+Faster-than-predicted convergence attributed to local curvature has been reported
+repeatedly~\cite{lin2015universal,kulunchakov2019estimate,zhou2019direct}. Two results limit what effective constants
+can give: one-point conditions alone do not allow acceleration~\cite{guilleescuret2022gradient}, and oblivious
+methods need $\mu$ to accelerate~\cite{arjevani2017limitations}; our trajectory-dependent statements concern SAGA with
+its fixed step. In the literature we reviewed we found no measurement of $\muEff$, or of the slack of each inequality
+of a proof, along SAGA trajectories; Sections~\ref{sec:exp-B3} and~\ref{sec:exp-B2} provide them.
+
+\paragraph{Preconditioning of stochastic methods.}
+For a fixed symmetric positive definite matrix $P$, the step $\theta\mapsto\theta-\gamma P^{-1}g$ is a mirror step for
+the reference function $\frac12\theta^\top P\theta$, governed by relative smoothness and relative strong
+convexity~\cite{lu2018relatively,bauschke2017descent}; Bregman-SAGA with a quadratic reference function has a rate of
+the form of Proposition~\ref{prop:59} with relative constants~\cite{dragomir2021fast} (compared with ours in
+\resref*{rem:B1-dragomir}), and a change of variables transfers
+Euclidean proofs to the fixed metric~\cite{kolte2015accelerating,gonen2016solving}. For ridge regression,
+preconditioning by the regularized covariance reduces the relevant condition number to the dimension with sampling
+proportional to the smoothness constants, or to $n$ times the largest ridge leverage score with uniform
+sampling~\cite{gonen2016solving}. Preconditioned SVRG and Katyusha~X~\cite{liu2019acceleration} and the methods of
+PROMISE~\cite{frangella2024promise} are analysed with relative or quadratic-regularity constants, the latter defined
+relative to the Hessian at a reference point and close to one near the optimum. Quasi-Newton and diagonal
+metrics~\cite{byrd2016stochastic,moritz2016linearly,sadiev2024stochastic} are analysed through eigenvalue bounds on the
+metric only, so that their guarantees are worse than the Euclidean ones even when they help in practice, and
+statistical preconditioning by subsampled Hessians has mostly been studied for distributed
+optimization~\cite{shamir2014communication,hendrikx2020statistically}. In the worst case, second-order information on
+the components does not remove the $\sqrt{n\kappa}$ term~\cite{arjevani2017oracle}, and relative smoothness alone does
+not allow acceleration~\cite{dragomir2022optimal}. Our note (Appendix~\ref{sec:B1}) redoes the gradient-memory proof of
+Proposition~\ref{prop:59} in the $P$-metric, which gives \resref{cor:B1-rate}, and shows in
+\resref{prop:B1-nofreelunch} that, unlike for ridge regression, no fixed $P$ improves the global relative condition
+number of logistic regression, so that the gains of preconditioning are entirely trajectory-dependent there.

@@ -92,7 +92,11 @@ class Metric:
 
     def constants(self, prob, theta_ref=None):
         """Metric constants (R_P^2, mu_P) for a logistic problem: R_P^2 = max_i ||x_i||^2_{P^-1}/4 + lam lmax(P^-1),
-        mu_P = lam * lmin(P^-1) (global); if theta_ref is given also the local mu_P at theta_ref."""
+        mu_P = lam * lmin(P^-1) (global); if theta_ref is given also the local mu_P at theta_ref.
+        This R_P^2 is the upper bound (eq. B1-logistic-RP of the B1 note) of the transferred smoothness constant
+        sup = max_i lmax(P^{-1/2} (x_i x_i^T/4 + lam I) P^{-1/2}) of Definition B1-kappaP (the supremum is attained at
+        sigma' = 1/4); it is exact for P = I and otherwise above it (by at most 5.2% on the B1 problems, so kappa_P is
+        overestimated by as much). The B1 runs use this upper bound, also for the step gamma = 1/(4 R_P^2)."""
         X = prob.X
         if self.kind == "identity":
             lev = np.einsum("ij,ij->i", X, X)
@@ -176,11 +180,12 @@ def tightness_ratios(q, gamma, Delta, R2, mu, n):
 
 
 def lkatyusha_state_stats(prob, y, z, w, theta1, theta2, eta, L, mu, p, Gw=None, gw=None):
-    """Exact conditional expectations for one step of L-Katyusha (Kovalev, Horvath, Richtarik 2020) from the
+    """Exact conditional expectations for one step of L-Katyusha (Kovalev, Horvath, Richtarik, ALT 2020) from the
     state (y, z, w): realized Lyapunov Psi = Z + Y + W with
         Z = L(1 + eta sigma)/(2 eta) ||z - eta_*||^2,  Y = (F(y) - F_*)/theta1,  W = theta2 (1 + theta1)/(p theta1) (F(w) - F_*),
     the exact E[Psi_{k+1} | state] (enumerating the n possible indices for the non-linear Y term; O(n^2 d)),
-    the per-step contraction rho_exact = E[Psi_{k+1}]/Psi versus the Lemma 4.5 factor, and the tightness of the
+    the per-step contraction rho_exact = E[Psi_{k+1}]/Psi versus the factor rho_lemma = max{c_Z, c_Y, c_W} of Lemma 10 of
+    Kovalev et al. (ALT 2020; Lemma 4.5 in the arXiv version 1901.08689), and the tightness of the
     estimator variance bound  E||g - F'(x)||^2 <= 2 L [F(w) - F(x) - <F'(x), w - x>]  (ratio in (0,1])."""
     n = prob.n
     sigma = mu / L
@@ -197,7 +202,9 @@ def lkatyusha_state_stats(prob, y, z, w, theta1, theta2, eta, L, mu, p, Gw=None,
     Fx, Fw, Fy = prob.F(x), prob.F(w), prob.F(y)
     bregman = Fw - Fx - float(Fx_grad @ (w - x))                   # D_F(w, x) >= 0
     # A3 note, Table "what to instrument": centering and co-coercivity factors of the variance bound, and the
-    # Bregman-gap cancellation shares c(t), 1 - c(t), and q(t) = |theta2/theta1 <F'(x), x - w>| / (rho Psi)
+    # Bregman-gap cancellation shares c(t), 1 - c(t), and
+    # q(t) = |theta2/theta1 <F'(x), x - w>| / ((1 - max{c_Z, c_Y, c_W}) Psi), the denominator being the one-step decrease
+    # certified by Lemma 10 (rho_lemma below is max{c_Z, c_Y, c_W}, not the rate rho of Theorem 11)
     second_moment = float(np.einsum("ij,ij->i", Gx - Gw, Gx - Gw).mean())       # (1/n) sum_i ||f'_i(x) - f'_i(w)||^2
     inner_xw = float(Fx_grad @ (x - w))                                         # <F'(x), x - w>
     cZ = L * (1.0 + es) / (2.0 * eta)

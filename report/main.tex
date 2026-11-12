@@ -2,8 +2,14 @@
 \input{../theory/preamble}
 \usepackage{subcaption}
 \usepackage{float}
+\usepackage{needspace}              % \needspace{...} keeps a run-in heading with the text that follows it
+\input{restate_defs}                % \restate, \resref: results of the appendices stated in the main body
 \graphicspath{{../figures/}}
-\hypersetup{colorlinks=true, linkcolor=blue!60!black, citecolor=blue!60!black, urlcolor=blue!60!black}
+\hypersetup{colorlinks=true, linkcolor=blue!60!black, citecolor=blue!60!black, urlcolor=blue!60!black,
+  hypertexnames=false}   % unique PDF anchors (equations tagged (I1)--(I6) share one equation number)
+\setlength{\emergencystretch}{2em}  % lets TeX resolve lines with long unbreakable words (file names, URLs)
+\setcounter{tocdepth}{2}            % sections and subsections (the appendices have subsubsections)
+\renewcommand{\floatpagefraction}{0.7}  % no half-empty float pages: half-page figures go to page tops with text
 
 \title{Accelerating Variance Reduction:\\ Optimal Complexity of Finite-Sum Optimization\\[4pt]
 \large Project report, Statistical Learning Theory}
@@ -19,6 +25,9 @@
 
 \tableofcontents
 
+% ------------------------------------------------------------------------------------------------
+% Main body
+% ------------------------------------------------------------------------------------------------
 \section{Introduction}\label{sec:intro}
 \input{sections/introduction}
 
@@ -30,11 +39,6 @@
 
 \section{Theory}\label{sec:theory}
 \input{sections/theory_overview}
-\input{../theory/B3_prop59_tightness}
-\input{../theory/B2_effective_curvature}
-\input{../theory/B1_preconditioned_saga}
-\input{../theory/A1_lower_bound}
-\input{../theory/A3_lkatyusha_lyapunov}
 
 \section{Experiments}\label{sec:experiments}
 \input{sections/experiments}
@@ -43,12 +47,35 @@
 \input{sections/discussion}
 
 \section*{Use of generative AI}
+\phantomsection\addcontentsline{toc}{section}{Use of generative AI}
 \input{sections/genai}
 
-\bibliographystyle{plainnat}
+\clearpage
+\phantomsection\addcontentsline{toc}{section}{References}
+\bibliographystyle{plain}
 \bibliography{../bibliography/references}
 
+% ------------------------------------------------------------------------------------------------
+% Appendices: the five theory notes (complete statements and proofs), then reproducibility
+% ------------------------------------------------------------------------------------------------
+% Each appendix starts on a new page, which also keeps the tables of a note before the next appendix.
+% The appendices are named after their hypothesis (B3, B2, B1, A1, A3; R for reproducibility), like the figures
+% (Figure B2, Figure A3, ...), so that "Figure A3" cannot be read as "the third figure of Appendix A"; results and
+% equations print as Proposition B3.12, (A1.7), ..., with the same numbers as in the standalone theory/main.pdf.
+\clearpage
 \appendix
+\counterwithin{equation}{section}
+\renewcommand{\thesection}{B3}\input{../theory/B3_prop59_tightness}
+\clearpage
+\renewcommand{\thesection}{B2}\input{../theory/B2_effective_curvature}
+\clearpage
+\renewcommand{\thesection}{B1}\input{../theory/B1_preconditioned_saga}
+\clearpage
+\renewcommand{\thesection}{A1}\input{../theory/A1_lower_bound}
+\clearpage
+\renewcommand{\thesection}{A3}\input{../theory/A3_lkatyusha_lyapunov}
+\clearpage
+\renewcommand{\thesection}{R}
 \section{Reproducibility}\label{app:repro}
 \input{sections/reproducibility}
 

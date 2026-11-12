@@ -1,0 +1,130 @@
+% -----------------------------------------------------------------------------------------------------
+% Hypothesis B1: statements restated from theory/B1_preconditioned_saga.tex (Appendix B1). Numbers quoted, on the
+% instances of Figure B1 (n = 1000, d = 50, kappa = 1e3, alpha = 1, 2, data seed 0; B1 note, comment after Corollary
+% cor:B1-kappa-traj), with R_P^2 the upper bound of eq:B1-logistic-RP as in the experiments:
+%   results/B1_summary.json: min_i w_i = sigma_prime_min = 7.39e-3, 6.10e-3; lmin(M_P) = mu_P_local of 'stat' =
+%     0.1166, 0.1086 (15.8 and 17.8 times min_i w_i); R_P^2/lmin(M_P) = 166.4, 102.9; R^2/lmin(F''(eta*)) =
+%     R2_P/mu_P_local of 'I' = 575.8, 980.9;
+%   first bound of eq:B1-kappa-traj-stat with m = min_i w_i: 1735, 1221; upper bound of eq:B1-kappa-traj-I for P = I
+%     with the same m: 968.5, 999.3 (recomputed from the data);
+%   kappa_eff^P(theta_{t-1}) = R_P^2/mu_eff^P over passes 15--20, geometric mean over the instrumented states and the
+%     5 seeds (results/B1.pkl): 84.4, 31.0 (Sigma_hat + lambda I) and 460.5, 877.6 (P = I).
+% -----------------------------------------------------------------------------------------------------
+\subsection{Preconditioned SAGA}\label{sec:th-B1}
+
+Hypothesis B1 runs SAGA in a fixed quadratic metric to see which steps of the proof of Proposition~\ref{prop:59} are
+too loose, and asks whether the metric improves the algorithm or only its analysis. Let $P$ be a fixed symmetric
+positive definite matrix, $\operatorname{cond}(P)=\lmax(P)/\lmin(P)$ its condition number, $\norm{v}_P=(v^\top Pv)^{1/2}$
+the norm of parameters and $\norm{g}_{P^{-1}}=(g^\top P^{-1}g)^{1/2}$ the dual norm of gradients and memories. The
+algorithm of \resref{def:B1-PSAGA} keeps the direction $\omega_t$ and the memory of SAGA~\eqref{eq:saga} and, by
+\resref{lem:B1-step}, steps $\theta_t=\theta_{t-1}-\gamma P^{-1}\omega_t$; it is Bregman-SAGA~\cite{dragomir2021fast}
+with the reference function $h(\theta)=\frac12\theta^\top P\theta$. A linear change of variables reduces it to SAGA:
+\restate{prop:B1-transfer}
+Every step of the proof of Proposition~\ref{prop:59} thus holds for $P$-SAGA, in the norms $\norm{\cdot}_P$ and
+$\norm{\cdot}_{P^{-1}}$ and with the constants of the transformed functions, written here for $C^2$ functions (for
+$C^1$ functions, see \resref*{rem:B1-C1}):
+\restate{def:B1-kappaP}
+Proposition~\ref{prop:59} then transfers verbatim, with these constants in place of $(R^2,\mu)$:
+\restate{cor:B1-rate}
+The metric acts on the rate only through $\kappaP$; $\operatorname{cond}(P)$ enters only the constant of the Euclidean
+bound. By \resref{lem:B1-compare}, $\kappa/\operatorname{cond}(P)\le\kappaP\le\kappa\operatorname{cond}(P)$, so that a
+fixed metric changes the certified rate by at most the factor $\operatorname{cond}(P)$, in either direction. In the
+proof written in the $P$-metric (Section~\ref{sec:B1-proofP}), I1 and I3 change only their norm, I2 and I4 their norm
+and their constant ($R_P^2$, $\mu_P$), I5 depends on $P$ only through $3\mu_P/(16R_P^2)$, and I6 through both norms and
+$R_P^4$. The tightness ratios of I2 and I4 in the $P$-geometry (\resref*{def:B1-ratios}) are
+$r^P_{\rm coco}(t)=\LEff^P(\theta_{t-1})/R_P^2$ and $r^P_{\rm sc}(t)=\mu_P/\muEff^P(\theta_{t-1})$, with the effective
+constants $\muEff^P(\theta)=\inner{\Fp(\theta)}{\theta-\etastar}/\norm{\theta-\etastar}_P^2$ and
+$\LEff^P(\theta)=\frac1n\sum_i\norm{\fip(\theta)-\fip(\etastar)}_{P^{-1}}^2/\inner{\Fp(\theta)}{\theta-\etastar}$
+($\theta\ne\etastar$). By \resref{rem:B1-effective-rate}, if I2 and I4 are replaced by the identities that define these
+constants, the parameter part of the one-step bound~\eqref{eq:B1-effective-rate} contracts by a factor between
+$1-\muEff^P/(2R_P^2)$ and $1-3\muEff^P/(16R_P^2)$, with $\muEff^P$ evaluated at $\theta_{t-1}$: the rate seen by the
+proof is governed by $R_P^2/\muEff^P(\theta_{t-1})$.
+
+\paragraph{Global constants of logistic regression.}
+For $\ell_2$-regularized logistic regression, $\mu_P$ is explicit and $R_P^2$ is bounded on both sides
+($\sigma_1\ge\dots\ge\sigma_d$ denote the eigenvalues of $\hat\Sigma$, not the per-sample curvatures
+$\sigma_i'(\theta)$ of the lemma):
+\restate{lem:B1-logistic}
+Comparing the lower bound on $R_P^2$ with $\mu_P$ gives the central negative result:
+\restate{prop:B1-nofreelunch}
+The supremum in $R_P^2$ is attained on the decision boundary of a sample, where its data curvature is
+$\frac14x_ix_i^\top$, whereas the infimum in $\mu_P$ is approached far from all of them, where $F''\to\lambda I$ is
+isotropic; no single metric fits both, and with global constants the transferred Proposition~\ref{prop:59} never
+certifies a faster rate than for $P=I$ on this problem. For the square loss, by contrast, $P=\hat\Sigma+\lambda I$ brings
+$\kappaP$ into $[d_\infty(\lambda),d_\infty(\lambda)+1]$ (the ridge setting of~\cite{gonen2016solving};
+Section~\ref{sec:B1-choice}). Here, with $X$ the matrix of rows $x_i^\top$,
+$\mathrm{lev}_i(\lambda)=x_i^\top(X^\top X+n\lambda I)^{-1}x_i$ are the ridge leverage
+scores~\cite{elalaoui2015fast,bach2013sharp}, $d_\infty(\lambda)=n\max_i\mathrm{lev}_i(\lambda)$ and
+$d_{\mathrm{eff}}(\lambda)=\sum_i\mathrm{lev}_i(\lambda)=\tr(\hat\Sigma(\hat\Sigma+\lambda I)^{-1})$; by
+\resref{lem:B1-leverage}, $d_{\mathrm{eff}}(\lambda)\le\min\{d_\infty(\lambda),d\}$ and $d_\infty(\lambda)<n$.
+
+\paragraph{Trajectory-dependent constants.}
+For logistic regression, any benefit of a metric must therefore come from the trajectory-dependent constants, which are
+explicit in terms of the per-sample curvatures averaged on the segment $[\etastar,\theta]$:
+\restate{prop:B1-traj-sc}
+A sample with a large margin makes $m(\theta)$ small ($\sigma'(u)\approx e^{-\abs{u}}$) but has a small weight
+in~\eqref{eq:B1-muEff-stat} unless $\theta-\etastar$ is aligned with it, so that $\muEff^P(\theta)$ is typically much
+larger than $m(\theta)$; the global version of~\eqref{ineq:P-trajsc} is only $\mu_P=\lambda/(\sigma_1+\lambda)$, because
+$\inf_\theta\min_i\sigma'(y_ix_i^\top\theta)=0$. The smoothness side is controlled by the leverage scores, by a
+multiple of the effective dimension when they are incoherent:
+\restate{ass:B1-coherence}
+Since $\norm{x_i}_{(\hat\Sigma+\lambda I)^{-1}}^2=n\,\mathrm{lev}_i(\lambda)$ (\resref*{lem:B1-leverage}(i)),
+\resref*{lem:B1-logistic} gives, for the statistical metric:
+\restate{prop:B1-stat-global}
+Dividing~\eqref{eq:B1-stat-RP} by~\eqref{ineq:P-trajsc} bounds the effective relative condition number:
+\restate{cor:B1-kappa-traj}
+In the last two bounds of~\eqref{eq:B1-kappa-traj-stat}, the eigenvalues of $\hat\Sigma$ appear only through
+$d_\infty(\lambda)\le C\,d_{\mathrm{eff}}(\lambda)$, and $d_{\mathrm{eff}}(\lambda)$ counts the directions not killed by
+the regularization, whatever the dynamic range of the spectrum. The price is the smallest segment curvature
+$m(\theta)$, and on the instances of Section~\ref{sec:exp-B1} it dominates. There, as $\theta\to\etastar$,
+$m(\theta)\to\min_iw_i$ with $w_i=\sigma'(y_ix_i^\top\etastar)$, and $\min_iw_i=7.4\cdot10^{-3}$ ($\alpha=1$) and
+$6.1\cdot10^{-3}$ ($\alpha=2$), so that the first bound in~\eqref{eq:B1-kappa-traj-stat} tends to $1.7\cdot10^3$ and
+$1.2\cdot10^3$: above $\kappa=10^3$, and above the upper bound in~\eqref{eq:B1-kappa-traj-I} for $P=I$ with the same
+$m(\theta)$ ($968$ and $999$). On these instances this rigorous bound therefore predicts no gain of
+$\hat\Sigma+\lambda I$.
+
+\paragraph{Jacobi and Newton metrics; local constants.}
+The Jacobi metric $P_{\mathrm J}=\diag(\hat\Sigma)+\lambda I$ costs $O(d)$ per iteration, like $P=I$, whereas a dense
+$P$ costs $O(d^2)$ per iteration and a precomputation of order $nd^2+d^3$ (Section~\ref{sec:B1-cost}). With
+$\hat\Sigma_{jj}>0$ the diagonal entries of $\hat\Sigma$, $x_{ij}$ the entries of $x_i$ and
+$C_{\mathrm{corr}}=\diag(\hat\Sigma)^{-1/2}\hat\Sigma\diag(\hat\Sigma)^{-1/2}$ the correlation matrix of the features,
+the constants of $P_{\mathrm J}$ compare with those of $\hat\Sigma+\lambda I$ as follows:
+\restate{prop:B1-diag}
+By~(iii), the constants of $P_{\mathrm J}$ are those of $\hat\Sigma+\lambda I$ up to the factor
+$\operatorname{cond}(C_{\mathrm{corr}})$, in either direction: $P_{\mathrm J}$ removes the scale anisotropy of the
+features but not their correlations, and nothing orders it with respect to $P=I$. The oracle Newton metric
+$H=F''(\etastar)$, which requires $\etastar$, uses the curvatures $w_i\in(0,\frac14]$ at the optimum: with
+$W=\diag(w_1,\dots,w_n)$ and $\hat\Sigma_w=\frac1nX^\top WX$ (eigenvalues $\sigma^w_1\ge\dots\ge\sigma^w_d$),
+$H=\hat\Sigma_w+\lambda I$, and its constants involve the leverage scores
+$\mathrm{lev}^w_i(\lambda)=w_ix_i^\top(X^\top WX+n\lambda I)^{-1}x_i$ of the weighted design and
+$d^w_\infty(\lambda)=n\max_i\mathrm{lev}^w_i(\lambda)$:
+\restate{prop:B1-newton}
+The Newton metric makes strong convexity perfect near the optimum, but $R_H^2$ still pays the supremum over $\theta$:
+sample $i$ enters it with its largest curvature $\frac14$ in the numerator and its curvature $w_i$ at the optimum in the
+metric, hence the factor $1/w_i$ in~\eqref{eq:B1-newton-RP}. Near the optimum, the realized smoothness constant does
+not pay this factor, and the realized strong convexity is a local curvature:
+\restate{lem:B1-asymptotic}
+Only these local constants account for the gains observed in Section~\ref{sec:exp-B1}. Whatever the direction of the
+error, $\liminf_{\theta\to\etastar}\muEff^P(\theta)\ge\lmin(M_P)$ with $M_P=P^{-1/2}F''(\etastar)P^{-1/2}$, so that
+$R_P^2/\lmin(M_P)$ bounds $\limsup_{\theta\to\etastar}\kappa^P_{\mathrm{eff}}(\theta)$. For $P=\hat\Sigma+\lambda I$,
+$\lmin(M_P)$ is the smallest over directions $v$ of a weighted average of $w_1,\dots,w_n,1$ (weights $(x_i^\top v)^2/n$
+and $\lambda\norm{v}^2$), not their minimum: on those instances it is $0.117$ ($\alpha=1$) and $0.109$ ($\alpha=2$),
+$16$ and $18$ times $\min_iw_i$, and $R_P^2/\lmin(M_P)=166$ and $103$, against $R^2/\lmin(F''(\etastar))=576$ and $981$
+for $P=I$ ($R_P^2$ being the upper bound in~\eqref{eq:B1-logistic-RP}, as in the experiments); over passes 15--20 the
+measured $\kappa^P_{\mathrm{eff}}(\theta_{t-1})$ are about $84$ and $31$, against $460$ and $878$ for $P=I$ (geometric
+means over states and seeds). These limits hold only as $\theta\to\etastar$, and their use as rates along a whole run
+is heuristic; so used, the values $166$ and $103$ are below $\frac{9n}{16}=562.5$ ($n=1000$), and by
+\resref{rem:B1-memory-bottleneck} the memory term $\frac1{3n}$ of the rate then binds. Through these limits,
+Section~\ref{sec:B1-predictions} also predicts which step is the loosest late in a run (prediction (P2), heuristic
+where it assumes the direction of the error): I2 for $P=I$, I4 with the global $\mu_P$ for the dense metrics
+(Table~\ref{tab:B1-predictions-late} in Appendix~B1).
+
+\paragraph{Known and new.}
+Relative smoothness~\cite{lu2018relatively,bauschke2017descent}, Bregman-SAGA (whose rate has the same structure, with
+constants $(\frac12,\frac18)$ instead of $(\frac13,\frac3{16})$~\cite[Corollary~1]{dragomir2021fast};
+\resref*{rem:B1-dragomir}), the change of variables for a fixed metric~\cite{kolte2015accelerating,gonen2016solving}
+and statistical preconditioning~\cite{hendrikx2020statistically} are known. To our knowledge,
+\resref{prop:B1-nofreelunch} and \resref{cor:B1-kappa-traj} are not in the sources we reviewed in this form; the first
+shows that, for logistic regression, the benefit of a fixed metric is entirely trajectory-dependent, and the second
+does not certify the gains observed in Section~\ref{sec:exp-B1}, which only the local constants of
+\resref{lem:B1-asymptotic} account for, and only heuristically.

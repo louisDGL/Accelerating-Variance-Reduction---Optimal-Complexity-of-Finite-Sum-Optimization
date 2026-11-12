@@ -1,0 +1,188 @@
+% -----------------------------------------------------------------------------------------------------
+% Hypotheses A1 and A4 (Appendix A1, theory/A1_lower_bound.tex). Restated here, in this order: def:span, thm:LZ,
+% thm:HXZ, prop:constants, prop:minimizer, prop:anyseq, thm:instance, cor:count, prop:sagamean, cor:saga, lem:overlap,
+% prop:A4.
+% Numbers quoted after prop:A4 (computed from eq:sagawindow and eq:lkwindow with rho replaced by 1/105 and
+% C0 by 1 + 5Q/8): window of Figure A4b, n = 16, m = 256, eps = 1e-8, 65 <= kappa <= kappa_max = 49428 (2.88 decades);
+% upper/lower ratios 7.76--7.84 (SAGA) and 88.6--114.9 (L-Katyusha); end-to-end slopes allowed [0.691, 1.310] and
+% [-0.175, 1.216]. L-Katyusha row of the table: Corollary cor:lk-complexity of Appendix A3.
+% -----------------------------------------------------------------------------------------------------
+\subsection{Lower bounds and the hard instances}\label{sec:th-A1}
+
+\paragraph{Oracle classes, known bounds and hypothesis A1.}
+Costs are counted in component gradients, a full gradient costing $n$; Table~\ref{tab:th-complexity} collects the
+guarantees of the methods compared in this report and the main lower bounds. The lower bounds of the literature differ
+in how an algorithm may choose the indices of its queries and combine the answers; the following classes make these
+assumptions exact.
+\restate{def:span}
+Lower bounds for (S1) therefore apply to SAGA, up to its initial sweep, but not to L-SVRG or L-Katyusha, whose full
+gradients are $n$ queries at one point; those for (S2) apply to GD, AGD, SAGA, L-SVRG and L-Katyusha. On the chain
+constructions below, a span method reveals at most one new coordinate per query, so that span-based bounds require a
+dimension of the order of the number of queries they certify.
+
+Hypothesis A1 (Section~\ref{sec:intro}) asserts the bound $\Omega((n+\sqrt{n\kappa})\log\frac1\varepsilon)$ for class
+(S1) and a weakened form for arbitrary index sequences. Its first part is the theorem of Lan and Zhou, quoted with the
+displays of arXiv:1507.02000v3, whose sum convention gives the same function and bounds as the journal version
+\cite{lan2018optimal}. On their instance \eqref{eq:LZinstance}, $m$ components act on disjoint blocks of dimension
+$\tilde n$, each a Nesterov chain $f_i$, convex with an $L_i$-Lipschitz gradient, $L_i=\mu(\mathcal Q-1)$, plus its own
+regularizer; $n=m\tilde n$ is the total dimension, and each block has condition number at most $\mathcal Q$.
+\restate{thm:LZ}
+Written as an average of $m$ components, $m$ times the summands of \eqref{eq:LZinstance}, the instance has
+$R^2=m\mu\mathcal Q$, so that $n_{\rm book}=m$, $\kappa=m\mathcal Q$ and, as $\mathcal C=m(\mathcal Q-1)$,
+$m+\sqrt{m\mathcal C}\asymp n_{\rm book}+\sqrt{n_{\rm book}\kappa}$: this is the bound
+$\Omega((n+\sqrt{n\kappa})\log\frac1\varepsilon)$ for class (S1), the first part of A1, on instances with $\kappa\ge n$
+and a dimension that grows with the number of queries.
+
+The second part holds only in a restricted sense. Han, Xie and Zhang \cite{han2024lower} prove a lower bound for a
+class $\mathcal A$ that, by their account, contains SAGA, L-SVRG and L-Katyusha: at each step, an algorithm of
+$\mathcal A$ samples one index i.i.d.\ from a fixed distribution, may query the proximal incremental first-order oracle (PIFO, which returns the
+value, the gradient and a proximal step of a component) of the sampled component at all previous iterates, computes
+the full gradient at the current point with an independent probability at most $c_0/n$, for a constant $c_0$ (the full
+gradient at the initial point is free), and takes its iterate in the span of the previous iterates and of the answers,
+projected on the domain. In their theorem, $L$ is the smoothness constant of the components (our $R^2$), and $R$ is not
+ours: $2R$ bounds the diameter of the domain.
+\restate{thm:HXZ}
+For the methods of class $\mathcal A$, and, up to logarithmic factors, for the oblivious methods of part (c) of
+\resref{thm:HLOY}, the lower bound is
+$\Omega\big(n+(\frac{n}{1+(\ln(n/\kappa))_+}+\sqrt{n\kappa})\ln\frac1\varepsilon\big)$: the $\sqrt{n\kappa}$ term is
+untouched, and full gradients can divide $n\log\frac1\varepsilon$ by at most $1+(\ln(n/\kappa))_+$, a gain only when
+$\kappa\ll n$, never below the bare $n$; Prox-SVRG with the parameters of \resref*{thm:HLOY}(b) attains this bound when
+$\kappa=O(n)$. Without these restrictions, only an additive $n$ is proved for randomized algorithms, while
+deterministic algorithms, cyclic incremental methods included, can need
+$\Omega(n\sqrt\kappa\log\frac{\varepsilon_0}{\kappa\varepsilon})$ when $\kappa>73$, by \resref{thm:WS}, which excludes
+for them any gain over $n\log\frac1\varepsilon$ at small $\varepsilon$; whether randomly reshuffled span methods, or
+deterministic ones when $\kappa\le73$, can beat $n\log\frac1\varepsilon$ is not settled by these sources.
+
+\paragraph{A hard instance with a closed-form minimizer.}
+The instance of \resref{thm:LZ} gives each component its own regularizer, which forces $\kappa\ge n$. The instance (S)
+of Appendix~\ref{sec:lower_bound} keeps one Nesterov chain per component but shares the regularizer among all components,
+as in \cite{agarwal2015lower}, so that every $\kappa>1$ is allowed. With $n$ blocks $\theta^{(i)}\in\R^m$ and
+$A_m(\zeta)$ the $m\times m$ tridiagonal matrix with $-1$ off the diagonal and $2$ on it, except
+$(A_m(\zeta))_{mm}=\zeta\in[1,3]$ (see \eqref{eq:chainmatrix}),
+\begin{equation*}\tag{\ref*{eq:instance}}
+\begin{aligned}
+&c=\frac{\mu(\kappa-1)}{4},\qquad \phi(x)=\frac12\inner{A_m(\zeta)x}{x}-x_1\ \ (x\in\R^m),\\
+&f_i(\theta)=c\,\phi(\theta^{(i)})+\frac\mu2\norm{\theta}^2,\quad i=1,\dots,n .
+\end{aligned}
+\end{equation*}
+The instance (H) of Section~\ref{sec:setting}, used in Figures~\ref{fig:A3}, \ref{fig:A2} and~\ref{fig:A4}, has instead
+a regularizer local to each block and $\kappa>n$. The constants and the minimizer of (S) are explicit.
+\restate{prop:constants}
+On (S), full-gradient methods therefore depend on $L_F\le\mu Q$, about $R^2/n$ when $\kappa\gg n$, rather than on $R^2$:
+gradient descent and AGD do not pay there the factors $n$ and $\sqrt n$ of Table~\ref{tab:th-complexity}, which require
+aligned components, as in the aligned instance (A) of Figure~\ref{fig:A4b}.
+\restate{prop:minimizer}
+Part (a) gives $\etastar$ in closed form, so that every error measured on (S) is exact; part (b), with $Q=1+4c/\mu_b$,
+gives the minimizer of (H) (Section~\ref{sec:setting}).
+
+Started from $\theta_0=0$, a span method reveals at most one new coordinate of block $j$ per query to component $j$
+by \resref{lem:support}, and the coordinates not yet revealed carry an explicit share of $\norm{\etastar}^2$
+by \resref{prop:tail}. Averaging over the blocks by Jensen's inequality gives a bound for every index sequence, the
+$\sqrt{n\kappa}$ term of A1:
+\restate{prop:anyseq}
+For the methods with coin flips, such as L-SVRG and L-Katyusha, the bound holds for the expected number of gradient
+evaluations (Appendix~\ref{sec:lower_bound}, after the proof). AGD on $F$, which needs $O(n\sqrt Q\log\frac1\varepsilon)$
+gradients since $L_F\le\mu Q$, attains its order when $\kappa\gtrsim n$. The sequence-free argument cannot produce the
+$n\log\frac1\varepsilon$ term, because a full gradient advances all $n$ chains at once. With i.i.d.\ indices, the number
+of queries to each block is binomial, and the term appears:
+\restate{thm:instance}
+\restate{cor:count}
+This proves the first part of A1 on (S), for every $\kappa>1$, under an explicit dimension condition: by \eqref{ineq:dim}
+each block must be longer than the number of touches that an accelerated method needs, of order
+$\frac14\sqrt{\kappa/n}\log\frac1\varepsilon$ for $\kappa\gg n$, so that the total dimension $nm$ is of the order of the
+number of queries certified. L-Katyusha is not in (S1), because of its full gradients: its lower bound on (S) is
+\resref{prop:anyseq}, without the $n\log\frac1\varepsilon$ term.
+
+\paragraph{SAGA and L-Katyusha on the instance (hypothesis A4).}
+Hypothesis A4 predicts that the gradient counts of SAGA and L-Katyusha grow like $\kappa$ and $\kappa^{1/2}$ when
+$\kappa\gg n$. The chain bounds above are at most of order $(n+\sqrt{n\kappa})\log\frac1\varepsilon$; for SAGA,
+the exponent $1$ comes instead from its mean iterate, which moves like gradient descent whatever the memory:
+\restate{prop:sagamean}
+For $n$ identical components this is the argument of \resref{prop:B3-lower}; here it holds on every quadratic instance.
+Combined with the proof of Proposition~\ref{prop:59}, run with $\mu_F=\lmin(\nabla^2F)$ in place of $\mu$, it gives a
+two-sided bound:
+\restate{cor:saga}
+On (S), the eigenvectors of the chain are sampled sine waves, and those of curvature at most $2\mu$ carry a fixed share of
+the initial error as long as the chain is long compared with the decay length $\approx\sqrt Q/2$ of $\etastar$:
+\restate{lem:overlap}
+These results and the bound of Theorem~11 of \cite{kovalev2020dont} for L-Katyusha (Section~\ref{sec:th-A3} recalls
+its iteration, its mirror sequence and its reference point, written $z_t$ and $w_t$ there and $z^k$ and $w^k$ below, and
+its parameters $\theta_1$ and $\sigma$), converted into the distance of its mirror sequence in
+\eqref{eq:LKconst}--\eqref{eq:LKupper} with an explicit constant $C_0\ge1$ that depends only on $n$, $\kappa$ and
+$L_F/\mu$ and enters the counts only through $\log\frac{C_0}\varepsilon$, give the prediction tested in
+Section~\ref{sec:exp-A4}:
+\restate{prop:A4}
+Part (ii) certifies the exponents $1$ and $\frac12$ as orders of growth, not as slopes. For the instance of
+Figure~\ref{fig:A4b} ($n=16$, $m=256$, $\varepsilon=10^{-8}$) the window is $65\le\kappa\le\kappa_{\max}\approx4.9\cdot10^4$,
+i.e.\ $2.9$ decades; with $\rho$ and $C_0$ replaced by their bounds $\frac1{105}$ and $1+\frac58Q$, the two sides of
+\eqref{eq:sagawindow} differ there by a factor of about $7.8$, and those of \eqref{eq:lkwindow} by $88$ to $115$, so that
+they constrain the end-to-end slope only to $[0.69,1.31]$ and $[-0.17,1.22]$, as \resref{rem:plot} details; the slopes
+measured in Section~\ref{sec:exp-A4} agree with these orders but are not implied by them. Figure~\ref{fig:A4b} counts
+L-Katyusha as in Table~\ref{tab:th-complexity} ($3$ gradients per iteration in expectation) and measures the distance
+of its gradient sequence $y_t$: this multiplies the upper bound of \eqref{eq:lkwindow} by at most $\frac32$ and
+replaces $C_0$ by a constant $C_y=O(\kappa)$ (Appendix~\ref{sec:lower_bound}, after \eqref{eq:LKupper}), without
+changing the exponents.
+Part (iii) proves that the counts saturate as $\kappa\to\infty$ only for SAGA and for L-Katyusha tuned with
+$\lmin(\nabla^2F)$, the tuning of the experiments, and proves nothing of the kind with the nominal $\mu$; the slopes
+measured beyond $\kappa_{\max}$ are not predicted by part (ii). Logistic regression is not a hard instance: there is no
+chain, and its effective constants can be much better than $R^2$ and $\lambda$ (Section~\ref{sec:th-B2}).
+
+\paragraph{Known and new.}
+The lower bounds and the chain constructions \cite{nesterov2018lectures,agarwal2015lower,lan2018optimal} are known, and so
+is the geometric minimizer given by $\zeta_Q$ \cite{lan2018optimal}. To our knowledge, the following are not in the
+sources we reviewed in this form: the restatement of the bounds with their exact oracle classes and the correction of
+hypothesis A1; self-contained proofs on a shared-regularizer instance valid for every $\kappa>1$, including the bound for
+every index sequence (\resref*{prop:anyseq}); the explicit dimension condition and window (\resref*{cor:count},
+\eqref{eq:window}); and the SAGA sandwich (\resref*{cor:saga}, with \resref*{lem:overlap}), which makes the exponent $1$
+a theorem on the instance (\resref*{prop:A4}).
+
+% Table 1 is anchored at the end of the subsection on purpose: in the first half of the subsection most pages begin
+% inside a restated statement, so that a top float anchored there (at its first mention, or before the paragraph on
+% the hard instance) interrupts a statement; anchored here, it lands among plain paragraphs (end of 4.4 or start of
+% 4.5). Check the page of the table after any change of the layout.
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{3.0cm}p{6.6cm}p{6.3cm}@{}}
+\toprule
+Method or class & Component gradients to reach accuracy $\varepsilon$ & Validity and source \tabularnewline
+\midrule
+GD, step $1/R^2$ & $n\kappa\log\frac1\varepsilon$ \ ($n\frac{L_F}\mu\log\frac1\varepsilon$ with step $1/L_F$) & \raggedright
+all $n,\kappa$; \cite[Section~5.4.4]{bach2024learning} \tabularnewline
+AGD & $n\sqrt\kappa\log\frac1\varepsilon$ \ ($n\sqrt{L_F/\mu}\,\log\frac1\varepsilon$ with $L_F$) & \raggedright
+all $n,\kappa$; \cite[Section~5.2.5]{bach2024learning} \tabularnewline
+SAGA, $\gamma=\frac1{4R^2}$ & $n+\max\{3n,\frac{16\kappa}3\}\log\frac{1+n/4}{\varepsilon}$ & \raggedright all $n,\kappa$;
+Proposition~\ref{prop:59}; \resref*{cor:saga} \tabularnewline
+\raggedright L-SVRG, $\eta=\frac1{6R^2}$, $p=\frac1n$ & $n+3\max\{6\kappa,2n\}\log\frac{\Phi_0}{\varepsilon}$ &
+\raggedright all $n,\kappa$; \cite[Theorem~5]{kovalev2020dont} \tabularnewline
+L-Katyusha & $n+(12n+15\sqrt{n\kappa})\log\frac{3R^2(n+3)\norm{\theta_0-\etastar}^2}{8\varepsilon}$ & \raggedright
+all $n,\kappa$ and $\varepsilon\le\frac{3R^2(n+3)}{16}\norm{\theta_0-\etastar}^2$; \resref*{cor:lk-complexity}
+\tabularnewline
+\midrule
+class (S1) & $\Omega\big((n+\sqrt{n\kappa})\log\frac1\varepsilon\big)$ & \raggedright dimension $\gtrsim$ number of
+queries; \resref*{thm:LZ}; \resref*{cor:count} \tabularnewline
+\raggedright class (S2), instance (S) & $\frac{\sqrt{n(\kappa-1)}}8\log\frac1{2\varepsilon}$ & \raggedright
+$\kappa-1\ge2n$, $q^{2m}\le\varepsilon<\frac12$; \resref*{prop:anyseq} \tabularnewline
+\raggedright any randomized algorithm & $\Omega\big(n+\sqrt{n\kappa}\log(\frac{\varepsilon_0}{\varepsilon}\sqrt{n/\kappa})\big)$
+& \raggedright $\kappa>161n$, no span assumption; \resref*{thm:WS} \tabularnewline
+\bottomrule
+\end{tabular}
+\caption[Guarantees and lower bounds in component gradients]{Guarantees for every instance of the class of
+Proposition~\ref{prop:59} (top) and lower bounds (bottom), in component gradients. The accuracy criteria differ only
+inside the logarithm, by factors polynomial in $n$ and $\kappa$ (for instance $\frac{3\kappa(n+3)}4$ when the L-Katyusha
+criterion is converted into the relative squared distance by strong convexity): relative squared distance (SAGA,
+instance (S)), the Lyapunov function $\Phi$ of \cite[Theorem~5]{kovalev2020dont} (L-SVRG), $\E[F(y_t)]-F(\etastar)$
+(L-Katyusha, $y_t$ its gradient sequence, Section~\ref{sec:th-A3}), initial gap $\varepsilon_0$ (last row). Counting convention, that of the experiments
+(Section~\ref{sec:setting}): the SAGA, L-SVRG and L-Katyusha counts include the initial full gradient, and L-SVRG and
+L-Katyusha are charged $2$ gradients per iteration ($f'_{i(t)}$ at the query point and at the reference point) and $n$
+per refresh of the reference point, i.e.\ $3$ per iteration in expectation. With stored reference gradients, the
+convention of $T_{\rm LK}$ in Appendix~\ref{sec:lower_bound}, an iteration costs $2$ in expectation, which gives
+$n+(8n+10\sqrt{n\kappa})\log(\cdot)$ for L-Katyusha and $n+2\max\{6\kappa,2n\}\log(\cdot)$ for L-SVRG. The SAGA and
+L-SVRG counts treat the number of iterations as a real number (rounding it up adds at most one iteration); the
+L-Katyusha count is that of an integer number of iterations, which its condition on $\varepsilon$ ensures. For
+$\kappa\gg n$ the leading terms are $n\kappa$, $n\sqrt\kappa$, $\kappa$, $\kappa$ and $\sqrt{n\kappa}$, the last one
+matching the lower bounds.}
+\label{tab:th-complexity}
+\end{table}

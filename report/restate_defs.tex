@@ -1,0 +1,45 @@
+% Restatements, in the main body, of results proved in the appendices (statements only; the proofs stay there).
+% The statements are generated verbatim from the theory notes by report/make_restated.py into report/restated/:
+% edit the note, never a generated file, and rerun the script before compiling report/main.tex or report/synthesis.tex
+% (python report/build.py does everything in order).
+%   \restate{label}  prints the statement of the appendix result with this label under its appendix number
+%                    (e.g. Proposition B3.16), followed by a pointer: "[proof: Appendix B3, p. 62]" with the page of the
+%                    proof when the appendix proves the result, "[Appendix B3, p. 57]" with the page of the statement
+%                    otherwise (definitions, assumptions, remarks, results quoted from the literature);
+%   \resref{label}   refers to a result of the appendices by type, number and name, "Proposition B3.16 (name)";
+%   \resref*{label}  by type and number only, "Proposition B3.16" (e.g. when the name was given just before).
+% A document may define \rsproofwhere{appendix}{label} before \input'ing this file to change the pointer
+% (report/synthesis.tex does, since the appendices are not part of it).
+\makeatletter
+\providecommand{\rsproofwhere}[2]{Appendix~#1, p.~\pageref{#2}}
+\newcommand{\rs@head}{}
+\theoremstyle{plain}
+\newtheorem*{rs@thm}{\rs@head}
+\def\rs@zero{0}\def\rs@one{1}
+\newcommand{\rs@pointer}[3]{% #1 = 0 (not proved there), 1 (proof after the statement) or the label of the proof,
+  % #2 appendix, #3 label of the result. The pointer is set flush right on the last line of the statement, or alone on a
+  % new line when it does not fit; \widowpenalty keeps that line on the page of the statement.
+  \edef\rs@arg{#1}%
+  \edef\rs@where{\noexpand\rsproofwhere{#2}{\ifx\rs@arg\rs@zero#3\else\ifx\rs@arg\rs@one#3\else\rs@arg\fi\fi}}%
+  {\unskip\nobreak\hfil\penalty50\hskip1em\hbox{}\nobreak\hfil
+   \normalfont\footnotesize[\ifx\rs@arg\rs@zero\else proof: \fi\rs@where]%
+   \widowpenalty\@M\parfillskip=\z@\finalhyphendemerits=\z@\par}}
+\newenvironment{restated}[5]% #1 type word, #2 label, #3 appendix, #4 0, 1 or label of the proof, #5 name
+  {\renewcommand{\rs@head}{#1~\ref{#2}}\def\rs@lab{#2}\def\rs@app{#3}\def\rs@proved{#4}%
+   \@beginparpenalty\@M % no page break between the sentence that introduces a statement and the statement
+   \if\relax\detokenize{#5}\relax\begin{rs@thm}\else\begin{rs@thm}[{#5}]\fi}
+  {\rs@pointer{\rs@proved}{\rs@app}{\rs@lab}\end{rs@thm}}
+\newcommand{\restatedmeta}[4]{% #1 label, #2 type word, #3 appendix, #4 name
+  \expandafter\def\csname rs@type@#1\endcsname{#2}%
+  \expandafter\def\csname rs@app@#1\endcsname{#3}%
+  \expandafter\def\csname rs@name@#1\endcsname{#4}}
+\def\rs@file#1:#2\@nil{#1-#2}
+\newcommand{\restate}[1]{\par\edef\rs@tmp{\rs@file#1\@nil}\input{restated/\rs@tmp}}
+\newcommand{\resref}{\@ifstar{\rs@ref\@firstoftwo}{\rs@ref\@secondoftwo}}
+\newcommand{\rs@ref}[2]{% #1 \@firstoftwo (number only) or \@secondoftwo (with the name), #2 label
+  \@ifundefined{rs@type@#2}%
+    {\textbf{??}\PackageWarning{restate}{Unknown result `#2' (rerun report/make_restated.py)}}%
+    {\csname rs@type@#2\endcsname~\ref{#2}%
+     #1{}{\expandafter\ifx\csname rs@name@#2\endcsname\@empty\else\ (\csname rs@name@#2\endcsname)\fi}}}
+\makeatother
+\input{restated/names}

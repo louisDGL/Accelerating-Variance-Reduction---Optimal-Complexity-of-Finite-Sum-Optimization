@@ -51,8 +51,13 @@ def run_all():
 def fig1(res):
     kap = [k for k in KAPPAS if k >= 100] or KAPPAS
     alpha = 1.0 if 1.0 in ALPHAS else ALPHAS[-1]
-    fig, axes = ps.new_fig(len(kap), 1, panel=(4.3, 3.4), sharey=False)
-    for ax, kappa in zip(axes[0], kap):
+    ncol = min(2, len(kap))                                 # 2 x 2 grid: one panel per kappa, in reading order
+    nrow = -(-len(kap) // ncol)
+    fig, axes = ps.new_fig(ncol, nrow, panel=(3.35, 2.3), sharey=False)
+    flat = axes.ravel()
+    for ax in flat[len(kap):]:
+        ax.set_visible(False)
+    for ax, kappa in zip(flat, kap):
         runs = res["runs"][(kappa, alpha)]
         it, meanD, allD = analysis.mean_over_seeds(runs, "D")
         passes = it / N
@@ -60,19 +65,21 @@ def fig1(res):
         ps.band(ax, passes, allD.min(0), allD.max(0), ps.BOUNDS["empirical"])
         ax.semilogy(passes, bounds.saga_bound(it, N, r0["R2"], r0["mu"], r0["D0"]), color=ps.BOUNDS["prop59"], label=ps.BOUNDS_LABEL["prop59"])
         ax.semilogy(passes, bounds.saga_bound(it, N, r0["R2"], r0["mu"], r0["D0"], S0=r0["S0"]), color=ps.BOUNDS["before_I6"], label=ps.BOUNDS_LABEL["before_I6"])
-        tb = analysis.trajectory_bounds(r0)
+        tb = analysis.trajectory_bounds(r0, v_min=1e-18)   # same floor as the attribution windows
         g = np.asarray(r0["iters"]) / N
         for key in ["mu_eff", "mu_eff+L_eff", "exact"]:
             ax.semilogy(g, tb[key], color=ps.BOUNDS[key], label=ps.BOUNDS_LABEL[key], linewidth=1.6)
         ax.semilogy(np.asarray(r0["iters"]) / N, r0["V"], color=ps.BOUNDS["realized_V"], linewidth=1.2, label=ps.BOUNDS_LABEL["realized_V"])
         ax.semilogy(passes, meanD, color=ps.BOUNDS["empirical"], label=ps.BOUNDS_LABEL["empirical"], linewidth=2.4, zorder=10)
         ax.set_title(f"{ps.fmt_kappa(kappa)}, α = {alpha:g}, n = {N}")
-        ax.set_xlabel("effective passes (t / n)")
         lo = max(1e-28, meanD.min() / 10)
         ax.set_ylim(lo, max(meanD.max(), r0["D0"] * (1 + N / 4)) * 3)
-    axes[0][0].set_ylabel("squared distance to η*  /  Lyapunov value")
-    ps.legend(axes[0][-1], loc="upper right", fontsize=7)
-    fig.suptitle("Figure 1 — SAGA: empirical convergence versus the Proposition 5.9 bound and trajectory-dependent bounds", fontsize=10)
+    for ax in axes[-1]:
+        ax.set_xlabel("effective passes (t / n)")
+    fig.supylabel("squared distance to η*  /  Lyapunov value", color=ps.INK["secondary"])
+    h, l = flat[0].get_legend_handles_labels()              # one shared legend below the panels (no overlap with curves)
+    ps.legend_below(fig, h, l, ncol=min(3, len(l)))
+    ps.suptitle(fig, "Figure 1 — SAGA: empirical convergence versus the Proposition 5.9 bound\nand trajectory-dependent bounds")
     ps.savefig(fig, "fig1_convergence_vs_bound")
 
 
@@ -87,7 +94,7 @@ def fig2(res):
     kappa = 1000.0 if 1000.0 in KAPPAS else KAPPAS[-1]
     alpha = 1.0 if 1.0 in ALPHAS else ALPHAS[-1]
     runs = res["runs"][(kappa, alpha)]
-    fig, axes = ps.new_fig(2, 1, panel=(5.0, 3.6))
+    fig, axes = ps.new_fig(2, 1, panel=(3.35, 2.9))
     ax = axes[0][0]
     tV, XV = _ratio_curves(runs, "V")
     floor = (XV < 1e-18)                      # below this the state is dominated by the precision of eta_* (rounding noise)
@@ -98,34 +105,41 @@ def fig2(res):
         ax.semilogy(t / N, m, color=ps.RATIO[key], label=ps.RATIO_LABEL[key])
         ps.band(ax, t / N, np.nanmin(X, 0), np.nanmax(X, 0), ps.RATIO[key])
     ax.plot([0], [runs[0]["r_init"]], marker="o", markersize=6, color=ps.INEQ["I6"], linestyle="none", label="r_init (I6), at t = 0")
-    ax.set_ylim(1e-3, 1.5)
+    ax.set_ylim(min(1e-3, 0.5 * runs[0]["r_init"]), 1.5)
     ax.set_xlabel("effective passes (t / n)")
-    ax.set_ylabel("tightness ratio  (LHS / RHS of the inequality)")
-    ax.set_title(f"Tightness of each proof inequality ({ps.fmt_kappa(kappa)}, α = {alpha:g})")
-    ps.legend(ax, loc="lower left", fontsize=7)
-    # right panel: chain of contraction exponents per iteration
+    ax.set_ylabel("tightness ratio\n(LHS / RHS of the inequality)")
+    ax.set_title(f"Tightness of each proof inequality\n({ps.fmt_kappa(kappa)}, α = {alpha:g})")
+    # lower right, raised above the level of the r_init marker at t = 0 (lower left), which stays visible and is not
+    # aligned with the legend's own marker
+    ps.legend(ax, loc="lower right", bbox_to_anchor=(1.0, 0.12))
+    # right panel: chain of contraction exponents per iteration (order B of the B3 note), records with V >= 1e-18
     ax = axes[0][1]
     r0 = runs[0]
-    att = analysis.attribution(r0["instr"], r0["gamma"], r0["Delta"], r0["R2"], r0["mu"], N)
+    att = analysis.attribution(r0["instr"], r0["gamma"], r0["Delta"], r0["R2"], r0["mu"], N, v_min=1e-18)
     names = ["exact", "I1", "I3", "I2", "I4", "I5"]
     colors = [ps.INK["primary"], ps.INEQ["I1"], ps.INEQ["I3"], ps.INEQ["I2"], ps.INEQ["I4"], ps.INEQ["I5"]]
     labels = ["exact one-step contraction", "after I1", "after I1, I3", "after I1, I3, I2", "after I1–I4", "Prop. 5.9 (after I5)"]
     for j, (nm, c, lb) in enumerate(zip(names, colors, labels)):
         ax.semilogy(att["t"] / N, att["c"][:, j] * N, color=c, label=lb, linewidth=2.0 if j in (0, 5) else 1.5)
     ax.set_xlabel("effective passes (t / n)")
-    ax.set_ylabel("contraction exponent per pass  (−n·log ρ)")
-    ax.set_title("From the exact contraction to the bound, one inequality at a time")
-    ps.legend(ax, loc="upper right", fontsize=7)
-    fig.suptitle("Figure 2 — where the proof of Proposition 5.9 loses: tightness ratios and the attribution chain", fontsize=10)
+    ax.set_ylabel("contraction exponent per pass\n(−n·log ρ)")
+    ax.set_title("From the exact contraction to the\nbound, one inequality at a time")
+    ax.set_ylim(top=12 * float(np.nanmax(att["c"] * N)))     # headroom: the legend sits above the curves
+    ps.legend(ax, loc="upper right")
+    ps.suptitle(fig, "Figure 2 — where the proof of Proposition 5.9 loses: tightness ratios and the attribution chain")
     ps.savefig(fig, "fig2_tightness_ratios")
 
 
 def fig3(res, window=(2, 20)):
     """Share of the (log) theory-practice gap attributed to each inequality, averaged over passes in `window`."""
     summary = {}
-    fig, axes = ps.new_fig(len(ALPHAS) + 1, 1, panel=(4.0, 3.4), sharey=False)
+    npan = len(ALPHAS) + 1                                  # 2 x 2 grid: alpha = 0, 1, 2, then the speed-up, in reading order
+    fig, axes = ps.new_fig(2, -(-npan // 2), panel=(3.35, 2.35), sharey=False)
+    flat = axes.ravel()
+    for ax in flat[npan:]:
+        ax.set_visible(False)
     for ai, alpha in enumerate(ALPHAS):
-        ax = axes[0][ai]
+        ax = flat[ai]
         shares = {k: [] for k in ["I1", "I3", "I2", "I4", "I5"]}
         spread = {k: [] for k in ["I1", "I3", "I2", "I4", "I5"]}
         speed = []
@@ -151,21 +165,22 @@ def fig3(res, window=(2, 20)):
             yerr = np.array(spread[k]).T
             ax.errorbar(KAPPAS, shares[k], yerr=yerr, marker="o", markersize=5, color=ps.INEQ[k], label=ps.INEQ_LABEL[k], capsize=2, linewidth=2.0, elinewidth=1.0)
             ax.set_xscale("log")
-        ax.set_title(f"α = {alpha:g}  (cov. condition number d^α = {D ** alpha:g})")
-        ax.set_xlabel("κ = R²/μ")
-        ax.set_ylim(-0.05, 1.05)
-        if ai == 0:
-            ax.set_ylabel(f"share of the log-gap (passes {window[0]}–{window[1]})")
-    ax = axes[0][-1]
+        ax.set_title(f"α = {alpha:g}  (cov. condition number $d^{{\\alpha}}$ = {D ** alpha:g})")
+        ax.set_ylim(-0.05, 1.12)                            # headroom for the legend of the first panel
+        if ai % 2 == 0:
+            ax.set_ylabel(f"share of the log-gap\n(passes {window[0]}–{window[1]})")
+    ax = flat[len(ALPHAS)]
     for ai, alpha in enumerate(ALPHAS):
         sp = [summary[(k, alpha)]["speedup"] for k in KAPPAS]
         ax.loglog(KAPPAS, sp, marker="o", markersize=5, color=ps.BLUE_RAMP[4 + 3 * ai], label=f"α = {alpha:g}")
-    ax.set_xlabel("κ = R²/μ")
-    ax.set_ylabel("speed-up: exact contraction / bound")
+    ax.set_ylabel("speed-up:\nexact contraction / bound")
     ax.set_title("Total theory–practice gap")
-    ps.legend(ax, loc="upper left", fontsize=7)
-    ps.legend(axes[0][0], loc="upper left", fontsize=7)
-    fig.suptitle("Figure 3 — which inequality is the bottleneck of Proposition 5.9, across conditioning and anisotropy", fontsize=10)
+    for i in range(npan):
+        if i + 2 >= npan:                                   # no panel below: label the x axis
+            flat[i].set_xlabel("κ = R²/μ")
+    ps.legend(ax, loc="upper left")
+    ps.legend(flat[0], loc="upper left")
+    ps.suptitle(fig, "Figure 3 — which inequality is the bottleneck of Proposition 5.9,\nacross conditioning and anisotropy")
     ps.savefig(fig, "fig3_bottleneck_by_geometry")
     return summary
 
@@ -197,7 +212,7 @@ def main():
         if late:
             d["shares_late_20_100"] = dict(zip(["I1", "I3", "I2", "I4", "I5"], map(float, np.mean([a["shares"] for a in late], 0))))
             d["speedup_late_20_100"] = float(np.mean([a["speedup_total"] for a in late]))
-        early = [analysis.attribution(r["instr"], r["gamma"], r["Delta"], r["R2"], r["mu"], N, t_min=2 * N, t_max=20 * N) for r in runs]
+        early = [analysis.attribution(r["instr"], r["gamma"], r["Delta"], r["R2"], r["mu"], N, t_min=2 * N, t_max=20 * N, v_min=1e-18) for r in runs]
         d["loo_exponents_per_iter"] = {k: float(np.mean([a["loo_exponents"][k] for a in early])) for k in ["I1", "I3", "I2", "I4", "I5"]}
         orderA = [analysis.attribution_A(r["instr"], r["gamma"], r["Delta"], r["R2"], r["mu"], N, t_min=2 * N, t_max=20 * N, v_min=1e-18) for r in runs]
         d["shares_orderA"] = dict(zip(analysis.STEP_KEYS_A, map(float, np.nanmean([a["shares"] for a in orderA], 0))))

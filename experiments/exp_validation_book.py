@@ -1,8 +1,9 @@
 """Validation: reproduce the setting of Figure 5.4 of Bach's book (Section 5.4.4, "Experiments"):
 l2-regularized logistic regression, d = 40, Gaussian inputs, y = sign(linear + Gaussian noise), mu = R^2/n with
-R^2 = max_i ||x_i||^2, n in {1000, 10000}; GD (step 1/R^2), SGD and SAGA (step 1/(4R^2)) with the book's constants;
-training objective log10(F(theta_t) - F_*) versus effective passes. The book reports SAGA reaching machine
-precision in about 25 (n = 1000) and 10 (n = 10000) passes.
+R^2 = max_i ||x_i||^2, n in {1000, 10000}; GD (step 1/R^2) and SAGA (step 1/(4R^2)) with the steps of the book's
+analysis, and SGD with the decreasing step 1/(R^2 + mu t), our choice (the book's text gives 1/(mu t) in Prop. 5.8,
+and the code of its Figure 5.4 uses 1/(R^2 sqrt(t+1) + mu (t+1))); training objective log10(F(theta_t) - F_*) versus
+effective passes. The book reports SAGA reaching machine precision in about 25 (n = 1000) and 10 (n = 10000) passes.
 Usage: python experiments/exp_validation_book.py
 """
 import os
@@ -39,7 +40,7 @@ def main():
             for k, v in runs.items():
                 print(f"   {k:5s}: F-F* after 50 passes = {v['Fgap'][-1]:.2e}", flush=True)
         common.save_result(TAG, res)
-    fig, axes = ps.new_fig(2, 1, panel=(4.6, 3.4))
+    fig, axes = ps.new_fig(2, 1, panel=(3.35, 2.6))         # the two panels of the published Figure 0, at the text width
     for ax, n in zip(axes[0], [1000, 10000]):
         for k in ["SGD", "SAGA", "GD"]:
             r = res[n]["runs"][k]
@@ -48,8 +49,11 @@ def main():
         ax.set_xlabel("effective passes")
         ax.set_ylabel("log₁₀[F(θₜ) − F(η*)]")
         ax.set_ylim(-16.5, 0.5)
-        ps.legend(ax, loc="upper right")
-    fig.suptitle("Validation — the setting of Figure 5.4 of Bach (2024): d = 40, Gaussian inputs, μ = R²/n, textbook step sizes", fontsize=10)
+        ps.legend(ax, loc="center right")                    # clear of the SGD and GD plateaus near the top
+    # the book's constant R_x^2 = max_i ||x_i||^2 (the report's R^2 = max_i L_i is about R_x^2 / 4 for logistic losses)
+    ps.suptitle(fig, "Validation — the setting of Figure 5.4 of Bach (2024): d = 40, Gaussian inputs,\n"
+                r"μ = $R_x^2/n$ with $R_x^2 = \mathrm{max}_i\,\|x_i\|^2$; steps 1/$R_x^2$ (GD) and 1/(4$R_x^2$) (SAGA)" "\n"
+                r"of the book's analysis, our SGD step 1/($R_x^2$ + μt)")
     ps.savefig(fig, "fig0_validation_book")
     common.save_json(TAG + "_summary", {str(n): {"problem": v["summary"], "final_Fgap": {k: float(r["Fgap"][-1]) for k, r in v["runs"].items()},
                                                 "passes_to_1e-8": {k: float(algorithms.grads_to_accuracy(r, 1e-8, key="Fgap", relative=False) / n)

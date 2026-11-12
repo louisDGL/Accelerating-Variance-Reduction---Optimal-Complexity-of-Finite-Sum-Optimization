@@ -15,7 +15,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import common  # noqa: E402
 import plotstyle as ps  # noqa: E402
-from vrlab import algorithms, problems, solvers  # noqa: E402
+from vrlab import algorithms, analysis, problems, solvers  # noqa: E402
 
 QUICK = "--quick" in sys.argv
 N, M = (16, 64) if QUICK else (16, 256)
@@ -80,44 +80,56 @@ def run_all():
     return res
 
 
-def fit_slope(x, y, xmin):
-    xs, ys = [], []
-    for a, b in zip(x, y):
-        if a >= xmin and np.isfinite(b):
-            xs.append(np.log(a))
-            ys.append(np.log(b))
-    return float(np.polyfit(xs, ys, 1)[0]) if len(xs) >= 2 else np.nan
-
-
 def plot(res):
-    fig, axes = ps.new_fig(2, 2, panel=(5.2, 4.0))
+    fig = ps.figure(ps.FIG_W, 5.35)                         # leaves room for the long caption on the same page
+    rows = fig.subfigures(2, 1)                             # one row per instance, its description as the row title
+    axes = [sf.subplots(1, 2) for sf in rows]
     summary = {}
     # row 1: shared instance vs nominal kappa and vs kappa_eff; row 2: aligned instance, same two x-axes
     panels = [("shared", KAPPAS_SHARED, "nominal"), ("shared", KAPPAS_SHARED, "eff"), ("aligned", KAPPAS_ALIGNED, "nominal"), ("aligned", KAPPAS_ALIGNED, "eff")]
     for ai, (kind, kappas, xkey) in enumerate(panels):
         ax = axes[ai // 2][ai % 2]
         xs = [kappa if xkey == "nominal" else res["constants"][(kind, kappa)]["kappa_eff"] for kappa in kappas]
+        kmax = res["constants"][(kind, kappas[0])]["kappa_max_window"]
         for name in METHODS:
             vals = []
             for kappa in kappas:
                 g = [res["grads"].get((kind, kappa, s, name), np.nan) for s in SEEDS]
                 g = [v for v in g if np.isfinite(v)]
                 vals.append(np.exp(np.mean(np.log(g))) if g else np.nan)
-            slope = fit_slope(xs, vals, xmin=10 * N)
-            summary[f"{kind}|{xkey}|{name}"] = {"x": xs, "grads": vals, "slope_x_ge_10n": slope}
-            ax.loglog(xs, vals, marker="o", markersize=5, color=ps.ALGO[name], label=f"{name} (slope {slope:.2f})")
-        kmax = res["constants"][(kind, kappas[0])]["kappa_max_window"]
+            # least-squares slopes of the per-x geometric means (95% t-intervals, K - 2 degrees of freedom; one point
+            # per x: GD and AGD are deterministic here, so pooling the seeds would inflate the degrees of freedom): over
+            # x >= 10 n, and over the lower-bound window 10 n <= nominal kappa <= kappa_max(m, eps) of the A1 note
+            px = np.array(xs, dtype=float)
+            pk = np.array(kappas, dtype=float)
+            py = np.array(vals, dtype=float)
+            fit = analysis.loglog_slope(px, py, xmin=10 * N)
+            in_win = (pk >= 10 * N) & (pk <= kmax)
+            fit_w = analysis.loglog_slope(px[in_win], py[in_win])
+            slope = fit["slope"]
+            summary[f"{kind}|{xkey}|{name}"] = {"x": xs, "grads": vals, "slope_x_ge_10n": slope, "slope_ci95": [fit["ci_low"], fit["ci_high"]],
+                                                "slope_n_points": fit["n_points"], "slope_window_10n_kmax": fit_w["slope"],
+                                                "slope_window_ci95": [fit_w["ci_low"], fit_w["ci_high"]], "slope_window_n_points": fit_w["n_points"]}
+            pm = f" ± {fit['half_width']:.2f}" if np.isfinite(fit["half_width"]) else ""
+            ax.loglog(xs, vals, marker="o", markersize=5, color=ps.ALGO[name], label=f"{name} (slope {slope:.2f}{pm})")
         mm = res["constants"][(kind, kappas[0])]["m"]
         if xkey == "nominal":
             ax.axvline(kmax, color=ps.INK["axis"], linewidth=0.8)
-            ax.annotate("κ_max(m, ε)", (kmax, ax.get_ylim()[0]), xytext=(2, 4), textcoords="offset points", fontsize=7.5, color=ps.INK["secondary"])
+            # label on the left of the line, at its foot (below the curves; the line can sit at the right edge)
+            ax.annotate("κ_max(m, ε)", (kmax, ax.get_ylim()[0]), xytext=(-2, 4), textcoords="offset points", ha="right",
+                        fontsize=ps.SMALL, color=ps.INK["secondary"])
         ax.axvline(N, color=ps.INK["axis"], linewidth=0.8)
         ax.set_xlabel("nominal κ" if xkey == "nominal" else "κ_eff = R² / λmin(F'')")
-        ax.set_ylabel("component gradients to reach 10⁻⁸ relative error")
-        ax.set_title({"shared": f"A1-note instance (shared regularizer, ζ = ζ_Q), m = {mm}", "aligned": f"aligned instance (all components equal, L_F = R²), m = {mm}"}[kind]
-                     + ("" if xkey == "nominal" else " — against κ_eff"), fontsize=9)
-        ps.legend(ax, loc="upper left", fontsize=7)
-    fig.suptitle(f"Figure A4b — the other instances of the A1 note (n = {N}, ε = 10⁻⁸): saturation of the chain and the four orders κ, √(nκ), nκ, n√κ", fontsize=10)
+        if ai % 2 == 0:
+            ax.set_ylabel("component gradients to reach\n10⁻⁸ relative error")
+            rows[ai // 2].suptitle({"shared": f"A1-note instance (shared regularizer, ζ = ζ_Q), m = {mm}",
+                                    "aligned": f"aligned instance (all components equal, L_F = R²), m = {mm}"}[kind],
+                                   fontsize=9, fontweight="bold")
+        ax.set_title("against the nominal κ" if xkey == "nominal" else "against κ_eff", fontweight="normal")
+        ax.set_ylim(top=5 * ax.get_ylim()[1])                # headroom: the legend sits above the curves
+        ps.legend(ax, loc="upper left", labelspacing=0.35)
+    ps.suptitle(fig, f"Figure A4b — the other instances of the A1 note (n = {N}, ε = 10⁻⁸): saturation of the chain\n"
+                "and the four orders κ, √(nκ), nκ, n√κ")
     ps.savefig(fig, "figA4b_instances")
     return summary
 

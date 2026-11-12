@@ -2,6 +2,8 @@
 regression, with P in {I, diag(Sigma_hat) + lam I, Sigma_hat + lam I, F''(eta_*)}. The transferred Prop. 5.9 gives
 the rate 1 - min{1/(3n), 3 mu_P/(16 R_P^2)} with R_P^2 = max_i ||x_i||^2_{P^-1}/4 + lam lmax(P^-1) and the global
 mu_P = lam lmin(P^-1); the local mu_P at eta_* is the smallest generalized eigenvalue of (F''(eta_*), P).
+This R_P^2 is the upper bound (eq. B1-logistic-RP of the B1 note) of the smoothness constant of Definition B1-kappaP,
+exact for P = I and at most 5.2% above it here; it is used both for kappa_P and for the step gamma = 1/(4 R_P^2).
 Usage: python experiments/exp_B1_preconditioning.py [--quick]
 """
 import os
@@ -80,10 +82,11 @@ def empirical_rate(runs, key="D_P", window=(2, 20)):
 
 
 def plot(res):
-    fig, axes = ps.new_fig(len(ALPHAS) + 1, 1, panel=(4.6, 3.6))
+    fig = ps.figure(ps.FIG_W, 5.2)
+    gs = fig.add_gridspec(2, len(ALPHAS), height_ratios=[1.0, 0.8])   # top: one panel per alpha; bottom: the rates
     summary = {}
     for ai, alpha in enumerate(ALPHAS):
-        ax = axes[0][ai]
+        ax = fig.add_subplot(gs[0, ai])
         for kind in PRECONDS:
             runs = res["runs"][(alpha, kind)]
             it, meanF, allF = analysis.mean_over_seeds(runs, "Fgap")
@@ -98,14 +101,14 @@ def plot(res):
                 t = np.array([q["t"] for q in runs[0]["instr"][:T]])
                 sel = (t >= 2 * N) & (t <= 20 * N)
                 summary[f"alpha={alpha:g}|{kind}"][rk + "_geomean"] = float(np.exp(np.log(np.clip(X[:, sel], 1e-300, None)).mean()))
-        ax.set_title(f"κ = 10³, α = {alpha:g} (cov. condition number {D ** alpha:g})")
+        ax.set_title(f"κ = 10³, α = {alpha:g}\n(cov. condition number {D ** alpha:g})")
         ax.set_xlabel("effective passes")
         ax.set_ylabel("F(θₜ) − F*  (mean over seeds)")
         ax.set_ylim(1e-17, 10)
-        ps.legend(ax, loc="upper right", fontsize=7)
-    # rates panel (last alpha): empirical vs bounds
+        ps.legend(ax, loc="upper right")
+    # rates panel (last alpha, full width below): empirical vs bounds
     alpha = ALPHAS[-1]
-    ax = axes[0][-1]
+    ax = fig.add_subplot(gs[1, :])
     x = np.arange(len(PRECONDS))
     w = 0.26
     emp = [summary[f"alpha={alpha:g}|{k}"]["rate_emp_D_P"] * N for k in PRECONDS]
@@ -116,11 +119,13 @@ def plot(res):
     ax.bar(x + w, bg, width=w - 0.03, color=ps.AQUA, label="Prop. 5.9 with global μ_P")
     ax.set_yscale("log")
     ax.set_xticks(x)
-    ax.set_xticklabels([ps.PRECOND_LABEL[k] for k in PRECONDS], fontsize=7)
+    ax.set_xticklabels([ps.PRECOND_LABEL[k] for k in PRECONDS])
+    ax.set_ylim(top=8 * float(np.nanmax(emp + bl + bg)))   # headroom: the legend sits above the bars
     ax.set_ylabel("contraction exponent per pass")
     ax.set_title(f"rates: empirical vs transferred bound (α = {alpha:g})")
-    ps.legend(ax, loc="upper left", fontsize=7)
-    fig.suptitle("Figure B1 — preconditioned SAGA: convergence and the transferred Proposition 5.9 constants for different metrics P", fontsize=10)
+    ps.legend(ax, loc="upper left")
+    ps.suptitle(fig, "Figure B1 — preconditioned SAGA: convergence and the transferred Proposition 5.9 constants\n"
+                "for different metrics P")
     ps.savefig(fig, "figB1_preconditioned_saga")
     return summary
 

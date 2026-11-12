@@ -16,7 +16,15 @@
   "q_cancel_median": 1.4172865306411517,
   "q_cancel_frac_ge_1": 0.63125,
   "max_violation_rho_exact_minus_rho_lemma": -0.0016554148124179324,
-  "final_rel_D": 0.07303325040755705
+  "final_rel_D": 0.07303325040755705,
+  "inner_xw_frac_positive": 0.228125,
+  "q_plus_frac_ge_1": 0.09861111111111111,
+  "q_cancel_frac_ge_1_given_inner_positive": 0.4322678843226788,
+  "q_cancel_median_given_inner_positive": 0.8388828158722877,
+  "c_share_frac_negative_given_q_ge_1": 0.8437843784378438,
+  "contraction_componentwise_max": -0.0006535166120723933,
+  "rho_theorem11": 0.0005103103630798276,
+  "speedup_exact_over_rho": 9.328562187091064
  },
  "logistic (n=1000, d=50, \u03ba=10\u00b3, \u03b1=1)": {
   "rho_lemma": 0.9996666666666667,
@@ -35,7 +43,15 @@
   "q_cancel_median": 0.638286091203989,
   "q_cancel_frac_ge_1": 0.05186385737439222,
   "max_violation_rho_exact_minus_rho_lemma": -0.0003986687347311557,
-  "final_rel_D": 5.204602257776236e-27
+  "final_rel_D": 5.204602257776236e-27,
+  "inner_xw_frac_positive": 0.22852512155591573,
+  "q_plus_frac_ge_1": 0.05186385737439222,
+  "q_cancel_frac_ge_1_given_inner_positive": 0.22695035460992907,
+  "q_cancel_median_given_inner_positive": 0.5552890879851761,
+  "c_share_frac_negative_given_q_ge_1": 0.0,
+  "contraction_componentwise_max": -0.00022627064708453693,
+  "rho_theorem11": 0.00025,
+  "speedup_exact_over_rho": 3.699588333608875
  },
  "logistic (n=1000, d=50, \u03ba=10\u2074, \u03b1=1)": {
   "rho_lemma": 0.9998709172196418,
@@ -54,6 +70,14 @@
   "q_cancel_median": 1.401199248922441,
   "q_cancel_frac_ge_1": 0.6505338078291815,
   "max_violation_rho_exact_minus_rho_lemma": -0.00027553984204065074,
-  "final_rel_D": 2.5664310154681416e-14
+  "final_rel_D": 2.5664310154681416e-14,
+  "inner_xw_frac_positive": 0.3572953736654804,
+  "q_plus_frac_ge_1": 0.19288256227758008,
+  "q_cancel_frac_ge_1_given_inner_positive": 0.5398406374501992,
+  "q_cancel_median_given_inner_positive": 1.0917929418786514,
+  "c_share_frac_negative_given_q_ge_1": 0.7035010940919038,
+  "contraction_componentwise_max": -0.00017357338289951431,
+  "rho_theorem11": 6.454972243679026e-05,
+  "speedup_exact_over_rho": 8.233617269743675
  }
 }

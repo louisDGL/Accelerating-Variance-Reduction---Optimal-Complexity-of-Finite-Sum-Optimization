@@ -5,6 +5,9 @@ was checked against the arXiv, Crossref or Semantic Scholar records), to draft t
 reviewed by independent adversarial passes checking the constants and the consistency with the cited sources,
 and then corrected), and to format this report. All mathematical statements were re-derived and all numerical
 claims come from the scripts in the repository, which are deterministic given the seeds reported in
-Appendix~\ref{app:repro}. Representative prompts: \emph{"Transcribe the proof of Proposition 5.9 as a chain of
-labelled inequalities"}, \emph{"Try to refute this note: check every constant"}, \emph{"Verify that this reference exists and
-that its main result is stated correctly"}.
+Appendix~\ref{app:repro}, except that a run of the $\kappa$ sweeps of Section~\ref{sec:exp-A4} that exceeds its CPU-time
+budget (\nolinkurl{VRLAB_MAX_TIME}, Appendix~\ref{app:repro}) is dropped from the fits, so that which points enter could
+depend on the machine and on the budget; in the reported sweeps every run reached its target within the budget, except
+the runs of L-Katyusha without negative momentum, which diverge. Representative prompts:
+\emph{``Transcribe the proof of Proposition 5.9 as a chain of labelled inequalities''}, \emph{``Try to refute this note:
+check every constant''}, \emph{``Verify that this reference exists and that its main result is stated correctly''}.

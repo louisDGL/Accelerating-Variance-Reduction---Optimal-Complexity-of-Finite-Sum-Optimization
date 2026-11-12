@@ -62,8 +62,9 @@ def main():
             print("   rates per iteration:", rates, flush=True)
         common.save_result(TAG, res)
     R2, mu = res["R2"], res["mu"]
-    fig, axes = ps.new_fig(2, 1, panel=(5.0, 3.6))
-    ax = axes[0][0]
+    fig = ps.figure(ps.FIG_W, 3.6)
+    gs = fig.add_gridspec(2, 2, height_ratios=[1.0, 0.02])  # the two panels, then a row holding the legend of each
+    ax = fig.add_subplot(gs[0, 0])
     gr = np.exp(np.linspace(np.log(0.003), np.log(0.49), 60))
     for j, kappa in enumerate([1e2, 1e3, 1e4, 1e5]):
         mu_k = R2 / kappa
@@ -72,26 +73,41 @@ def main():
         tb = (1 - bounds.saga_rate(N, R2, mu_k)) * N
         ax.plot([0.25], [tb], marker="o", markersize=6, color=ps.BLUE_RAMP[3 + 3 * j])
     ax.axvline(0.25, color=ps.INK["axis"], linewidth=0.8)
-    ax.annotate("textbook γ = 1/(4R²)", (0.25, ax.get_ylim()[0]), xytext=(3, 4), textcoords="offset points", fontsize=7.5, color=ps.INK["secondary"])
+    # label at the foot of the textbook line, on its left: the space under the curves is empty there
+    ax.annotate("textbook γ = 1/(4R²)", (0.25, ax.get_ylim()[0]), xytext=(-3, 4), textcoords="offset points", ha="right",
+                fontsize=ps.SMALL, color=ps.INK["secondary"])
     ax.set_xlabel("step size γ R²")
-    ax.set_ylabel("best certified contraction exponent per pass\n(max over Δ of −n·log ρ)")
-    ax.set_title("what the proof structure can certify (Delta optimised)")
-    ps.legend(ax, loc="lower right", fontsize=7)
-    ax = axes[0][1]
+    ax.set_ylabel("best certified contraction\nexponent per pass\n(max over Δ of −n·log ρ)")
+    ax.set_title("what the proof structure can certify\n(Δ optimised)")
+    h, l = ax.get_legend_handles_labels()
+    ps.legend_cell(fig, gs[1, 0], h, l, ncol=2)
+    ax = fig.add_subplot(gs[0, 1])
     emp = [np.nanmean(res["emp"][g]) * N for g in GAMMA_R2]
     cert = [best_rate_for_gamma(N, R2, mu, g / R2) * N for g in GAMMA_R2]
+    # the certificate is 0 where no Delta is admissible, i.e. for gamma R^2 >= 1/2 (Delta > 2 gamma^2 and
+    # 1 - gamma R^2 - R^2 Delta / (2 gamma) > 0 force gamma R^2 < 1/2): not drawn on the log axis (a zero would draw a
+    # vertical drop from the last positive value), and the region is shaded instead
+    no_delta = 0.5
+    cert_plot = [c if c > 0 else np.nan for c in cert]
     ax.plot(GAMMA_R2, emp, marker="o", markersize=5, color=ps.BLUE, label="empirical SAGA (slope of log‖θ−η*‖²)")
-    ax.plot(GAMMA_R2, cert, marker="o", markersize=5, color=ps.RED, label="best certificate of the proof (Δ optimised)")
+    ax.plot(GAMMA_R2, cert_plot, marker="o", markersize=5, color=ps.RED, label="best certificate of the proof (Δ optimised)")
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_xticks(GAMMA_R2)
     ax.set_xticklabels(["1/8", "1/4", "1/3", "1/2", "1", "2", "4"])
     ax.xaxis.set_minor_locator(matplotlib.ticker.NullLocator())
+    xl = ax.get_xlim()
+    ax.axvspan(no_delta, 10 * xl[1], color=ps.INK["grid"], alpha=0.5, zorder=0, linewidth=0)
+    ax.set_xlim(xl)
+    ax.annotate("no admissible Δ", (no_delta, ax.get_ylim()[0]), xytext=(4, 4), textcoords="offset points", ha="left",
+                va="bottom", fontsize=ps.SMALL, color=ps.INK["secondary"])
     ax.set_xlabel("step size γ R²")
     ax.set_ylabel("contraction exponent per pass")
-    ax.set_title(f"logistic regression, {ps.fmt_kappa(KAPPA)}, α = {ALPHA:g}, n = {N}")
-    ps.legend(ax, loc="lower center", fontsize=7)
-    fig.suptitle("Figure C — optimising (γ, Δ) inside the proof cannot close the gap: certified vs empirical progress per pass", fontsize=10)
+    ax.set_title(f"logistic regression\n{ps.fmt_kappa(KAPPA)}, α = {ALPHA:g}, n = {N}")
+    h, l = ax.get_legend_handles_labels()
+    ps.legend_cell(fig, gs[1, 1], h, l, ncol=1)
+    ps.suptitle(fig, "Figure C — at κ = 10³, optimising (γ, Δ) inside the proof cannot close the gap:\n"
+                "certified vs empirical progress per pass")
     ps.savefig(fig, "figC_gamma_delta")
     opt = bounds.saga_optimal_params(N, R2, mu)
     common.save_json(TAG + "_summary", {"optimal_within_proof": opt, "empirical_rates_per_pass": {str(g): float(np.nanmean(res["emp"][g]) * N) for g in GAMMA_R2},

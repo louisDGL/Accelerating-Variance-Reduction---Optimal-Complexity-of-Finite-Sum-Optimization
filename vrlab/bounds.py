@@ -28,7 +28,9 @@ def saga_rate(n, R2, mu, gamma=None, Delta=None):
 
 def saga_bound(t, n, R2, mu, D0, gamma=None, Delta=None, S0=None):
     """Prop. 5.9 bound on E||theta_t - eta_*||^2 as a function of the iteration count t (array ok).
-    With the textbook constants and z_i^(0) = f'_i(theta_0): (1 - min{1/(3n), 3mu/(16R^2)})^t (1 + n/4) D0.
+    With the textbook constants and z_i^(0) = f'_i(theta_0): (1 - min{1/(3n), 3mu/(16R^2)})^t (1 + 3n/16) D0, the
+    constant obtained in the proof (the statement (5.30) rounds it up to 1 + n/4); in general rho^t (1 + Delta n R^4) D0
+    with rho = saga_rate(n, R2, mu, gamma, Delta).
     If S0 = sum_i ||f'_i(theta_0) - f'_i(eta_*)||^2 is given, the sharper factor (D0 + Delta S0) is used
     (this is the bound before the Lipschitz step I6)."""
     if gamma is None or Delta is None:
@@ -80,10 +82,10 @@ def agd_rate(L, mu):
 
 
 # ----------------------------------------------------------------------------------------------
-# L-Katyusha (Kovalev, Horvath, Richtarik 2020): parameters for uniform sampling
+# L-Katyusha (Kovalev, Horvath, Richtarik, ALT 2020): parameters for uniform sampling
 # ----------------------------------------------------------------------------------------------
 def lkatyusha_params(n, L, mu, p=None, theta2=0.5):
-    """Default parameters of L-Katyusha (Algorithm 2 of Kovalev et al. 2020) with uniform sampling:
+    """Default parameters of L-Katyusha (Algorithm 2 of Kovalev, Horvath, Richtarik, ALT 2020) with uniform sampling:
     sigma = mu/L, theta_2 = 1/2, theta_1 = min{sqrt(2 sigma n / 3), 1/2}, eta = theta_2 / ((1 + theta_2) theta_1), p = 1/n.
     (L is the smoothness constant of each f_i, i.e. R^2 in the book's notation.)"""
     p = 1.0 / n if p is None else p
@@ -94,11 +96,13 @@ def lkatyusha_params(n, L, mu, p=None, theta2=0.5):
 
 
 def lkatyusha_rate(n, L, mu, p=None, theta2=0.5, theta1=None):
-    """Per-iteration contraction factor of the L-Katyusha Lyapunov function Psi^k = Z^k + Y^k + W^k
-    (Kovalev, Horvath, Richtarik 2020, Lemma 4.5):
+    """Per-iteration contraction factor max{c_Z, c_Y, c_W} of the L-Katyusha Lyapunov function Psi^k = Z^k + Y^k + W^k
+    (Kovalev, Horvath, Richtarik, ALT 2020, Lemma 10 and Theorem 11; Lemma 4.5 and Theorem 4.6 in the arXiv version
+    1901.08689): Lemma 10 gives E[Psi^{k+1}] <= c_Z Z^k + c_Y Y^k + c_W W^k, hence
         E[Psi^{k+1}] <= max{ 1/(1 + eta sigma), 1 - theta1 (1 - theta2), 1 - p theta1/(1 + theta1) } Psi^k,
-    with eta = theta2/((1 + theta2) theta1), sigma = mu/L. Theorem 4.6 (theta1 = min{sqrt(2 sigma n/3), 1/2},
-    theta2 = 1/2, p = 1/n) turns this into O((n + sqrt(n L/mu)) log(1/eps)) iterations."""
+    with eta = theta2/((1 + theta2) theta1), sigma = mu/L. Theorem 11 (theta1 = min{sqrt(2 sigma n/3), 1/2},
+    theta2 = 1/2, p = 1/n) bounds this factor by 1 - min{sigma/(6 theta1), theta1/(2n)}, which gives
+    O((n + sqrt(n L/mu)) log(1/eps)) iterations; the returned value is the factor itself, not this closed form."""
     prm = lkatyusha_params(n, L, mu, p, theta2)
     theta1 = prm["theta1"] if theta1 is None else theta1
     eta = theta2 / ((1.0 + theta2) * theta1)

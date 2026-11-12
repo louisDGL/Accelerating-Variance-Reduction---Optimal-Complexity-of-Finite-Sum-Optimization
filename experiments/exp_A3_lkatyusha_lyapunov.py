@@ -1,7 +1,9 @@
-"""Hypothesis A3: the Lyapunov proof of loopless Katyusha (Kovalev, Horvath, Richtarik 2020), instrumented
+"""Hypothesis A3: the Lyapunov proof of loopless Katyusha (Kovalev, Horvath, Richtarik, ALT 2020), instrumented
 exactly as Proposition 5.9 is: at instrumented iterations we compute the exact conditional expectation
-E[Psi_{k+1} | state] (enumerating the n indices), compare the exact one-step contraction with the Lemma 4.5
-factor max{1/(1+eta sigma), 1 - theta1(1 - theta2), 1 - p theta1/(1 + theta1)}, and measure the tightness of
+E[Psi_{k+1} | state] (enumerating the n indices), compare the exact one-step contraction with the factor
+max{c_Z, c_Y, c_W} = max{1/(1+eta sigma), 1 - theta1(1 - theta2), 1 - p theta1/(1 + theta1)} certified by Lemma 10
+(Lemma 4.5 and Theorem 4.6 in the arXiv version 1901.08689 are Lemma 10 and Theorem 11 of the ALT version; the
+closed-form rate rho of Theorem 11 satisfies rho <= 1 - max{c_Z, c_Y, c_W}), and measure the tightness of
 the estimator-variance bound E||g - F'(x)||^2 <= 2L D_F(w, x) (the inequality that the negative momentum makes absorbable).
 Usage: python experiments/exp_A3_lkatyusha_lyapunov.py [--quick]
 """
@@ -30,6 +32,33 @@ def _valid_prefix(q):
             break
         out.append(x)
     return out
+
+
+def _sign_and_contraction_stats(runs, q):
+    """Sign-aware statistics of the cancelled inner product and componentwise form of Lemma 10, pooled over the seeds on
+    the valid prefixes. The A3 note's q_+(t) equals q(t) when <F'(x_t), x_t - w_t> > 0 (c(t) > 0: the removed term has the
+    sign that a bound without the anchor would have to absorb) and 0 otherwise. Lemma 10 componentwise:
+    E[Psi_{t+1} | state] <= c_Z Z_t + c_Y Y_t + c_W W_t; rho = min{sigma/(6 theta1), theta1/(2n)} is the closed-form rate."""
+    if not all(k in x for x in q for k in ("q_cancel", "inner_xw", "c_share")):   # caches older than these fields
+        return {}
+    r0 = runs[0]
+    sigma = r0["mu"] / r0["L"]
+    th1, th2, eta, p, n = r0["theta1"], r0["theta2"], r0["eta"], r0["p"], r0["n"]
+    c_z, c_y, c_w = 1.0 / (1.0 + eta * sigma), 1.0 - th1 * (1.0 - th2), 1.0 - p * th1 / (1.0 + th1)
+    rho = min(sigma / (6.0 * th1), th1 / (2.0 * n))
+    qc = np.array([x["q_cancel"] for x in q], dtype=float)
+    ip = np.array([x["inner_xw"] for x in q], dtype=float)
+    c = np.array([x["c_share"] for x in q], dtype=float)
+    pos, big = ip > 0, qc >= 1
+    cdef = big & np.isfinite(c)
+    return {"inner_xw_frac_positive": float(np.mean(pos)),
+            "q_plus_frac_ge_1": float(np.mean(pos & big)),
+            "q_cancel_frac_ge_1_given_inner_positive": float(np.mean(big[pos])) if pos.any() else None,
+            "q_cancel_median_given_inner_positive": float(np.median(qc[pos])) if pos.any() else None,
+            "c_share_frac_negative_given_q_ge_1": float(np.mean(c[cdef] < 0)) if cdef.any() else None,
+            "contraction_componentwise_max": float(max((x["EPsi_next"] - c_z * x["Z"] - c_y * x["Y"] - c_w * x["W"]) / x["Psi"] for x in q)),
+            "rho_theorem11": float(rho),
+            "speedup_exact_over_rho": float(np.mean([np.log(x["rho_exact"]) for x in q]) / np.log(1.0 - rho))}
 
 
 def problems_list():
@@ -65,9 +94,29 @@ def run_all():
     return res
 
 
+def _panel_title(label):
+    """'logistic (n=1000, d=50, κ=10³, α=1)' -> 'logistic, κ=10³' over '(n=1000, d=50, α=1)': fits a third of the
+    text width."""
+    name, _, rest = label.partition(" (")
+    params = [p.strip() for p in rest.rstrip(")").split(",")]
+    kap = [p for p in params if p.startswith("κ")]
+    other = [p for p in params if p and not p.startswith("κ")]
+    return f"{name}, {', '.join(kap)}\n({', '.join(other)})" if kap and other else label
+
+
 def plot(res):
     labels = [p[0] for p in res["problems"]]
-    fig, axes = ps.new_fig(len(labels), 3, panel=(4.6, 3.0), sharex="col")
+    nc = len(labels)
+    fig = ps.figure(ps.FIG_W, 6.6)                          # fits one page with its caption
+    # three rows of panels (one column per problem), each followed by a thin row holding the legend of that row
+    gs = fig.add_gridspec(6, nc, height_ratios=[1.0, 0.02, 1.0, 0.02, 1.0, 0.02])
+    axes = [[None] * nc for _ in range(3)]
+    for j in range(nc):
+        axes[0][j] = fig.add_subplot(gs[0, j])
+        axes[1][j] = fig.add_subplot(gs[2, j], sharex=axes[0][j])
+        axes[2][j] = fig.add_subplot(gs[4, j], sharex=axes[0][j])
+        for r in (0, 1):
+            axes[r][j].tick_params(labelbottom=False)
     for j, label in enumerate(labels):
         runs = res["runs"][label]
         n = res["problems"][j][1]["n"]
@@ -81,22 +130,20 @@ def plot(res):
         T = min(len(_valid_prefix(r["instr"])) for r in runs)
         Pall = np.array([[x["Psi"] for x in r["instr"][:T]] for r in runs])
         ax.semilogy(t[:T] / n, Pall.mean(0), color=ps.BOUNDS["empirical"], label="E[Ψₖ] (mean over seeds)", linewidth=2.4, zorder=10)
-        ax.semilogy(t / n, Psi[0] * rho_lemma ** t, color=ps.BOUNDS["prop59"], label="Lemma 4.5 bound (1−ρ)ᵏ Ψ₀")
+        ax.semilogy(t / n, Psi[0] * rho_lemma ** t, color=ps.BOUNDS["prop59"], label=r"Lemma 10: $\max\{c_Z, c_Y, c_W\}^k\,\Psi_0$")
         cum = np.concatenate([[0.0], np.cumsum(np.log(np.clip([x["rho_exact"] for x in q[:-1]], 1e-300, 1)) * np.diff(t))])
         ax.semilogy(t / n, Psi[0] * np.exp(cum), color=ps.BOUNDS["exact"], label="product of exact contractions", linewidth=1.6)
         ax.semilogy(t / n, Psi, color=ps.BOUNDS["realized_V"], linewidth=1.2, label="realized Ψₖ (seed 0)")
-        ax.set_title(label)
+        ax.set_title(_panel_title(label))
         if j == 0:
-            ax.set_ylabel("Lyapunov Ψₖ = Zₖ + Yₖ + Wₖ")
-            ps.legend(ax, loc="lower left", fontsize=7)
+            ax.set_ylabel("Lyapunov\nΨₖ = Zₖ + Yₖ + Wₖ")
         # row 2: contraction exponents
         ax = axes[1][j]
         ex = -np.log(np.clip([x["rho_exact"] for x in q], 1e-300, 1)) * n
         ax.semilogy(t / n, ex, color=ps.INK["primary"], label="exact one-step contraction")
-        ax.axhline(-np.log(rho_lemma) * n, color=ps.INEQ["I5"], label="Lemma 4.5 (paper parameters)")
+        ax.axhline(-np.log(rho_lemma) * n, color=ps.INEQ["I5"], label="Lemma 10 (paper parameters)")
         if j == 0:
-            ax.set_ylabel("contraction exponent per pass (−n·log ρ)")
-            ps.legend(ax, loc="upper right", fontsize=7)
+            ax.set_ylabel("contraction exponent\nper pass (−n·log ρ)")
         # row 3: variance-bound tightness and Lyapunov composition
         ax = axes[2][j]
         rv = np.array([x["r_var"] for x in q], dtype=float)
@@ -107,9 +154,12 @@ def plot(res):
         ax.set_ylim(1e-4, 2)
         ax.set_xlabel("effective passes (k / n)")
         if j == 0:
-            ax.set_ylabel("tightness ratio / share of Ψ")
-            ps.legend(ax, loc="lower left", fontsize=7)
-    fig.suptitle("Figure A3 — L-Katyusha: exact one-step contraction of the Lyapunov function versus Lemma 4.5, and tightness of the variance bound", fontsize=10)
+            ax.set_ylabel("tightness ratio /\nshare of Ψ")
+    for r, ncol in zip(range(3), (2, 2, 4)):                 # one legend per row, below its panels
+        h, l = axes[r][0].get_legend_handles_labels()
+        ps.legend_cell(fig, gs[2 * r + 1, :], h, l, ncol=ncol)
+    ps.suptitle(fig, "Figure A3 — L-Katyusha: exact one-step contraction of the Lyapunov function versus Lemma 10,\n"
+                "and tightness of the variance bound")
     ps.savefig(fig, "figA3_lkatyusha_lyapunov")
 
 
@@ -134,6 +184,7 @@ def main():
                           "q_cancel_frac_ge_1": float(np.mean([x["q_cancel"] >= 1 for x in q if "q_cancel" in x])) if all("q_cancel" in x for x in q) else None,
                           "max_violation_rho_exact_minus_rho_lemma": float(max(x["rho_exact"] - x["rho_lemma"] for x in q)),
                           "final_rel_D": float(np.mean([r["D"][-1] / r["D"][0] for r in runs]))}
+        summary[label].update(_sign_and_contraction_stats(runs, q))
     common.save_json(TAG + "_summary", summary)
     print("done A3")
 

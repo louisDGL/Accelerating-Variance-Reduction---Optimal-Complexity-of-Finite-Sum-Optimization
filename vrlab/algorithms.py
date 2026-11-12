@@ -1,13 +1,19 @@
 """Optimization algorithms with gradient-evaluation accounting and (for SAGA) full instrumentation.
 
 All stochastic methods draw indices uniformly from {0..n-1} with a numpy Generator seeded by `seed`.
-Gradient accounting: one component gradient f'_i costs 1; a full gradient F' costs n.
+Gradient accounting: one component gradient f'_i costs 1; a full gradient F' costs n. SAGA: n initially, then 1 per
+iteration. L-SVRG, L-Katyusha and the naive Nesterov+SVRG scheme (count_reference_grad=True, used in all experiments):
+n initially, 2 per iteration (f'_i at the query point and f'_i(w), the latter charged as recomputed although the code
+stores the table of the f'_i(w)) and n per refresh of the reference point w (n p = 1 per iteration in expectation for
+p = 1/n), i.e. 3 per iteration in expectation. The bounds of the A1 note assume stored reference gradients
+(count_reference_grad=False: 1 + n 1[refresh] per iteration, 2 in expectation), so the measured counts are about 3/2
+of the stored-convention counts; exponents (slopes in kappa) are unaffected.
 Traces record ||theta - eta_*||^2 (Euclidean, and in the P-metric for preconditioned SAGA) and F - F_*
 at `record_every` iterations.
 """
 from __future__ import annotations
 
-import time
+import time  # max_time and "elapsed" use CPU time (time.process_time): a suspended process (machine sleep) consumes no budget
 
 import numpy as np
 
@@ -104,7 +110,7 @@ def saga(prob, theta0, gamma=None, n_iters=None, seed=0, P=None, Delta=None, R2=
     D = metric.norm2(theta - prob.theta_star)
     tr.add(0, ge, _dist2(prob, theta), _fgap(prob, theta) if record_F else np.nan, D_P=D, M=M, V=D + Delta * M)
     t = 0
-    t0 = time.time()
+    t0 = time.process_time()
     stopped = None
     for idx in _index_stream(rng, n, n_iters):
         for i in idx:
@@ -136,7 +142,7 @@ def saga(prob, theta0, gamma=None, n_iters=None, seed=0, P=None, Delta=None, R2=
                 if stop_D is not None and D <= stop_D:
                     stopped = "stop_D"
                     break
-                if max_time is not None and time.time() - t0 > max_time:
+                if max_time is not None and time.process_time() - t0 > max_time:
                     stopped = "max_time"
                     break
         if stopped:
@@ -144,7 +150,7 @@ def saga(prob, theta0, gamma=None, n_iters=None, seed=0, P=None, Delta=None, R2=
     out = tr.arrays()
     out.update({"instr": instr, "gamma": gamma, "Delta": Delta, "R2": R2, "mu": mu, "n": n, "d": d,
                 "r_init": r_init, "S0": S0, "D0": D0, "seed": seed, "stopped": stopped,
-                "elapsed": time.time() - t0, "theta": theta, "name": name, "metric": metric.kind})
+                "elapsed": time.process_time() - t0, "theta": theta, "name": name, "metric": metric.kind})
     return out
 
 
@@ -155,7 +161,8 @@ def lsvrg(prob, theta0, gamma, n_iters=None, p=None, seed=0, record_every=None, 
           stop_D=None, max_time=None, name="L-SVRG", passes=None, count_reference_grad=True):
     """Loopless SVRG (Hofmann et al. 2015; Kovalev et al. 2020): g = f'_i(theta) - f'_i(w) + F'(w),
     theta <- theta - gamma g; with probability p the reference w is reset to the current theta (full gradient).
-    Accounting: 2 gradients per iteration (f'_i(theta) and f'_i(w)) + n per reference update."""
+    Accounting: n initially, 2 gradients per iteration (f'_i(theta) and f'_i(w), charged although the f'_i(w) are
+    stored; 1 with count_reference_grad=False) + n per reference update (see the module docstring)."""
     n, d = prob.n, prob.d
     p = 1.0 / n if p is None else p
     if n_iters is None:
@@ -170,7 +177,7 @@ def lsvrg(prob, theta0, gamma, n_iters=None, p=None, seed=0, record_every=None, 
     tr = Trace(name)
     tr.add(0, ge, _dist2(prob, theta), _fgap(prob, theta) if record_F else np.nan)
     t = 0
-    t0 = time.time()
+    t0 = time.process_time()
     stopped = None
     per_iter = 2 if count_reference_grad else 1
     for idx in _index_stream(rng, n, n_iters):
@@ -193,19 +200,19 @@ def lsvrg(prob, theta0, gamma, n_iters=None, p=None, seed=0, record_every=None, 
                 if stop_D is not None and D <= stop_D:
                     stopped = "stop_D"
                     break
-                if max_time is not None and time.time() - t0 > max_time:
+                if max_time is not None and time.process_time() - t0 > max_time:
                     stopped = "max_time"
                     break
         if stopped:
             break
     out = tr.arrays()
-    out.update({"gamma": gamma, "p": p, "seed": seed, "stopped": stopped, "elapsed": time.time() - t0,
+    out.update({"gamma": gamma, "p": p, "seed": seed, "stopped": stopped, "elapsed": time.process_time() - t0,
                 "theta": theta, "name": name})
     return out
 
 
 # ----------------------------------------------------------------------------------------------
-# loopless Katyusha (Kovalev, Horvath, Richtarik 2020, Algorithm 2) and the naive variant theta_2 = 0
+# loopless Katyusha (Kovalev, Horvath, Richtarik, ALT 2020, Algorithm 2) and the naive variant theta_2 = 0
 # ----------------------------------------------------------------------------------------------
 def lkatyusha(prob, theta0, L=None, mu=None, n_iters=None, p=None, theta1=None, theta2=0.5, eta=None,
               seed=0, record_every=None, record_F=True, stop_D=None, max_time=None, name="L-Katyusha",
@@ -218,6 +225,7 @@ def lkatyusha(prob, theta0, L=None, mu=None, n_iters=None, p=None, theta1=None, 
         w+ = y (with probability p), w otherwise.
     Defaults (uniform sampling): theta2 = 1/2, theta1 = min{sqrt(2 sigma n/3), 1/2}, eta = theta2/((1+theta2) theta1), p = 1/n.
     Setting theta2 = 0 (and an explicit eta) gives the "naive" Nesterov-type coupling without negative momentum.
+    Accounting as for lsvrg: n initially, 2 per iteration (1 with count_reference_grad=False), n per refresh of w.
     """
     n, d = prob.n, prob.d
     L = prob.R2 if L is None else L
@@ -242,7 +250,7 @@ def lkatyusha(prob, theta0, L=None, mu=None, n_iters=None, p=None, theta1=None, 
     tr = Trace(name)
     tr.add(0, ge, _dist2(prob, y), _fgap(prob, y) if record_F else np.nan)
     t = 0
-    t0 = time.time()
+    t0 = time.process_time()
     stopped = None
     es = eta * sigma
     per_iter = 2 if count_reference_grad else 1
@@ -274,7 +282,7 @@ def lkatyusha(prob, theta0, L=None, mu=None, n_iters=None, p=None, theta1=None, 
                 if stop_D is not None and D <= stop_D:
                     stopped = "stop_D"
                     break
-                if max_time is not None and time.time() - t0 > max_time:
+                if max_time is not None and time.process_time() - t0 > max_time:
                     stopped = "max_time"
                     break
                 if not np.isfinite(D) or D > 1e30:
@@ -284,7 +292,7 @@ def lkatyusha(prob, theta0, L=None, mu=None, n_iters=None, p=None, theta1=None, 
             break
     out = tr.arrays()
     out.update({"theta1": theta1, "theta2": theta2, "eta": eta, "p": p, "L": L, "mu": mu, "seed": seed,
-                "stopped": stopped, "elapsed": time.time() - t0, "theta": y, "name": name, "instr": instr,
+                "stopped": stopped, "elapsed": time.process_time() - t0, "theta": y, "name": name, "instr": instr,
                 "n": n})
     return out
 
@@ -295,7 +303,8 @@ def lkatyusha(prob, theta0, L=None, mu=None, n_iters=None, p=None, theta1=None, 
 def nesterov_svrg(prob, theta0, gamma, beta, n_iters=None, p=None, seed=0, record_every=None, record_F=True,
                   stop_D=None, max_time=None, name="Nesterov+SVRG", passes=None, count_reference_grad=True):
     """v = theta + beta (theta - theta_prev);  g = f'_i(v) - f'_i(w) + F'(w);  theta+ = v - gamma g;
-    reference w <- v with probability p (loopless). beta = (sqrt(kappa)-1)/(sqrt(kappa)+1) is the usual choice."""
+    reference w <- v with probability p (loopless). beta = (sqrt(kappa)-1)/(sqrt(kappa)+1) is the usual choice.
+    Accounting as for lsvrg: n initially, 2 per iteration (1 with count_reference_grad=False), n per refresh of w."""
     n, d = prob.n, prob.d
     p = 1.0 / n if p is None else p
     if n_iters is None:
@@ -311,7 +320,7 @@ def nesterov_svrg(prob, theta0, gamma, beta, n_iters=None, p=None, seed=0, recor
     tr = Trace(name)
     tr.add(0, ge, _dist2(prob, theta), _fgap(prob, theta) if record_F else np.nan)
     t = 0
-    t0 = time.time()
+    t0 = time.process_time()
     stopped = None
     per_iter = 2 if count_reference_grad else 1
     for idx in _index_stream(rng, n, n_iters):
@@ -334,7 +343,7 @@ def nesterov_svrg(prob, theta0, gamma, beta, n_iters=None, p=None, seed=0, recor
                 if stop_D is not None and D <= stop_D:
                     stopped = "stop_D"
                     break
-                if max_time is not None and time.time() - t0 > max_time:
+                if max_time is not None and time.process_time() - t0 > max_time:
                     stopped = "max_time"
                     break
                 if not np.isfinite(D) or D > 1e30:
@@ -344,7 +353,7 @@ def nesterov_svrg(prob, theta0, gamma, beta, n_iters=None, p=None, seed=0, recor
             break
     out = tr.arrays()
     out.update({"gamma": gamma, "beta": beta, "p": p, "seed": seed, "stopped": stopped,
-                "elapsed": time.time() - t0, "theta": theta, "name": name})
+                "elapsed": time.process_time() - t0, "theta": theta, "name": name})
     return out
 
 
@@ -359,7 +368,7 @@ def gd(prob, theta0, n_iters, step=None, record_every=1, record_F=True, stop_D=N
     tr = Trace(name)
     ge = 0
     tr.add(0, ge, _dist2(prob, theta), _fgap(prob, theta) if record_F else np.nan)
-    t0 = time.time()
+    t0 = time.process_time()
     stopped = None
     for t in range(1, n_iters + 1):
         theta -= step * prob.grad(theta)
@@ -370,11 +379,11 @@ def gd(prob, theta0, n_iters, step=None, record_every=1, record_F=True, stop_D=N
             if stop_D is not None and D <= stop_D:
                 stopped = "stop_D"
                 break
-            if max_time is not None and time.time() - t0 > max_time:
+            if max_time is not None and time.process_time() - t0 > max_time:
                 stopped = "max_time"
                 break
     out = tr.arrays()
-    out.update({"step": step, "stopped": stopped, "elapsed": time.time() - t0, "theta": theta, "name": name})
+    out.update({"step": step, "stopped": stopped, "elapsed": time.process_time() - t0, "theta": theta, "name": name})
     return out
 
 
@@ -391,7 +400,7 @@ def agd(prob, theta0, n_iters, L=None, mu=None, record_every=1, record_F=True, s
     tr = Trace(name)
     ge = 0
     tr.add(0, ge, _dist2(prob, theta), _fgap(prob, theta) if record_F else np.nan)
-    t0 = time.time()
+    t0 = time.process_time()
     stopped = None
     for t in range(1, n_iters + 1):
         y = theta + beta * (theta - theta_prev)
@@ -404,17 +413,19 @@ def agd(prob, theta0, n_iters, L=None, mu=None, record_every=1, record_F=True, s
             if stop_D is not None and D <= stop_D:
                 stopped = "stop_D"
                 break
-            if max_time is not None and time.time() - t0 > max_time:
+            if max_time is not None and time.process_time() - t0 > max_time:
                 stopped = "max_time"
                 break
     out = tr.arrays()
-    out.update({"L": L, "mu": mu, "beta": beta, "stopped": stopped, "elapsed": time.time() - t0, "theta": theta, "name": name})
+    out.update({"L": L, "mu": mu, "beta": beta, "stopped": stopped, "elapsed": time.process_time() - t0, "theta": theta, "name": name})
     return out
 
 
 def sgd(prob, theta0, n_iters=None, gamma0=None, decay=True, seed=0, record_every=None, record_F=True,
         name="SGD", passes=None):
-    """Plain SGD with step gamma_t = gamma0 / (1 + gamma0 mu t) (decay) or constant gamma0 (Bach, Sec. 5.4)."""
+    """Plain SGD with step gamma_t = gamma0 / (1 + gamma0 mu t) (decay) or constant gamma0. With gamma0 = 1/R^2 the
+    decreasing step is 1/(R^2 + mu t), our choice: this step is not stated in Bach (the text gives 1/(mu t) in
+    Prop. 5.8, and the code of its Figure 5.4 uses 1/(R^2 sqrt(t+1) + mu (t+1)))."""
     n = prob.n
     if n_iters is None:
         n_iters = int(passes * n)

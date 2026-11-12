@@ -1,0 +1,195 @@
+% =====================================================================================================
+% Discussion (the \section and the label sec:discussion are in main.tex; this file has no \section).
+% Every number is quoted from Section sec:experiments (same sources: results/digest.md, results/*_summary.json,
+% results/findings.md). The A4 and A4b sweeps are final (results/A4_summary.json, results/A4b_summary.json,
+% findings.md Sec. 7): slopes are least-squares fits of the per-kappa geometric means over kappa >= 10n, with 95%
+% t-intervals with K-2 degrees of freedom. The hypotheses are stated in the introduction (paragraph Hypotheses).
+% Citations: claims as in related.tex and bibliography/literature_review.md (Sections 6, 8, 9); for A1, the
+% assessment of hypothesis (A1) in Appendix A1 (theory/A1_lower_bound.tex, Sec. lb:statements, items (i)-(iv)).
+% A3: A3 note, Outcome and the reading of q and q_+ in Sec. lk-instrument (A3_summary.json: q >= 1 on 63%, 5%, 65% of
+% the steps; q_plus_frac_ge_1 0.0986, 0.0519, 0.1929 for (H), logistic kappa = 1e3, 1e4). Growth from kappa = 1e3 to
+% 1e4 (alpha = 1): 4.117/2.775 = 1.48 (A3_summary.json, speedup_exact_over_lemma) against 15.734/5.155 = 3.05
+% (B3_summary.json, attribution, speedup).
+% Results of the appendices are referred to with \resref{label} (report/restate_defs.tex).
+% B1: B1 note, Step 2 of the proof and outcome paragraph (E V_t^P >= 3 gamma^2 (1-1/n)^t M_0); B1.pkl (memory
+% coefficient about 1-0.65/n, r_sq 0.51-0.53, r_var about 1). A2: A2_summary.json and A2.pkl (with storage of the
+% reference gradients, i.e. grad_evals - iters: L-Katyusha 71400 against SAGA 87800 on logistic regression).
+% A4: naive/L-Katyusha at kappa = 1e4 (A4_summary.json): 3.01 on (H), 2.99 on (R).
+% =====================================================================================================
+
+\paragraph{B3: where the proof of Proposition~\ref{prop:59} loses.}
+The diagnosis was carried out and locates the loss, which depends on the regime. On $\ell_2$-regularized logistic
+regression ($n=1000$, $d=50$, 5 seeds) the exact one-step contraction exponent of SAGA, averaged over passes 2--20,
+exceeds the certified one by a factor $3.2$--$3.7$ for $\kappa\le10^2$ and $19$--$220$ at $\kappa=10^5$. For $\kappa\gg
+n$ the steps that cost are those that replace a quantity depending on the iterate by a global constant: for
+$\kappa\ge10^4$, cocoercivity with $R^2=\max_iL_i$ (I2) and strong convexity with $\mu=\lambda$ (I4) carry
+$0.77$--$0.96$ of the logarithmic gap in proof order. For $\kappa\le10^2$, where the memory term is active, the gap is
+carried in proof order by the square-norm step I1 ($0.39$--$0.44$) and by I2 ($0.32$--$0.37$), and in order~A by I5
+and I1. The variance step (I3) is nearly tight ($r_{\rm var}\ge0.958$; at most $0.6\%$ of the gap in proof order,
+$6.3\%$ in order~A) and the minimum of the two rates (I5) matters only when $\kappa\lesssim n$. The additive shares hide
+a multiplicative structure: the $\kappa$-dependent part of the gap is the factor $\muEff/\mu$ of I4, whereas, by
+\resref{prop:B3-representation}, I1 and I2 together can contribute at most $\frac83$ at the fixed step (measured
+$2.45$--$2.62$), and the product of the two reproduces $91$--$96\%$ of the speed-ups for $\kappa\ge10^4$. By
+\resref{prop:B3-optimum} and~\resref*{rem:B3-conclusion}, optimizing $(\gamma,\Delta)$ within the proof gains $17\%$
+at $\kappa=10^3$ (at most $\frac43$ whenever $\kappa\ge\frac{9n}{16}$), but up to a factor $2.4$--$2.9$ for
+$\kappa\le10^2$, comparable to the whole gap there; and, by \resref{prop:B3-lower}, no analysis of SAGA with a constant
+step can remove the exponent $1$ of $\kappa$. The theorem has the right order in the worst case; on these instances it
+is pessimistic by a factor $3.2$--$3.7$ already for $\kappa\le10^2$, and its pessimism grows with $\kappa$ because the
+curvature met along the trajectory exceeds $\mu$ by a factor that grows with $\kappa$ (up to $81$ here).
+
+\paragraph{B2: trajectory-dependent constants.}
+Confirmed in its main claim, with one refuted prediction. By \resref{cor:B2-local}, near $\etastar$, $\muEff/\mu$ is
+bounded below by about $\lmin(F''(\etastar))/\mu$ (up to $70$ in our problems), a value that SAGA reaches when its error
+aligns with the flattest direction, and $R^2$ overestimates $\LEff$ by a factor $2.6$ to $86$; the a-posteriori bound
+with $\muEff$ and $\LEff$ (\resref*{prop:B3-traj}) recovers $0.59$--$0.96$ of the logarithmic gap for $\kappa\ge10^4$,
+and nothing for $\kappa\le10^2$, where the bound is saturated by the memory term. Our prediction that the error of SAGA
+stays spread over many directions holds only for $\kappa\lesssim n$, and not in every run with $\kappa\approx n$: at
+$\kappa=10^4=10n$ and for $\alpha\in\{0,1\}$ (one run each) SAGA keeps and sharpens, as gradient descent does, the
+alignment of the error with the flattest direction of $F''(\etastar)$, on which the initial error already carries
+$89$--$98\%$ of its squared norm, a behaviour that \resref{rem:B2-P2-outcome} explains only heuristically; for
+$\alpha=2$, whose spectrum is nearly degenerate at the bottom, neither method aligns within our runs. The effective constants are
+a-posteriori quantities: they explain an observed trajectory, they do not certify one in advance, and, by
+\resref{rem:B2-what-explains}, at a fixed step the gain from $\LEff$ is capped at $\frac83$.
+
+\paragraph{B1: preconditioned SAGA.}
+Nuanced. For logistic regression no fixed metric improves the global condition number: $\kappaP\ge\kappa$ by
+\resref{prop:B1-nofreelunch}, so that \resref{cor:B1-rate} never favours preconditioning. Yet at $\kappa=10^3$ the
+statistical and Hessian metrics raise the observed exponent per pass (in component gradients; a dense metric costs
+$O(d^2)$ instead of $O(d)$ per iteration, and $P=F''(\etastar)$ requires $\etastar$, an oracle benchmark) from $1.00$
+to $1.11$ ($\alpha=1$) and from $0.61$ to $1.24$--$1.26$ ($\alpha=2$). The gain is local: the trajectory bound of
+\resref{cor:B1-kappa-traj}, which pays the smallest per-sample curvature, does not explain it, whereas with the local
+constant at the optimum, a heuristic substitution that \resref{lem:B1-asymptotic} supports only as
+$\theta\to\etastar$, the bound reproduces the observed ordering but saturates at the memory term, $\frac13$ per pass,
+$3.3$--$3.8$ times below the observed exponents. Along the trajectories, the exact memory coefficient accounts for a
+factor of about $2$ of this gap (about
+$1-\frac{0.65}n$ instead of $1-\frac1{3n}$), and the parameter part, which contracts faster but is charged at the memory
+rate by I5, for most of the rest; but no bound on $\E V_t^P$ can gain more than a factor $3$ over $\frac13$, since the
+memory slots that are never refreshed keep $\E V_t^P$ from decreasing faster than $(1-\frac1n)^n\approx e^{-1}$ per
+pass: a factor $1.1$--$1.26$ separates the typical trajectories, whose slopes are measured, from the expectation that
+the bound controls. The metric shifts the slack of the proof from cocoercivity to strong convexity, as predicted, and
+the Jacobi metric does not help when the features are rotated.
+
+\paragraph{A1: lower bounds.}
+This hypothesis is theoretical; Appendix~\ref{sec:lower_bound} (Section~\ref{sec:th-A1}) assesses it against the known
+bounds, restated with their exact hypotheses. The first clause holds on instances whose dimension is of the order of
+the number of queries certified: span-based methods sampling i.i.d.\ from a fixed distribution need
+$\Omega((n+\sqrt{n\kappa})\log\frac1\varepsilon)$, by \resref{thm:LZ} when $\kappa\ge n$ and, on the instance (S), for
+every $\kappa>1$ by \resref{cor:count}. The second clause holds only in a restricted sense: for oblivious methods (up
+to logarithmic factors) and for loopless methods with a full-gradient coin, full-gradient steps can divide the $n\log\frac1\varepsilon$ term by at most $1+(\log(n/\kappa))_+$, a gain only
+when $\kappa\ll n$, and leave the $\sqrt{n\kappa}\log\frac1\varepsilon$ term untouched, by part~(c) of
+\resref{thm:HLOY} and by \resref{thm:HXZ}. Deterministic methods, cyclic ones included, face instead
+$\Omega(n\sqrt\kappa\log\frac1\varepsilon)$ for small enough $\varepsilon$ when $\kappa>73$, by \resref{thm:WS}. Two
+questions remain open: for randomized methods with fully adaptive queries only an additive $n$ is proved (randomized
+part of \resref*{thm:WS}), and whether randomly reshuffled span-based methods, or deterministic ones when $\kappa\le73$,
+can beat $n\log\frac1\varepsilon$ is not settled. Our experiments use the lower bound only through its instance: the
+exponent $\frac12$ is certified there inside the window of $\kappa$ of \resref{prop:A4}, which the dimension limits
+($\kappa_{\max}\approx4.9\cdot10^4$ for $m=256$ and $\varepsilon=10^{-8}$), and the regime $\kappa\ll n$ of the second
+clause was not explored numerically.
+
+\paragraph{A3: corrected acceleration.}
+Confirmed. The one-step contraction of the Lyapunov proof of L-Katyusha, \resref{thm:lk}, holds at every recorded
+state and is pessimistic in exponent by a factor $2.8$--$4.7$ on our three problems ($3.7$--$9.3$ for its closed-form
+rate). On the two logistic problems this is less than for Proposition~\ref{prop:59} ($2.8$ and $4.1$ against $5.2$ and
+$15.7$) and grows less from $\kappa=10^3$ to $10^4$ ($\times1.5$ against $\times3.1$); two values of $\kappa$, in
+different regimes of the certificate, do not show how it scales. Its variance bound loses, as I2 does, the gap between
+the worst-case curvature $\max_iL_i$ and the curvature met along the trajectory (tightness $0.125$--$0.15$). The term
+that the negative momentum cancels in \resref{prop:cancel} exceeds the whole certified decrease in absolute value on
+$63\%$ and $65\%$ of the steps of the two ill-conditioned problems, but mostly with the sign that helps a bound without
+the anchor: it is positive and exceeds this decrease on $9.9\%$ and $19.3\%$ of the steps ($5.2\%$ on logistic
+regression with $\kappa=10^3$), and only there could it not have been absorbed, within this proof, into the certified
+decrease instead of cancelled.
+
+\paragraph{A2: naive acceleration.}
+The failure of naive acceleration is confirmed on block quadratics but is not universal. On (H) and (R) with $m=256$
+(Section~\ref{sec:exp-A4}), L-Katyusha without its negative momentum diverges for every $\kappa\ge10^3$ ($n=16$), and
+Nesterov's momentum on the SVRG estimator, even re-tuned at every $\kappa$ over six settings, has the log--log slope
+$0.81$ on both instances instead of $\frac12$ ($95\%$ intervals $[0.62,0.99]$ and $[0.65,0.98]$, wide because its
+profile is irregular) and needs $3.0$ times the gradients of L-Katyusha at $\kappa=10^4$. In Section~\ref{sec:exp-A2}
+(one seed, $\kappa=10^4$), the best of fifteen settings needs $2.9$ times the gradients of L-Katyusha to reach $10^{-6}$
+on (H) with $m=64$, a chain too short for the lower bound to be certified, whereas on logistic regression both
+anchor-free schemes converge and need about half the gradients of L-Katyusha with its worst-case parameters. The
+proof-level obstruction of \resref{prop:naive-kappa} is a limit of the argument, not a lower bound, as
+\resref{rem:naive-honest} details, and our evidence comes from small grids.
+
+\paragraph{A4: exponents on hard instances.}
+Confirmed inside the window of $\kappa$ where \resref{prop:A4} certifies the exponents, with two corrections to the
+expectations of the proposal. On four quadratic instances ($n=16$, 2 or 3 seeds) the log--log slopes of the gradient
+counts over $\kappa\ge10n$ are $0.95$--$1.02$ for SAGA ($0.99$ inside the window on (S)), $1.00$--$1.02$ for L-SVRG (run on (H)
+and (R) only) and $0.49$--$0.52$ for L-Katyusha. First, on block-separable instances GD and AGD share these exponents
+with smaller constants, because $L_F\approx R^2/n$; the orders $n\kappa$ and $n\sqrt\kappa$ of the proposal appear only
+on the aligned instance, where GD costs $14$--$16$ times and AGD $3.9$--$4.4$ times more than on the block instance (S).
+Second, the exponents are tied to a finite window: beyond $\kappa_{\max}$ the chain of (S) is exhausted
+($\kappa_{\rm eff}/\kappa=0.44$ at the nominal $\kappa=10^6$), and the slopes of SAGA and GD against the nominal
+$\kappa$ drop from $0.99$ inside the window to $0.95$ and $0.94$ ($95\%$ intervals $[0.90,0.99]$ for both; $1.03$ against
+$\kappa_{\rm eff}$).
+
+\needspace{5\baselineskip}% keeps the run-in heading with the list (needspace is loaded in main.tex)
+\paragraph{Limitations.}
+\begin{itemize}[leftmargin=1.4em,itemsep=1pt,topsep=2pt]
+\item \emph{Data.} All logistic problems are synthetic: Gaussian features with power-law spectra, $n=1000$, $d=50$,
+one data set per $\alpha$ shared by all $\kappa$ (which only set $\lambda$), $\theta_0=0$, and isotropic features with
+$d=40$ and $n\in\{10^3,10^4\}$ for the validation of Section~\ref{sec:exp-validation}. Real data, other ratios $d/n$ and
+nearly separable data were not tested, and the reproduction of the experiment of the book is only qualitative.
+\item \emph{Seeds and intervals.} We used 5 seeds (Sections~\ref{sec:exp-B3} and~\ref{sec:exp-B1}), 3
+(Figure~\ref{fig:C}, Section~\ref{sec:exp-A3}, (H) and (R) in Section~\ref{sec:exp-A4}), 2 ((S) and (A)) or 1
+(Sections~\ref{sec:exp-validation}, \ref{sec:exp-B2} and~\ref{sec:exp-A2}); bands are min--max ranges over the seeds,
+not confidence intervals. For the stochastic methods the seeds are independent replicates (on (R) each seed also draws
+its own instance), whereas GD and AGD are deterministic, so that on (H), (S) and (A) their counts coincide for every
+seed. The slopes are least-squares fits of the per-$\kappa$ geometric means over the seeds, and their $95\%$
+$t$-intervals ($K-2$ degrees of freedom, $K$ values of $\kappa$) measure the departure of these means from a single
+power law over a finite window of $\kappa$, the dominant uncertainty on an exponent, rather than sampling noise:
+additional seeds would not reduce it, no coverage is claimed, and an exponent remains a local, window-dependent
+quantity.
+\item \emph{Attribution.} The shares depend on the order in which the inequalities are undone, and the two orders of
+\resref{prop:B3-attribution} differ in the memory regime; the shares are additive in contraction exponents and not
+multiplicative factors, and the product decomposition used for $\kappa\ge10^4$ is approximate ($91$--$96\%$ of the
+speed-ups).
+\item \emph{Exactness.} Conditional expectations are exact only along the realized trajectories; products of
+conditional factors are realized quantities, and the trajectory-dependent bounds (\resref*{prop:B3-traj}) are
+a-posteriori, not guarantees.
+\item \emph{Precision floors.} Nothing is analysed below $V_t=10^{-18}$ for SAGA ($\norm{\theta_t-\etastar}^2=10^{-18}$
+in Section~\ref{sec:exp-B2}) or $\Psi_t=10^{-10}$ for L-Katyusha, so the late phase of the well-conditioned runs is
+truncated; conversely, the runs with $\kappa=10^5$ and $\alpha=2$ do not reach the neighbourhood of $\etastar$ in 100
+passes.
+\item \emph{Hard instances.} One $n$ ($16$), one accuracy ($\varepsilon=10^{-8}$) and a finite window of $\kappa$; the
+dependence on $n$ and the regime $\kappa\ll n$ were not explored, and the instance (H) with $m=64$ used in
+Section~\ref{sec:exp-A2} is too short for the lower bound to be certified at the accuracies used there.
+\item \emph{Tuning and counting.} The naive scheme was tuned on small grids (fifteen settings in
+Section~\ref{sec:exp-A2}; six per $\kappa$ in Section~\ref{sec:exp-A4}, selected on seed $0$ on (H) and on each seed on
+(R)), while L-Katyusha kept its theoretical parameters; a finer grid, or one in which $\beta$ and $\gamma$ scale with
+$\kappa$ beyond the single rule $\beta=(\sqrt\kappa-1)/(\sqrt\kappa+1)$, could change the measured exponent of the
+naive scheme. The reference gradients $\fip(w)$ of the SVRG-type methods are charged as if recomputed at every
+iteration (the code stores them, as SAGA stores its table), which raises their counts by about one half compared with
+the convention with storage used by the bounds of Appendix~\ref{sec:lower_bound} ($3$ instead of $2$ gradients per
+iteration on average); this changes constants, not exponents, but it decides the order of SAGA and L-Katyusha on
+logistic regression in Section~\ref{sec:exp-A2} (with storage L-Katyusha needs $7.1\cdot10^4$ gradients to
+$10^{-10}$, against $8.8\cdot10^4$ for SAGA).
+\end{itemize}
+
+\paragraph{Open questions.}
+(i) The exact worst-case one-step contraction of the Lyapunov function of Proposition~\ref{prop:59}, computable by
+performance estimation when interpolation conditions are known for its class of
+functions~\cite{taylor2017smooth,goujaud2024pepit}
+and bounded from above by the linear matrix inequality of~\cite{hu2017unified}, which only uses quadratic constraints
+between the iterate and $\etastar$ (see also~\cite{taylor2019stochastic}), would separate the slack of the proof from
+the benign character of our instances, and its dual multipliers would say which inequalities are active in the worst
+case, to be compared with our trajectory-wise attribution. (ii) An a-priori version of the trajectory-dependent bound
+can be obtained on a region (\resref*{prop:B3-region}), with the local strong convexity of logistic regression on a
+ball around $\etastar$ (\resref*{prop:B3-logistic}); how much of the gap such a computable certificate recovers is
+open. (iii) Once the curvature is handled, the remaining slack of Proposition~\ref{prop:59} is in its memory
+coefficient and in the step I5 (Section~\ref{sec:exp-B1}). At the textbook step a larger weight $\Delta$ already
+certifies up to twice the memory rate $\frac1{3n}$ when $n\gg\kappa$, by \resref{cor:B3-c}, and \resref{prop:B3-optimum}
+allows at most a factor $3$ over all $(\gamma,\Delta)$. For $\kappa\le\frac{9n}{16}$, where the textbook rate is
+$\frac1{3n}$, this factor $3$ is also the most that any analysis of $\E[V_t]$, whatever $\Delta$, can gain, since, by
+\resref{rem:B3-conclusion}, no bound on $\E[V_t]$ certifies more than $\frac1n$ per iteration: the open question is
+whether another Lyapunov function certifies more at the textbook step. (iv) The alignment of SAGA with the flattest
+direction for
+$\kappa\gg n$, seen in two runs, should be tested on more configurations, for instance by recording the spectrum of the
+noise of the estimator. (v) No lower bound shows that Nesterov's momentum on the SVRG estimator with one sample per
+iteration cannot accelerate; measuring its exponent as a function of the mini-batch size would connect our
+observations with the mini-batch analyses of~\cite{nitanda2016accelerated,driggs2022accelerating}. (vi) The largest
+additive share for $\kappa\ge10^4$ belongs to cocoercivity with $\max_iL_i$, which non-uniform sampling replaces by an
+average of the $L_i$~\cite{xiao2014proximal,schmidt2015nonuniform,needell2016stochastic}, removing the part of this
+slack due to the spread of the $L_i$; instrumenting such a variant, and exploiting $\muEff$ in accelerated methods
+through restarts~\cite{fercoq2019adaptive,roulet2020sharpness} within the limits set
+by~\cite{guilleescuret2022gradient,arjevani2017limitations}, are natural next steps.

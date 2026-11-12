@@ -15,7 +15,7 @@ trajectory actually followed by the algorithm explains a large part of the gap b
 $1-\min\{1/(3n),3\mu/(16R^2)\}$ and the observed contraction. This note defines the two
 trajectory-dependent constants that make the two inequalities equalities, proves their basic properties,
 makes them explicit for $\ell_2$-regularized logistic regression, analyses their dependence on the
-direction of the error $\theta_t-\etastar$ (which differs between gradient descent and SAGA, and which is
+direction of the error $\theta_t-\etastar$ (which can differ between gradient descent and SAGA, and which is
 constrained by an exact invariance property: a trajectory started in the span of the features never leaves it,
 Lemma~\ref{lem:B2-span}), and finally
 explains how they enter the SAGA bound and how to measure the fraction of the theory--practice gap they
@@ -23,7 +23,7 @@ explain.
 
 \subsection{Setting and definitions}
 
-\begin{assumption}[standing assumptions of this note]\label{ass:B2}
+\begin{assumption}[convex $R^2$-smooth $f_i$, $\mu$-strongly convex $F$]\label{ass:B2}
 \begin{enumerate}[label=(\roman*)]
 \item Each $f_i:\R^d\to\R$ is convex, differentiable and $R^2$-smooth, i.e.\ $\fip$ is $R^2$-Lipschitz-continuous.
 \item $F=\frac1n\sum_{i=1}^n f_i$ is $\mu$-strongly convex with $\mu>0$; its (unique) minimizer is
@@ -41,7 +41,7 @@ v=\theta-\etastar,\qquad u=v/\norm{v},
 \]
 and we use repeatedly that $\Fp(\theta)=\Fp(\theta)-\Fp(\etastar)=\frac1n\sum_i[\fip(\theta)-\fip(\etastar)]$.
 
-\begin{definition}[effective strong convexity and effective co-coercivity constants]\label{def:B2-eff}
+\begin{definition}[effective constants $\muEff$ and $\LEff$]\label{def:B2-eff}
 For $\theta\neq\etastar$, define
 \begin{equation}\label{eq:B2-def-mueff}
 \muEff(\theta)\;=\;\frac{(\theta-\etastar)^\top \Fp(\theta)}{\norm{\theta-\etastar}^2},
@@ -79,8 +79,8 @@ $(f'(\theta)-f'(\eta))^\top(\theta-\eta)\le L_f\norm{\theta-\eta}^2$.
 \end{lemma}
 
 \begin{proof}
-(b) By definition of $\mu$-strong convexity (Definition~5.2 of the book, with $\mu=0$ for plain
-convexity, which gives (a)),
+(b) By definition of $\mu$-strong convexity (Definition~5.2 of the book; the same computation with $\mu=0$,
+i.e.\ with the definition of convexity, Definition~5.1, eq.~(5.6), gives (a)),
 $f(\eta)\ge f(\theta)+f'(\theta)^\top(\eta-\theta)+\frac\mu2\norm{\eta-\theta}^2$ and
 $f(\theta)\ge f(\eta)+f'(\eta)^\top(\theta-\eta)+\frac\mu2\norm{\eta-\theta}^2$. Summing the two
 inequalities and cancelling $f(\theta)+f(\eta)$ gives
@@ -101,7 +101,7 @@ $(f'(\theta)-f'(\eta))^\top(\theta-\eta)\le\norm{f'(\theta)-f'(\eta)}\norm{\thet
 Lipschitz property $\norm{f'(\theta)-f'(\eta)}\le L_f\norm{\theta-\eta}$.
 \end{proof}
 
-\begin{lemma}[the effective curvature lies between $\mu$ and $L$]\label{lem:B2-mueff}
+\begin{lemma}[$\muEff$ lies between $\mu$ and $L$]\label{lem:B2-mueff}
 Under Assumption~\ref{ass:B2}, for all $\theta\neq\etastar$,
 \begin{equation}\label{ineq:mueff-lower}
 \mu\norm{\theta-\etastar}^2\;\le\;(\theta-\etastar)^\top\Fp(\theta)
@@ -125,7 +125,7 @@ Lemma~\ref{lem:B2-Leff}); we use the same two names below.
 \begin{lemma}[integral form of the effective curvature]\label{lem:B2-integral}
 Assume $F$ is twice continuously differentiable and let, for $\theta\neq\etastar$,
 \[
-\bar H(\theta)\;=\;\int_0^1 F''(\etastar+s\,v)\,ds \qquad (v=\theta-\etastar).
+\bar H(\theta)\;=\;\int_0^1 F''(\etastar+s\,v)\,ds \qquad (v=\theta-\etastar,\ u=v/\norm{v}).
 \]
 Then $\bar H(\theta)$ is symmetric, $\mu I\preccurlyeq\bar H(\theta)\preccurlyeq L I$, $\Fp(\theta)=\bar H(\theta)\,v$, and
 \begin{equation}\label{eq:B2-rayleigh}
@@ -148,7 +148,7 @@ for all $\theta$ (Section~5.2.3 of \cite{bach2024learning}). Finally
 $\muEff(\theta)=v^\top\Fp(\theta)/\norm{v}^2=v^\top\bar H(\theta)v/\norm{v}^2$.
 \end{proof}
 
-\begin{lemma}[the effective co-coercivity constant lies between $\muEff$ and $R^2$]\label{lem:B2-Leff}
+\begin{lemma}[$\LEff$ lies between $\muEff$ and $R^2$]\label{lem:B2-Leff}
 Under Assumption~\ref{ass:B2}, for all $\theta\neq\etastar$, with $v=\theta-\etastar$,
 \begin{equation}\label{ineq:Leff-jensen}
 \norm{\Fp(\theta)}^2\;\le\;\frac1n\sum_{i=1}^n\norm{\fip(\theta)-\fip(\etastar)}^2
@@ -165,22 +165,23 @@ Consequently
 \begin{equation}\label{eq:B2-Leff-sandwich}
 \mu\;\le\;\muEff(\theta)\;\le\;\frac{\norm{\Fp(\theta)}^2}{v^\top\Fp(\theta)}\;\le\;\LEff(\theta)\;\le\;R^2 ,
 \end{equation}
-and, more precisely, with $a_i=\fip(\theta)-\fip(\etastar)$ and $\bar a=\frac1n\sum_ia_i=\Fp(\theta)$,
+and, more precisely, with $h_i=\fip(\theta)-\fip(\etastar)$ (the vectors $a_i$ of Section~\ref{sec:B3-exact}) and
+$\bar h=\frac1n\sum_ih_i=\Fp(\theta)$,
 \begin{equation}\label{eq:B2-Leff-variance}
-\LEff(\theta)\;=\;\frac{\norm{\Fp(\theta)}^2+\frac1n\sum_{i=1}^n\norm{a_i-\bar a}^2}{v^\top\Fp(\theta)} .
+\LEff(\theta)\;=\;\frac{\norm{\Fp(\theta)}^2+\frac1n\sum_{i=1}^n\norm{h_i-\bar h}^2}{v^\top\Fp(\theta)} .
 \end{equation}
 If moreover each $f_i$ is $L_i$-smooth, then $\LEff(\theta)\le\max_iL_i$ (so one may take $R^2=\max_iL_i$).
 \end{lemma}
 
 \begin{proof}
 \eqref{eq:B2-Leff-variance} is the variance decomposition
-$\frac1n\sum_i\norm{a_i}^2=\norm{\bar a}^2+\frac1n\sum_i\norm{a_i-\bar a}^2$ (expand the squares and use
-$\sum_i(a_i-\bar a)=0$), divided by $v^\top\Fp(\theta)>0$; dropping the nonnegative variance term gives
+$\frac1n\sum_i\norm{h_i}^2=\norm{\bar h}^2+\frac1n\sum_i\norm{h_i-\bar h}^2$ (expand the squares and use
+$\sum_i(h_i-\bar h)=0$), divided by $v^\top\Fp(\theta)>0$; dropping the nonnegative variance term gives
 \eqref{ineq:Leff-jensen}. For \eqref{ineq:Leff-cocoercive}, apply Lemma~\ref{lem:B2-twopoint}(c) to each
-$f_i$ (convex, $R^2$-smooth) with $\eta=\etastar$: $\norm{a_i}^2\le R^2a_i^\top v$; averaging over $i$ gives
-$\frac1n\sum_i\norm{a_i}^2\le R^2\bar a^\top v=R^2v^\top\Fp(\theta)$. If $f_i$ is $L_i$-smooth, the same
-argument gives $\frac1n\sum_i\norm{a_i}^2\le\frac1n\sum_iL_ia_i^\top v\le(\max_iL_i)\,\bar a^\top v$, using
-$a_i^\top v\ge0$ (Lemma~\ref{lem:B2-twopoint}(a)). For \eqref{ineq:Leff-mu}: the first inequality is
+$f_i$ (convex, $R^2$-smooth) with $\eta=\etastar$: $\norm{h_i}^2\le R^2h_i^\top v$; averaging over $i$ gives
+$\frac1n\sum_i\norm{h_i}^2\le R^2\bar h^\top v=R^2v^\top\Fp(\theta)$. If $f_i$ is $L_i$-smooth, the same
+argument gives $\frac1n\sum_i\norm{h_i}^2\le\frac1n\sum_iL_ih_i^\top v\le(\max_iL_i)\,\bar h^\top v$, using
+$h_i^\top v\ge0$ (Lemma~\ref{lem:B2-twopoint}(a)). For \eqref{ineq:Leff-mu}: the first inequality is
 Lemma~\ref{lem:B2-mueff}; the second is Cauchy--Schwarz, $v^\top\Fp(\theta)\le\norm{v}\norm{\Fp(\theta)}$,
 divided by $\norm{v}^2$; the third is the same Cauchy--Schwarz inequality in the form
 $\norm{\Fp(\theta)}/\norm{v}\le\norm{\Fp(\theta)}^2/(v^\top\Fp(\theta))$. Combining
@@ -189,15 +190,16 @@ $\norm{\Fp(\theta)}/\norm{v}\le\norm{\Fp(\theta)}^2/(v^\top\Fp(\theta))$. Combin
 
 \begin{remark}
 The chain \eqref{eq:B2-Leff-sandwich} shows that the ``effective condition number'' $\LEff(\theta)/\muEff(\theta)$
-is always at least $1$, and that the two sources of slack in the co-coercivity step are separated:
+is always at least $1$, and that two effects are separated in $\LEff(\theta)$, whose ratio to $R^2$ is the tightness ratio
+of the co-coercivity step:
 \eqref{ineq:Leff-jensen} measures the \emph{diversity} of the individual gradient differences
-(its tightness ratio $\norm{\Fp(\theta)}^2/\frac1n\sum_i\norm{a_i}^2$ equals $1$ iff all $a_i$ coincide),
+(its tightness ratio $\norm{\Fp(\theta)}^2/\frac1n\sum_i\norm{h_i}^2$ equals $1$ iff all $h_i$ coincide),
 while the remaining factor $\norm{\Fp(\theta)}^2/(v^\top\Fp(\theta))\le\LEff(\theta)\le R^2$ measures how much
 of the bound $R^2$ is actually used by the full gradient in the direction of the error. Both ratios are cheap to
 compute once $\etastar$ is known (one pass over the data).
 \end{remark}
 
-\begin{proposition}[limits at the optimum]\label{prop:B2-limits}
+\begin{proposition}[directional limits at the optimum]\label{prop:B2-limits}
 Assume each $f_i$ is twice continuously differentiable, and write $H_\ast=F''(\etastar)$ and
 $M_\ast=\frac1n\sum_{i=1}^nf_i''(\etastar)^2$. For a unit vector $u$ define
 \[
@@ -227,21 +229,21 @@ $\norm{\bar H_i(\theta)-f_i''(\etastar)}_{\mathrm{op}}\le\varepsilon_i(r)$, henc
 $\norm{\bar H(\theta)-H_\ast}_{\mathrm{op}}\le\varepsilon(r)$ and, by \eqref{eq:B2-rayleigh},
 $\abs{\muEff(\theta)-u^\top H_\ast u}=\abs{u^\top(\bar H(\theta)-H_\ast)u}\le\varepsilon(r)$, which proves the first limit.
 
-For the second, write $\LEff(\theta)=A(\theta)/B(\theta)$ with
-$A(\theta)=\frac1{r^2}\cdot\frac1n\sum_i\norm{\bar H_i(\theta)v}^2=\frac1n\sum_iu^\top\bar H_i(\theta)^2u$ and
-$B(\theta)=\frac1{r^2}v^\top\Fp(\theta)=u^\top\bar H(\theta)u=\muEff(\theta)$. For symmetric matrices
+For the second, write $\LEff(\theta)=\mathcal N(\theta)/\mathcal D(\theta)$ with
+$\mathcal N(\theta)=\frac1{r^2}\cdot\frac1n\sum_i\norm{\bar H_i(\theta)v}^2=\frac1n\sum_iu^\top\bar H_i(\theta)^2u$ and
+$\mathcal D(\theta)=\frac1{r^2}v^\top\Fp(\theta)=u^\top\bar H(\theta)u=\muEff(\theta)$. For symmetric matrices
 $0\preccurlyeq P,Q\preccurlyeq R^2I$ one has $P^2-Q^2=P(P-Q)+(P-Q)Q$, so
 $\norm{P^2-Q^2}_{\mathrm{op}}\le2R^2\norm{P-Q}_{\mathrm{op}}$; therefore
-$\abs{A(\theta)-u^\top M_\ast u}\le2R^2\varepsilon(r)$, while $\abs{B(\theta)-u^\top H_\ast u}\le\varepsilon(r)$.
+$\abs{\mathcal N(\theta)-u^\top M_\ast u}\le2R^2\varepsilon(r)$, while $\abs{\mathcal D(\theta)-u^\top H_\ast u}\le\varepsilon(r)$.
 Both denominators are at least $\mu$ (Lemma~\ref{lem:B2-mueff} and $H_\ast\succcurlyeq\mu I$) and both
 numerators are at most $R^4$, so
 \[
 \abs{\LEff(\theta)-\Lambda(u)}
-=\abs{\frac{A}{B}-\frac{A_\ast}{B_\ast}}
-\le\frac{\abs{A-A_\ast}}{B}+A_\ast\frac{\abs{B-B_\ast}}{BB_\ast}
+=\abs{\frac{\mathcal N}{\mathcal D}-\frac{\mathcal N_\ast}{\mathcal D_\ast}}
+\le\frac{\abs{\mathcal N-\mathcal N_\ast}}{\mathcal D}+\mathcal N_\ast\frac{\abs{\mathcal D-\mathcal D_\ast}}{\mathcal D\,\mathcal D_\ast}
 \le\frac{2R^2\varepsilon(r)}{\mu}+\frac{R^4\varepsilon(r)}{\mu^2}\;\xrightarrow[r\to0]{}\;0 ,
 \]
-uniformly in $u$ (here $A_\ast=u^\top M_\ast u$, $B_\ast=u^\top H_\ast u$).
+uniformly in $u$ (here $\mathcal N_\ast=u^\top M_\ast u$, $\mathcal D_\ast=u^\top H_\ast u$).
 
 For \eqref{eq:B2-Lambda-bounds}: with $A_i=f_i''(\etastar)$ and $\bar A=H_\ast$, the matrix
 $\frac1n\sum_i(A_i-\bar A)^2=\frac1n\sum_iA_i^2-\bar A^2=M_\ast-H_\ast^2$ is positive semidefinite (each
@@ -285,7 +287,7 @@ using $y_i^2=1$. Hence
 F''(\theta)=\frac1n\sum_{i=1}^n\ell''\big(y_ix_i^\top\theta\big)\,x_ix_i^\top+\lambda I .
 \end{equation}
 The function $f_i$ is $L_i$-smooth with $L_i=\norm{x_i}^2/4+\lambda$ (the largest eigenvalue of
-$f_i''(\theta)$ is $\ell''(a_i(\theta))\norm{x_i}^2+\lambda\le L_i$, with equality when $a_i(\theta)=0$), so the
+$f_i''(\theta)$, $\ell''(a_i(\theta))\norm{x_i}^2+\lambda$, is at most $L_i$, with equality when $a_i(\theta)=0$), so the
 per-sample smoothness constant of the project is $R^2=\max_iL_i=R_x^2/4+\lambda$. The smoothness constant of
 $F$ is $L=\lambda+\lmax(\hat\Sigma)/4$: indeed $F''(\theta)\preccurlyeq\frac14\hat\Sigma+\lambda I$ for all
 $\theta$, with equality at $\theta=0$. Finally $F''(\theta)\succcurlyeq\lambda I$ for all $\theta$, so $F$ is
@@ -340,8 +342,8 @@ $\lambda^2+2\lambda A+B=(\lambda+A)^2+(B-A^2)$ gives the second. Finally $\norm{
 \end{proof}
 
 \begin{lemma}[two-sided bounds on the effective curvature]\label{lem:B2-logistic-bounds}
-Let $\theta\neq\etastar$ and $m_i(\theta)=\min\{\ell''(a_i^\ast),\ell''(a_i)\}$, $m(\theta)=\min_im_i(\theta)$.
-Then $m_i(\theta)\le w_i(\theta)\le\frac14$, and
+Let $\theta\neq\etastar$. For each $i$, let $m_i(\theta)$ be the smaller of $\ell''(a_i^\ast)$ and $\ell''(a_i)$, and let
+$m(\theta)=\min_im_i(\theta)$. Then $m_i(\theta)\le w_i(\theta)\le\frac14$, and
 \begin{equation}\label{ineq:logistic-lower}
 \lambda+m(\theta)\,u^\top\hat\Sigma u\;\le\;\lambda+\frac1n\sum_{i=1}^nm_i(\theta)(x_i^\top u)^2\;\le\;\muEff(\theta),
 \end{equation}
@@ -354,9 +356,9 @@ over the $n$ segments $[a_i^\ast,a_i]$ and is computable in $O(nd)$ operations.
 \end{lemma}
 
 \begin{proof}
-Every point $a_i^\ast+s(a_i-a_i^\ast)$, $s\in[0,1]$, of the segment satisfies
-$\abs{a_i^\ast+s(a_i-a_i^\ast)}\le\max\{\abs{a_i^\ast},\abs{a_i}\}$; since $\ell''$ is even and non-increasing in
-$\abs{a}$, $\ell''$ on the segment is at least $\min\{\ell''(a_i^\ast),\ell''(a_i)\}=m_i(\theta)$ and at most
+Every point $a=a_i^\ast+s(a_i-a_i^\ast)$, $s\in[0,1]$, of the segment satisfies
+$\abs a\le\max\{\abs{a_i^\ast},\abs{a_i}\}$; since $\ell''$ is even and non-increasing in $\abs a$, $\ell''$ on the
+segment is at least $\min\{\ell''(a_i^\ast),\ell''(a_i)\}=m_i(\theta)$ and at most
 $1/4$. Integrating over $s$ gives $m_i(\theta)\le w_i(\theta)\le1/4$, and inserting these bounds into
 \eqref{eq:B2-logistic-mueff}, with $\frac1n\sum_i(x_i^\top u)^2=u^\top\hat\Sigma u\in[\lmin(\hat\Sigma),\lmax(\hat\Sigma)]$,
 gives \eqref{ineq:logistic-lower}--\eqref{ineq:logistic-upper}.
@@ -372,48 +374,48 @@ the best (largest) strong convexity constant is
 \mu_{\mathrm{glob}}\;=\;\sup\{\mu\ge0:\ F\text{ is $\mu$-strongly convex}\}\;=\;\inf_{\theta\in\R^d}\lmin\big(F''(\theta)\big).
 \]
 
-\begin{proposition}[the global strong convexity constant of $\ell_2$-regularized logistic regression is $\lambda$]\label{prop:B2-global}
-Let $I_0=\{i:x_i\neq0\}$ (if $I_0=\emptyset$ then $F''\equiv\lambda I$ and there is nothing to prove).
+\begin{proposition}[the global strong convexity constant is $\lambda$]\label{prop:B2-global}
+For $\ell_2$-regularized logistic regression, let $I_0=\{i:x_i\neq0\}$ (if $I_0=\emptyset$ then $F''\equiv\lambda I$ and there is nothing to prove).
 \begin{enumerate}[label=(\alph*)]
-\item There exists a unit vector $d\in\R^d$ with $x_i^\top d\neq0$ for every $i\in I_0$; in fact Lebesgue-almost
+\item There exists a unit vector $\hat d\in\R^d$ with $x_i^\top\hat d\neq0$ for every $i\in I_0$; in fact Lebesgue-almost
 every direction has this property.
-\item For every such $d$, with $\delta(d)=\min_{i\in I_0}\abs{x_i^\top d}>0$, and every $t\ge0$,
+\item For every such $\hat d$, with $\delta(\hat d)=\min_{i\in I_0}\abs{x_i^\top\hat d}>0$, and every $t\ge0$,
 \begin{equation}\label{ineq:global-escape}
-\lambda\;\le\;\lmin\big(F''(t\,d)\big)\;\le\;\lambda+R_x^2\,e^{-t\,\delta(d)} .
+\lambda\;\le\;\lmin\big(F''(t\hat d)\big)\;\le\;\lambda+R_x^2\,e^{-t\,\delta(\hat d)} .
 \end{equation}
 \item Consequently $\mu_{\mathrm{glob}}=\inf_\theta\lmin(F''(\theta))=\lambda$: the global strong convexity
 constant of $F$ is exactly $\lambda$, whatever the data.
 \item The infimum is attained at some $\theta$ if and only if $\operatorname{span}\{x_1,\dots,x_n\}\neq\R^d$;
 in that case $\lmin(F''(\theta))=\lambda$ for every $\theta$. If the features span $\R^d$, then
 $\lmin(F''(\theta))>\lambda$ for every $\theta$ and the value $\lambda$ is only approached as
-$\norm{\theta}\to\infty$; it is in fact approached along \emph{every} ray: for every unit vector $d$ and every $t\ge0$,
+$\norm{\theta}\to\infty$; it is in fact approached along \emph{every} ray: for every unit vector $\hat d$ and every $t\ge0$,
 \begin{equation}\label{ineq:global-ray}
-\lmin\big(F''(t\,d)\big)\;\le\;\lambda+\frac1n\sum_{i=1}^n\ell''\big(t\,y_ix_i^\top d\big)(x_i^\top d)^2\;\le\;\lambda+R_x^2\,e^{-t\,\delta'(d)},
+\lmin\big(F''(t\hat d)\big)\;\le\;\lambda+\frac1n\sum_{i=1}^n\ell''\big(t\,y_ix_i^\top\hat d\big)(x_i^\top\hat d)^2\;\le\;\lambda+R_x^2\,e^{-t\,\delta'(\hat d)},
 \end{equation}
-where $\delta'(d)=\min\{\abs{x_i^\top d}:x_i^\top d\neq0\}$, with the conventions $\delta'(d)=+\infty$ and
-$e^{-\infty}=0$ when $x_i^\top d=0$ for all $i$; hence $\lim_{t\to\infty}\lmin(F''(td))=\lambda$ for every
-direction $d$. Directions as in (a) are those along which the whole matrix $F''(td)-\lambda I$ tends to $0$;
+where $\delta'(\hat d)=\min\{\abs{x_i^\top\hat d}:x_i^\top\hat d\neq0\}$, with the conventions $\delta'(\hat d)=+\infty$ and
+$e^{-\infty}=0$ when $x_i^\top\hat d=0$ for all $i$; hence $\lim_{t\to\infty}\lmin(F''(t\hat d))=\lambda$ for every
+direction $\hat d$. Directions as in (a) are those along which the whole matrix $F''(t\hat d)-\lambda I$ tends to $0$;
 along a general ray,
 \[
-F''(td)-\lambda I\;\xrightarrow[t\to\infty]{}\;\frac1{4n}\sum_{i:\,x_i^\top d=0}x_ix_i^\top ,
+F''(t\hat d)-\lambda I\;\xrightarrow[t\to\infty]{}\;\frac1{4n}\sum_{i:\,x_i^\top\hat d=0}x_ix_i^\top ,
 \]
-a matrix which is singular because $d$ lies in its kernel.
+a matrix which is singular because $\hat d$ lies in its kernel.
 \end{enumerate}
 \end{proposition}
 
 \begin{proof}
-(a) For $i\in I_0$ the set $\{d:x_i^\top d=0\}$ is a hyperplane, hence has Lebesgue measure zero; a finite
+(a) For $i\in I_0$ the set $\{\hat d:x_i^\top\hat d=0\}$ is a hyperplane, hence has Lebesgue measure zero; a finite
 union of null sets is null, so its complement is nonempty (indeed of full measure); normalize any element.
 
-(b) The lower bound is $F''\succcurlyeq\lambda I$. For the upper bound, $F''(td)-\lambda I=\frac1n\sum_{i\in I_0}
-\ell''(t\,y_ix_i^\top d)\,x_ix_i^\top$ (the terms with $x_i=0$ vanish), and this matrix is positive semidefinite with
+(b) The lower bound is $F''\succcurlyeq\lambda I$. For the upper bound, $F''(t\hat d)-\lambda I=\frac1n\sum_{i\in I_0}
+\ell''(t\,y_ix_i^\top\hat d)\,x_ix_i^\top$ (the terms with $x_i=0$ vanish), and this matrix is positive semidefinite with
 \[
-\norm{F''(td)-\lambda I}_{\mathrm{op}}\le\frac1n\sum_{i\in I_0}\ell''(t\,y_ix_i^\top d)\norm{x_i}^2
-\le R_x^2\max_{i\in I_0}\ell''(t\,y_ix_i^\top d)\le R_x^2e^{-t\delta(d)},
+\norm{F''(t\hat d)-\lambda I}_{\mathrm{op}}\le\frac1n\sum_{i\in I_0}\ell''(t\,y_ix_i^\top\hat d)\norm{x_i}^2
+\le R_x^2\max_{i\in I_0}\ell''(t\,y_ix_i^\top\hat d)\le R_x^2e^{-t\delta(\hat d)},
 \]
 where we used $\ell''(a)=\sigma(a)\sigma(-a)\le\sigma(-\abs a)=\frac1{1+e^{\abs a}}\le e^{-\abs a}$ (because
-$\sigma\le1$ and $\ell''$ is even) and $\abs{t\,y_ix_i^\top d}=t\abs{x_i^\top d}\ge t\delta(d)$. Hence
-$\lmin(F''(td))\le\lambda+\norm{F''(td)-\lambda I}_{\mathrm{op}}\le\lambda+R_x^2e^{-t\delta(d)}$.
+$\sigma\le1$ and $\ell''$ is even) and $\abs{t\,y_ix_i^\top\hat d}=t\abs{x_i^\top\hat d}\ge t\delta(\hat d)$. Hence
+$\lmin(F''(t\hat d))\le\lambda+\norm{F''(t\hat d)-\lambda I}_{\mathrm{op}}\le\lambda+R_x^2e^{-t\delta(\hat d)}$.
 
 (c) Letting $t\to\infty$ in \eqref{ineq:global-escape} gives $\inf_\theta\lmin(F''(\theta))\le\lambda$; the
 reverse inequality is $F''\succcurlyeq\lambda I$.
@@ -421,15 +423,15 @@ reverse inequality is $F''\succcurlyeq\lambda I$.
 (d) $\lmin(F''(\theta))=\lambda$ iff the positive semidefinite matrix $\frac1n\sum_i\ell''(a_i(\theta))x_ix_i^\top$ is
 singular, iff there is $w\neq0$ with $\frac1n\sum_i\ell''(a_i(\theta))(x_i^\top w)^2=0$, iff $x_i^\top w=0$ for all
 $i$ (since $\ell''>0$), iff the $x_i$ do not span $\R^d$. This condition does not depend on $\theta$.
-For \eqref{ineq:global-ray}: $\lmin(F''(td))\le d^\top F''(td)\,d=\lambda+\frac1n\sum_i\ell''(t\,y_ix_i^\top d)(x_i^\top d)^2$
-(Rayleigh quotient with $\norm d=1$, using $y_i^2=1$); the terms with $x_i^\top d=0$ vanish, and for the others
-$\ell''(t\,y_ix_i^\top d)(x_i^\top d)^2\le e^{-t\abs{x_i^\top d}}\norm{x_i}^2\le R_x^2e^{-t\delta'(d)}$ by the bound
-$\ell''(a)\le e^{-\abs a}$ used in (b). The limit of $F''(td)-\lambda I$ follows termwise from $\ell''(t\,y_ix_i^\top d)\to0$
-when $x_i^\top d\neq0$ and $\ell''(0)=\frac14$ when $x_i^\top d=0$.
+For \eqref{ineq:global-ray}: $\lmin(F''(t\hat d))\le\hat d^\top F''(t\hat d)\,\hat d=\lambda+\frac1n\sum_i\ell''(t\,y_ix_i^\top\hat d)(x_i^\top\hat d)^2$
+(Rayleigh quotient with $\norm{\hat d}=1$, using $y_i^2=1$); the terms with $x_i^\top\hat d=0$ vanish, and for the others
+$\ell''(t\,y_ix_i^\top\hat d)(x_i^\top\hat d)^2\le e^{-t\abs{x_i^\top\hat d}}\norm{x_i}^2\le R_x^2e^{-t\delta'(\hat d)}$ by the bound
+$\ell''(a)\le e^{-\abs a}$ used in (b). The limit of $F''(t\hat d)-\lambda I$ follows termwise from $\ell''(t\,y_ix_i^\top\hat d)\to0$
+when $x_i^\top\hat d\neq0$ and $\ell''(0)=\frac14$ when $x_i^\top\hat d=0$.
 \end{proof}
 
 \begin{corollary}[strong convexity on a bounded region]\label{cor:B2-ball}
-For every $D>0$ and every $\theta$ with $\norm\theta\le D$,
+In $\ell_2$-regularized logistic regression, for every $D>0$ and every $\theta$ with $\norm\theta\le D$,
 \begin{equation}\label{ineq:ball-lower}
 \lmin\big(F''(\theta)\big)\;\ge\;\lambda+\ell''(R_xD)\,\lmin(\hat\Sigma)\;\ge\;\lambda+\tfrac14e^{-R_xD}\lmin(\hat\Sigma).
 \end{equation}
@@ -456,8 +458,17 @@ by co-coercivity of $F$ (Lemma~\ref{lem:B2-twopoint}(c) with $\eta=\etastar$) an
 For SAGA the statement is only probabilistic: under Proposition~5.9, $V_t\ge0$ and $\E[V_t\mid\mathcal F_{t-1}]\le V_{t-1}$,
 so $(V_t)_{t\ge0}$ is a nonnegative supermartingale; it converges almost surely, hence $\sup_tV_t<\infty$ almost surely,
 and Ville's maximal inequality gives $\Prob(\sup_{t\ge0}V_t\ge c)\le V_0/c$ for every $c>0$. Since
-$\norm{\theta_t-\etastar}^2\le V_t$, the SAGA iterates are almost surely bounded, but they are not confined to a
-deterministic ball. The next lemma, which is the scalar case of the generalized
+$\norm{\theta_t-\etastar}^2\le V_t$, the SAGA iterates are almost surely bounded; they are not, in general, confined to a
+deterministic ball (for $n=1$ SAGA is gradient descent with $\gamma=1/(4R^2)\le1/L$, which stays in the ball of radius
+$\norm{\theta_0-\etastar}$). For instance, take $n=2$, $d=1$, $x_1=1$, $x_2=0.1$, $y=(1,-1)$, $\lambda=10^{-3}$,
+$\theta_0=0$, the step and initialization of Proposition~5.9, and cycles of $2\cdot10^4$ draws of the index $2$ followed
+by one draw of the index $1$. While the index $2$ is repeated, the iterate converges to the point where
+$f_2'(\theta)=-z_1^{(t)}$, the stored $z_1^{(t)}$ being stale, and $\abs{\theta_t-\etastar}$, initially $2.7$, equals
+about $396$, $1294$, $2192$ and $3090$ after the cycles $1$, $3$, $5$ and $7$: it grows by about $(1-x_2)/\lambda=900$
+every two cycles (a draw of the index $1$ at a point $\theta\ll0$ stores $z_1\approx-1+\lambda\theta$, and the next
+phase brings the iterate to about $\abs\theta+(1-x_2)/\lambda$), and keeps growing if the phases are long enough. Since
+every finite sequence of indices has positive probability, $\Prob(\sup_t\norm{\theta_t-\etastar}\ge c)>0$ for every
+$c>0$. The next lemma, which is the scalar case of the generalized
 self-concordance property of the logistic loss (\cite{bach2010self}, Lemma~1 and Proposition~1, eq.~(6);
 Assumption (A2) in \cite{bach2014adaptivity}), turns this into a quantitative comparison between
 $\muEff(\theta)$ and the curvature at the optimum.
@@ -484,7 +495,8 @@ from $a_i^\ast$; apply the first claim with $a=a_i^\ast$ and integrate over $s\i
 \end{proof}
 
 \begin{corollary}[effective curvature versus curvature at the optimum]\label{cor:B2-local}
-Let $H_\ast=F''(\etastar)=\frac1n\sum_ip_ix_ix_i^\top+\lambda I$ and $p_{\min}=\min_ip_i=\min_i\sigma'(y_ix_i^\top\etastar)$.
+For $\ell_2$-regularized logistic regression, let $p_i=\sigma'(y_ix_i^\top\etastar)$,
+$H_\ast=F''(\etastar)=\frac1n\sum_ip_ix_ix_i^\top+\lambda I$ and $p_{\min}=\min_ip_i$.
 For every $\theta\neq\etastar$, with $u=(\theta-\etastar)/\norm{\theta-\etastar}$,
 \begin{equation}\label{ineq:selfconc-lower}
 \lambda+e^{-R_x\norm{\theta-\etastar}}\,\big(u^\top H_\ast u-\lambda\big)\;\le\;\muEff(\theta),
@@ -499,7 +511,7 @@ u^\top H_\ast u\;\ge\;\lambda+p_{\min}\,u^\top\hat\Sigma u\;\ge\;\lambda+p_{\min
 In particular, $\liminf_{\theta\to\etastar}\muEff(\theta)\ge\lambda+p_{\min}\lmin(\hat\Sigma)$, and for
 $\norm{\theta-\etastar}\le1/R_x$ one has $\muEff(\theta)\ge\lambda+e^{-1}p_{\min}\lmin(\hat\Sigma)$.
 If moreover $\theta\in S=\operatorname{span}\{x_1,\dots,x_n\}$ (which holds along the whole trajectory of gradient
-descent and of SAGA when $\theta_0\in S$, Lemma~\ref{lem:B2-span} below), then $u\in S$, and $\lmin(\hat\Sigma)$ may be
+descent and of SAGA when $\theta_0\in S$, Lemma~\ref{lem:B2-span}), then $u\in S$, and $\lmin(\hat\Sigma)$ may be
 replaced, in \eqref{ineq:local-lower} and in the two consequences, by $\lambda^+_{\min}(\hat\Sigma)$, the smallest
 nonzero eigenvalue of $\hat\Sigma$ (which is positive even when $d>n$).
 \end{corollary}
@@ -517,8 +529,12 @@ nonzero eigenvalues of $\hat\Sigma$, whence $u^\top\hat\Sigma u\ge\lambda^+_{\mi
 \paragraph{How the data spectrum and $\lambda$ control the gap $\muEff/\mu$.}
 Since $\mu=\lambda$ exactly (Proposition~\ref{prop:B2-global}), the ratio measuring the slack of the
 strong-convexity step along a trajectory is $\muEff(\theta_t)/\lambda$. Corollary~\ref{cor:B2-local} shows
-that, once $R_x\norm{\theta_t-\etastar}\lesssim1$ (which happens after the first few passes of SAGA), this ratio
-is within a factor $e^{\pm1}$ of
+that, once $R_x\norm{\theta_t-\etastar}\lesssim1$ (for SAGA this takes a number of passes that grows with $\kappa$ in
+the runs of Remark~\ref{rem:B2-P2-outcome}, where $n=1000$: the first recorded state with $R_x\norm{\theta_t-\etastar}\le1$
+comes after $0.6$ to $7.1$ passes for $\kappa\le10^3$, after $10.6$ and $24.7$ passes for $\kappa=10^4$ with
+$\alpha\in\{0,1\}$, and not within the $60$ passes of the run for $\kappa=10^4$, $\alpha=2$; key
+\texttt{saga\_first\_pass\_Rx\_dist\_le\_1} of \texttt{results/B2\_summary.json}), this
+ratio is within a factor $e^{\pm1}$ of
 \begin{equation}\label{eq:B2-gap-direction}
 \frac{u_t^\top H_\ast u_t}{\lambda}\;=\;1+\frac1\lambda\cdot\frac1n\sum_{i=1}^np_i\,(x_i^\top u_t)^2,
 \qquad u_t=\frac{\theta_t-\etastar}{\norm{\theta_t-\etastar}},
@@ -530,7 +546,8 @@ Three regimes follow.
 \begin{itemize}
 \item \emph{Strong regularization,} $\lambda\gg\lmax(\hat\Sigma)/4$: the ratio is at most
 $1+\lmax(\hat\Sigma)/(4\lambda)\approx1$ in every direction, the strong-convexity step is essentially tight,
-but then $\kappa=R^2/\mu=1+R_x^2/(4\lambda)$ is small and the problem is uninteresting for (A4).
+but then $\kappa-1=R_x^2/(4\lambda)\ll R_x^2/\lmax(\hat\Sigma)\le n$ (as $\hat\Sigma\succcurlyeq\frac1nx_ix_i^\top$ for
+every $i$), so that $\kappa\ll n$ and the problem lies outside the regime $\kappa\gg n$ of (A4).
 \item \emph{Intermediate regularization,} $\lmin(H_\ast-\lambda I)\ll\lambda\ll\lmax(H_\ast-\lambda I)$ (the
 typical situation with anisotropic features: a decaying spectrum of $\hat\Sigma$, or $d>n$, in which case
 $\lmin(\hat\Sigma)=0$ and $\lmin(H_\ast)=\lambda$ exactly, the $\lambda$-eigenspace of $H_\ast$ being the orthogonal
@@ -651,19 +668,24 @@ exactly as for the quadratic $\frac\lambda2\norm\theta^2$, for both algorithms.
 
 \paragraph{Gradient descent on a quadratic.}
 Let $F(\theta)=F(\etastar)+\frac12(\theta-\etastar)^\top H(\theta-\etastar)$ with $H$ symmetric positive definite,
-eigenvalues $\lambda_1\ge\dots\ge\lambda_d=\lmin>0$ and an orthonormal basis of eigenvectors $q_1,\dots,q_d$.
-Let $E_{\min}$ be the eigenspace of $\lmin$, $P$ the orthogonal projector onto $E_{\min}$,
-$K_{\min}=\{k:\lambda_k=\lmin\}$, and $\lambda'=\min\{\lambda_k:\lambda_k>\lmin\}$ (second smallest distinct
-eigenvalue; if $H=\lmin I$ everything below is trivial). Gradient descent is
-$\theta_t=\theta_{t-1}-\gamma\Fp(\theta_{t-1})$. For a quadratic, $\bar H(\theta)=H$ for all $\theta$, so by
-Lemma~\ref{lem:B2-integral} $\muEff(\theta)=v^\top Hv/\norm v^2$ exactly, and the spectral profile of the error
+eigenvalues $\lambda_1\ge\dots\ge\lambda_d=\lmin>0$ and an orthonormal basis of eigenvectors $q_1,\dots,q_d$, and let
+$K_{\min}=\{k:\lambda_k=\lmin\}$. For a quadratic, $\bar H(\theta)=H$ for all $\theta$, so by
+Lemma~\ref{lem:B2-integral} $\muEff(\theta)=v^\top Hv/\norm v^2$ exactly, and, along a trajectory $(\theta_t)$ with
+$v_t=\theta_t-\etastar\neq0$, the spectral profile of the error
 \begin{equation}\label{eq:B2-profile}
 \pi_k(t)\;=\;\frac{(q_k^\top v_t)^2}{\norm{v_t}^2},\qquad k=1,\dots,d,\qquad\sum_k\pi_k(t)=1,
 \end{equation}
 determines it: $\muEff(\theta_t)=\sum_k\lambda_k\pi_k(t)$.
 
 \begin{proposition}[alignment of gradient descent with the flattest direction]\label{prop:B2-gd}
-Let $0<\gamma\le1/\lambda_1$. Then:
+Let $F(\theta)=F(\etastar)+\frac12(\theta-\etastar)^\top H(\theta-\etastar)$, where $H$ is symmetric positive
+definite with eigenvalues $\lambda_1\ge\dots\ge\lambda_d=\lmin>0$ and orthonormal eigenvectors $q_1,\dots,q_d$; let
+$E_{\min}$ be the eigenspace of $\lmin$, $P$ the orthogonal projector onto $E_{\min}$, and
+$\lambda'=\min\{\lambda_k:\lambda_k>\lmin\}$ the second smallest distinct eigenvalue (if $H=\lmin I$, then $P=I$ and
+the statement is trivial). Let $\theta_t=\theta_{t-1}-\gamma\Fp(\theta_{t-1})$ be gradient descent,
+$v_t=\theta_t-\etastar$, and $\pi_k(t)$ the spectral profile \eqref{eq:B2-profile} of the error.
+Let $0<\gamma\le1/\lambda_1$ and $v_0\neq0$; if $\gamma=1/\lambda_1$, assume moreover that $v_0$ does not lie in the
+eigenspace of $\lambda_1$ (otherwise $\theta_t=\etastar$ for all $t\ge1$). Then $v_t\neq0$ for every $t$, and:
 \begin{enumerate}[label=(\alph*)]
 \item $v_t=(I-\gamma H)^tv_0$, i.e.\ $q_k^\top v_t=(1-\gamma\lambda_k)^t\,q_k^\top v_0$ for all $k$, and
 $\muEff(\theta_t)=\sum_k\lambda_k\pi_k(t)$ with $\pi_k(t)\propto(1-\gamma\lambda_k)^{2t}(q_k^\top v_0)^2$.
@@ -689,7 +711,8 @@ hypothesis $Pv_0\neq0$ by its analogue for the restricted projector.
 \begin{proof}
 (a) $\Fp(\theta)=H(\theta-\etastar)$, so $v_t=v_{t-1}-\gamma Hv_{t-1}=(I-\gamma H)v_{t-1}$, and
 $q_k^\top(I-\gamma H)^tv_0=(1-\gamma\lambda_k)^tq_k^\top v_0$ since $Hq_k=\lambda_kq_k$. The formula for
-$\muEff$ follows from $v_t^\top Hv_t=\sum_k\lambda_k(q_k^\top v_t)^2$.
+$\muEff$ follows from $v_t^\top Hv_t=\sum_k\lambda_k(q_k^\top v_t)^2$. Since $1-\gamma\lambda_k>0$ unless
+$\lambda_k=\lambda_1=1/\gamma$, the assumptions give $v_t\neq0$ for every $t$.
 
 (b) Put $w_k(t)=(q_k^\top v_t)^2=(1-\gamma\lambda_k)^{2t}(q_k^\top v_0)^2\ge0$, $W(t)=\sum_kw_k(t)=\norm{v_t}^2>0$, and
 $\varphi(\lambda)=(1-\gamma\lambda)^2$, so that $w_k(t+1)=\varphi(\lambda_k)w_k(t)$. On $[0,1/\gamma]\supset[\lmin,\lambda_1]$
@@ -724,18 +747,46 @@ when the spectrum of $H$ is dense near $\lmin$ this can exceed the horizon of an
 $\muEff(\theta_t)$ decreases monotonically towards $\lmin$ without reaching it: monotonicity (b) is the
 robust prediction, the limit (c) the asymptotic one. (ii) The case $Pv_0=0$ is not exceptional: by
 Lemma~\ref{lem:B2-span}, for logistic regression with $d>n$ and $\theta_0\in S$ the bottom eigenspace $E_{\min}=S^\perp$
-of $H_\ast$ is orthogonal to the whole trajectory. Rounding errors do re-inject a component along $E_{\min}$, but of
-relative size about $\varepsilon_{\mathrm{mach}}\approx10^{-16}$; by (c) it can become dominant only after about
-$\log(1/\varepsilon_{\mathrm{mach}})/\log(1/\rho_{\mathrm{gap}})\approx37/(\gamma(\lambda'-\lmin))$ iterations, whereas the
-error reaches the precision floor after about $37/(\gamma\lambda')$ iterations, which is fewer since $\lambda'-\lmin<\lambda'$.
-In floating point one therefore observes the alignment with the flattest direction of $H|_S$, as in (d), and not
-with $E_{\min}$. (iii) For
+of $H_\ast$ is orthogonal to the whole trajectory, and in the quadratic model (d) then gives the alignment with the
+flattest direction of $H|_S$, not with $E_{\min}$. Both statements hold in exact arithmetic. Rounding errors re-inject a
+component along $E_{\min}$; that this component remains invisible, except possibly close to the precision floor, is
+\emph{not proved} here: it is the heuristic of Remark~\ref{rem:B2-gd-rounding}. (iii) For
 $\gamma\in(1/\lambda_1,2/\lambda_1)$ the contraction factors are $\abs{1-\gamma\lambda_k}$ and the largest one may
-be attained at $\lambda_1$ (for $\gamma=2/(\lambda_1+\lmin)$ both extreme components survive with alternating
-signs), so (b)--(c) fail; the project uses $\gamma_{\mathrm{GD}}\le1/L=1/\lambda_1$, as in the book.
+be attained at $\lambda_1$ (for $\gamma=2/(\lambda_1+\lmin)$ both extreme components contract by the same factor
+$(\lambda_1-\lmin)/(\lambda_1+\lmin)$, the top one with alternating sign), so (b)--(c)
+fail; the project uses $\gamma_{\mathrm{GD}}\le1/L=1/\lambda_1$, as in the book.
 \end{remark}
 
-\begin{remark}[non-quadratic $F$: a heuristic, with a quantitative linearization error for logistic regression]\label{rem:B2-gd-heuristic}
+\begin{remark}[rounding errors and the feature span: a heuristic]\label{rem:B2-gd-rounding}
+This remark is a heuristic, not a proved statement. It concerns gradient descent in the situation of
+Remark~\ref{rem:B2-gd-scope}(ii): logistic regression with $d>n$, $\theta_0\in S$ and $E_{\min}=S^\perp$. \emph{What is
+proved} is the exact-arithmetic invariance of Lemma~\ref{lem:B2-span}(b), the alignment of Proposition~\ref{prop:B2-gd}(d)
+for a quadratic, and the following bound. Write the computed iterates as
+$\theta_t=\theta_{t-1}-\gamma\Fp(\theta_{t-1})+\delta_t$, where $\delta_t$ collects all the rounding errors of step $t$
+(including those made in computing the gradient). Since $\Fp(\theta)_\perp=\lambda\theta_\perp$ for every $\theta$ and
+$\etastar\in S$ (Lemma~\ref{lem:B2-span}(a)), the $S^\perp$-component of the error satisfies exactly
+$v_{t,\perp}=(1-\gamma\lambda)v_{t-1,\perp}+\delta_{t,\perp}$; hence, for $\theta_0\in S$ and $0<\gamma\lambda\le1$ (true for
+$\gamma\le1/L$),
+\[
+\norm{v_{t,\perp}}\;\le\;\sum_{s=1}^t(1-\gamma\lambda)^{t-s}\norm{\delta_s}\;\le\;\frac{\max_{s\le t}\norm{\delta_s}}{\gamma\lambda} .
+\]
+\emph{What is not proved} is the size of $\delta_t$. In the standard model of floating-point arithmetic it is of order
+$\varepsilon_{\mathrm{mach}}\approx10^{-16}$ times the size of the quantities that are added ($\norm{\theta_{t-1}}$, and
+$\gamma$ times the individual terms of the gradient), up to factors depending on $n$ and $d$; in particular it does not
+decrease with the error $\norm{v_{t-1}}$. Under this model the component of the error along $E_{\min}$ stays below a level
+of order $\varepsilon_{\mathrm{mach}}\max_s\norm{\theta_s}/(\gamma\lambda)$ (and is typically much smaller, since rounding
+errors do not add up coherently), while the component in $S$ keeps decreasing geometrically. The former can therefore
+become comparable with the error only when the error is within a factor of order $1/(\gamma\lambda)$ of the rounding
+level; above that level one observes the behaviour inside $S$, that is, the alignment of
+Proposition~\ref{prop:B2-gd}(d) with the bottom eigenspace of $H|_S$ in the quadratic model (for logistic regression, the
+limit described, itself heuristically, in Remark~\ref{rem:B2-gd-heuristic}). Consistently, in the sanity check of
+Remark~\ref{rem:B2-gd-heuristic} the $S^\perp$-component of the error stays at the rounding level $10^{-14}$. No proved
+statement of this note depends on this remark; prediction (P1) below uses it only when $S\neq\R^d$ (e.g.\ $d>n$) and
+$\theta_0\in S$, a situation that does not occur in the experiments of the project, where the features span $\R^d$
+(Remark~\ref{rem:B2-P2-outcome}).
+\end{remark}
+
+\begin{remark}[gradient descent beyond quadratics: a heuristic]\label{rem:B2-gd-heuristic}
 For a general $C^2$ function, Lemma~\ref{lem:B2-integral} gives
 $v_t=(I-\gamma H_\ast)v_{t-1}-\gamma(\bar H(\theta_{t-1})-H_\ast)v_{t-1}$, and
 $\norm{\bar H(\theta)-H_\ast}_{\mathrm{op}}\to0$ as $\theta\to\etastar$. Gradient descent is thus asymptotically
@@ -751,15 +802,23 @@ where $\lambda^+_{\min}$ denotes the smallest nonzero eigenvalue: the matrix $\f
 (all $p_i>0$) and its restriction to $S$ is positive definite. For $d>n$ this limit is strictly larger than
 $\lmin(H_\ast)=\lambda$, and the value $\lambda$ is approached only from a $\theta_0\notin S$, through the component
 $v_{t,\perp}=(1-\gamma\lambda)^tv_{0,\perp}$ of Lemma~\ref{lem:B2-span}(c), which then dominates the error for large $t$.
-(Sanity check on a random instance with $n=20$, $d=40$, unit-norm Gaussian features, $\lambda=10^{-4}$ and
-$\gamma=1/L$: from $\theta_0=0$, $\muEff(\theta_t)$ decreases monotonically to $1.36\cdot10^{-4}$ after $3000$ iterations,
-against $\lambda+\lambda^+_{\min}=1.35\cdot10^{-4}$, while the $S^\perp$-component of $\theta_t-\etastar$ stays at $10^{-14}$;
-from a Gaussian $\theta_0$ it reaches $\lambda$ to within $3\cdot10^{-5}$ in relative terms.) We state this as
+(Sanity check, reproduced by the script \texttt{experiments/check\_B2\_fp\_heuristic.py}, whose output is
+\texttt{results/B2\_fp\_check\_summary.json}. Instance: $n=20$, $d=40$, $\lambda=10^{-4}$; with NumPy's generator
+\texttt{default\_rng(0)} (seed $0$) one draws, in this order, a $20\times40$ standard Gaussian matrix whose rows,
+normalized to unit norm, are the features $x_i$, a standard Gaussian $\beta\in\R^{40}$ and a standard Gaussian noise
+$\epsilon\in\R^{20}$, and one sets $y_i=\operatorname{sign}(x_i^\top\beta+0.5\,\epsilon_i)$. Gradient descent with
+$\gamma=1/L$, $L=\lambda+\lmax(\hat\Sigma)/4$, is run for $3000$ iterations. From $\theta_0=0$, $\muEff(\theta_t)$
+decreases monotonically to $1.356\cdot10^{-4}$, against $\lambda+\lambda^+_{\min}=1.346\cdot10^{-4}$, while the
+$S^\perp$-component of $\theta_t-\etastar$ stays at the rounding level (at most $1.6\cdot10^{-14}$); from a standard
+Gaussian $\theta_0$, the next draw of the same generator, $\muEff(\theta_t)$ reaches $\lambda$ to within
+$2.6\cdot10^{-5}$ in relative terms. The seeds $1$ and $2$ behave alike: monotone decrease, $\muEff(\theta_{3000})$
+within $1\%$ of $\lambda+\lambda^+_{\min}$ and $S^\perp$-component below $2\cdot10^{-14}$ from $\theta_0=0$, relative gap
+to $\lambda$ below $3\cdot10^{-5}$ from the Gaussian $\theta_0$.) We state this as
 a heuristic: a rigorous proof requires the stable-manifold theory of the $C^1$ map $T(\theta)=\theta-\gamma\Fp(\theta)$
 at its fixed point $\etastar$, whose Jacobian $I-\gamma H_\ast$ has eigenvalues in $[0,1)$, and is not needed
 here. For logistic regression the linearization error is explicit: by \eqref{eq:B2-weights-selfconc},
-$\abs{w_i(\theta)-p_i}\le(e^{R_x\norm v}-1)p_i$, hence for every unit vector $w$,
-$\abs{w^\top(\bar H(\theta)-H_\ast)w}\le\frac1n\sum_i\abs{w_i(\theta)-p_i}(x_i^\top w)^2\le(e^{R_x\norm v}-1)\,w^\top(H_\ast-\lambda I)w$,
+$\abs{w_i(\theta)-p_i}\le(e^{R_x\norm v}-1)p_i$, hence for every unit vector $\psi$,
+$\abs{\psi^\top(\bar H(\theta)-H_\ast)\psi}\le\frac1n\sum_i\abs{w_i(\theta)-p_i}(x_i^\top\psi)^2\le(e^{R_x\norm v}-1)\,\psi^\top(H_\ast-\lambda I)\psi$,
 i.e.\ $\norm{\bar H(\theta)-H_\ast}_{\mathrm{op}}\le(e^{R_x\norm{\theta-\etastar}}-1)\norm{H_\ast-\lambda I}_{\mathrm{op}}$,
 and likewise $\abs{\muEff(\theta)-u^\top H_\ast u}\le(e^{R_x\norm{\theta-\etastar}}-1)(u^\top H_\ast u-\lambda)$
 (Corollary~\ref{cor:B2-local}). Once $R_x\norm{\theta_t-\etastar}\le0.1$, the quadratic model is accurate to
@@ -768,14 +827,16 @@ $\sum_k\lambda_k\pi_k(t)$ built from the eigenpairs $(\lambda_k,q_k)$ of $H_\ast
 \end{remark}
 
 \paragraph{SAGA on a quadratic: a linear random recursion.}
-Let now $f_i(\theta)=\frac12\theta^\top H_i\theta-b_i^\top\theta+c_i$ with $H_i$ symmetric, $0\preccurlyeq H_i\preccurlyeq R^2I$,
-and $H=\frac1n\sum_iH_i\succcurlyeq\mu I$ (for instance ridge regression, $H_i=x_ix_i^\top+\lambda I$; logistic regression
-is of this form to first order near $\etastar$ with $H_i=f_i''(\etastar)$). Then
-$\fip(\theta)-\fip(\etastar)=H_iv$ exactly. Consider SAGA with step $\gamma$ and memory $z_i^{(t)}$ as in the book,
-and define the memory errors $e_i^{(t)}=z_i^{(t)}-\fip(\etastar)$ and $\bar e^{(t)}=\frac1n\sum_ie_i^{(t)}$.
+For quadratic components $f_i$ with Hessians $H_i$ (for instance ridge regression, $H_i=x_ix_i^\top+\lambda I$; logistic
+regression is of this form to first order near $\etastar$ with $H_i=f_i''(\etastar)$),
+$\fip(\theta)-\fip(\etastar)=H_iv$ exactly, and SAGA is a linear recursion with random coefficients.
 
-\begin{lemma}[SAGA on a quadratic: exact first- and second-moment recursions]\label{lem:B2-saga-quadratic}
-Let $i(t)$ be uniform on $\{1,\dots,n\}$ and independent of the past $\mathcal F_{t-1}=\sigma(i(1),\dots,i(t-1))$.
+\begin{lemma}[SAGA on a quadratic: exact moment recursions]\label{lem:B2-saga-quadratic}
+Let $f_i(\theta)=\frac12\theta^\top H_i\theta-b_i^\top\theta+c_i$ with $H_i$ symmetric, $0\preccurlyeq H_i\preccurlyeq R^2I$,
+and $H=\frac1n\sum_iH_i\succcurlyeq\mu I$. Consider SAGA with step $\gamma$ and memory $z_i^{(t)}$ as in the book, write
+$v_t=\theta_t-\etastar$, and define the memory errors $e_i^{(t)}=z_i^{(t)}-\fip(\etastar)$ and
+$\bar e^{(t)}=\frac1n\sum_ie_i^{(t)}$. Let $i(t)$ be uniform on $\{1,\dots,n\}$ and independent of the past
+$\mathcal F_{t-1}=\sigma(i(1),\dots,i(t-1))$.
 \begin{enumerate}[label=(\alph*)]
 \item (State recursion) $v_t=(I-\gamma H)v_{t-1}+\gamma\xi_t$ with
 \[
@@ -828,7 +889,8 @@ $\E[C_s]\approx\rho^{\,s-t}\E[C_t]$ for $s\le t$, where $\rho$ is the contractio
 For the proved factor $\rho=1-\min\{1/(3n),3\mu/(16R^2)\}$, in the regime $\kappa\gg n$ with
 $\gamma=1/(4R^2)$ one has $1-\rho=\frac34\gamma\mu$ while $1-(1-\gamma\lambda_k)^2=\gamma\lambda_k(2-\gamma\lambda_k)\ge\gamma\lambda_k\ge\gamma\mu$,
 so $\rho>(1-\gamma\lambda_k)^2$ for every $k$: the noise term decays more slowly than the gradient-descent term in
-\emph{every} direction and dominates for large $t$. For the observed factor $\rho_{\mathrm{obs}}$ this strict comparison
+\emph{every} direction and dominates for large $t$ (the experiments contradict this conclusion for $\kappa=10^4=10n$ and
+$\alpha\in\{0,1\}$, see Remark~\ref{rem:B2-P2-outcome}). For the observed factor $\rho_{\mathrm{obs}}$ this strict comparison
 is not established; what is guaranteed is the weaker inequality $\rho_{\mathrm{obs}}\ge(1-\gamma\lambda_k)^2$ for every
 $k$ with $q_k^\top v_0\neq0$, because by (b) and Jensen's inequality
 $\E[(q_k^\top v_t)^2]\ge(q_k^\top\E v_t)^2=(1-\gamma\lambda_k)^{2t}(q_k^\top v_0)^2$, so that the second moment along $q_k$
@@ -888,7 +950,8 @@ $\lmin(H_\ast|_S)=\lambda+\lambda^+_{\min}(H_\ast-\lambda I)$ in the first case 
 \item \emph{Gradient descent}: $\muEff(\theta_t)$ is non-increasing (exactly for a quadratic,
 Proposition~\ref{prop:B2-gd}(b)) and converges to $\lmin(H_\ast)$ for a generic $\theta_0$, and to
 $\lmin(H_\ast|_S)=\lambda+\lambda^+_{\min}(H_\ast-\lambda I)$ when $\theta_0\in S$, e.g.\ $\theta_0=0$
-(Proposition~\ref{prop:B2-gd}(d), Lemma~\ref{lem:B2-span}, Remark~\ref{rem:B2-gd-heuristic}); under alignment,
+(Proposition~\ref{prop:B2-gd}(d) and Lemma~\ref{lem:B2-span}, completed by the heuristic
+Remarks~\ref{rem:B2-gd-rounding} and~\ref{rem:B2-gd-heuristic}); under alignment,
 $\pi(t)$ concentrates on the corresponding bottom eigenspace, so that $d_{\mathrm{eff}}(t)$ converges to a value in
 $[1,m]$, $m$ being the multiplicity of that bottom eigenvalue: the limit is $1/\sum_{k\in K_{\min}}(\pi_k^\infty)^2$ with
 $\pi_k^\infty=(q_k^\top Pv_0)^2/\norm{Pv_0}^2$, which equals $m$ only when $Pv_0$ is equidistributed over the $m$
@@ -899,7 +962,8 @@ noise, with $\pi_k(t)\propto c_k(t)/(2\lambda_k-(1-\rho)/\gamma)$ up to fluctuat
 $d_{\mathrm{eff}}(t)$ stays of the order of the number of data directions; $\muEff(\theta_t)$ fluctuates
 around a level strictly above $\lmin(H_\ast)$ (resp.\ $\lmin(H_\ast|_S)$ when $\theta_0\in S$) and does not decrease
 monotonically; for the same problem and
-large $t$, $\muEff^{\mathrm{SAGA}}(t)>\muEff^{\mathrm{GD}}(t)$.
+large $t$, $\muEff^{\mathrm{SAGA}}(t)>\muEff^{\mathrm{GD}}(t)$. The experiments confirm (P2) only for $\kappa$ at most of the
+order of $n$, and not in every such run (Remark~\ref{rem:B2-P2-outcome}).
 \item \emph{Consequence for (B2)}: the slack of the strong-convexity step \eqref{ineq:mueff-lower}, measured by
 $\muEff(\theta_t)/\mu$, is larger for SAGA than the asymptotic slack $\lmin(H_\ast)/\mu$ (resp.\
 $\lmin(H_\ast|_S)/\mu$ for $\theta_0\in S$) of gradient descent; in the ``intermediate regularization'' regime of
@@ -909,6 +973,133 @@ the noise term in \eqref{eq:B2-saga-spectral} decays faster than assumed, which 
 $c_k(t)$.
 \end{enumerate}
 
+\begin{remark}[outcome of prediction (P2)]\label{rem:B2-P2-outcome}
+\emph{Measurements} (Figure~B2 of the report shows the case ${\alpha=1}$). $\ell_2$-regularized logistic regression with
+$n=1000$, $d=50$, Gaussian features with covariance spectrum $j^{-\alpha}$ (randomly rotated, rescaled so that
+$R_x=\max_i\norm{x_i}=1$), $\alpha\in\{0,1,2\}$, $\kappa=R^2/\mu\in\{10^2,10^3,10^4\}$, a single seed (seed $0$ for the data
+and for the sampling); $\theta_0=0$; SAGA with $\gamma=1/(4R^2)$ and $z_i^{(0)}=\fip(\theta_0)$ for $60$ passes, recorded every
+$n/10$ iterations; gradient descent with $\gamma=1/L$ for $400$ iterations, recorded at every iteration. States with
+$\norm{\theta_t-\etastar}^2<10^{-18}$ are discarded and ``end'' denotes the last recorded state above this floor (SAGA
+reaches it after $34$ to $49$ passes for $\kappa=10^2$, and for $\kappa=10^3$ with $\alpha\in\{0,1\}$; the other SAGA runs
+end after $60$ passes). Since $\lmin(H_\ast)>\lambda$ in every configuration (table below), the features span $\R^d$
+(Proposition~\ref{prop:B2-global}(d)), so that $S=\R^d$ and $\lmin(H_\ast|_S)=\lmin(H_\ast)$. We write $q_{\min}$ for a unit
+eigenvector of $H_\ast$ for its smallest eigenvalue (which is simple in all nine configurations),
+$\pi_{\min}(t)=(q_{\min}^\top(\theta_t-\etastar))^2/\norm{\theta_t-\etastar}^2$ for its share in the profile
+\eqref{eq:B2-profile}, and $\lambda'$ for the second smallest eigenvalue of $H_\ast$; ``g.\ mean'' is the geometric mean over
+the recorded states. Gradient descent reaches the floor after $23$ to $171$ iterations for $\kappa=10^2$ and for
+$(\alpha,\kappa)=(0,10^3)$, and otherwise ends at iteration $400$, with $\norm{\theta_t-\etastar}^2=1.5\cdot10^{-18}$,
+$4.7\cdot10^{-9}$, $1.0$, $5.7\cdot10^{-4}$ and $202$ for $(\alpha,\kappa)=(0,10^4)$, $(1,10^3)$, $(1,10^4)$, $(2,10^3)$,
+$(2,10^4)$ (from $\norm{\theta_0-\etastar}^2=486$, $1954$, $389$ and $2565$ for the last four). Its end values coincide
+with the limit $\lmin(H_\ast)$ of (P1) only for $\alpha=0$, $\kappa\ge10^3$: for $\kappa=10^2$ it reaches the
+floor before its error has aligned with $q_{\min}$ ($\pi_{\min}=0.53$, $0.074$ and $0.001$ at the end), for $\kappa=10^3$,
+$\alpha\in\{1,2\}$ the error is not yet aligned ($\muEff/\mu$ ends $9\%$ and $11\%$ above $\lmin(H_\ast)/\mu$), and for
+$\kappa=10^4$ it ends at the edge of the local regime ($\alpha=1$) or far from it ($\alpha=2$). The table and the other
+numbers of this remark are read from, or computed from the values stored in, \texttt{results/B2\_summary.json}, written
+by \texttt{experiments/exp\_B2\_mu\_eff.py} from the cached trajectories.
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}cccccccccccc@{}}
+\toprule
+ & & & & \multicolumn{3}{c}{SAGA: $\muEff/\mu$} & GD: $\muEff/\mu$ & \multicolumn{2}{c}{$\pi_{\min}$ at the end} & \multicolumn{2}{c}{$d_{\mathrm{eff}}$ at the end}\\
+\cmidrule(lr){5-7}\cmidrule(lr){8-8}\cmidrule(lr){9-10}\cmidrule(l){11-12}
+$\alpha$ & $\kappa$ & $\lmin(H_\ast)/\mu$ & $9n\lmin(H_\ast)/(16R^2)$ & start & g.\ mean & end & end & SAGA & GD & SAGA & GD\\
+\midrule
+0 & $10^2$ & 1.609 & 9.05 & 2.086 & 1.996 & 2.088 & 1.635 & 0.0008 & 0.530 & 23.7 & 2.51\\
+0 & $10^3$ & 3.275 & 1.84 & 7.917 & 7.137 & 7.341 & 3.275 & 0.015 & 1.000 & 23.7 & 1.000\\
+0 & $10^4$ & 9.863 & 0.555 & 50.05 & 10.59 & 9.942 & 9.863 & 0.998 & 1.000 & 1.005 & 1.000\\
+1 & $10^2$ & 1.100 & 6.19 & 1.793 & 1.901 & 2.147 & 1.155 & 0.0008 & 0.074 & 15.2 & 10.1\\
+1 & $10^3$ & 1.737 & 0.977 & 4.632 & 2.198 & 1.904 & 1.900 & 0.308 & 0.148 & 3.79 & 3.89\\
+1 & $10^4$ & 4.970 & 0.280 & 21.02 & 5.386 & 4.974 & 5.058 & 0.9996 & 0.996 & 1.001 & 1.008\\
+2 & $10^2$ & 1.003 & 5.64 & 2.497 & 2.167 & 4.980 & 1.029 & $8\cdot10^{-6}$ & 0.0010 & 2.71 & 11.6\\
+2 & $10^3$ & 1.020 & 0.573 & 5.340 & 1.163 & 1.062 & 1.129 & 0.0025 & 0.0010 & 12.1 & 14.6\\
+2 & $10^4$ & 1.142 & 0.0643 & 13.79 & 1.809 & 1.468 & 1.787 & 0.0017 & 0.0007 & 11.9 & 15.3\\
+\bottomrule
+\end{tabular}
+\end{center}
+\emph{Outcome.} (P2) holds only for $\kappa$ at most of the order of $n$, and not in every such run: it is confirmed in
+the four runs with $9n\lmin(H_\ast)/(16R^2)>1$ ($\kappa=10^2$, all $\alpha$; $\kappa=10^3$, $\alpha=0$), refuted for
+$\kappa=10^4$ with $\alpha\in\{0,1\}$ (one seed each; the initial error already carries $89$--$98\%$ of its energy on
+$q_{\min}$), and the three remaining runs ($\kappa=10^3$ with $\alpha\in\{1,2\}$; $\kappa=10^4$ with $\alpha=2$) are
+intermediate, see (c).
+\begin{enumerate}[label=(\alph*),leftmargin=*,topsep=2pt,itemsep=1pt]
+\item For $\kappa=10^2$ (all $\alpha$) and for $\kappa=10^3$ with $\alpha=0$, the error of SAGA does not concentrate on
+$q_{\min}$ ($\pi_{\min}\le0.05$ at every state of the last five recorded passes), and over these passes the geometric
+mean of $\muEff/\mu$ is between $1.25$ and $2.6$ times $\lmin(H_\ast)/\mu$ (single states fluctuate between $1.2$ and
+$6.0$ times; the ``end'' columns of the table are single states), whereas gradient descent ends closer to
+$\lmin(H_\ast)/\mu$. For $\alpha\in\{0,1\}$ the error stays spread over many directions ($d_{\mathrm{eff}}$ averages $14$
+to $18$ over the last five passes). The run $\kappa=10^3$, $\alpha=0$ is the clearest: the initial error
+$-\etastar$ is concentrated on $q_{\min}$ ($\pi_{\min}(0)=0.96$), gradient descent keeps it there and SAGA spreads it out,
+although the spectral gap is large ($\lambda'/\lmin(H_\ast)=1.46$). For $\alpha=2$, $\kappa=10^2$, $d_{\mathrm{eff}}$ is
+smaller (mean $5.4$ over the last five passes), but the five lowest eigenvectors of $H_\ast$ carry only $0.005$ of the
+error and the geometric mean of $\muEff/\mu$ is $2.6$: the error sits on intermediate- and high-curvature directions,
+consistently with the ``data-shaped'' noise (ii) above, whose weights vanish on the directions with
+$\lambda_k\approx\lambda$.
+\item For $\kappa=10^4$ and $\alpha\in\{0,1\}$, the error of SAGA concentrates on $q_{\min}$ as that of gradient descent
+does ($\pi_{\min}=0.998$ and $0.9996$, $d_{\mathrm{eff}}=1.005$ and $1.001$), and $\muEff/\mu$ ends within $1\%$ of
+$\lmin(H_\ast)/\mu$. The initial error is already largely aligned ($\pi_{\min}(0)=0.98$ and $0.89$); SAGA keeps and sharpens
+this alignment instead of spreading the error. The large initial values $\muEff(\theta_0)=50.05\,\mu$ and
+$21.02\,\mu$ are far from the Rayleigh quotients of $H_\ast$ in the initial direction ($10.38\,\mu$ and $5.885\,\mu$); they
+are Rayleigh quotients of the averaged Hessian $\bar H(\theta_0)$ of Lemma~\ref{lem:B2-integral}: the point
+$\theta_0=0$ is far from $\etastar$ ($R_x\norm{\theta_0-\etastar}=32$ and $44$), where the comparison of
+Corollary~\ref{cor:B2-local} is uninformative. (P3) fails accordingly: at the end of the run the slack $\muEff/\mu$ of SAGA
+exceeds $\lmin(H_\ast)/\mu$ by less than $1\%$.
+\item Intermediate cases. For $\kappa=10^3$, $\alpha=1$, the alignment with $q_{\min}$ is partial ($\pi_{\min}=0.31$,
+$d_{\mathrm{eff}}=3.79$), but the five lowest eigenvectors of $H_\ast$ carry $0.88$ of the error at the end, and
+$\lambda'/\lmin(H_\ast)=1.005$, so that alignment with $q_{\min}$ itself is slow (Remark~\ref{rem:B2-gd-scope}(i)). For
+$\alpha=2$ and $\kappa\ge10^3$ the bottom of the spectrum is nearly degenerate ($29$ and $11$ eigenvalues of $H_\ast$ lie
+within $10\%$ of $\lmin(H_\ast)$ for $\kappa=10^3$ and $10^4$) and neither algorithm aligns with $q_{\min}$
+(for gradient descent, alignment would take of the order of $L/(\lambda'-\lmin(H_\ast))\approx9\cdot10^4$ iterations, far
+more than the $400$ of the protocol, and at $\kappa=10^4$ it is moreover still far from $\etastar$); at $\kappa=10^3$
+SAGA nevertheless ends at $\muEff/\mu=1.062$, $4.2\%$ above $\lmin(H_\ast)/\mu$, while at $\kappa=10^4$ the run is not
+finished after $60$ passes: $\norm{\theta_t-\etastar}^2=8.6$ at the end ($R_x\norm{\theta_t-\etastar}\approx2.9$, outside
+the region where the bounds of Corollary~\ref{cor:B2-local} are informative, although the quadratic proxy
+$\sum_k\lambda_k\pi_k(t)$ already matches $\muEff(\theta_t)$ to $0.2\%$) and $\muEff/\mu$ is still decreasing.
+\end{enumerate}
+
+\emph{Explanation (a heuristic).} Write $\lmin=\lmin(H_\ast)$. Formula \eqref{eq:B2-saga-profile} involves the actual decay
+factor $\rho$ of the noise covariance, and the spread predicted in (P2) came from inserting the certified factor of
+Proposition~5.9, which exceeds $(1-\gamma\lambda_k)^2$ for every $k$ (its distance to $1$ is at most
+$\frac34\gamma\mu<\gamma\lambda_k(2-\gamma\lambda_k)$). If instead the noise decays as fast as the slowest mode of the
+mean dynamics, i.e.\ if $1-\rho$ is close to its largest admissible value $2\gamma\lmin-\gamma^2\lmin^2$ (discussion before
+\eqref{eq:B2-saga-heuristic}), the denominator $2\lmin-(1-\rho)/\gamma$ of the weight of $q_{\min}$ becomes small compared
+with those of the other directions, which are at least $2(\lambda_k-\lmin)$, and the same formula predicts concentration on
+$q_{\min}$ (unless $q_{\min}^\top\E[C_t]q_{\min}$ is comparatively negligible). Which case occurs is decided by the memory.
+For SAGA with $z_i^{(0)}=\fip(\theta_0)$ one has $z_j^{(t-1)}=f'_j(\theta_{s_j(t-1)})$, with $s_j$ as in
+Lemma~\ref{lem:B2-span}(c). Writing $\zeta_j=f'_j(\theta_{s_j(t-1)})-f'_j(\theta_{t-1})$ and inserting
+$z_j^{(t-1)}=f'_j(\theta_{t-1})+\zeta_j$ in the definition of $\omega_t$ gives, exactly and for any $F$,
+\begin{align*}
+\xi_t&=\Fp(\theta_{t-1})-\omega_t=\zeta_{i(t)}-\frac1n\sum_{j=1}^n\zeta_j,\\
+\Ei\norm{\xi_t}^2&\le\frac1n\sum_{j=1}^n\norm{\zeta_j}^2\le\frac{R^4}n\sum_{j=1}^n\norm{\theta_{s_j(t-1)}-\theta_{t-1}}^2
+\end{align*}
+(a variance is at most the second moment, and the $\fip$ are $R^2$-Lipschitz): the noise is produced by the displacement of
+the iterate since each memory slot was last refreshed, about $n$ iterations earlier on average. Along $q_{\min}$ the mean
+error decays by the factor $(1-\gamma\lmin)^n\approx e^{-n\gamma\lmin}$ per pass (Lemma~\ref{lem:B2-saga-quadratic}(b)), and
+faster along the other eigenvectors. If $n\gamma\lmin$ is small, then, once the faster components have decayed, the iterate
+moves little during one refresh cycle (in relative terms, by about $n\gamma\lmin$ along $q_{\min}$), the noise is a small
+perturbation of the gradient-descent dynamics and decays with the slow component, and the error aligns with $q_{\min}$. If
+$n\gamma\lmin\gtrsim1$, every mode decays by a constant factor within one refresh cycle, the stored gradients were computed
+much farther from $\etastar$ than $\theta_{t-1}$, the noise decays only as fast as the memory is refreshed, more slowly than
+every mode, and the error stays spread. For $\gamma=1/(4R^2)$ the condition $\frac94n\gamma\lmin<1$ is exactly
+$\frac{3\lmin}{16R^2}<\frac1{3n}$: up to a constant factor, the dividing line is the condition that the parameter term be
+the active one in the minimum of Proposition~5.9 with $\mu$ replaced by the local constant $\lmin(H_\ast)$
+(Proposition~\ref{prop:B2-saga-traj} with $\muEff=\lmin(H_\ast)$, the value reached once the error is aligned). For
+$\alpha\in\{0,1\}$ the column $9n\lmin(H_\ast)/(16R^2)$ of the table is below $1$ for the two runs that align, equal to
+$0.977$ for the partially aligned run, and between $1.84$ and $9.05$ for the three runs that stay spread; with the global
+$\mu$ in place of $\lmin(H_\ast)$, the value $9n/(16\kappa)=0.56$ at $\kappa=10^3$ would wrongly predict alignment for
+$\alpha=0$. For $\alpha=2$ the column is below $1$ for $\kappa\ge10^3$, but the near-degeneracy of the bottom of the
+spectrum makes alignment with a single eigenvector slow for both algorithms. One recorded quantity is consistent with
+this dichotomy: the least-squares slope of $\log\norm{\theta_t-\etastar}^2$ against the number of passes, over the second
+half of each run, is $-0.495$ and $-0.249$ in the two runs that align, i.e.\ the rate $2n\gamma\lmin(H_\ast)=0.493$ and
+$0.249$ per pass of the slowest mode of the mean dynamics (to within $0.5\%$), whereas in the four runs with
+$9n\lmin(H_\ast)/(16R^2)>1$ it lies between $-1.22$ and $-1.10$: a decay slower than the values $1.64$ to $8.05$ of
+$2n\gamma\lmin(H_\ast)$ in these runs and close to the refresh rate of the memory (about $1$ per pass, a slot being
+refreshed with probability $\frac1n$ at each iteration). This explanation is nevertheless only a heuristic: it relies on
+the quadratic model, and the noise spectrum $c_k(t)$ was not recorded in these runs, so that the mechanism is inferred,
+not measured; recording $q_{\min}^\top C_tq_{\min}$ and $\tr C_t$ (one pass over the data per evaluation) would turn the
+consistency check above into a measurement.
+\end{remark}
+
 \subsection{How \texorpdfstring{$\muEff$}{mu\_eff} and \texorpdfstring{$\LEff$}{L\_eff} enter the SAGA bound}\label{sec:B2-saga-bound}
 
 We use the setting of Proposition~5.9 of \cite{bach2024learning} (SAGA \cite{defazio2014saga} with
@@ -916,11 +1107,11 @@ uniform sampling): step $\gamma=1/(4R^2)$, $\Delta=3\gamma^2$, and the Lyapunov 
 \[
 V_t=\norm{\theta_t-\etastar}^2+\Delta\sum_{i=1}^n\norm{z_i^{(t)}-\fip(\etastar)}^2 .
 \]
-The B3 note derives the following trajectory-dependent proposition by instrumenting each inequality of the
-book's proof (``see the B3 note''); we include the short derivation because it shows exactly where
-$\muEff$ and $\LEff$ enter.
+Proposition~\ref{prop:B3-traj} of the B3 note is the following trajectory-dependent bound, obtained there by keeping
+the co-coercivity step \eqref{ineq:B3-I2} and the strong-convexity step \eqref{ineq:B3-I4} of the book's proof as
+identities; we include the short derivation because it shows exactly where $\muEff$ and $\LEff$ enter.
 
-\begin{proposition}[one-step contraction with trajectory-dependent constants]\label{prop:B2-saga-traj}
+\begin{proposition}[trajectory-dependent one-step contraction]\label{prop:B2-saga-traj}
 Under Assumption~\ref{ass:B2}, for every $t\ge1$, conditionally on the past and on the event $\theta_{t-1}\neq\etastar$,
 \begin{equation}\label{ineq:saga-mueff-Leff}
 \Ei\big[V_t\big]\;\le\;\Big(1-\min\Big\{\frac1{3n},\,a(\theta_{t-1})\Big\}\Big)V_{t-1},
@@ -973,19 +1164,24 @@ Sections~\ref{sec:B2-logistic}--\ref{sec:B2-direction}. The parameter term is th
 long as $a(\theta_{t-1})<1/(3n)$, i.e.\ (with $\LEff=R^2$) $\muEff(\theta_{t-1})<16R^2/(9n)$; in the regime
 $\kappa\gg n$ of hypothesis (A4) this holds for $\mu$ and for moderate values of $\muEff$, and the bound saturates
 at $1-\frac1{3n}$ once $\muEff$ exceeds $16R^2/(9n)$: beyond that point no improvement of the curvature term can be
-``explained'', and the residual gap belongs to the memory term (inequality $\Ei\norm{Z-\Ei Z}^2\le\Ei\norm Z^2$ and
-the choice of $\Delta$), instrumented in the B3 note.
+``explained'', and the residual gap belongs to the memory coefficient $1-\frac1{3n}$, which is set by the square-norm
+inequality \eqref{ineq:B3-I1}, the inequality $\Ei\norm{Z-\Ei Z}^2\le\Ei\norm Z^2$ \eqref{ineq:B3-I3} and the choice of
+$\Delta$, and to the min step \eqref{ineq:B3-I5} between the two rates, all instrumented in the B3 note. In its
+experiments with $\kappa\le10^2$, where the memory term is active from the start, order~A of
+Proposition~\ref{prop:B3-attribution} (which, as here, keeps the minimum until the end) assigns $0.56$--$0.61$ of the
+logarithmic gap to (I5), $0.38$--$0.44$ to (I1) and almost nothing to (I3).
 \end{remark}
 
 \paragraph{Explained fraction of the theory--practice gap.}
 Fix a window $W=\{t_0,\dots,t_1-1\}$ of $T=t_1-t_0$ iterations inside the linear-convergence regime (e.g.\ one
 effective pass, $T=n$), and let \texttt{V[t]}, \texttt{mu\_eff[t]}, \texttt{L\_eff[t]} be the recorded values of
 $V_t$, $\muEff(\theta_t)$, $\LEff(\theta_t)$ (computed with $\etastar$ from a high-precision solver). Define the
-per-iteration exponents
+per-iteration exponents (written $\nu$, to distinguish them from the tightness ratios $r_{\mathrm{sc}}$ and
+$r_{\mathrm{coco}}$ recalled at the end of this subsection)
 \begin{align}
 \nu_{\mathrm{obs}}&=\frac1T\log\frac{V_{t_0}}{V_{t_1}}, \label{eq:B2-robs}\\
 \nu_{\mathrm{th}}&=-\log\Big(1-\min\Big\{\frac1{3n},\frac{3\mu}{16R^2}\Big\}\Big), \label{eq:B2-rth}\\
-r_{\mu}&=-\frac1T\sum_{t\in W}\log\Big(1-\min\Big\{\frac1{3n},\frac{3\muEff(\theta_t)}{16R^2}\Big\}\Big), \label{eq:B2-rmu}\\
+\nu_{\mu}&=-\frac1T\sum_{t\in W}\log\Big(1-\min\Big\{\frac1{3n},\frac{3\muEff(\theta_t)}{16R^2}\Big\}\Big), \label{eq:B2-rmu}\\
 \nu_{\mu L}&=-\frac1T\sum_{t\in W}\log\Big(1-\min\Big\{\frac1{3n},\frac{\muEff(\theta_t)\,(8R^2-5\LEff(\theta_t))}{16R^4}\Big\}\Big), \label{eq:B2-rmuL}
 \end{align}
 and the explained fractions
@@ -996,11 +1192,18 @@ and the explained fractions
 \end{equation}
 By Lemmas~\ref{lem:B2-mueff} and~\ref{lem:B2-Leff}, $a(\theta)\ge3\muEff(\theta)/(16R^2)\ge3\mu/(16R^2)$ and the monotonicity of
 $x\mapsto-\log(1-\min\{\frac1{3n},x\})$, one has $\nu_{\mathrm{th}}\le \nu_\mu\le \nu_{\mu L}$, so
-$\phi_\mu,\phi_L\ge0$. The quantity $e^{-T\nu_{\mu L}}=\prod_{t\in W}(1-\min\{\frac1{3n},a(\theta_t)\})$ is exactly the
-contraction guaranteed over the window by Proposition~\ref{prop:B2-saga-traj} along the realized trajectory, so
-that $\nu_{\mu L}\le \nu_{\mathrm{obs}}$ and $\phi_{\mathrm{rest}}\ge0$ up to the stochastic fluctuations of $V$
-(the bound holds in conditional expectation while $\nu_{\mathrm{obs}}$ is a realized quantity; average over seeds, or
-use windows of several passes). Thus $\phi_\mu$ is the fraction of the gap (in exponent) explained by the
+$\phi_\mu,\phi_L\ge0$ whenever $\nu_{\mathrm{obs}}>\nu_{\mathrm{th}}$ (the fractions are meaningful only when there is a gap
+to explain). The quantity $e^{-T\nu_{\mu L}}=\prod_{t\in W}(1-\min\{\frac1{3n},a(\theta_t)\})$ is the product of the
+one-step factors of Proposition~\ref{prop:B2-saga-traj} along the realized trajectory. It does not bound
+$\E[V_{t_1}\mid\mathcal F_{t_0}]/V_{t_0}$ in general, because the factors are random, but the comparison holds in
+expectation. Let $c_s=1-\min\{\frac1{3n},a(\theta_s)\}$, and $c_s=1-\frac1{3n}$ if $\theta_s=\etastar$; each $c_s$ is
+$\mathcal F_s$-measurable ($\mathcal F_s=\sigma(i(1),\dots,i(s))$ as in Lemma~\ref{lem:B2-saga-quadratic}), and
+Proposition~\ref{prop:B2-saga-traj} gives $\E[V_{s+1}\mid\mathcal F_s]\le c_sV_s$, so that
+$Y_t=V_t/\prod_{s=t_0}^{t-1}c_s$, $t\ge t_0$, is a nonnegative supermartingale. Hence
+$\E[e^{T(\nu_{\mu L}-\nu_{\mathrm{obs}})}\mid\mathcal F_{t_0}]=\E[Y_{t_1}\mid\mathcal F_{t_0}]/V_{t_0}\le1$ and, by
+Jensen's inequality, $\E[\nu_{\mathrm{obs}}-\nu_{\mu L}\mid\mathcal F_{t_0}]\ge0$: the numerator of $\phi_{\mathrm{rest}}$
+is nonnegative in conditional expectation, and for a single realization only up to fluctuations (average over seeds,
+or use windows of several passes). Thus $\phi_\mu$ is the fraction of the gap (in exponent) explained by the
 trajectory-dependent curvature alone, $\phi_L$ the additional fraction explained by the effective
 co-coercivity constant (at most a factor $8/3$ by Remark~\ref{rem:B2-what-explains}), and $\phi_{\mathrm{rest}}$ the
 fraction left to the other inequalities of the proof (square-norm inequality, variance versus second moment,
@@ -1021,13 +1224,24 @@ for \eqref{ineq:mueff-lower} and \eqref{ineq:Leff-cocoercive} respectively.
 
 \subsection{Related work}\label{sec:B2-related}
 
+\emph{Restricted secant inequality.} Since the minimizer is unique, $\muEff(\theta)$ is the constant, at the point
+$\theta$, of the restricted secant inequality of \cite{zhang2013gradient} (Definition~2 there:
+$\inner{\Fp(x)}{x-x_{\mathrm{prj}}}\ge\nu\norm{x-x_{\mathrm{prj}}}^2$, with $x_{\mathrm{prj}}$ the projection of $x$ on the
+solution set), whose constant ``can be viewed as a lower bound of the average curvature'' of the function between $x$
+and $x_{\mathrm{prj}}$; Lemma~\ref{lem:B2-integral} makes this exact. The best global constant of this inequality is
+$\inf_{\theta\neq\etastar}\muEff(\theta)$, which equals $\lambda$ for logistic regression: along $\theta=\etastar+t\hat d$,
+$\hat d$ a unit vector, \eqref{eq:B2-logistic-mueff} gives $\muEff(\theta)-\lambda=\frac1n\sum_iw_i(\theta)(x_i^\top\hat d)^2$,
+where $w_i(\theta)\le1/\abs{a_i-a_i^\ast}=1/(t\abs{x_i^\top\hat d})$ by \eqref{eq:B2-weights-closed} when
+$x_i^\top\hat d\neq0$, so that $\muEff(\etastar+t\hat d)\to\lambda$ as $t\to\infty$.
+
 \emph{Local strong convexity and self-concordance.} The observation that the curvature actually experienced by an
 algorithm is the local one is classical; the book itself notes that ``locally around the global optimum, the
 strong convexity constant converges to the minimal eigenvalue of the Hessian at $\etastar$, which can be
 significantly larger than $\mu$ (the global constant)'' (\cite{bach2024learning}, Section~5.2.3, paragraph
 ``Adaptivity''). For logistic regression, \cite{bach2014adaptivity} proves that averaged SGD with constant
 step size proportional to $1/(R^2\sqrt N)$ has an $O(1/\sqrt N)$ rate which ``improves to $O(R^2/(\mu N))$ where
-$\mu$ is the lowest eigenvalue of the Hessian at the global optimum'', without knowledge of $\mu$
+$\mu$ is the lowest eigenvalue of the Hessian at the global optimum'' (when this eigenvalue is greater than
+$R^2/\sqrt N$), without knowledge of $\mu$
 (adaptivity to unknown local strong convexity); the tool is the generalized self-concordance of the logistic
 loss, Assumption (A2) there: along every line, $\abs{\varphi'''(t)}\le R\norm{\theta_1-\theta_2}\varphi''(t)$, a
 notion introduced in \cite{bach2010self}, whose Proposition~1, eq.~(6), gives the Hessian comparison
@@ -1036,14 +1250,16 @@ Corollary~\ref{cor:B2-local} are the per-sample, directional version of this com
 the trajectory-wise counterpart of the local constant $\lmin(H_\ast)$: by Proposition~\ref{prop:B2-limits} it
 converges to the Rayleigh quotient $u_t^\top H_\ast u_t\ge\lmin(H_\ast)$, with equality only when the error aligns
 with the flattest direction, which Section~\ref{sec:B2-direction} predicts for gradient descent but not for
-SAGA.
+SAGA (the experiments confirm the latter only for $\kappa$ at most of the order of $n$, and not in every such run,
+Remark~\ref{rem:B2-P2-outcome}).
 
 \emph{Expected smoothness.} The constant $\LEff$ is a trajectory-wise version of the \emph{expected
 smoothness} constant of \cite{gower2021stochastic} (Assumption~3.1 there: there is $\mathcal L_1>0$ with
 $\E_{\mathcal D}\norm{\nabla f_S(x)-\nabla f_S(x^\ast)}^2\le2\mathcal L_1(f(x)-f(x^\ast))$ for all $x$), which
-governs the rates of SAGA and of its JacSketch generalizations; for minibatch sketches with uniform sampling,
-Theorem~4.16 there shows that Assumption~3.1 is satisfied with $\mathcal L_1=L^{\mathcal G}_{\max}$ (eq.~(85) there), which
-for single-element uniform sampling is $\max_iL_i$, a valid constant rather than the smallest one; the same assumption is the basis of the general SGD analysis of
+governs the rates of SAGA and of its JacSketch generalizations; for minibatch sketches with $\tau$-nice sampling,
+Theorem~2 there (Theorem~4.16 of the arXiv version 1805.02632v1) shows that Assumption~3.1 is satisfied with
+$\mathcal L_1=L^{\mathcal G}_{\max}$ (eq.~(85) there), which for single-element uniform sampling ($\tau=1$) is $\max_iL_i$,
+a valid constant rather than the smallest one; the same assumption is the basis of the general SGD analysis of
 \cite{gower2019sgd} (Assumption~2.1: $\E_{\mathcal D}\norm{\nabla f_v(x)-\nabla f_v(x^\ast)}^2\le2\mathcal L(f(x)-f(x^\ast))$).
 Defining the trajectory-wise expected smoothness
 $\mathcal L_{\mathrm{ES}}(\theta)=\frac1n\sum_i\norm{\fip(\theta)-\fip(\etastar)}^2/\big(2(F(\theta)-F(\etastar))\big)$,

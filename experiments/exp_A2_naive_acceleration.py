@@ -79,29 +79,36 @@ def run_all():
 
 def plot(res):
     labels = [p[0] for p in res["problems"]]
-    fig, axes = ps.new_fig(len(labels), 2, panel=(5.2, 3.8))
+    fig = ps.figure(ps.FIG_W, 6.4)
+    # top: trajectories; a thin row holding their common legend; bottom: the naive scheme's (beta, gamma) grids
+    gs = fig.add_gridspec(3, len(labels), height_ratios=[1.0, 0.02, 1.05])
+    handles = {}
     for j, label in enumerate(labels):
         runs = res["runs"][label]
         n = res["problems"][j][1]["n"]
-        ax = axes[0][j]
+        beta_k = res["problems"][j][2]
+        ax = fig.add_subplot(gs[0, j])
         for name in ["SAGA", "L-SVRG", "L-Katyusha", "L-Katyusha (no neg. momentum)", "Nesterov+SVRG", "AGD"]:
             if name not in runs:
                 continue
             r = runs[name]
-            lab = name
-            if name == "Nesterov+SVRG":
+            lab = "Nesterov+SVRG (best setting of the grid below)" if name == "Nesterov+SVRG" else name
+            (line,) = ax.semilogy(np.asarray(r["grad_evals"]) / n, np.asarray(r["D"]) / r["D"][0], color=ps.ALGO[name], label=lab)
+            handles.setdefault(lab, line)
+            if name == "Nesterov+SVRG":                      # the selected setting differs between the panels
                 gb = r.get("grid_best") or {}
-                lab = f"Nesterov+SVRG, best of grid (β={gb.get('beta')}, γR²={gb.get('gammaR2', 0):.3g})"
-            ax.semilogy(np.asarray(r["grad_evals"]) / n, np.asarray(r["D"]) / r["D"][0], color=ps.ALGO[name], label=lab)
+                b = gb.get("beta")
+                bs = f"{beta_k:.3f} (√κ rule)" if b == "kappa" else f"{b}"
+                ax.text(0.03, 0.04, f"Nesterov+SVRG: β = {bs}, γR² = {gb.get('gammaR2', 0):.3g}", transform=ax.transAxes,
+                        ha="left", va="bottom", fontsize=ps.SMALL, color=ps.INK["secondary"])
         ax.set_title(label)
-        ax.set_ylabel("‖θ−η*‖² / ‖θ₀−η*‖²")
+        if j == 0:
+            ax.set_ylabel("‖θ−η*‖² / ‖θ₀−η*‖²")
         ax.set_xlabel("component gradient evaluations / n")
         ax.set_ylim(1e-18, 10)
-        ps.legend(ax, loc="lower left", fontsize=7)
         # grid heatmap (sequential blue ramp: darker = more gradients)
-        ax = axes[1][j]
+        ax = fig.add_subplot(gs[2, j])
         grid = res["grid"][label]
-        beta_k = res["problems"][j][2]
         Mx = np.full((len(BETAS), len(GAMMAS)), np.nan)
         for bi, b in enumerate(BETAS):
             for gi, g in enumerate(GAMMAS):
@@ -114,19 +121,24 @@ def plot(res):
         vmin, vmax = (finite.min(), finite.max()) if finite.size else (1, 10)
         im = ax.imshow(np.where(np.isfinite(Mx), Mx, np.nan), cmap=cmap, norm=LogNorm(vmin=vmin, vmax=max(vmax, vmin * 1.01)), aspect="auto")
         ax.set_xticks(range(len(GAMMAS)))
-        ax.set_xticklabels([f"γR² = {g:.3g}" for g in GAMMAS], fontsize=7)
+        ax.set_xticklabels([f"1/{1 / g:.0f}" for g in GAMMAS])
+        ax.set_xlabel("step γR²")
         ax.set_yticks(range(len(BETAS)))
-        ax.set_yticklabels([f"β = {beta_k:.3f} (√κ rule)" if b == "kappa" else f"β = {b}" for b in BETAS], fontsize=7)
+        ax.set_yticklabels([f"{beta_k:.3f}\n(√κ rule)" if b == "kappa" else f"{b}" for b in BETAS])
+        if j == 0:
+            ax.set_ylabel("momentum β")
         for bi in range(len(BETAS)):
             for gi in range(len(GAMMAS)):
                 v = Mx[bi, gi]
-                txt = "diverged / not reached" if not np.isfinite(v) else f"{v / n:.0f} n"
-                ax.text(gi, bi, txt, ha="center", va="center", fontsize=7, color=ps.INK["primary"] if (not np.isfinite(v) or v < np.sqrt(vmin * vmax)) else "#ffffff")
+                txt = "diverged /\nnot reached" if not np.isfinite(v) else f"{v / n:.0f} n"
+                ax.text(gi, bi, txt, ha="center", va="center", fontsize=ps.SMALL, color=ps.INK["primary"] if (not np.isfinite(v) or v < np.sqrt(vmin * vmax)) else "#ffffff")
         ax.grid(False)
-        ax.set_title(f"naive scheme, (β, γ) grid: gradients to 10⁻⁶\n(L-Katyusha with the paper's parameters: {ref_g / n:.0f} n)", fontsize=9)
+        ax.set_title(f"naive scheme: gradients to 10⁻⁶\n(L-Katyusha with the paper's\nparameters: {ref_g / n:.0f} n)")
         cb = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.03)
-        cb.set_label("gradient evaluations", fontsize=7)
-    fig.suptitle("Figure A2 — plugging the SVRG estimator into Nesterov momentum versus the corrected (negative-momentum) coupling of L-Katyusha", fontsize=10)
+        cb.set_label("gradient evaluations", fontsize=ps.SMALL)
+    ps.legend_cell(fig, gs[1, :], list(handles.values()), list(handles.keys()), ncol=3)
+    ps.suptitle(fig, "Figure A2 — plugging the SVRG estimator into Nesterov momentum versus the corrected\n"
+                "(negative-momentum) coupling of L-Katyusha")
     ps.savefig(fig, "figA2_naive_acceleration")
 
 

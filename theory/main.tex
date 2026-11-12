@@ -1,16 +1,26 @@
 \documentclass[11pt]{article}
 \input{preamble}
+\hypersetup{hypertexnames=false}% unique PDF anchors: the equations tagged (I1)--(I6) share one equation number
+\setlength{\emergencystretch}{2em}% lets TeX resolve lines with long unbreakable words
 \title{Accelerating Variance Reduction: Theory Notes}
 \author{Project: Beline Yuan, Paul Ruiz Alliata, Louis Darrigol}
 \date{\today}
 \begin{document}
 \maketitle
 \tableofcontents
-\input{B3_prop59_tightness}
-\input{B2_effective_curvature}
-\input{B1_preconditioned_saga}
-\input{A1_lower_bound}
-\input{A3_lkatyusha_lyapunov}
+% Each note is numbered by its hypothesis (B3, B2, B1, A1, A3), as in the appendices of the report, so that a
+% result has the same number (e.g. Proposition B3.12, equation (A1.7)) in both documents.
+\counterwithin{equation}{section}
+\renewcommand{\thesection}{B3}\input{B3_prop59_tightness}
+\clearpage
+\renewcommand{\thesection}{B2}\input{B2_effective_curvature}
+\clearpage
+\renewcommand{\thesection}{B1}\input{B1_preconditioned_saga}
+\clearpage
+\renewcommand{\thesection}{A1}\input{A1_lower_bound}
+\clearpage
+\renewcommand{\thesection}{A3}\input{A3_lkatyusha_lyapunov}
+\clearpage
 \bibliographystyle{plain}
 \bibliography{../bibliography/references}
 \end{document}
