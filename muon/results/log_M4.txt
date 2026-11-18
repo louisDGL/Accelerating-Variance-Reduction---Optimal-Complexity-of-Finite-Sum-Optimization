@@ -1,0 +1,24 @@
+
+=== soft-mem: softmax_n1000_d50_K10_k1000_a1_s0; relative separation ||W_a - W_b||_F / ||W_a - W_*||_F of two runs started 1e-12 apart (relative), median over 3 seeds
+  configuration                                pass 1     pass 2     pass 5    pass 10        max  first > 1e-3
+  SAGA (Euclidean), c = 1/4                   1.1e-12    1.2e-12    1.4e-12    1.5e-12    1.6e-12           inf
+  joint, exact polar, c = 1/64                1.1e-12    1.2e-12    1.4e-12    1.4e-12    1.4e-12           inf
+  joint, exact polar, c = 1/16                9.7e-13    9.7e-13    9.0e-13    3.3e-12    6.6e-11           inf
+  joint, exact polar, c = 1/4                 3.8e-04    2.0e-02    3.3e-02    1.0e-01    7.5e-01           1.1
+  joint, ns5, c = 1/4                         8.0e-13    8.2e-13    8.2e-13    1.6e-12    2.7e-11           inf
+  joint, bounded gain (eps_innov = 1), c = 1/4    1.2e-12    1.2e-12    1.4e-12    1.8e-12    4.2e-12           inf
+  joint, damped (theta = 0.1), c = 1/4        8.3e-13    1.0e-12    1.0e-12    1.8e-12    2.1e-11           inf
+  split, c = 1/4                              1.1e-12    1.3e-12    1.0e-12    1.6e-12    1.1e-11           inf
+
+=== ls-mem: ls_n1000_d50_K10_k1000_a1_s0; relative separation ||W_a - W_b||_F / ||W_a - W_*||_F of two runs started 1e-12 apart (relative), median over 3 seeds
+  configuration                                pass 1     pass 2     pass 5    pass 10        max  first > 1e-3
+  SAGA (Euclidean), c = 1/4                   1.1e-12    1.1e-12    1.0e-12    1.1e-12    3.9e-12           inf
+  joint, exact polar, c = 1/64                1.3e-12    1.7e-12    2.0e-12    3.0e-12    5.3e-12           inf
+  joint, exact polar, c = 1/16                2.0e-12    2.2e-12    1.9e-12    2.1e-11    9.6e-11           inf
+  joint, exact polar, c = 1/4                 3.1e-01    1.8e-01    2.0e-01    3.0e-01    6.8e-01           0.6
+  joint, ns5, c = 1/4                         1.2e-12    1.4e-12    1.3e-12    1.2e-12    1.6e-12           inf
+  joint, bounded gain (eps_innov = 1), c = 1/4    1.1e-12    1.1e-12    1.0e-12    1.0e-12    2.2e-12           inf
+  joint, damped (theta = 0.1), c = 1/4        2.0e-12    2.0e-12    2.4e-12    3.6e-12    5.0e-12           inf
+  split, c = 1/4                              1.5e-12    1.4e-12    1.2e-12    1.1e-12    2.9e-12           inf
+
+M4 done in 96s

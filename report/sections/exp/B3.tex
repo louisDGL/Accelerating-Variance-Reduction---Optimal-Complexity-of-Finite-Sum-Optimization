@@ -7,7 +7,9 @@
 % factor 7.75; 0.955 and 0.959 after 100 passes for kappa = 1e4, 1e5; kappa = 10: V_t over the product 11 after 20
 % passes, 24.1 to 1.18e3 beyond 30 passes, at most 3.07 of 19.3 decades; rho_exact(0) = 0.98616 held for n/10
 % iterations gives 0.248 against V_{n/10}/V_0 = 0.691, i.e. a product of 0.359 V_t at t = n/10, 2.77-2.79 times below
-% V_t on the five seeds).
+% V_t on the five seeds). Other data sets of the generator and the designs of Na et al. (paragraphs "Size of the gap",
+% "Attribution", "Interpretation", "Other data designs"): experiments/exp_B3_families.py ->
+% results/B3_families_summary.json, keys in the source comment of each paragraph.
 % -----------------------------------------------------------------------------------------------------
 \subsection{Where the proof of Proposition~5.9 loses (hypothesis B3)}\label{sec:exp-B3}
 
@@ -23,10 +25,25 @@ i.e.\ the intermediate rates of the proof applied cumulatively) is shown in the 
 I5) keeps the minimum until the end. Numbers are averages over passes 2--20 and over the 5 seeds unless stated
 otherwise.
 
+% Sources (data-seed variability, from "These are the values"): experiments/exp_B3_families.py ->
+% results/B3_families_summary.json (comparisons.data_seed: per_config.<alpha,kappa>.speedup_per_data_seed,
+% speedup_rel_spread, saga_seed_rel_spread_max, shares_per_data_seed; le_1e2, 1e3, ge_1e4: speedup_rel_spread,
+% saga_seed_rel_spread_max, shares_range_max (order B); all: shares_A_range_max (order A); groups.C,alpha=*,dseed=0:
+% speedup, speedup_seed_range (for kappa <= 1e2 the seed spread of data seed 0 is the saga_seed_rel_spread_max of
+% per_config; alpha = 2, kappa = 10: 2.90--4.73)). Data seed 0: results/B3.pkl (per-seed speed-ups), B3_summary.json.
 \paragraph{Size of the gap (Figure~\ref{fig:fig1}).}
 The speed-up is $3.2$--$3.7$ for $\kappa\le10^2$, where the memory term $\frac1{3n}$ is the active one, and grows with
 $\kappa$ in the parameter-term regime: $5.1$, $5.2$ and $3.4$ at $\kappa=10^3$, $29$, $16$ and $6.0$ at $\kappa=10^4$, $220$,
-$100$ and $19$ at $\kappa=10^5$, for $\alpha=0$, $1$ and $2$ (passes 20--100: $187$, $72$ and $11$ at $\kappa=10^5$). At
+$100$ and $19$ at $\kappa=10^5$, for $\alpha=0$, $1$ and $2$ (passes 20--100: $187$, $72$ and $11$ at $\kappa=10^5$).
+These are the values of one data set per $\alpha$, shared by all $\kappa$. On two more data sets of the generator (data
+seeds $1$ and $2$, 3 seeds each), the speed-ups at $\kappa=10^5$ are $180$ and $185$ ($\alpha=0$), $95$ and $82$
+($\alpha=1$), and $14$ and $21$ ($\alpha=2$). Over the three data sets the speed-up varies by $14$--$39\%$ of its mean for
+$\kappa\ge10^4$, whereas it varies by at most $3.7\%$ over the seeds of one data set there; for $\kappa\le10^3$ it varies
+by $2$--$10\%$ over the data sets, and for $\kappa\le10^2$ by less than over the five seeds of the data set above, whose
+speed-ups differ by up to $49\%$ of their mean at $\kappa=10$ (from $2.9$ to $4.7$ for $\alpha=2$). Across the three data
+sets, the order-B shares of the paragraph ``Attribution'' move by at most $0.05$ for $\kappa\ge10^4$, $0.07$ for
+$\kappa\le10^2$ and $0.11$ at $\kappa=10^3$ (the share $0.83$ of I2 at $\alpha=2$ becomes $0.78$--$0.83$), and the
+order-A shares by at most $0.13$. At
 $\kappa=10^4$ and $\alpha=1$, the mean squared distance decreases from $\norm{\theta_0-\etastar}^2=1954$ to $7.1\cdot10^{-9}$
 in 100 passes, by $11.4$ orders of magnitude, whereas the bound only decreases by the factor $\rho_{\rm bound}^{10^5}=0.15$,
 to $29\norm{\theta_0-\etastar}^2$ with the constant $1+\frac{3n}{16}$ of the proof ($38\norm{\theta_0-\etastar}^2$ with the
@@ -57,9 +74,10 @@ essentially in the inequalities.
   value $V_t$ of seed $0$. The factors are computed every $n/10$ iterations and held constant in between. The three
   trajectory-dependent products (green, yellow, violet) are cut at the first instrumentation time with $V_t<10^{-18}$,
   below which the conditional expectations are dominated by rounding; the other curves end with the runs, which stop at
-  $\norm{\theta_t-\etastar}^2\le10^{-26}$ (the mean and the two bounds with the shortest of the five). Where the memory
-  term $1/(3n)$ is the active one in the a-posteriori factors ($\kappa\le10^3$ here, since $\muEff/\mu\ge16\kappa/(9n)$ along
-  these runs; in the certified factor only for $\kappa\le10^2$, as $\frac3{16\kappa}<\frac1{3n}$ for $\kappa>\frac{9n}{16}$) the
+  $\norm{\theta_t-\etastar}^2\le10^{-26}$ or after 100 passes (the mean and the two bounds with the shortest of the
+  five). Where the memory term $1/(3n)$ is the active one in the a-posteriori factors ($\kappa\le10^3$ here, since
+  $\muEff/\mu\ge16\kappa/(9n)$ along these runs; in the certified factor only for $\kappa\le10^2$, as
+  $\frac3{16\kappa}<\frac1{3n}$ for $\kappa>\frac{9n}{16}$) the
   green and yellow curves coincide, and for $\kappa=10^2$ they also coincide with the orange one; for $\kappa\ge10^4$ the
   violet and grey curves are indistinguishable from the blue one and hidden under it. One legend, below the panels,
   serves all of them.}
@@ -101,13 +119,20 @@ In order~B, for $\kappa\le10^2$ the gap is carried by I1 ($0.39$--$0.44$) and I2
 and I4 ($0.03$--$0.17$). For $\kappa\ge10^4$, cocoercivity dominates ($0.46$ for $\alpha=0$, $0.54$--$0.58$ for $\alpha=1$,
 $0.62$--$0.71$ for $\alpha=2$), strong convexity follows ($0.25$--$0.36$), and together they carry $0.77$--$0.96$ of the
 gap, while I1 falls to $0.03$--$0.16$ and I5 to at most $0.073$; at $\kappa=10^3$ and $\alpha=2$, I2 alone carries $0.83$.
-Over the grid the largest share of I3 is $0.54\%$ and that of I5 is $22\%$ (a ratio as close to $1$ as $r_{\rm min}$
+% Sources (values on the other data): experiments/exp_B3_families.py -> results/B3_families_summary.json
+% (comparisons.grid.ndm and grid.C_new: max_share_B.I3, max_share_B.I5, max_share_A.I3 (ndm: 0.0283, design L, high
+% coherence, kappa = 1e3); groups.C,alpha=*,dseed=0, 1 and 2: shares_A.<kappa>.I3 (largest outside kappa = 1e3,
+% alpha = 2: 0.0055 on our grid, 0.0098 at alpha = 1, dseed = 2, kappa = 1e3); groups.<design>.shares_seed_spread_ge_1e4).
+Over our grid the largest share of I3 is $0.54\%$ and that of I5 is $22\%$, and over the other data sets and designs
+of this section $0.65\%$ and $24\%$ (a ratio as close to $1$ as $r_{\rm min}$
 still matters because the exponents are small: at $\kappa=10$, I5 adds about $2\cdot10^{-4}$ per iteration to a certified
 exponent of $3.3\cdot10^{-4}$); the seed-to-seed spread of the shares is below $0.03$ for $\kappa\ge10^4$. Order~A also
-gives I3 a small share (at most $0.006$, except $0.063$ at $\kappa=10^3$, $\alpha=2$) and gives $0.59$--$0.96$ to I4 and I2 together
-for $\kappa\ge10^4$, but for $\kappa\le10^2$ it gives $0.56$--$0.61$ to the minimum I5, $0.38$--$0.44$ to I1 and nothing to
-I4 and I2, which only lower the parameter coefficient, not the active one there: as \resref{rem:B3-orders} explains, the
-attribution is order dependent where the two components of $V_t$ compete.
+gives I3 a small share (at most $0.010$ on the three data sets of our generator and $0.029$ on the designs of the
+paragraph ``Other data designs'', except at $\kappa=10^3$, $\alpha=2$: $0.063$ on our grid, $0.055$ and $0.072$ on the two
+other data sets). On our grid, order~A gives $0.59$--$0.96$ to I4 and I2 together for $\kappa\ge10^4$, but for
+$\kappa\le10^2$ it gives $0.56$--$0.61$ to the minimum I5, $0.38$--$0.44$ to I1 and nothing to I4 and I2, which only lower
+the parameter coefficient, not the active one there: as \resref{rem:B3-orders} explains, the attribution is order
+dependent where the two components of $V_t$ compete.
 
 \begin{figure}[tbp]
   \renewcommand{\thefigure}{3}% project figure name (see the header of this file)
@@ -134,10 +159,141 @@ the measured speed-ups: $\muEff/\mu$ (between $2.2$ and $81$) times a factor $2.
 $\kappa$-dependent part of the gap is thus the strong-convexity step, the difference between $\mu=\lambda$ and the
 curvature met along the trajectory; cocoercivity contributes a bounded factor, whose larger additive share in order~B
 comes from acting on an exponent already multiplied by $\muEff/\mu$. With strongly anisotropic features ($\alpha=2$) the
-bottom of the spectrum of $F''(\etastar)$ stays close to $\lambda$, so I4 is closer to tight and I2 dominates the shares.
+bottom of the spectrum of $F''(\etastar)$ stays close to $\lambda$, so I4 is closer to tight, and $r_{\rm coco}$ is small
+($0.042$--$0.059$ for $\kappa\ge10^4$), so I2 dominates the shares.
+% Sources (from "The condition number"): experiments/exp_B3_families.py -> results/B3_families_summary.json (groups
+% P,lc,kap=1,dseed=0, L,lc,kap=1,dseed=0, R,lc,kap=1,dseed=1 and C,alpha=2,dseed=0: r_coco_ge_1e4, hess_min_over_lam,
+% geometry.cov_cond, geometry.mean_L_over_R2 (0.4529, 0.4529, 0.4587; 0.1359), geometry.dir_smoothness_median (0.4623,
+% 0.4623, 0.4725; 0.1382), geometry.stable_rank, geometry.max_over_mean_sqnorm; all groups: r_coco_ge_1e4 and the same
+% two geometry keys, which do not order r_coco, e.g. C,alpha=0,dseed=0 against P,lc,kap=0.5,dseed=0, and the
+% high-coherence groups against C,alpha=2,dseed=0; C,alpha=2,dseed=0 equals results/B3_summary.json for the measured fields).
+The condition number of $\hat\Sigma$ does not account for the small $r_{\rm coco}$: the three low-coherence data sets of
+the paragraph ``Other data designs'' below whose $\hat\Sigma$ has the condition number $2500$ (ours: $2798$) have
+$\lmin(F''(\etastar))/\lambda$ at least as close to $1$, but $r_{\rm coco}=0.17$--$0.39$ for $\kappa\ge10^4$, and $0.18$--$0.23$
+with labels as informative as ours. One static difference between them and $\alpha=2$ is the per-sample smoothness
+relative to $R^2=\max_iL_i$: $\frac1n\sum_iL_i/R^2$ is $0.14$ for $\alpha=2$, whose rows concentrate their norm on few
+directions (stable rank $\mathrm{tr}\,\hat\Sigma/\lmax(\hat\Sigma)=1.7$, and $\max_i\norm{x_i}^2$ is $7.4$ times the
+mean), against $0.45$--$0.46$ for these data sets (stable rank $17$, ratio $2.2$), and the median over the eigenvectors of
+$\hat\Sigma$ of the curvature-weighted version of this ratio, defined in that paragraph, is $0.14$ against $0.46$--$0.47$.
+These statistics were chosen after the measurements and do not order $r_{\rm coco}$ across all the designs of that
+paragraph: this is an observation on the data sets we ran, not an explanation established by the results of
+Appendix~\ref{sec:B3_prop59_tightness}.
 The large factors at $\kappa=10^5$ are a property of these instances, not of the order of the bound: by
 \resref{prop:B3-lower} no analysis of SAGA with a constant step can improve the exponent $1$ of $\kappa$
 uniformly over the class of Proposition~\ref{prop:59} (caveat~(ii) of \resref*{rem:B3-conclusion}).
+
+% Sources: experiments/exp_B3_families.py -> results/B3_families_summary.json (checks.label_scales,
+% checks.scale_equivalence, checks.optima; groups.<design>: geometry (at kappa = 1e4), speedup, speedup_le_1e2,
+% shares_B_ge_1e4, r_coco_ge_1e4, hess_min_over_lam, mu_eff_over_mu, growth; comparisons.grid.ndm: speedup_le_1e2,
+% r_sq_le_1e2, shares_A_le_1e2, product_over_speedup_ge_1e4, I1I2_factor_ge_1e4, shares_B_ge_1e4_I2+I4, r_var_min,
+% r_min_min, max_share_B; groups.P,lc,kap=0.5,dseed=0: shares_B.100000; comparisons.label_signal,
+% comparisons.ndm_data_seed, comparisons.coherence). Rows "ours": results/B3_summary.json (attribution), with the
+% geometry recomputed by the same script (groups.C,alpha=*,dseed=0).
+\paragraph{Other data designs.}
+Our generator fixes one kind of data: rotated Gaussian features with a power-law spectrum, whose leverage scores are
+spread over the rows, and labels $\mathrm{sign}(x_i^\top w+\varepsilon_i)$. We repeated the measurements with the same
+protocol on the two synthetic designs of Section~5 of~\cite{na2023hessian}, in our implementation. Their features are
+$x_i=c\,\mathrm{diag}(\sigma)u_i$, where $u_i^\top$ is the $i$-th row of the matrix of left singular vectors of an
+$n\times d$ Gaussian matrix, $\sigma_1,\dots,\sigma_d$ are equally spaced from $1$ to $d^{1/2}$ or to $d$, and $c$ sets
+$\max_i\norm{x_i}=1$ as in our data; $\hat\Sigma$ is thus diagonal, with condition number $50$ or $2500$, the population
+condition numbers for $\alpha=1$ and $\alpha=2$. In the high-coherence design the rows of the Gaussian matrix are first
+divided by $\sqrt{z_i}$, with $z_i$ i.i.d.\ $\chi^2_1$ (as in the public code of~\cite{na2023hessian}; the text of the
+paper rescales the rows of the singular vectors instead), so that a few rows have leverage scores close to $1$: the
+normalized coherence $\frac nd\max_ih_i$, with $h_i=x_i^\top(X^\top X)^{-1}x_i$, is $20=\frac nd$, i.e.\ $\max_ih_i\approx1$,
+against $1.9$--$2.0$ for the low-coherence design and $1.7$ for ours. The labels are logistic, $y_i=1$ with
+probability $p_i=1/(1+e^{-x_i^\top w})$, $w\sim\mathcal N(0,I_d/d)$; with $\max_i\norm{x_i}=1$ they are nearly pure noise,
+of Bayes accuracy $\frac1n\sum_i\max\{p_i,1-p_i\}$ equal to $0.52$ and $0.50$ for the two designs, against $0.85$ for ours
+($\frac12+\frac1\pi\arctan2=0.852$ in the population). With condition number $2500$ we also ran two variants, ``labels''
+and ``seed 1'' in the table: labels drawn with $w$ multiplied by $40.6$ (low coherence) or $407$ (high coherence), which
+gives them the Bayes accuracy $0.852$, and a second data set (data seed $1$). The first variant is the design with
+$\max_i\norm{x_i}$ equal to that factor, rescaled to $\max_i\norm{x_i}=1$: SAGA with the step $1/(4R^2)$ on
+$(cX,c^2\lambda)$ produces the iterates $\theta_t/c$ of the run on $(X,\lambda)$, so that only the labels change (checked on one configuration over 20 passes: relative differences below
+$3\cdot10^{-12}$). Each row of the table is one data set, shared by its five values of $\kappa$; 5 seeds, passes 2--20,
+records with $V_t\ge10^{-18}$ (on the problems of these designs and of the two other data sets of our generator,
+$\etastar$ has $\norm{\Fp(\etastar)}\le5.6\cdot10^{-16}$ in $60$-digit arithmetic, hence a squared error at most
+$1.8\cdot10^{-22}$). The static columns are the condition number of $\hat\Sigma$,
+the mean per-sample smoothness $\frac1n\sum_iL_i/R^2$ at $\kappa=10^4$, the normalized coherence, the median over the
+eigenvectors $v$ of $\hat\Sigma$ of the per-sample smoothness weighted by the curvature that each row gives to $v$,
+$\sum_i(x_i^\top v)^2\norm{x_i}^2/\big(\max_k\norm{x_k}^2\sum_i(x_i^\top v)^2\big)$ (the value of $\LEff/R^2$ along $v$ if
+every sample had the curvature $\frac14$ of a zero margin and $\lambda$ were neglected), and the Bayes accuracy; the shares
+(order~B) and $r_{\rm coco}$ are ranges over $\kappa\in\{10^4,10^5\}$.
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{2.6pt}
+\begin{tabular}{@{}lrrrrrcrrcccc@{}}
+\toprule
+ & \multicolumn{5}{c}{static constants} & \multicolumn{3}{c}{speed-up} & \multicolumn{4}{c}{$\kappa\in\{10^4,10^5\}$} \\
+\cmidrule(lr){2-6}\cmidrule(lr){7-9}\cmidrule(l){10-13}
+design & cond. & mean & coh. & weighted & Bayes & $\kappa\le10^2$ & $10^4$ & $10^5$ & I1 & I2 & I4 & $r_{\rm coco}$ \\
+ & of $\hat\Sigma$ & $L_i/R^2$ & & smooth. & acc. & & & & & & & \\
+\midrule
+ours, $\alpha=0$ & 2.4 & 0.58 & 1.7 & 0.60 & 0.85 & 3.2--3.6 & 29 & 220 & 0.14--0.16 & 0.46 & 0.31--0.34 & 0.20 \\
+ours, $\alpha=1$ & 59 & 0.31 & 1.7 & 0.31 & 0.85 & 3.3--3.6 & 16 & 100 & 0.07--0.08 & 0.54--0.58 & 0.32--0.36 & 0.11--0.12 \\
+ours, $\alpha=2$ & 2798 & 0.14 & 1.7 & 0.14 & 0.85 & 3.5--3.7 & 6.0 & 19 & 0.03 & 0.62--0.71 & 0.25--0.34 & 0.042--0.059 \\
+low coherence & 50 & 0.48 & 2.0 & 0.49 & 0.52 & 3.1--3.5 & 23 & 198 & 0.26 & 0.31--0.34 & 0.30--0.33 & 0.40--0.44 \\
+low coherence & 2500 & 0.45 & 2.0 & 0.46 & 0.52 & 3.2--3.5 & 7.0 & 31 & 0.17--0.21 & 0.38--0.52 & 0.26--0.34 & 0.25--0.39 \\
+high coherence & 50 & 0.067 & 20.0 & 0.55 & 0.50 & 3.6--3.7 & 7.3 & 26 & 0.08--0.11 & 0.55--0.60 & 0.27--0.35 & 0.13--0.15 \\
+high coherence & 2500 & 0.066 & 20.0 & 0.51 & 0.50 & 3.6--3.7 & 6.4 & 17 & 0.09--0.11 & 0.55--0.61 & 0.25--0.33 & 0.15--0.16 \\
+low coh., labels & 2500 & 0.45 & 2.0 & 0.46 & 0.85 & 3.2--3.6 & 10 & 46 & 0.13 & 0.48--0.54 & 0.29--0.35 & 0.18--0.23 \\
+high coh., labels & 2500 & 0.066 & 20.0 & 0.51 & 0.85 & 3.6--3.7 & 6.2 & 17 & 0.01--0.02 & 0.65--0.72 & 0.25--0.34 & 0.023--0.030 \\
+low coh., seed 1 & 2500 & 0.46 & 1.9 & 0.47 & 0.52 & 3.2--3.7 & 5.2 & 13 & 0.17--0.21 & 0.42--0.57 & 0.19--0.30 & 0.17--0.34 \\
+high coh., seed 1 & 2500 & 0.066 & 20.0 & 0.43 & 0.50 & 3.6--3.7 & 6.8 & 19 & 0.09--0.11 & 0.55--0.60 & 0.26--0.34 & 0.15 \\
+\bottomrule
+\end{tabular}
+\end{center}
+% Sources: results/B3_families_summary.json (comparisons.grid.ndm: speedup_le_1e2, r_sq_le_1e2, shares_A_le_1e2,
+% speedup_grows_with_kappa_from_1e3, product_over_speedup_ge_1e4, I1I2_factor_ge_1e4, shares_B_ge_1e4_I2+I4, r_var_min,
+% r_min_min, max_share_B; groups.<design>: mu_eff_over_mu_ge_1e4, I2_largest_ge_1e4; groups.P,lc,kap=0.5,dseed=0:
+% shares_B.100000); ours: results/B3_summary.json, as quoted above.
+\emph{What carries over.} In the memory regime, $\kappa\le10^2$, the speed-up is $3.1$--$3.7$, $r_{\rm sq}=0.50$--$0.53$,
+and order~A gives $0.54$--$0.64$ of the gap to I5, $0.35$--$0.46$ to I1 and nothing to I4 and I2 (ours: $3.2$--$3.7$,
+$0.50$--$0.52$, $0.56$--$0.61$, $0.38$--$0.44$ and nothing). From $\kappa=10^3$ on the speed-up grows with $\kappa$ on every
+design. For $\kappa\ge10^4$ the product of the paragraph ``Interpretation'' reproduces $0.80$--$0.97$ of it, with
+$\muEff/\mu$ between $1.7$ and $73$ and an I1--I2 factor of $2.21$--$2.64$ (ours: $0.91$--$0.96$ and $2.45$--$2.62$); I2 and
+I4 together carry $0.64$--$0.98$ of the gap in order~B (ours: $0.77$--$0.96$), and I2 has the largest share except on the
+low-coherence design with condition number $50$ at $\kappa=10^5$ (I4 $0.33$, I2 $0.31$). I3 and I5 stay nearly tight
+($r_{\rm var}\ge0.978$, $r_{\min}\ge0.9997$); their largest order-B shares are $0.65\%$ and $24\%$, both at $\kappa=10$ with
+high coherence.
+
+% Sources: results/B3_families_summary.json (groups.<design>: speedup.100000, shares_B_ge_1e4.I1, .I2, .I4,
+% hess_min_over_lam.10000 and .100000).
+\emph{What does not.} The size of the gap for $\kappa\ge10^4$ depends on the design: at $\kappa=10^5$ the speed-up ranges
+from $13$ to $198$, and from $13$ to $46$ on the designs with condition number $2500$, against $19$ for $\alpha=2$. The
+low-coherence designs leave $0.13$--$0.26$ of the gap to I1 for $\kappa\ge10^4$ (ours: $0.03$--$0.16$). And, as noted in
+the paragraph ``Interpretation'', the condition number does not determine the share of I2: with condition number $2500$
+and low coherence, I2 carries $0.38$--$0.57$ and I4 $0.19$--$0.35$, against $0.62$--$0.71$ and $0.25$--$0.34$ for
+$\alpha=2$, although $\lmin(F''(\etastar))/\lambda$ is $1.04$--$1.10$ at $\kappa=10^4$ and $1.39$--$2.01$ at $10^5$, against
+$1.14$ and $2.12$.
+
+% Sources: results/B3_families_summary.json (comparisons.label_signal and comparisons.ndm_data_seed: speedup_ratio,
+% shares_absdiff_max, mu_eff_over_mu; groups.<design>: r_coco_ge_1e4, hess_min_over_lam.100000).
+\emph{Labels and data set.} In the memory regime, labels as informative as ours change the speed-up by less than $2\%$ and
+the shares by less than $0.02$; for $\kappa\ge10^4$ they lower $r_{\rm coco}$ on both families (from $0.25$--$0.39$ to $0.18$--$0.23$,
+and from $0.15$--$0.16$ to $0.023$--$0.030$); with low coherence they multiply the speed-up by $1.45$ at $\kappa=10^4$ and
+$10^5$, together with $\muEff/\mu$ (from $2.5$ to $3.6$ and from $11$ to $15$), and with high coherence they change it by
+at most $11\%$. The second data set of the low-coherence design has the same $\lmin(F''(\etastar))/\lambda$ within $1\%$
+but $\muEff/\mu=4.5$ instead of $11$ at $\kappa=10^5$, and a speed-up $2.5$ times smaller ($13$ against $31$); with high
+coherence the data set changes the speed-up by at most $15\%$, and in both families the shares move by at most $0.07$ for
+$\kappa\ge10^4$.
+
+% Sources: results/B3_families_summary.json (comparisons.coherence: r_coco_hc_over_lc_range, I2_hc_minus_lc_range,
+% pairs.*.I1_hc_minus_lc; groups P,lc,*, L,lc,*, R,lc,* and P,hc,*, L,hc,*, R,hc,*: geometry.mean_L_over_R2 (at
+% kappa = 1e4); groups P,hc,* and R,hc,*: r_coco_ge_1e4, geometry.dir_smoothness_median,
+% geometry.dir_smoothness_at_smallest_sv (equal to geometry.dir_smoothness_min); C,alpha=2,dseed=0: r_coco_ge_1e4,
+% geometry.mean_L_over_R2, geometry.dir_smoothness_median).
+\emph{Coherence.} In each of the four pairs of rows that differ only in the family (same condition number, label model
+and data seed), and at every $\kappa$, high coherence gives a smaller $r_{\rm coco}$ (by a factor $0.10$--$0.89$), a larger
+share of I2 (by $0.02$--$0.36$) and a smaller share of I1 (by $0.02$--$0.21$). At a fixed $\kappa$ the two families also
+differ in $\frac1n\sum_iL_i/R^2$ ($0.066$--$0.067$ against $0.45$--$0.48$ at $\kappa=10^4$), that is, in the size of
+$\lambda=R^2/\kappa$ relative to the mean per-sample smoothness, so that these pairs do not separate coherence from this
+difference. On the three high-coherence data sets with nearly uninformative labels, $r_{\rm coco}$ ($0.13$--$0.16$ for
+$\kappa\ge10^4$) stays above that of $\alpha=2$, although their mean per-sample smoothness is smaller ($0.066$--$0.067$
+against $0.14$); their weighted smoothness has the median $0.43$--$0.55$ (against $0.14$), i.e.\ along at least half of
+the eigenvectors of $\hat\Sigma$ the curvature is carried by rows of large norm, and falls to $0.0016$--$0.074$ along the
+eigenvector of smallest variance. These numbers come from our implementation of the designs, with data seed $0$ unless
+stated (\nolinkurl{vrlab/problems.py}, \nolinkurl{experiments/exp_B3_families.py}); Appendix~\ref{app:repro} compares
+this implementation with an independent one written within the course project (repository saga-geometry-convergence,
+commit \texttt{059efcd}, not public).
 
 % -----------------------------------------------------------------------------------------------------
 % Constants. Sources: results/GammaDelta_summary.json, digest.md "(gamma, Delta) inside the proof", per-seed rates

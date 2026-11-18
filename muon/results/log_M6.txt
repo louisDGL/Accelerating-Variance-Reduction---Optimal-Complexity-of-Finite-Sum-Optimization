@@ -1,0 +1,63 @@
+[M6] 126 runs to do (0 cached), 4 processes
+[M6] 29/126 done, 61s
+[M6] 58/126 done, 124s
+[M6] 100/126 done, 189s
+[M6] finished 126 runs in 228s
+C:\Users\Louis\Desktop\berkeley\projetSTATS\muon\experiments\exp_M6_miso.py:107: RuntimeWarning: All-NaN slice encountered
+  base = np.nanmedian(e["base"]) if e["base"] else float("nan")
+
+=== softmax, kappa/n = 0.1 (delta_sdca = 0.909); passes to 1e-06: median [min, max] over 3 seeds; final relative squared distance (median); ||m||_* / ||grad F||_* (median over the run)
+  SAGA (Euclidean), c = 1/4                  9.2 [7.6, 10.1]            8.9e-21      0.476
+  MISO (delta = 1)                           8.7 [7.4, 9.8]             9.3e-21      0.000
+  joint SAGA-Muon, c = 1/4                   8.8 [7.6, 9.9]             7.2e-21      0.066
+  joint SAGA-Muon, c = 1                     8.8 [7.5, 9.9]             8.2e-21      0.159
+  dual-free SDCA (delta = sdca)              8.7 [7.3, 9.8]             4.5e-21      0.000
+  joint SAGA-Muon, relaxed table, c = 1/4    8.8 [7.9, 9.9]             4.8e-21      0.067
+  joint SAGA-Muon, relaxed table, c = 1      8.8 [7.9, 9.9]             9.5e-21      0.216
+
+=== softmax, kappa/n = 1 (delta_sdca = 0.500); passes to 1e-06: median [min, max] over 3 seeds; final relative squared distance (median); ||m||_* / ||grad F||_* (median over the run)
+  SAGA (Euclidean), c = 1/4                  20.2 [20.1, 20.2]          4.1e-12      1.107
+  MISO (delta = 1)                           11.9 [11.5, 12.0]          6.5e-20      0.000
+  joint SAGA-Muon, c = 1/4                   11.8 [11.7, 13.2]          1.5e-20      0.025
+  joint SAGA-Muon, c = 1                     12.3 [11.6, 12.3]          3.3e-19      0.020
+  dual-free SDCA (delta = sdca)              14.4 [14.2, 14.4]          1.5e-16      0.000
+  joint SAGA-Muon, relaxed table, c = 1/4    14.4 [14.2, 14.5]          2.6e-16      0.011
+  joint SAGA-Muon, relaxed table, c = 1      14.4 [14.2, 14.8]          2.3e-16      0.032
+
+=== softmax, kappa/n = 10 (delta_sdca = 0.091); passes to 1e-06: median [min, max] over 3 seeds; final relative squared distance (median); ||m||_* / ||grad F||_* (median over the run)
+  SAGA (Euclidean), c = 1/4                  not reached                2.4e-03      1.064
+  MISO (delta = 1)                           not reached                9.9e-01      0.000
+  joint SAGA-Muon, c = 1/4                   not reached                1.9e-01      0.084
+  joint SAGA-Muon, c = 1                     not reached                8.3e-01      0.024
+  dual-free SDCA (delta = sdca)              not reached                1.1e-04      0.000
+  joint SAGA-Muon, relaxed table, c = 1/4    not reached                1.0e-04      0.002
+  joint SAGA-Muon, relaxed table, c = 1      not reached                1.1e-04      0.003
+
+=== ls, kappa/n = 0.1 (delta_sdca = 0.909); passes to 1e-06: median [min, max] over 3 seeds; final relative squared distance (median); ||m||_* / ||grad F||_* (median over the run)
+  SAGA (Euclidean), c = 1/4                  10.6 [10.1, 10.7]          9.3e-21      0.262
+  MISO (delta = 1)                           10.4 [9.6, 10.5]           9.5e-21      0.000
+  joint SAGA-Muon, c = 1/4                   10.5 [9.8, 10.7]           7.1e-21      0.056
+  joint SAGA-Muon, c = 1                     11.3 [10.9, 13.8]          3.2e-19      0.147
+  dual-free SDCA (delta = sdca)              10.4 [9.3, 10.4]           9.6e-21      0.000
+  joint SAGA-Muon, relaxed table, c = 1/4    10.5 [9.7, 10.5]           9.7e-21      0.077
+  joint SAGA-Muon, relaxed table, c = 1      10.9 [10.7, 13.5]          5.5e-20      0.159
+
+=== ls, kappa/n = 1 (delta_sdca = 0.500); passes to 1e-06: median [min, max] over 3 seeds; final relative squared distance (median); ||m||_* / ||grad F||_* (median over the run)
+  SAGA (Euclidean), c = 1/4                  12.9 [12.4, 12.9]          1.5e-19      0.627
+  MISO (delta = 1)                           18.9 [18.4, 19.3]          4.8e-14      0.000
+  joint SAGA-Muon, c = 1/4                   18.1 [17.5, 18.4]          1.3e-14      0.012
+  joint SAGA-Muon, c = 1                     20.0 [19.8, 21.0]          8.0e-13      0.015
+  dual-free SDCA (delta = sdca)              17.4 [17.3, 22.1]          9.6e-14      0.000
+  joint SAGA-Muon, relaxed table, c = 1/4    17.0 [16.5, 18.2]          1.1e-14      0.007
+  joint SAGA-Muon, relaxed table, c = 1      19.1 [17.4, 22.1]          3.0e-13      0.020
+
+=== ls, kappa/n = 10 (delta_sdca = 0.091); passes to 1e-06: median [min, max] over 3 seeds; final relative squared distance (median); ||m||_* / ||grad F||_* (median over the run)
+  SAGA (Euclidean), c = 1/4                  19.1 [19.0, 19.1]          1.8e-12      1.155
+  MISO (delta = 1)                           not reached                4.6e+28        nan   DIVERGED
+  joint SAGA-Muon, c = 1/4                   not reached                5.9e+26      0.024   DIVERGED
+  joint SAGA-Muon, c = 1                     not reached                2.4e+27      0.008   DIVERGED
+  dual-free SDCA (delta = sdca)              not reached                1.3e-03      0.000
+  joint SAGA-Muon, relaxed table, c = 1/4    not reached                5.9e-04      0.001
+  joint SAGA-Muon, relaxed table, c = 1      not reached                1.2e-03      0.002
+
+M6 done in 228s

@@ -1,0 +1,124 @@
+(C) per-sample smoothness constants L_i = c ||x_i||^2 + lam
+  soft-mem   R2 / mean L_i = 3.26, max / min = 8.9, n p_i for p ~ L^(1/2) in [0.62, 1.84], smallest n p_i for p ~ L: 0.366
+  ls-mem     R2 / mean L_i = 3.26, max / min = 8.9, n p_i for p ~ L^(1/2) in [0.62, 1.84], smallest n p_i for p ~ L: 0.366
+  soft-cond  R2 / mean L_i = 6.32, max / min = 55.7, n p_i for p ~ L^(1/2) in [0.36, 2.72], smallest n p_i for p ~ L: 0.113
+  ls-cond    R2 / mean L_i = 6.32, max / min = 55.7, n p_i for p ~ L^(1/2) in [0.36, 2.72], smallest n p_i for p ~ L: 0.113
+  ls-orth    R2 / mean L_i = 7.19, max / min = 70.8, n p_i for p ~ L^(1/2) in [0.35, 2.91], smallest n p_i for p ~ L: 0.102
+  soft-sq    R2 / mean L_i = 7.19, max / min = 70.3, n p_i for p ~ L^(1/2) in [0.35, 2.91], smallest n p_i for p ~ L: 0.102
+
+(A) soft-mem: kappa = R2 / mu_true = 863 in the Euclidean geometry (global: R2 / lam = 1000); kappa_P = R2P / mu_P by floor (local constant; second line: global constant):
+  anchor                                                f=0    f=0.001    f=0.003     f=0.01     f=0.03      f=0.1      f=0.3        f=1   floored directions
+  grad F(W_0)                                           627        627        627        627        627        624        547        946   0/0/0/0/0/1/4/8 of 9
+                                                       2107       2107       2107       2107       2107       2099       1838       1419
+  feature covariance, (c_l Sigma_hat + lam I)^-1        487        487        487        487        487        362        439        863   0/0/0/0/0/38/47/49 of 50
+                                                       4134       4134       4134       4134       4134       3056       1695       1000
+
+(A) ls-mem: kappa = R2 / mu_true = 476 in the Euclidean geometry, d_inf = 61.9; kappa_P = R2P / mu_P by floor:
+  anchor                                                f=0    f=0.001    f=0.003     f=0.01     f=0.03      f=0.1      f=0.3        f=1   floored directions
+  grad F(W_0)                                           351        351        351        351        351        350        300        413   0/0/0/0/0/1/7/9 of 10
+  feature covariance, (c_l Sigma_hat + lam I)^-1         62         62         62         62         62        146        242        476   0/0/0/0/0/38/47/49 of 50
+
+(A) soft-cond: kappa = R2 / mu_true = 9659 in the Euclidean geometry (global: R2 / lam = 10000); kappa_P = R2P / mu_P by floor (local constant; second line: global constant):
+  anchor                                                f=0    f=0.001    f=0.003     f=0.01     f=0.03      f=0.1      f=0.3        f=1   floored directions
+  grad F(W_0)                                          4992       4992       4992       4992       4858       3481       2634       5695   0/0/0/0/1/4/6/6 of 7
+                                                      23214      23214      23214      23214      22593      16182      12044      10680
+  feature covariance, (c_l Sigma_hat + lam I)^-1        850        850        758        551        618       1625       3293       9659   0/0/19/30/35/38/39/39 of 40
+                                                      44607      44607      39768      28329      21320      16823      11365      10000
+
+(A) ls-cond: kappa = R2 / mu_true = 7297 in the Euclidean geometry, d_inf = 44.0; kappa_P = R2P / mu_P by floor:
+  anchor                                                f=0    f=0.001    f=0.003     f=0.01     f=0.03      f=0.1      f=0.3        f=1   floored directions
+  grad F(W_0)                                          3809       3809       3809       3774       3264       2058       1614       2637   0/0/0/1/4/6/7/7 of 8
+  feature covariance, (c_l Sigma_hat + lam I)^-1         45         45         87        207        467       1227       2488       7297   0/0/19/30/35/38/39/39 of 40
+
+(A) ls-orth: kappa = R2 / mu_true = 4364 in the Euclidean geometry, d_inf = 39.3; kappa_P = R2P / mu_P by floor:
+  anchor                                                f=0    f=0.001    f=0.003     f=0.01     f=0.03      f=0.1      f=0.3        f=1   floored directions
+  grad F(W_0)                                            42         42         47        127        251        642       1668       4364   0/0/3/11/15/18/19/19 of 20
+  grad F(W_t), SAGA after 0.5 passes                    539        539        330        440        868       1127       1565       4364   0/0/5/17/18/19/19/19 of 20
+  SAGA predictable part m_t after 0.5 passes             48         48         48        105        240        636       1660       4364   0/0/0/8/14/17/19/19 of 20
+  grad F(W_t), SAGA after 2 passes                     7137        398        224        364        790       1104       1683       4364   0/1/2/16/17/19/19/19 of 20
+  SAGA predictable part m_t after 2 passes              120        120        120        120        240        645       1677       4364   0/0/0/0/11/17/19/19 of 20
+  grad F(W_t), SAGA after 10 passes                    2056       1800        802        512        525        752       1562       4364   0/1/3/8/16/18/19/19 of 20
+  SAGA predictable part m_t after 10 passes           73717      73717      73590      73396      41474      15818       5924       4364   0/0/1/1/6/11/19/19 of 20
+  feature covariance, (c_l Sigma_hat + lam I)^-1         39         39         46        127        253        641       1669       4364   0/0/2/11/15/18/19/19 of 20
+
+(A) soft-sq: kappa = R2 / mu_true = 9214 in the Euclidean geometry (global: R2 / lam = 10000); kappa_P = R2P / mu_P by floor (local constant; second line: global constant):
+  anchor                                                f=0    f=0.001    f=0.003     f=0.01     f=0.03      f=0.1      f=0.3        f=1   floored directions
+  grad F(W_0)                                          2472       2472       2472       2020       1327       1376       3589       9215   0/0/0/7/12/15/18/18 of 19
+                                                      33464      33464      33464      27339      17932      14928      12997      10013
+  grad F(W_t), SAGA after 0.5 passes                   2532       2532       2532       2078       1499       1476       3522       9225   0/0/0/3/9/15/18/18 of 19
+                                                      30728      30728      30728      25215      18155      15991      12786      10049
+  SAGA predictable part m_t after 0.5 passes           2164       2164       2164       1912       1402       1350       3602       9201   0/0/0/5/11/15/18/18 of 19
+                                                      26521      26521      26521      23433      17159      14615      13058      10009
+  grad F(W_t), SAGA after 2 passes                     2240       2240       2240       2034       1860       1716       3753       9299   0/0/0/1/6/15/18/18 of 19
+                                                      23199      23199      23199      21064      19245      17032      13635      10135
+  SAGA predictable part m_t after 2 passes             2047       2047       2047       2047       2010       1863       3698       9220   0/0/0/0/4/11/17/18 of 19
+                                                      16517      16517      16517      16517      16216      14762      13401      10030
+  grad F(W_t), SAGA after 10 passes                    9706       9706       9522       4805       2643       2413       3478       9219   0/0/1/3/8/18/18/18 of 19
+                                                     139628     139628     136987      69080      37863      26187      12591      10011
+  SAGA predictable part m_t after 10 passes           61051      61051      61051      61051      55916      38803      21324      14589   0/0/0/0/1/3/8/18 of 19
+                                                      75483      75483      75483      75483      69134      47973      26336      15836
+  feature covariance, (c_l Sigma_hat + lam I)^-1       1914       1914       1914       1733       1166       1355       3525       9214   0/0/0/10/15/18/19/19 of 20
+                                                      31407      31407      31407      28421      19061      14703      12753      10000
+[M7_katyusha] 420 runs to do (0 cached), 4 processes
+[M7_katyusha] 62/420 done, 62s
+[M7_katyusha] 149/420 done, 122s
+[M7_katyusha] 264/420 done, 182s
+[M7_katyusha] 340/420 done, 244s
+[M7_katyusha] 409/420 done, 305s
+[M7_katyusha] finished 420 runs in 341s
+
+(B) soft-mem: L = L=0.125*R2, mu=0.3*lam, passes to 1e-09
+  coupling (L-Katyusha)                      30.7 [24.6, 39.6]
+  no y step (y = x)                          31.8 [24.6, 39.6]
+  Euclidean y step, gamma_y = 1/(3L)         30.7 [24.6, 39.6]
+  sharp y step, gamma_y = 0.111/R2_op        31.7 [24.4, 39.6]
+  sharp y step, gamma_y = 1/R2_op            30.6 [24.4, 39.6]
+  sharp y step, gamma_y = 8/R2_op            reached 0/10, final 3.1e-07
+  sharp y step, gamma_y = 32/R2_op           reached 0/10, final 1.0e+01
+
+(B) ls-mem: L = L=0.5*R2, mu=1*lam, passes to 1e-09
+  coupling (L-Katyusha)                      32.9 [27.0, 39.4]
+  no y step (y = x)                          33.0 [27.0, 39.4]
+  Euclidean y step, gamma_y = 1/(3L)         32.9 [27.0, 39.4]
+  sharp y step, gamma_y = 0.111/R2_op        32.8 [27.0, 39.4]
+  sharp y step, gamma_y = 1/R2_op            reached 8/10, final 4.6e-11
+  sharp y step, gamma_y = 8/R2_op            reached 0/10, final 2.6e+13
+  sharp y step, gamma_y = 32/R2_op           reached 0/10, final 7.3e+27
+
+(B) soft-cond: L = L=0.0625*R2, mu=0.3*lam, passes to 1e-06
+  coupling (L-Katyusha)                      65.6 [51.2, 71.2]
+  no y step (y = x)                          65.7 [51.4, 71.2]
+  Euclidean y step, gamma_y = 1/(3L)         65.6 [51.2, 71.2]
+  sharp y step, gamma_y = 0.111/R2_op        65.7 [51.4, 71.2]
+  sharp y step, gamma_y = 1/R2_op            65.6 [51.0, 71.2]
+  sharp y step, gamma_y = 8/R2_op            63.5 [49.2, 72.8]
+  sharp y step, gamma_y = 32/R2_op           reached 0/10, final 2.2e-01
+
+(B) ls-cond: L = L=0.125*R2, mu=1*lam, passes to 1e-06
+  coupling (L-Katyusha)                      77.6 [72.8, 106.8]
+  no y step (y = x)                          80.5 [73.6, 99.0]
+  Euclidean y step, gamma_y = 1/(3L)         77.6 [72.8, 106.8]
+  sharp y step, gamma_y = 0.111/R2_op        79.8 [73.0, 99.0]
+  sharp y step, gamma_y = 1/R2_op            79.6 [72.0, 103.4]
+  sharp y step, gamma_y = 8/R2_op            reached 0/10, final 1.6e+27
+  sharp y step, gamma_y = 32/R2_op           reached 0/10, final 4.3e+28
+
+(B) ls-orth: L = L=0.125*R2, mu=10*lam, passes to 1e-06
+  coupling (L-Katyusha)                      43.2 [34.8, 55.6]
+  no y step (y = x)                          43.6 [36.0, 57.8]
+  Euclidean y step, gamma_y = 1/(3L)         43.2 [34.8, 55.6]
+  sharp y step, gamma_y = 0.111/R2_op        43.6 [35.8, 57.8]
+  sharp y step, gamma_y = 1/R2_op            42.9 [36.2, 55.6]
+  sharp y step, gamma_y = 8/R2_op            reached 0/10, final 9.5e+11
+  sharp y step, gamma_y = 32/R2_op           reached 0/10, final 7.4e+26
+
+(B) soft-sq: L = L=0.0625*R2, mu=1*lam, passes to 1e-06
+  coupling (L-Katyusha)                      37.6 [34.6, 58.2]
+  no y step (y = x)                          38.2 [34.2, 59.2]
+  Euclidean y step, gamma_y = 1/(3L)         37.6 [34.6, 58.2]
+  sharp y step, gamma_y = 0.111/R2_op        38.2 [34.2, 59.0]
+  sharp y step, gamma_y = 1/R2_op            37.6 [34.2, 58.0]
+  sharp y step, gamma_y = 8/R2_op            38.2 [34.4, 66.6]
+  sharp y step, gamma_y = 32/R2_op           reached 0/10, final 7.5e-02
+
+M7 done in 354s

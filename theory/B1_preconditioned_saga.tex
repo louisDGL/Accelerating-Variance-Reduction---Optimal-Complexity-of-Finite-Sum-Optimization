@@ -910,8 +910,10 @@ price paid in the $P$-metric is the coherence constant $C$ and the curvature $m(
 when some margins $|x_i^\top\theta|$ are large ($\sigma'(u)\approx e^{-|u|}$); the Newton metric (d)
 addresses this second issue.
 
-On the instances of our experiments this price dominates, and Corollary~\ref{cor:B1-kappa-traj} predicts no
-gain. In the experiment of Figure~B1 of the report ($n=1000$, $d=50$, $\kappa=10^3$, covariance spectrum
+On the instances of the experiment of Figure~B1 of the report this price dominates, and
+Corollary~\ref{cor:B1-kappa-traj} predicts no gain (on the designs of the paragraph \emph{Other designs} at the end of
+Section~\ref{sec:B1-predictions}, whose curvatures at the optimum are nearly homogeneous, it is informative). There
+($n=1000$, $d=50$, $\kappa=10^3$, covariance spectrum
 $j^{-\alpha}$; Section~\ref{sec:B1-predictions}), $m(\theta)\to\min_iw_i=7.4\cdot10^{-3}$ ($\alpha=1$) and
 $6.1\cdot10^{-3}$ ($\alpha=2$) as $\theta\to\etastar$, with $w_i=\sigma_i'(\etastar)$ as in paragraph~(d), so
 that the first bound in \eqref{eq:B1-kappa-traj-stat} tends to $1.7\cdot10^3$ and $1.2\cdot10^3$: above
@@ -1539,3 +1541,38 @@ $0.066$, $0.063$ for $\alpha=1$), shows that with global constants the min step 
 the memory-dominated dense metrics. (P5) was not run as a separate experiment; the instrumentation in the
 $P$-metric is checked instead against an exact enumeration of the $n$ possible steps, for a dense and a diagonal
 $P$ (\texttt{tests/test\_vrlab.py}).
+
+\emph{Other designs.} Section~5.6 of the report (paragraph \emph{Orientation and coherence}) repeats the experiment on
+the two synthetic designs of Section~5 of \cite{na2023hessian}: $n=1000$, $d=50$, $\kappa=10^3$ with a probe at
+$\kappa=10^4$, $\hat\Sigma$ diagonal with condition number $2500$, logistic labels that are nearly pure noise, three data
+sets with incoherent leverage scores ($C=d_\infty(\lambda)/d_{\mathrm{eff}}(\lambda)=1.7$--$2.0$) and five with coherent
+ones ($C=14$--$17$); script \texttt{experiments/exp\_B1\_coherence.py}, output
+\texttt{results/B1\_coherence\_summary.json}. Four observations complement the outcome above.
+(i) The curvatures at the optimum are nearly homogeneous there ($\min_iw_i=0.08$--$0.18$), and
+Corollary~\ref{cor:B1-kappa-traj} is informative: along the runs of $\hat\Sigma+\lambda I$ its first bound holds at every
+instrumented state, is $1.3$ to $2.5$ times the measured $\kappa^P_{\mathrm{eff}}(\theta_{t-1})$ over passes 2--20, and
+stays below $\kappa$ on seven of the eight data sets; it grows with $d_\infty(\lambda)$, from $100$--$132$ to
+$621$--$1065$ over passes 2--20, as the measured $\kappa^P_{\mathrm{eff}}$ does, from $69$--$82$ to $420$--$527$ over
+passes 15--20.
+(ii) The condition \eqref{eq:B1-bottleneck-condition} with $m=\min_iw_i$ holds on the incoherent data sets
+($n\ge188$--$235$; with the smallest $m(\theta_t)$ met along the runs, $n\ge193$--$252$) and fails on the coherent ones
+($n\ge1819$--$2984$). With the local constants, $R_P^2/\lmin(M_P)$ is $81$--$95$ on the incoherent data sets and
+$467$--$549$, just below $\frac{9n}{16}$, on the coherent ones; the median parameter share of $V^P$ over passes 2--20 is
+$0.05$--$0.06$ against $0.61$--$0.81$, and the gain of $\hat\Sigma+\lambda I$ over $P=I$ falls from $1.55$--$1.77$ to
+$1.42$--$1.70$ (at $\kappa=10^4$, where coherence takes $R_P^2/\lmin(M_P)$ to $2279$, from $8.5$ to $2.7$).
+(iii) From $P=I$ to $\hat\Sigma+\lambda I$ (geometric means over the instrumented states of passes 2--20), (P2) holds in
+direction on both kinds of data sets, attenuated by coherence: $r_{\mathrm{coco}}$ rises from $0.10$--$0.15$ to
+$0.39$--$0.46$ (incoherent) and from $0.07$--$0.09$ to $0.16$--$0.21$ (coherent), and $r_{\mathrm{sc}}$ falls from
+$0.61$--$0.72$ to $0.033$--$0.034$ and from $0.76$--$0.78$ to $0.17$--$0.22$. Of the heuristics of (P4),
+$r_{\mathrm{var}}$ again increases under preconditioning ($0.9922$--$0.9945$ to $0.9992$--$0.9993$, and
+$0.9856$--$0.9880$ to $0.9912$--$0.9934$); $r_{\mathrm{sq}}$ exceeds $\frac12$ on the incoherent data sets
+($0.522$--$0.524$, and above $\frac12$ at $96$--$99\%$ of the states), where the memory dominates $V^P$, and is below it
+on the coherent ones ($0.20$--$0.36$, and above $\frac12$ at no more than $15\%$ of the states), where it no longer
+does, consistently with the diagnosis above; $r_{\mathrm{init}}$ increases on the three incoherent data sets but
+decreases on three of the five coherent ones.
+(iv) On these axis-aligned designs $P_{\mathrm J}=\hat\Sigma+\lambda I$ up to rounding (Proposition~\ref{prop:B1-diag}(iii)
+with $C_{\mathrm{corr}}=I$), and on data set $0$ of each design the Jacobi metric runs at the exponents of
+$\hat\Sigma+\lambda I$ (relative difference below $5\cdot10^{-13}$); after a random rotation
+of the same data ($\operatorname{cond}(C_{\mathrm{corr}})=2.2\cdot10^3$--$2.6\cdot10^3$) its exponent is $0.92$ to $1.13$
+times that of $P=I$, whereas $\hat\Sigma+\lambda I$, whose iterates rotate with the data, keeps its gain of $1.42$ to
+$1.77$.

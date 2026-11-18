@@ -8,7 +8,10 @@
 % up to 69.9 over the fifteen B3 problems (B3_summary.json, key mu_local_over_mu). States with mu_eff < mu: only ten
 % discarded GD states, for alpha = 2, kappa = 1e2 (iterations 240-249, ||theta_t - eta*||^2 from 6.9e-26 to 9.8e-27,
 % mu_eff/mu from 0.993 down to 0.795), computed from results/B2.pkl (the summary stores the minimum under the key
-% gd_mu_eff_over_mu_min_all_states).
+% gd_mu_eff_over_mu_min_all_states). Their attribution, the recount of the GD exceptions and the curvature along the ray
+% through theta_0 = 0: experiments/exp_B2_checks.py -> results/B2_checks_summary.json (rebuild; gd/<config>: reference,
+% exact_reference_interval, cached|f64, cached|40d, corrected|f64, corrected|40d, increases, gd_40_digit,
+% f64_check_at_states; ray/<config>, ray_summary).
 % -----------------------------------------------------------------------------------------------------
 \subsection{Effective curvature along the trajectories (hypothesis B2)}\label{sec:exp-B2}
 
@@ -36,9 +39,27 @@ Section~\ref{sec:th-B1} (Figure~\ref{fig:B2}).
   \label{fig:B2}
 \end{figure}
 
-The bound $\muEff\ge\mu$ of \resref{lem:B2-mueff} holds at every retained state (ten discarded GD states below the floor,
-at $\alpha=2$, $\kappa=10^2$, give $\muEff/\mu$ between $0.795$ and $0.993$, a rounding artefact), and along SAGA $\muEff/\mu$ starts between
-$1.8$ and $50$. The SAGA runs end after 60 passes (last record at pass $59.9$), or after 34 to 49 passes for the five runs
+% Sources: experiments/exp_B2_mu_eff.py -> results/B2_summary.json (keys of the header); experiments/exp_B2_checks.py ->
+% results/B2_checks_summary.json (gd/alpha=2,kappa=100: reference, exact_reference_interval, cached|f64, cached|40d,
+% corrected|40d; ray/<config>: mu_eff_theta0_over_mu, rayleigh_H_star_dir_eta_over_mu,
+% mu_eff_theta0_over_rayleigh_H_star; ray_summary; gd/alpha=0,kappa=1000 and gd/alpha=0,kappa=10000: increases of
+% cached|f64, corrected|f64, cached|40d, corrected|40d, gd_40_digit (n_increasing_steps, n_steps,
+% max_dev_float64_iterates_over_error); the seven other gd/<config>: increases, f64_check_at_states).
+The bound $\muEff\ge\mu$ of \resref{lem:B2-mueff} holds at every retained state. Below the floor, ten GD states at
+$\alpha=2$, $\kappa=10^2$ (iterations 240--249, $\norm{\theta_t-\etastar}^2$ from $6.9\cdot10^{-26}$ down to
+$9.8\cdot10^{-27}$) give $\muEff/\mu$ between $0.795$ and $0.993$. This comes from the precision of the computed $\etastar$,
+not from rounding in the iterates or in the gradients. One Newton step, computed from the gradient at $\etastar$ evaluated
+in 40-digit arithmetic, moves $\etastar$ by $4.7\cdot10^{-14}$, the order of $\norm{\theta_t-\etastar}$ at these states.
+With the corrected minimizer and 40-digit gradients, $\muEff\ge1.021\,\mu$ at all 250 states of that run; the 40-digit
+residual of the corrected minimizer places it within $9.4\cdot10^{-28}$ of the exact one, and the interval that this
+distance gives for $\muEff$ with respect to the exact minimizer (relative half-width at most $1.4\cdot10^{-13}$) lies
+above $\mu$ at every state. With the cached $\etastar$, 40-digit gradients still give 11 states below $\mu$. Along SAGA,
+$\muEff/\mu$ starts between $1.8$ and $50$. From $\theta_0=0$ the segment $[\theta_0,\etastar]$ lies on the ray
+$\tau\mapsto\tau\etastar$, along which $F''$ is non-increasing in the Loewner order (\resref{rem:B2-ray}). Hence
+$\muEff(\theta_0)$, the average over $\tau\in[0,1]$ of the curvature $u^\top F''(\tau\etastar)u$ in the direction $u$ of
+$\etastar$, is at least its value $u^\top F''(\etastar)u$ at the optimum, which is $1.7$ to $10.4$ times $\mu$ on these
+nine problems. The starting values exceed it by factors that grow with $\kappa$: $1.07$--$1.15$ at $\kappa=10^2$,
+$2.9$--$4.8$ at $\kappa=10^4$. The SAGA runs end after 60 passes (last record at pass $59.9$), or after 34 to 49 passes for the five runs
 that reach the floor ($\kappa\le10^3$, except $\alpha=2$, $\kappa=10^3$). For $\kappa=10^4$ and $\alpha\in\{0,1\}$ the
 error of SAGA concentrates on $q_{\min}$ ($\pi_{\min}=0.998$ and $0.9996$ at the end, $d_{\rm eff}=1.005$ and $1.001$;
 from $\theta_0=0$, $\pi_{\min}$ starts at $0.984$ and $0.888$, and for $\alpha=0$ it first drops to $0.938$ at pass
@@ -51,10 +72,16 @@ last five passes, against $1.10$, while GD ends at $1.15$); at $\kappa=10^3$ the
 $\pi_{\min}=0.31$) or absent ($\alpha=0$: $d_{\rm eff}$ about $17$ over the last five passes, while GD is aligned). For
 $\alpha=2$ the bottom of the spectrum of $F''(\etastar)$ is nearly degenerate and neither method aligns with $q_{\min}$
 (for $\kappa\ge10^3$, GD has moreover not converged after 400 iterations: $\norm{\theta_t-\etastar}^2=5.7\cdot10^{-4}$ and
-$202$). Along GD, $\muEff$ is non-increasing at every step up to rounding, as it is exactly on a quadratic by
-\resref{prop:B2-gd}: the exceptions, $13$ of $118$ and $56$ of $400$ steps for $\alpha=0$ and $\kappa=10^3$, $10^4$, are
-relative increases of at most $7.2\cdot10^{-7}$ and $2.7\cdot10^{-6}$, at states with
-$\norm{\theta_t-\etastar}^2\le8.3\cdot10^{-14}$ and $8.1\cdot10^{-13}$. At the end of every SAGA run the quadratic proxy
+$202$). Along GD, $\muEff$ is non-increasing, as it is exactly on a quadratic by \resref{prop:B2-gd}, except for
+rounding effects near $\etastar$. Computed in double precision with the cached $\etastar$, it increases on $13$ of $118$
+and $56$ of $400$ steps for $\alpha=0$ and $\kappa=10^3$, $10^4$ (on none in the seven other runs), by at most
+$7.3\cdot10^{-7}$ and $2.8\cdot10^{-6}$ in relative terms, at states with $\norm{\theta_t-\etastar}^2\le8.4\cdot10^{-14}$
+and $8.1\cdot10^{-13}$. At the same iterates, with the corrected minimizer and 40-digit gradients, no increase remains at
+$\kappa=10^3$ and two remain at $\kappa=10^4$, of relative size below $5\cdot10^{-12}$ at
+$\norm{\theta_t-\etastar}^2<3\cdot10^{-18}$, whereas either correction alone leaves $11$ and $53$ (corrected minimizer)
+or $27$ and $95$ (40-digit gradients). These two come from the rounding of the iterates: gradient descent run in 40-digit
+arithmetic, whose iterates stay within $2.7\cdot10^{-6}\norm{\theta_t-\etastar}$ of the double-precision ones, has no
+increase in its $118$ and $400$ steps. At the end of every SAGA run the quadratic proxy
 $\sum_k\lambda_k\pi_k(t)$, with $\lambda_k$ the eigenvalues of $F''(\etastar)$, matches $\muEff$ within $1\%$: near
 $\etastar$, $\muEff$ is set by the direction of the error, as \resref{prop:B2-limits} states. The geometric means of
 $\LEff/R^2$ along SAGA are $0.19$--$0.38$, $0.11$--$0.16$ and $0.012$--$0.09$ for $\alpha=0,1,2$.
@@ -83,6 +110,8 @@ evaluated along the runs (Section~\ref{sec:th-B3} only computes the rate it give
 % Rem. B1-memory-bottleneck, predictions (P1)--(P3) and their outcome paragraph), findings.md Sec. 3. Split of the factor
 % 3.3-3.8 along order A (memory coefficient 1.95-1.99, I5 1.55-1.70, pathwise remainder 1.10-1.12) and the factor
 % 1.10-1.26 invisible in E V_t^P: B1 note, Outcome, and findings.md Sec. 3 (computed from results/B1.pkl).
+% Paragraph "Orientation and coherence" (designs of na2023hessian, our port vrlab.problems.make_logistic_ndm):
+% experiments/exp_B1_coherence.py -> results/B1_coherence_summary.json (keys in the comments of the paragraph).
 % -----------------------------------------------------------------------------------------------------
 \subsection{SAGA in a fixed quadratic metric (hypothesis B1)}\label{sec:exp-B1}
 
@@ -142,3 +171,93 @@ randomly rotated, so the diagonal of $\hat\Sigma$ carries little of its anisotro
 $P_{\rm J}$ within a factor $\operatorname{cond}(C_{\rm corr})$ of $\hat\Sigma+\lambda I$, in either direction: nothing in
 the theory orders $P_{\rm J}$ with respect to $P=I$. The dense metrics cost $O(nd^2)$ per pass, and $P=F''(\etastar)$
 requires $\etastar$ (an oracle benchmark).
+
+\paragraph{Orientation and coherence.}
+% Sources: experiments/exp_B1_coherence.py -> results/B1_coherence_summary.json (config; problems/<data set>/geometry:
+% bayes_accuracy, stat_minus_jacobi_max_over_lmin_PJ, corr_cond, jacobi_cond, stat_cond; checks:
+% jacobi_vs_stat_axis_aligned, rotation_equivariance; runs/lc|seed=0|diag and runs/hc|seed=0|diag: gain_vs_I;
+% rotated_jacobi, rotated_jacobi_ranges).
+We repeated this experiment on the two synthetic designs of Section~5 of~\cite{na2023hessian}, as written in their
+public code (our port is described in Appendix~\ref{app:repro}): $X=cUD$, where $U$ holds the left singular vectors of an
+$n\times d$ standard Gaussian matrix, $D$ is diagonal with entries equally spaced from $1$ to $d$, and $c$ sets
+$\max_i\norm{x_i}=1$; in the high-coherence design the rows of the Gaussian matrix are first divided by the square roots
+of independent $\chi^2_1$ variables (Gamma of shape $\frac12$ and scale $2$). The labels follow a logistic model with a
+planted parameter and are nearly
+pure noise (Bayes accuracy $0.50$--$0.52$), and $\lambda$ gives $\kappa=10^3$. We used three data sets of the
+low-coherence design and five of the high-coherence one ($n=1{,}000$, $d=50$, the protocol above, 5 sampling seeds, at
+most 100 passes, exponents over passes 2--20). In both designs $\hat\Sigma=c^2D^2/n$ is diagonal: the anisotropy
+(condition number $2500$) lies along the coordinate axes. There the Jacobi metric is $\hat\Sigma+\lambda I$ up to
+rounding (the off-diagonal entries of the computed $\hat\Sigma$ are below $10^{-13}\lmin(P_{\rm J})$): on data set $0$
+of each design it runs at the exponents of $\hat\Sigma+\lambda I$ (relative difference below $5\cdot10^{-13}$) and gets
+its whole gain, $1.67$ and $1.44$ times the exponent of $P=I$. We then rotated every data set, $X\mapsto XQ^\top$ with a
+Haar-distributed $Q$, which leaves the leverage scores, the labels, $\lambda$, $R^2$ and the spectrum of $\hat\Sigma$
+unchanged and correlates the features ($\operatorname{cond}(C_{\rm corr})=2.2\cdot10^3$--$2.6\cdot10^3$). The iterates
+of $P=I$, $\hat\Sigma+\lambda I$ and $F''(\etastar)$ rotate with the data, and their exponents are unchanged (to within
+$3\cdot10^{-12}$, relative, for $P=I$ on the eight data sets and for the two dense metrics on data set $0$ of each
+design). The Jacobi metric loses the gain: on the eight rotated data sets its exponent is $0.92$ to $1.13$ times that of
+$P=I$, its diagonal having become nearly uniform ($\operatorname{cond}(P_{\rm J})=1.7$--$2.6$, against
+$\operatorname{cond}(\hat\Sigma+\lambda I)=16$--$103$). This controlled test supports the explanation given above: the
+gain of $P_{\rm J}$ comes from the anisotropy that lies along the coordinate axes.
+
+% Sources: experiments/exp_B1_coherence.py -> results/B1_coherence_summary.json (families/lc and families/hc: d_inf, C,
+% w_min, w_median, I and stat entries, stat/kappa_eff_I_over_stat_15_20; probe_kappa_1e4; problems/<data set>:
+% geometry (max_abs_margin_at_eta, n_required_limit), constants/stat (R2_P, R2_P_upper_over_exact, R2_P_over_lmin_M,
+% rate_local_pass); runs/<data set>|stat and |hess: rate_pass_mean, rate_pass_seeds, gain_vs_I, kappa_eff_gm_15_20,
+% cor_bound_2_20, cor_bound_over_kappa_eff_2_20, cor_bound_frac_above_kappa_2_20, cor_violations_all_states,
+% Dshare_median_2_20; selfcheck_B1/alpha=1|stat and alpha=2|stat: w_min, cor_bound_seed0_first_pass_above_kappa_for_good;
+% problems/B1|alpha=1 and B1|alpha=2: geometry/max_abs_margin_at_eta). Variant "labels": experiments/exp_B3_families.py
+% -> results/B3_families_summary.json (problems/L,lc,kap=1,dseed=0,kappa=1000 and L,hc,kap=1,dseed=0,kappa=1000:
+% sigma_prime_min, bayes_acc; same features and lambda as lc|seed=0 and hc|seed=0, whose w_min equals sigma_prime_min
+% of P,lc,... and P,hc,... there).
+The high-coherence design makes the leverage scores coherent. For $P=\hat\Sigma+\lambda I$, the table gives ranges over
+the data sets, the exponents being means over the sampling seeds:
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+ & \multicolumn{2}{c}{$\kappa=10^3$} & \multicolumn{2}{c}{$\kappa=10^4$ (data set $0$)} \\
+\cmidrule(lr){2-3}\cmidrule(l){4-5}
+ & low coherence & high coherence & low coherence & high coherence \\
+\midrule
+data sets $\times$ sampling seeds & $3\times5$ & $5\times5$ & $1\times3$ & $1\times3$ \\
+$C=d_\infty(\lambda)/d_{\rm eff}(\lambda)$ & $1.7$--$2.0$ & $14$--$17$ & $2.1$ & $18.6$ \\
+$d_\infty(\lambda)$ & $74$--$88$ & $487$--$591$ & $99$ & $828$ \\
+$\min_iw_i$ & $0.16$--$0.18$ & $0.08$--$0.14$ & $0.15$ & $0.020$ \\
+$R_P^2$ & $19$--$23$ & $123$--$149$ & $26$ & $208$ \\
+$R_P^2/\lmin(M_P)$, against $\frac{9n}{16}=562.5$ & $81$--$95$ & $467$--$549$ & $115$ & $2279$ \\
+$\kappa^P_{\rm eff}(\theta_{t-1})$, passes 15--20 & $69$--$82$ & $420$--$527$ & $102$ & $1823$ \\
+first bound of~\eqref{eq:B1-kappa-traj-stat}, passes 2--20 & $100$--$132$ & $621$--$1065$ & $163$--$171$ & $2424$--$7326$ \\
+median parameter share of $V^P$, passes 2--20 & $0.05$--$0.06$ & $0.61$--$0.81$ & $0.09$ & $0.98$ \\
+exponent per pass, $P=I$ & $0.60$--$0.67$ & $0.62$--$0.64$ & $0.12$ & $0.12$ \\
+exponent per pass, $P=\hat\Sigma+\lambda I$ & $1.03$--$1.07$ & $0.90$--$1.05$ & $1.04$ & $0.31$ \\
+gain of $\hat\Sigma+\lambda I$ over $P=I$ & $1.55$--$1.77$ & $1.42$--$1.70$ & $8.5$ & $2.7$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+As \resref{prop:B1-stat-global} states, $R_P^2$ follows $d_\infty(\lambda)/4$ (the exact supremum of
+\resref*{def:B1-kappaP} is within $5\%$ of these upper bounds), and the measured effective condition number and the bound
+of \resref{cor:B1-kappa-traj}, which holds at every instrumented state, grow with it. Over passes 15--20, the effective
+condition number of $P=I$ is $10.5$ to $12.2$ times that of $\hat\Sigma+\lambda I$ in the low-coherence design, but only
+$1.7$ to $2.1$ times in the high-coherence one; the exponent gain degrades much less, from $1.55$--$1.77$ to
+$1.42$--$1.70$. The local constants account for this, heuristically: $R_P^2/\lmin(M_P)$ stays below $\frac{9n}{16}$ in
+both designs, so that the bound of Proposition~\ref{prop:59} with $\lmin(M_P)$ in place of $\mu_P$ is saturated by the
+memory term, $\frac13$ per pass, in both (\resref{rem:B1-memory-bottleneck}). What coherence changes is the distance to
+the threshold: far below it the parameter part carries $5$--$6\%$ of $V^P$ (medians over passes 2--20), near it
+$61$--$81\%$, and across the five high-coherence data sets the mean exponent is lower where $R_P^2/\lmin(M_P)$ is larger:
+$1.05$, $0.98$, $0.95$, $0.90$ and $0.90$ at $467$, $505$, $539$, $544$ and $549$ (on each of these data sets the
+exponents of the five sampling seeds spread over at most $0.08$). The local-constant bound, $\frac13$ per pass in both
+designs, does not see this partial loss. At $\kappa=10^4$, coherence takes $\hat\Sigma+\lambda I$ past the threshold, and the gain falls from $8.5$ to $2.7$
+($F''(\etastar)$: from $8.5$ to $2.5$). With labels this close to noise, the margins at the optimum are small
+($\max_i\abs{x_i^\top\etastar}\le2.31$ at $\kappa=10^3$, against about $5$ on our designs), so that the curvatures are nearly
+homogeneous: $\min_iw_i$ is $0.08$ to $0.18$ (median about $0.25$), against $7.4\cdot10^{-3}$ and $6.1\cdot10^{-3}$ on our
+designs; with the labels of the variant ``labels'' of Section~\ref{sec:exp-B3} (Bayes accuracy $0.85$) on the same
+features and $\lambda$ (data set $0$), $\min_iw_i$ falls to $1.1\cdot10^{-3}$ and $2.6\cdot10^{-4}$ (low and high
+coherence). This is what makes \resref*{cor:B1-kappa-traj} informative there: over passes 2--20 its bound is $1.3$ to $2.5$
+times the measured $\kappa^P_{\rm eff}(\theta_{t-1})$ and stays below $\kappa$ on seven of the eight data sets (on the
+eighth, with $\min_iw_i=0.08$, it exceeds $\kappa$ by at most $6.5\%$), whereas on our designs it exceeds $\kappa$ from
+pass $0.6$ on (seed $0$). Likewise, the sufficient condition $n\ge(4d_\infty(\lambda)+16)/(9m)$ of
+\resref*{rem:B1-memory-bottleneck}, with $m=\min_iw_i$, requires $n\ge188$--$235$ on the low-coherence data sets, which
+$n=1000$ meets, and $n\ge1819$--$2984$ on the high-coherence ones. These statements rest on one family of designs at two
+coherence levels, on $\kappa=10^3$ with a single probe at $10^4$, on three and five data sets, on five sampling seeds
+(three for the probe) and on exponents over passes 2--20.

@@ -1,0 +1,26 @@
+C:\Users\Louis\Desktop\berkeley\projetSTATS\experiments\plotstyle.py:150: UserWarning: constrained_layout not applied because axes sizes collapsed to zero.  Try making figure larger or Axes decorations smaller.
+  fig.savefig(os.path.join(FIGURES, f"{name}.{ext}"))
+   7.75 x 9.59 in; included at 6.5 in: scale 0.84, height 8.05 in, smallest text 6.5 pt -> 5.5 pt
+saved figures/figM1_ranking_memory.{png,pdf}
+C:\Users\Louis\Desktop\berkeley\projetSTATS\experiments\plotstyle.py:150: UserWarning: constrained_layout not applied because axes sizes collapsed to zero.  Try making figure larger or Axes decorations smaller.
+  fig.savefig(os.path.join(FIGURES, f"{name}.{ext}"))
+   7.75 x 9.59 in; included at 6.5 in: scale 0.84, height 8.05 in, smallest text 6.5 pt -> 5.5 pt
+saved figures/figM1_ranking_conditioning.{png,pdf}
+C:\Users\Louis\Desktop\berkeley\projetSTATS\experiments\plotstyle.py:150: UserWarning: constrained_layout not applied because axes sizes collapsed to zero.  Try making figure larger or Axes decorations smaller.
+  fig.savefig(os.path.join(FIGURES, f"{name}.{ext}"))
+   7.75 x 9.59 in; included at 6.5 in: scale 0.84, height 8.05 in, smallest text 6.5 pt -> 5.5 pt
+saved figures/figM1_ranking_square.{png,pdf}
+   6.93 x 5.18 in; included at 6.5 in: scale 0.94, height 4.86 in, smallest text 7.5 pt -> 7.0 pt
+saved figures/figM1_curves.{png,pdf}
+   7.15 x 5.13 in; included at 6.5 in: scale 0.91, height 4.66 in, smallest text 7 pt -> 6.4 pt
+saved figures/figM2_mechanism.{png,pdf}
+   7.37 x 5.82 in; included at 6.5 in: scale 0.88, height 5.13 in, smallest text 7.5 pt -> 6.6 pt
+saved figures/figM3_floors.{png,pdf}
+   6.86 x 3.40 in; included at 6.5 in: scale 0.95, height 3.22 in, smallest text 7.5 pt -> 7.1 pt
+saved figures/figM4_sensitivity.{png,pdf}
+   6.81 x 3.02 in; included at 6.5 in: scale 0.95, height 2.88 in, smallest text 7.5 pt -> 7.2 pt
+saved figures/figM5_batch.{png,pdf}
+   6.80 x 5.14 in; included at 6.5 in: scale 0.96, height 4.91 in, smallest text 7.5 pt -> 7.2 pt
+saved figures/figM6_miso.{png,pdf}
+   7.63 x 4.02 in; included at 6.5 in: scale 0.85, height 3.42 in, smallest text 7.5 pt -> 6.4 pt
+saved figures/figM8_dataseeds.{png,pdf}

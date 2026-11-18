@@ -1,0 +1,248 @@
+
+=== soft-mem: softmax_n1000_d50_K10_k1000_a1_s0  R2/mu_true = 863 (n = 1000), cond(H*) = 15, L_op/L_F = 3.18, nrank(G0) = 5.80, budget 40 passes, target 1e-09
+[M1_soft-mem_screen] 70 runs to do (783 cached), 4 processes
+[M1_soft-mem_screen] finished 70 runs in 43s
+[M1_soft-mem_tune] 46 runs to do (625 cached), 4 processes
+[M1_soft-mem_tune] 13/46 done, 60s
+[M1_soft-mem_tune] finished 46 runs in 100s
+[M1_soft-mem_confirm] 5 runs to do (142 cached), 4 processes
+[M1_soft-mem_confirm] finished 5 runs in 9s
+family                           status selected step                              passes to 1e-3             to 1e-09  final rel. dist2  edge
+B-SAGA                           sota   theta=0.6, gamma=0.5/R2                    5.5 [5.3, 5.7]    17.3 [16.3, 21.2]           9.7e-14  theta-
+SAGA b=10                        sota   gamma=8/R2                                 5.1 [4.8, 5.5]    17.4 [17.1, 19.3]           9.4e-14  
+split SAGA-Muon b=10             new    gamma_c=4/R2, gamma=4/R2_op                5.2 [5.0, 5.8]    17.5 [17.0, 19.2]           9.4e-14  
+split SAGA-Muon                  new    gamma_c=0.25/R2, gamma=0.5/R2_op           5.4 [5.4, 5.7]    17.5 [16.6, 20.1]           9.5e-14  
+SAGA-Muon (joint) b=10           new    gamma=1/R2_op                              5.3 [5.2, 5.8]    17.5 [16.5, 19.4]           9.6e-14  
+soft SAGA-Muon                   new    eps_innov=1, gamma=1/R2_op                 5.0 [4.8, 5.2]    17.7 [15.4, 20.5]           9.4e-14  
+SAGA                             sota   gamma=0.5/R2                               5.7 [5.6, 5.8]    17.8 [16.8, 20.6]           9.3e-14  
+radial SAGA-Muon                 new    gamma_c=0.5/R2, gamma=0.5/R2_op            5.1 [4.9, 5.2]    17.8 [15.6, 20.6]           9.8e-14  
+SAGA-Muon (joint)                lab    gamma=0.125/R2_op                          5.9 [5.7, 6.1]    17.9 [17.2, 20.3]           9.8e-14  
+mean-scaled SAGA-Muon            new    gamma=16/R2_op                             5.9 [5.8, 6.3]    18.1 [17.8, 20.4]           7.3e-14  
+damped SAGA-Muon                 new    theta=0.6, gamma=0.25/R2_op                5.8 [5.6, 6.0]    18.1 [17.2, 20.7]           9.3e-14  theta-
+MISO                             sota   miso_delta=1                               5.9 [5.8, 6.2]    18.7 [17.6, 20.7]           7.5e-14  miso_delta-
+polar-metric SAGA                new    metric_floor=1, c_metric=1                 5.5 [5.4, 5.8]    19.3 [17.1, 23.2]           8.9e-14  metric_floor+
+anchor-PolarGrad L-SVRG          new    anchor_step=8, gamma=2/R2                  7.6 [6.4, 8.6]    23.2 [20.8, 33.6]           9.3e-14  
+relaxed-memory SAGA-Muon         new    gamma=1/R2_op                              6.4 [6.1, 6.5]    23.3 [22.9, 24.8]           9.5e-14  
+L-SVRG                           sota   gamma=2/R2                                 7.6 [6.2, 8.2]    23.8 [21.0, 34.6]           9.1e-14  
+tangent SAGA-Muon                new    gamma=0.125/R2_op                          7.2 [7.0, 7.2]    24.4 [21.4, 29.9]           9.4e-14  
+polar-metric L-SVRG              new    metric_floor=1, c_metric=2                 8.2 [7.2, 8.6]    25.4 [23.0, 39.6]           9.9e-14  metric_floor+
+PAGE                             sota   gamma=2/R2                                 8.0 [7.2, 8.8]    29.8 [20.8, 34.2]           3.5e-13  
+L-Katyusha                       sota   L=0.125*R2, mu=0.3*lam                     8.2 [7.0, 8.8]    30.2 [25.2, 39.6]           1.7e-12  mu-
+Katyusha-Muon                    new    L=0.25*R2, mu=1*lam, gamma_y=1/R2_op      8.2 [7.0, 11.6]     31.4 [25.0, inf]           1.3e-12  gamma_y+
+PAGE-Muon (joint)                new    gamma=0.5/R2_op                          10.2 [8.0, 14.0]    33.0 [29.2, 39.6]           1.4e-11  
+lazy split L-SVRG-Muon           new    gamma_c=0.5/R2, gamma=0.125/R2_op        17.6 [12.6, inf]                    -           6.7e-06  
+GD                               sota   step=6/L_F                                           23.0                    -           1.0e-05  
+PolarGrad                        sota   L=0.25*L_op                                          26.0                    -           1.9e-04  
+SGD b=32                         sota   lr=4/R2                                                 -                    -           7.5e-03  
+L-SVRG-Muon (joint)              lab    gamma=0.03125/R2_op                      36.4 [25.2, inf]                    -           8.2e-03  
+Muon b=32                        sota   lr=0.1                                                  -                    -           1.1e-02  
+STORM-Muon b=32                  sota   lr=0.1                                                  -                    -           1.8e-02  
+MARS-M b=32                      sota   lr=0.1                                                  -                    -           1.9e-02  
+sharp STORM-Muon b=32            new    gamma=0.1/L_op                                          -                    -           2.1e-02  
+
+=== ls-mem: ls_n1000_d50_K10_k1000_a1_s0  R2/mu_true = 476 (n = 1000), cond(H*) = 32, L_op/L_F = 3.18, nrank(G0) = 6.11, budget 40 passes, target 1e-09
+[M1_ls-mem_screen] 70 runs to do (783 cached), 4 processes
+[M1_ls-mem_screen] finished 70 runs in 35s
+[M1_ls-mem_tune] 46 runs to do (625 cached), 4 processes
+[M1_ls-mem_tune] 13/46 done, 64s
+[M1_ls-mem_tune] finished 46 runs in 122s
+family                           status selected step                              passes to 1e-3             to 1e-09  final rel. dist2  edge
+soft SAGA-Muon                   new    eps_innov=1, gamma=0.5/R2_op               5.8 [5.6, 6.1]    18.8 [17.1, 20.9]           9.8e-14  
+B-SAGA                           sota   theta=0.6, gamma=0.25/R2                   6.1 [5.9, 6.3]    19.0 [17.3, 21.0]           9.6e-14  theta-,gamma-
+SAGA                             sota   gamma=0.25/R2                              6.3 [6.2, 6.4]    19.1 [18.5, 21.4]           9.9e-14  
+SAGA-Muon (joint) b=10           new    gamma=0.5/R2_op                            6.5 [6.4, 6.8]    19.2 [18.8, 21.4]           8.8e-14  
+radial SAGA-Muon                 new    gamma_c=0.25/R2, gamma=0.125/R2_op         5.8 [5.8, 6.2]    19.4 [18.2, 20.9]           8.8e-14  
+split SAGA-Muon                  new    gamma_c=0.125/R2, gamma=0.125/R2_op        7.1 [6.8, 7.4]    19.9 [19.6, 26.7]           9.5e-14  
+SAGA b=10                        sota   gamma=4/R2                                 5.9 [5.7, 6.4]    20.4 [18.5, 20.8]           9.1e-14  
+split SAGA-Muon b=10             new    gamma_c=1/R2, gamma=1/R2_op                7.2 [7.0, 7.7]    20.4 [19.8, 24.5]           9.5e-14  
+polar-metric SAGA                new    metric_floor=1, c_metric=0.5               6.4 [6.3, 6.6]    21.4 [19.9, 28.4]           9.7e-14  metric_floor+
+damped SAGA-Muon                 new    theta=0.3, gamma=0.03125/R2_op             8.2 [7.9, 8.4]     23.0 [22.4, inf]           9.7e-14  
+SAGA-Muon (joint)                lab    gamma=0.015625/R2_op                       8.3 [8.0, 8.6]     23.3 [22.4, inf]           1.0e-13  
+mean-scaled SAGA-Muon            new    gamma=0.25/R2_op                           8.8 [8.2, 9.1]    23.4 [22.8, 24.3]           9.7e-14  
+relaxed-memory SAGA-Muon         new    gamma=0.03125/R2_op                        8.5 [8.2, 9.1]    26.6 [25.7, 26.9]           9.3e-14  
+MISO                             sota   miso_delta=1                            11.0 [10.1, 11.6]    27.8 [27.2, 29.0]           9.6e-14  miso_delta-
+anchor-PolarGrad L-SVRG          new    anchor_step=4, gamma=0.5/R2                8.6 [7.0, 9.8]    29.8 [21.2, 36.2]           5.5e-13  
+tangent SAGA-Muon                new    gamma=0.0625/R2_op                        9.6 [8.4, 12.3]    31.1 [29.2, 34.6]           7.7e-12  
+L-SVRG                           sota   gamma=1/R2                                8.2 [7.8, 11.6]    32.6 [27.2, 39.6]           2.6e-12  
+L-Katyusha                       sota   L=0.5*R2, mu=1*lam                        9.2 [7.8, 10.0]    32.8 [27.0, 39.4]           6.4e-12  
+PAGE                             sota   gamma=1/R2                               12.6 [9.8, 16.6]     35.0 [29.0, inf]           2.0e-11  
+polar-metric L-SVRG              new    metric_floor=0.3, c_metric=1             11.8 [9.8, 16.4]     36.0 [29.8, inf]           1.0e-10  
+Katyusha-Muon                    new    L=1*R2, mu=1*lam, gamma_y=1/R2_op        10.0 [9.4, 10.8]     40.0 [33.2, inf]           5.6e-10  L-,gamma_y+
+PAGE-Muon (joint)                new    gamma=0.125/R2_op                       15.8 [10.2, 16.8]                    -           2.9e-08  
+PolarGrad                        sota   L=0.666667*L_op                                      17.0                    -           3.6e-05  
+lazy split L-SVRG-Muon           new    gamma_c=0.5/R2, gamma=0.0625/R2_op       30.0 [20.6, inf]                    -           4.2e-05  
+GD                               sota   step=1.9/L_F                                         38.0                    -           7.4e-04  
+SGD b=32                         sota   lr=4/R2                                   inf [34.8, inf]                    -           1.1e-03  
+Muon b=32                        sota   lr=0.1                                                  -                    -           1.8e-03  
+STORM-Muon b=32                  sota   lr=0.1                                                  -                    -           2.8e-03  
+MARS-M b=32                      sota   lr=0.1                                                  -                    -           3.0e-03  
+sharp STORM-Muon b=32            new    gamma=0.1/L_op                                          -                    -           4.3e-03  
+L-SVRG-Muon (joint)              lab    gamma=0.0078125/R2_op                     inf [35.2, inf]                    -           9.5e-01  
+
+=== soft-cond: softmax_n200_d40_K8_k10000_a2_s0  R2/mu_true = 9659 (n = 200), cond(H*) = 173, L_op/L_F = 1.51, nrank(G0) = 2.25, budget 300 passes, target 1e-06
+[M1_soft-cond_screen] 70 runs to do (783 cached), 4 processes
+[M1_soft-cond_screen] 24/70 done, 61s
+[M1_soft-cond_screen] finished 70 runs in 95s
+[M1_soft-cond_tune] 50 runs to do (621 cached), 4 processes
+[M1_soft-cond_tune] 13/50 done, 64s
+[M1_soft-cond_tune] finished 50 runs in 114s
+[M1_soft-cond_confirm] 5 runs to do (142 cached), 4 processes
+[M1_soft-cond_confirm] finished 5 runs in 4s
+family                           status selected step                              passes to 1e-3             to 1e-06  final rel. dist2  edge
+soft SAGA-Muon                   new    eps_innov=0.1, gamma=2/R2_op            11.9 [11.4, 15.4]    24.1 [23.1, 28.8]           9.9e-11  
+damped SAGA-Muon                 new    theta=0.3, gamma=1/R2_op                13.2 [12.6, 13.6]    27.5 [25.2, 54.0]           1.0e-10  
+split SAGA-Muon b=8              new    gamma_c=4/R2, gamma=16/R2_op            14.5 [13.4, 16.0]    27.9 [27.4, 29.2]           9.7e-11  
+mean-scaled SAGA-Muon            new    gamma=4/R2_op                           14.0 [13.7, 16.0]    28.0 [26.8, 28.9]           9.7e-11  
+split SAGA-Muon                  new    gamma_c=0.5/R2, gamma=2/R2_op           14.4 [13.2, 15.1]    28.2 [26.0, 38.8]           9.9e-11  
+SAGA-Muon (joint)                lab    gamma=0.5/R2_op                         13.9 [13.5, 14.5]    29.0 [26.9, 30.6]           9.6e-11  
+SAGA-Muon (joint) b=8            new    gamma=8/R2_op                           11.2 [10.1, 11.8]    29.0 [21.0, 63.0]           1.0e-10  
+B-SAGA                           sota   theta=0.1, gamma=16/R2                  14.6 [14.3, 15.3]    34.6 [30.3, 35.2]           9.5e-11  
+radial SAGA-Muon                 new    gamma_c=0.5/R2, gamma=8/R2_op           16.3 [15.0, 17.2]    35.9 [32.7, 58.6]           9.4e-11  
+MISO                             sota   miso_delta=0.25                         20.3 [18.0, 20.8]    43.2 [35.4, 45.4]           9.8e-11  
+anchor-PolarGrad L-SVRG          new    anchor_step=16, gamma=8/R2              24.2 [21.0, 36.4]    61.6 [58.2, 61.8]           9.6e-11  
+Katyusha-Muon                    new    L=0.0625*R2, mu=0.3*lam, gamma_y=1/R2_op  32.8 [26.4, 34.2]    64.2 [60.4, 69.4]           8.0e-11  mu-,gamma_y+
+polar-metric L-SVRG              new    metric_floor=0.3, c_metric=8            26.8 [23.6, 28.0]    66.6 [58.4, 73.0]           9.9e-11  
+SAGA b=8                         sota   gamma=32/R2                             32.4 [32.3, 32.5]    69.4 [69.2, 69.5]           1.0e-10  
+SAGA                             sota   gamma=4/R2                              32.6 [32.4, 32.7]    69.6 [69.5, 69.7]           9.9e-11  
+L-Katyusha                       sota   L=0.03125*R2, mu=1*lam                  28.4 [24.0, 30.2]    76.2 [53.6, 89.6]           9.0e-11  
+polar-metric SAGA                new    metric_floor=1, c_metric=4              41.9 [41.5, 41.9]  100.2 [99.2, 101.9]           1.0e-10  metric_floor+
+L-SVRG                           sota   gamma=8/R2                              48.8 [45.8, 54.6]  104.6 [97.0, 113.6]           9.9e-11  
+PAGE                             sota   gamma=8/R2                              56.2 [50.2, 62.4]  113.8 [99.7, 124.0]           9.8e-11  
+lazy split L-SVRG-Muon           new    gamma_c=2/R2, gamma=1/R2_op             43.6 [41.8, 66.8]  120.6 [98.8, 210.4]           9.8e-11  
+PAGE-Muon (joint)                new    gamma=2/R2_op                           68.9 [64.0, 85.3] 189.2 [177.8, 217.5]           3.1e-09  
+PolarGrad                        sota   L=0.125*L_op                                         71.0                190.0           3.0e-09  
+tangent SAGA-Muon                new    gamma=0.25/R2_op                       105.3 [69.2, 139.7]   297.3 [257.7, inf]           2.2e-06  
+relaxed-memory SAGA-Muon         new    gamma=0.5/R2_op                        167.5 [165.4, 168.3]                    -           1.9e-06  
+L-SVRG-Muon (joint)              lab    gamma=0.25/R2_op                       149.8 [105.8, 282.2]     inf [296.4, inf]           3.5e-04  
+GD                               sota   step=12/L_F                                             -                    -           3.4e-03  
+SGD b=16                         sota   lr=16/R2                                                -                    -           4.2e-03  
+Muon b=16                        sota   lr=0.1                                                  -                    -           4.8e-03  
+MARS-M b=16                      sota   lr=0.3                                                  -                    -           1.1e-02  
+STORM-Muon b=16                  sota   lr=0.3                                                  -                    -           1.1e-02  
+sharp STORM-Muon b=16            new    gamma=0.3/L_op                                          -                    -           1.7e-02  
+
+=== ls-cond: ls_n200_d40_K8_k10000_a2_s0  R2/mu_true = 7297 (n = 200), cond(H*) = 728, L_op/L_F = 1.51, nrank(G0) = 1.78, budget 300 passes, target 1e-06
+[M1_ls-cond_screen] 70 runs to do (783 cached), 4 processes
+[M1_ls-cond_screen] finished 70 runs in 21s
+[M1_ls-cond_tune] 44 runs to do (623 cached), 4 processes
+[M1_ls-cond_tune] 21/44 done, 65s
+[M1_ls-cond_tune] finished 44 runs in 89s
+[M1_ls-cond_confirm] 5 runs to do (142 cached), 4 processes
+[M1_ls-cond_confirm] finished 5 runs in 13s
+family                           status selected step                              passes to 1e-3             to 1e-06  final rel. dist2  edge
+soft SAGA-Muon                   new    eps_innov=0.03, gamma=0.5/R2_op         16.9 [16.1, 17.8]    29.8 [29.5, 30.0]           9.7e-11  
+SAGA-Muon (joint)                lab    gamma=0.125/R2_op                       17.2 [15.8, 18.8]     31.9 [30.2, inf]           6.1e-09  
+B-SAGA                           sota   theta=0.1, gamma=8/R2                   19.1 [17.7, 20.9]    32.1 [30.7, 34.1]           9.8e-11  
+SAGA-Muon (joint) b=8            new    gamma=4/R2_op                           17.5 [15.7, 18.4]    32.3 [30.4, 33.2]           9.4e-11  
+split SAGA-Muon                  new    gamma_c=0.25/R2, gamma=1/R2_op          18.1 [18.0, 20.0]    32.6 [30.8, 41.7]           1.0e-10  
+damped SAGA-Muon                 new    theta=0.6, gamma=0.25/R2_op             20.3 [19.2, 20.8]    35.9 [34.5, 36.7]           9.6e-11  theta-
+mean-scaled SAGA-Muon            new    gamma=2/R2_op                           23.1 [22.1, 25.1]    40.2 [39.0, 43.9]           1.0e-10  
+split SAGA-Muon b=8              new    gamma_c=0.25/R2, gamma=4/R2_op          28.8 [27.2, 29.4]    49.6 [46.0, 62.0]           9.9e-11  
+radial SAGA-Muon                 new    gamma_c=0.03125/R2, gamma=2/R2_op       21.4 [20.0, 29.1]    63.5 [40.6, 66.0]           9.9e-11  gamma_c-
+L-Katyusha                       sota   L=0.125*R2, mu=1*lam                    39.6 [36.6, 46.4]    77.0 [72.8, 81.8]           7.3e-11  
+SAGA                             sota   gamma=2/R2                              42.4 [42.3, 43.0]    98.8 [98.3, 99.1]           9.9e-11  
+Katyusha-Muon                    new    L=0.25*R2, mu=1*lam, gamma_y=0.00195312/R2_op  48.4 [46.8, 52.6]  100.4 [93.6, 107.4]           8.5e-11  gamma_y-
+anchor-PolarGrad L-SVRG          new    anchor_step=4, gamma=2/R2               38.2 [30.8, 50.6]  109.4 [84.8, 188.8]           1.0e-10  
+MISO                             sota   miso_delta=0.1                         75.8 [64.1, 111.1] 118.3 [111.2, 157.5]           9.5e-11  
+L-SVRG                           sota   gamma=4/R2                             65.0 [60.8, 109.4] 159.0 [136.8, 180.8]           9.9e-11  
+polar-metric L-SVRG              new    metric_floor=0.1, c_metric=4           84.6 [61.6, 281.4]   166.6 [107.8, inf]           1.0e-10  
+PAGE                             sota   gamma=4/R2                             114.6 [72.3, 122.3] 189.2 [152.7, 206.7]           1.0e-10  
+SAGA b=8                         sota   gamma=8/R2                              82.8 [82.8, 83.2] 195.7 [195.6, 196.0]           2.4e-09  
+lazy split L-SVRG-Muon           new    gamma_c=1/R2, gamma=0.25/R2_op         114.2 [73.8, 173.2]   231.8 [139.0, inf]           3.6e-10  
+polar-metric SAGA                new    metric_floor=1, c_metric=2              85.0 [73.0, 96.1] 236.4 [202.9, 239.1]           7.1e-08  metric_floor+
+relaxed-memory SAGA-Muon         new    gamma=0.0625/R2_op                     107.0 [103.0, 112.1] 257.6 [255.0, 260.0]           1.8e-07  
+PAGE-Muon (joint)                new    gamma=0.5/R2_op                        185.0 [113.7, 205.5]                    -           7.0e-05  
+PolarGrad                        sota   L=0.666667*L_op                                     221.0                    -           3.1e-04  
+L-SVRG-Muon (joint)              lab    gamma=0.0625/R2_op                     188.6 [123.4, inf]     inf [270.6, inf]           2.5e-03  
+SGD b=16                         sota   lr=16/R2                                                -                    -           2.7e-03  
+Muon b=16                        sota   lr=0.1                                                  -                    -           3.5e-03  
+tangent SAGA-Muon                new    gamma=0.0625/R2_op                     244.5 [162.0, inf]                    -           3.9e-03  
+MARS-M b=16                      sota   lr=0.1                                                  -                    -           6.5e-03  
+STORM-Muon b=16                  sota   lr=0.1                                                  -                    -           6.6e-03  
+sharp STORM-Muon b=16            new    gamma=0.1/L_op                                          -                    -           9.9e-03  
+GD                               sota   step=1.9/L_F                                            -                    -           4.3e-02  
+
+=== ls-orth: ls_n500_d20_K20_k100000_a2_s0_noise0.1_plantedorthogonal  R2/mu_true = 4364 (n = 500), cond(H*) = 389, L_op/L_F = 1.56, nrank(G0) = 2.27, budget 100 passes, target 1e-06
+[M1_ls-orth_screen] 70 runs to do (783 cached), 4 processes
+[M1_ls-orth_screen] finished 70 runs in 24s
+[M1_ls-orth_tune] 46 runs to do (619 cached), 4 processes
+[M1_ls-orth_tune] 17/46 done, 61s
+[M1_ls-orth_tune] 21/46 done, 3929s
+[M1_ls-orth_tune] finished 46 runs in 3936s
+[M1_ls-orth_confirm] 5 runs to do (142 cached), 4 processes
+[M1_ls-orth_confirm] finished 5 runs in 10s
+family                           status selected step                              passes to 1e-3             to 1e-06  final rel. dist2  edge
+soft SAGA-Muon                   new    eps_innov=0.1, gamma=0.5/R2_op           10.3 [9.2, 10.7]    17.8 [17.1, 18.6]           9.7e-11  
+SAGA-Muon (joint) b=20           new    gamma=4/R2_op                              9.6 [9.1, 9.9]    17.9 [16.8, 18.5]           9.4e-11  
+B-SAGA                           sota   theta=0.3, gamma=4/R2                    10.1 [9.6, 10.6]    18.8 [18.3, 19.1]           9.7e-11  
+split SAGA-Muon                  new    gamma_c=0.5/R2, gamma=0.5/R2_op         12.5 [11.9, 12.7]    21.3 [20.9, 21.5]           9.7e-11  
+damped SAGA-Muon                 new    theta=0.6, gamma=0.0625/R2_op           12.6 [12.3, 13.5]    22.2 [22.1, 59.5]           9.7e-11  theta-
+radial SAGA-Muon                 new    gamma_c=0.0625/R2, gamma=2/R2_op        13.9 [12.9, 14.8]    24.8 [23.6, 26.1]           9.8e-11  
+mean-scaled SAGA-Muon            new    gamma=0.5/R2_op                         14.3 [14.0, 15.4]    24.9 [24.4, 25.7]           9.8e-11  
+split SAGA-Muon b=20             new    gamma_c=1/R2, gamma=4/R2_op             14.8 [14.5, 15.2]    25.3 [25.2, 25.6]           9.9e-11  
+SAGA                             sota   gamma=2/R2                              12.9 [12.4, 13.6]    27.1 [26.8, 27.3]           9.7e-11  
+polar-metric SAGA                new    metric_floor=1, c_metric=2              12.9 [12.4, 13.6]    27.1 [26.8, 27.3]           9.7e-11  metric_floor+
+SAGA-Muon (joint)                lab    gamma=0.0625/R2_op                      16.2 [15.8, 16.4]    28.3 [27.7, 28.4]           9.6e-11  
+polar-metric L-SVRG              new    metric_floor=0.3, c_metric=2            20.4 [18.2, 30.4]    39.8 [37.2, 56.8]           9.9e-11  
+L-Katyusha                       sota   L=0.125*R2, mu=10*lam                   18.8 [18.2, 25.0]    40.6 [34.8, 49.8]           8.3e-11  
+Katyusha-Muon                    new    L=0.25*R2, mu=10*lam, gamma_y=1/R2_op   25.0 [22.2, 27.6]    49.8 [47.8, 56.0]           3.8e-11  gamma_y+
+L-SVRG                           sota   gamma=4/R2                              25.6 [20.8, 33.0]    53.8 [49.8, 93.2]           1.0e-10  
+anchor-PolarGrad L-SVRG          new    anchor_step=4, gamma=2/R2               30.8 [28.4, 38.8]    55.8 [46.2, 60.8]           9.6e-11  
+SAGA b=20                        sota   gamma=16/R2                             27.7 [27.6, 27.9]    63.6 [63.6, 63.6]           1.1e-09  
+PolarGrad                        sota   L=0.666667*L_op                                       8.0                    -           9.1e-06  
+PAGE                             sota   gamma=1/R2                              66.3 [59.7, 77.5]                    -           4.5e-05  
+tangent SAGA-Muon                new    gamma=0.03125/R2_op                     30.4 [14.4, 41.2]      inf [84.0, inf]           6.9e-05  
+Muon b=32                        sota   lr=0.03                                 42.3 [41.3, 43.0]                    -           1.4e-04  
+sharp STORM-Muon b=32            new    gamma=0.03/L_op                         54.3 [50.8, 54.7]                    -           3.6e-04  
+STORM-Muon b=32                  sota   lr=0.1                                  66.8 [60.7, 72.0]                    -           3.7e-04  
+MARS-M b=32                      sota   lr=0.1                                  74.8 [70.3, 75.6]                    -           4.5e-04  
+SGD b=32                         sota   lr=16/R2                                56.6 [55.5, 57.7]                    -           4.7e-04  
+L-SVRG-Muon (joint)              lab    gamma=0.00390625/R2_op                    inf [76.4, inf]                    -           1.0e-03  
+PAGE-Muon (joint)                new    gamma=0.125/R2_op                         inf [76.5, inf]                    -           1.7e-03  
+lazy split L-SVRG-Muon           new    gamma_c=0.25/R2, gamma=0.015625/R2_op     inf [91.8, inf]                    -           7.8e-03  gamma_c-
+relaxed-memory SAGA-Muon         new    gamma=0.125/R2_op                                       -                    -           2.6e-02  
+GD                               sota   step=1.9/L_F                                            -                    -           1.0e-01  
+MISO                             sota   miso_delta=0.01                                         -                    -           8.5e-01  miso_delta+
+
+=== soft-sq: softmax_n500_d20_K20_k10000_a2_s0  R2/mu_true = 9214 (n = 500), cond(H*) = 199, L_op/L_F = 1.58, nrank(G0) = 2.83, budget 120 passes, target 1e-06
+[M1_soft-sq_screen] 70 runs to do (783 cached), 4 processes
+[M1_soft-sq_screen] finished 70 runs in 41s
+[M1_soft-sq_tune] 52 runs to do (619 cached), 4 processes
+[M1_soft-sq_tune] 44/52 done, 60s
+[M1_soft-sq_tune] finished 52 runs in 63s
+[M1_soft-sq_confirm] 10 runs to do (137 cached), 4 processes
+[M1_soft-sq_confirm] finished 10 runs in 14s
+family                           status selected step                              passes to 1e-3             to 1e-06  final rel. dist2  edge
+SAGA-Muon (joint) b=20           new    gamma=16/R2_op                             7.1 [6.6, 7.6]    14.5 [13.3, 15.1]           9.5e-11  
+soft SAGA-Muon                   new    eps_innov=0.1, gamma=1/R2_op               7.8 [7.5, 8.6]    14.8 [14.3, 15.2]           9.8e-11  
+split SAGA-Muon                  new    gamma_c=1/R2, gamma=2/R2_op                8.4 [8.0, 8.7]    15.2 [15.0, 16.7]           9.6e-11  
+polar-metric SAGA                new    metric_floor=0.1, c_metric=2               6.2 [6.0, 7.8]    15.4 [13.8, 63.5]           1.3e-08  
+SAGA-Muon (joint)                lab    gamma=0.25/R2_op                           8.4 [7.8, 8.7]    15.9 [15.1, 16.3]           9.7e-11  
+B-SAGA                           sota   theta=0.3, gamma=8/R2                      8.2 [7.9, 9.3]    16.1 [15.4, 16.8]           9.8e-11  
+damped SAGA-Muon                 new    theta=0.3, gamma=0.5/R2_op                 8.8 [8.3, 9.4]    16.2 [15.9, 20.5]           9.8e-11  
+mean-scaled SAGA-Muon            new    gamma=2/R2_op                              9.1 [9.0, 9.5]    16.6 [16.4, 19.0]           9.8e-11  
+radial SAGA-Muon                 new    gamma_c=0.0625/R2, gamma=2/R2_op           8.0 [7.5, 9.0]    18.4 [15.9, 24.8]           9.8e-11  
+split SAGA-Muon b=20             new    gamma_c=16/R2, gamma=64/R2_op            10.1 [9.6, 10.3]    19.4 [18.7, 19.6]           9.6e-11  gamma+
+SAGA                             sota   gamma=4/R2                              12.2 [12.1, 12.7]    26.3 [25.9, 28.8]           9.8e-11  
+MISO                             sota   miso_delta=0.25                         14.3 [13.8, 14.5]    29.4 [28.5, 31.0]           9.6e-11  
+Katyusha-Muon                    new    L=0.0625*R2, mu=1*lam, gamma_y=0.00195312/R2_op  18.8 [17.2, 27.6]    37.4 [35.0, 58.6]           7.7e-11  gamma_y-
+L-Katyusha                       sota   L=0.0625*R2, mu=1*lam                   18.8 [17.2, 27.6]    37.4 [34.6, 51.0]           8.6e-11  
+anchor-PolarGrad L-SVRG          new    anchor_step=16, gamma=4/R2              17.2 [15.2, 22.8]    37.6 [33.0, 60.4]           9.5e-11  
+L-SVRG                           sota   gamma=8/R2                              20.8 [19.2, 24.8]   48.6 [46.2, 104.0]           9.9e-11  
+SAGA b=20                        sota   gamma=32/R2                             28.5 [28.4, 28.5]    63.1 [63.0, 63.1]           9.9e-11  
+PAGE                             sota   gamma=8/R2                              29.4 [25.6, 34.8]   67.7 [59.3, 105.7]           1.0e-10  
+PAGE-Muon (joint)                new    gamma=2/R2_op                           27.4 [25.0, 34.8]    73.7 [50.1, 87.9]           2.2e-10  
+tangent SAGA-Muon                new    gamma=0.25/R2_op                        31.0 [27.5, 36.8]   78.7 [67.6, 101.0]           2.4e-08  
+PolarGrad                        sota   L=0.125*L_op                                         21.0                 86.0           4.2e-08  
+polar-metric L-SVRG              new    metric_floor=0.1, c_metric=8            33.6 [26.0, 51.0]   86.2 [73.0, 109.0]           1.3e-08  
+relaxed-memory SAGA-Muon         new    gamma=16/R2_op                          64.4 [63.4, 65.3]                    -           2.9e-06  gamma+
+lazy split L-SVRG-Muon           new    gamma_c=2/R2, gamma=0.5/R2_op           45.4 [35.6, 93.4]      inf [79.4, inf]           9.8e-06  
+L-SVRG-Muon (joint)              lab    gamma=0.125/R2_op                      53.0 [51.6, 118.2]                    -           1.9e-04  
+Muon b=32                        sota   lr=0.1                                                  -                    -           7.4e-03  
+SGD b=32                         sota   lr=64/R2                                                -                    -           7.6e-03  
+GD                               sota   step=12/L_F                                             -                    -           1.2e-02  
+STORM-Muon b=32                  sota   lr=0.1                                                  -                    -           1.6e-02  
+MARS-M b=32                      sota   lr=0.1                                                  -                    -           1.7e-02  
+sharp STORM-Muon b=32            new    gamma=0.1/L_op                                          -                    -           1.8e-02  
+
+M1 done in 4751s

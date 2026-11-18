@@ -50,13 +50,32 @@ attribution chains (\resref*{prop:B3-attribution}), are computed exactly in $O(n
 $\E[\Psi_{t+1}\mid\text{state}]$ enumerates the $n$ indices and both outcomes of the coin that refreshes the reference
 point ($O(n^2d)$). They are evaluated every $n/10$ iterations (every iteration when $n=16$) and checked by the test
 suite (Appendix~\ref{app:repro}); they are exact given the visited states, but their products along a trajectory are
-realized quantities, not expectations (Section~\ref{sec:B3-traj}). For logistic regression, $\etastar$ comes from a
-damped Newton method run to $\norm{\Fp(\etastar)}\le10^{-15}$ or stagnation, so that its squared error is at most
-$\norm{\Fp(\etastar)}^2/\mu^2$: at most $2.1\cdot10^{-21}$ on the problems of Section~\ref{sec:exp-B3} whose runs reach
-$10^{-18}$ (the runs at $\kappa=10$, $\alpha=1$ indeed stall at $1.3\cdot10^{-21}$), hence a relative error of at most about
-$10\%$ on $\norm{\theta_t-\etastar}^2=10^{-18}$, and at most $7\cdot10^{-20}$ at $\kappa=10^5$, $\alpha=0$, whose runs stay
-above about $10^{-13}$. Records below the precision of these computations are discarded: SAGA records with
-$V_t<10^{-18}$, states with $\norm{\theta_t-\etastar}^2<10^{-18}$ in
+realized quantities, not expectations (Section~\ref{sec:B3-traj}).
+% Sources: experiments/check_optima_mp.py -> results/optima_mp_summary.json (overview: r_mp_kappa10_alpha1,
+% r_mp_max_other, problems_reaching_floor, sqerr_bound_max_reaching_floor, sqerr_bound_max,
+% min_V_cached_not_reaching_floor, c_V_range, V_floor_worst_rel_err_kappa10_alpha1,
+% V_floor_worst_rel_err_max_other_reaching, B2_D_floor_worst_rel_err_max_reaching, impact (kappa=10,alpha=1:
+% max_rel_change_V_kept, window_2_20_max_rel_change, late_max_abs_change_shares), final_D_B3_summary_kappa10_alpha1,
+% e1_sq_kappa10_alpha1, iterate_floor (level, onset_pass)); derivation of the amplification in Appendix app:repro.
+For logistic regression, $\etastar$ comes from a damped Newton method (Appendix~\ref{app:repro}). Re-evaluated in
+60-digit arithmetic on the stored double-precision data, its residual $\norm{\Fp(\etastar)}$ is $1.28\cdot10^{-12}$ at
+$\kappa=10$, $\alpha=1$ and at most $9.14\cdot10^{-16}$ on the fourteen other problems of Section~\ref{sec:exp-B3}, so
+that $\norm{\etastar-\eta_{\rm exact}}^2\le\norm{\Fp(\etastar)}^2/\mu^2$, whose largest value is $2.12\cdot10^{-21}$ on
+the ten problems whose runs reach $V_t=10^{-18}$ and $6.84\cdot10^{-20}$ on the five others, whose runs stay above
+$9.7\cdot10^{-14}$. The memory term of $V_t$ amplifies this error: moving $\etastar$ moves $\sqrt{V_t}$ by at most
+$(1+\Delta\sum_iL_i^2)^{1/2}$ times the displacement, a factor from $2.72$ to $8.73$ here, so that a recorded
+$V_t=10^{-18}$ may differ from its value at $\eta_{\rm exact}$ by up to $57\%$ at $\kappa=10$, $\alpha=1$ and by at most
+$2.6\%$ on the nine other problems that reach the floor (by at most $0.55\%$ for $\norm{\theta_t-\etastar}^2=10^{-18}$
+on the problems of Section~\ref{sec:exp-B2} that reach this floor). The realized impact is smaller: with $\etastar$
+replaced by its Newton correction computed from the 60-digit gradient, the retained $V_t$ of the five runs at
+$\kappa=10$, $\alpha=1$ change by at most $1.4\%$, their statistics of passes 2--20 by at most $6\cdot10^{-6}$
+(relative) and their shares of the late window by at most $0.0018$ (absolute). These runs stall at
+$\norm{\theta_t-\etastar}^2=1.25594\cdot10^{-21}$ (mean over the seeds), the squared error of $\etastar$ predicted by the
+correction, $1.25595\cdot10^{-21}$. The double-precision iterates have a floor of their own: at $\kappa=10^3$,
+$\alpha=1$ (seed $0$), their squared distance to the corrected minimizer stops decreasing at $4.3\cdot10^{-25}$ after 68
+passes with the step $1/(4R^2)$, which is why the runs of this problem never meet the stopping rule $10^{-26}$ of the
+next paragraph; this floor depends on the step ($1.1\cdot10^{-27}$ with $1/(2R^2)$). Records below the precision of
+these computations are discarded: SAGA records with $V_t<10^{-18}$, states with $\norm{\theta_t-\etastar}^2<10^{-18}$ in
 Section~\ref{sec:exp-B2}, and L-Katyusha records with $\Psi_t<10^{-10}$ (the $W$-term of $\Psi$ amplifies rounding
 errors by $\theta_2(1+\theta_1)/(p\theta_1)\ge250$).
 

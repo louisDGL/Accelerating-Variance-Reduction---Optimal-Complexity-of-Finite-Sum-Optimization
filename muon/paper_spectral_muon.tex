@@ -1,0 +1,586 @@
+% Condensed version of muon/notes_spectral_theory.tex: only the main findings, in the format of a short paper.
+% Build (from muon/):  pdflatex paper_spectral_muon && bibtex paper_spectral_muon && pdflatex paper_spectral_muon && pdflatex paper_spectral_muon
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[margin=1in]{geometry}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black]{hyperref}
+\usepackage{xcolor}
+\graphicspath{{figures/}}
+\setlength{\emergencystretch}{2em}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\norm}[1]{\left\|#1\right\|}
+\newcommand{\nop}[1]{\left\|#1\right\|_{\mathrm{op}}}
+\newcommand{\nnuc}[1]{\left\|#1\right\|_{*}}
+\newcommand{\nF}[1]{\left\|#1\right\|_{F}}
+\newcommand{\inner}[2]{\left\langle #1, #2 \right\rangle}
+\newcommand{\abs}[1]{\left|#1\right|}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\polar}{\operatorname{polar}}
+\newcommand{\srank}{\operatorname{srank}}
+\newcommand{\nr}{\operatorname{nr}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\MAD}{\operatorname{MAD}}
+\newcommand{\Med}{\operatorname{Med}_\ast}
+\newcommand{\Lop}{L_{\mathrm{op}}}
+\newcommand{\muop}{\mu_{\mathrm{op}}}
+\newcommand{\kop}{\kappa_{\mathrm{op}}}
+\newcommand{\kF}{\kappa_{F}}
+\newcommand{\cO}{\mathcal{O}}
+\newcommand{\lmin}{\lambda_{\min}}
+\newcommand{\lmax}{\lambda_{\max}}
+\newcommand{\ones}{\mathbf{1}}
+
+\title{What limits Muon on strongly convex problems?\\ Conditioning barriers and convergence to a nuclear median}
+\author{Side study of the project ``Accelerating Variance Reduction''\\ Statistical Learning Theory, UC Berkeley}
+\date{16 November 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Muon updates a matrix parameter along the polar factor of its (averaged) gradient: steepest descent for the spectral
+norm. We ask two questions inherited from a study of variance-reduced methods: can this geometry improve worst-case
+constants, and what does gradient noise do to the limit of the iteration? On strongly convex problems we obtain three
+groups of results. (i) \emph{Conditioning.} For ridge-regularized generalized linear models whose loss curvature
+vanishes along a sequence of parameters (logistic, softmax), no norm, spectral or other, has a better worst-case
+condition number than the Euclidean one. In the spectral geometry the condition number is at least $\min(K,d)$, a
+folklore barrier; we add that equality holds only for isotropic quadratics, a frame bound and a sharp comparison with
+the Euclidean condition number. (ii) \emph{Noise.} With additive gradient noise, stochastic polar steps are stochastic
+mirror descent, in the space of gradients, on a noise-smoothed nuclear norm. For step lengths with
+$\sum_t\eta_t=\infty$ and $\sum_t\eta_t^2<\infty$ they converge almost surely to a point where zero is a \emph{nuclear
+median}, rather than the mean, of the stochastic gradient, and the set of possible limits does not depend on the
+schedule. For batch size one on least squares the limit is a weighted least-distances estimator; for skewed gradient
+noise with independent entries a formal expansion gives an offset of order $1/b$, whose constant we compute numerically
+and check by simulation: per entry it is smaller than for sign descent by a factor of order $1/d$; a finite-sum
+variance-reduced estimator has a fixed point without offset. (iii) \emph{Dynamics.} On multi-output least squares,
+whose polar dynamics are largely known, we add a conservation law in dimension two, a counterexample showing that the
+spectral norm of the error can increase along the polar flow in dimension three, a sharp contraction bound and bounds
+on extinction times. Apart from the published facts recalled as such, these statements were not found in the
+literature checks we ran; a few refinements obtained during the review were not searched separately and are listed as
+such.
+\end{abstract}
+
+\section{Introduction}
+
+Muon \cite{jordan2024muon} replaces the gradient $G$ of each weight matrix by an approximation of its polar factor
+$\polar(G)=UV^\top$ ($G=U\diag(s)V^\top$): it is steepest descent for the spectral norm
+\cite{carlson2015stochastic,bernstein2024old}, a linear minimization oracle over a spectral ball
+\cite{pethick2025training}. A rapidly growing literature analyses this step on models where everything can be computed:
+matrix quadratics \cite{shulgin2026quadratic,jawanpuria2026constant,gonon2026insights,davis2025spectral,wang2026why},
+linear models and factorizations \cite{vasudeva2025muon,ma2026preconditioning}, and noisy gradients
+\cite{xie2026muon,chen2026when,paquette2026phases,do2026muon}.
+
+This note comes from a different direction. Our main project studies variance-reduced stochastic methods for
+finite sums (SAGA \cite{defazio2014saga}, SVRG \cite{johnson2013accelerating}, the analysis of \cite{bach2024learning}),
+and reached two conclusions: worst-case constants hide what happens along trajectories, and no fixed quadratic metric
+improves the worst-case condition number of regularized logistic regression. We asked what these conclusions become for
+Muon, and what a variance-reduction viewpoint says about its \emph{speed} and its \emph{precision}. A first set of
+answers was submitted to an adversarial review (three passes on the mathematics, three on the literature); a large part
+turned out to be published in 2025--2026, and is cited as such below. What remains is the following.
+
+\paragraph{Contributions.}
+\begin{itemize}[leftmargin=1.3em,itemsep=1pt,topsep=2pt]
+\item \textbf{No free lunch for every norm} (Theorem~\ref{thm:nfl}). For ridge-regularized generalized linear models
+whose loss curvature vanishes along a sequence of parameters (logistic, softmax), every norm $N$ satisfies
+$\kappa_N\ge\kF$, for the full objective and for the per-sample constants that govern variance-reduced methods. The
+spectral condition number obeys $\kop\ge\min(K,d)$ (folklore), which we refine by a frame bound, a rigidity statement
+and a sharp two-sided comparison with $\kF$ (Proposition~\ref{prop:frame}).
+\item \textbf{Convergence to a nuclear median} (Theorem~\ref{thm:smd}). With additive noise $\xi$, the iteration
+$W_{t+1}=W_t-\eta_t\polar(\nabla F(W_t)+\xi_t)$ is stochastic mirror descent on $\psi_\xi(G)=\E[\nnuc{G+\xi}-\nnuc\xi]$ with
+mirror map $F^\ast$. Hence, for lengths with $\sum_t\eta_t=\infty$ and $\sum_t\eta_t^2<\infty$, $\nabla F(W_t)$
+converges almost surely to a minimizer of $\psi_\xi$, the negative of a nuclear median of $\xi$: if $0$ is not such a
+median, $F(W_t)-F_\ast$ has a positive limit, with the same lower bound for every schedule of this class. Companion
+statements: a least-distances limit for batch one on least squares (Proposition~\ref{prop:lad}), a formal first-order
+offset of order $1/b$ for skewed noise with independent entries, with a dimension-dependent constant
+(Proposition~\ref{prop:offset}), and a fixed point without offset for finite-sum variance-reduced estimators
+(Proposition~\ref{prop:median}(d)).
+\item \textbf{Complements on the least-squares dynamics} (Propositions~\ref{prop:Q}--\ref{prop:ext}): an exact
+conservation law for $2\times2$ problems, an integer counterexample to the monotonicity of $\nop{W_t-W_\ast}$ along the
+polar flow, the bound $1-2/\kop$ on the contraction of the nuclear-scaled step after its first iteration in the
+commuting case, and bounds on the first rank-drop time and, for $d=2$, on the extinction time of the flow.
+\end{itemize}
+
+\paragraph{Related work.} \emph{Geometry and rates.} Smoothness constants for general norms and the rate $1-\mu/L$
+of steepest descent under a dual-norm Polyak--\L{}ojasiewicz inequality are in \cite{balles2020geometry}; spectral-norm
+versions for Muon in \cite{riabinin2025gluon,shen2025convergence,kovalev2025noneuclidean} (in
+\cite{lau2025polargrad} with Frobenius constants, hence an extra rank factor); the constant
+$\tr\Sigma$ and the stable-rank criterion for least-squares layers in \cite{davis2025spectral}. That no function is
+well conditioned for $\ell_\infty$ in high dimension is folklore \cite{sidford2018coordinate}. \emph{Dual viewpoint.}
+Methods $W^+=W-\eta\nabla k(\nabla F(W))$ are dual-space preconditioned gradient descent \cite{maddison2021dual}, which
+its authors read as a Bregman method in gradient space for smooth $k$ and which excludes normalized steepest descent;
+see also \cite{kim2023mirror,chen2024lion,chen2025muon,ghane2026dual}. We use the nonsmooth case $k=\nnuc\cdot$. \emph{Exact
+dynamics.} On matrix quadratics, \cite{shulgin2026quadratic} gives the one-step identities, the commuting-case map
+$s_i\mapsto\abs{s_i-\bar s}$, its two-cluster invariant configurations and a complete solution in dimension two;
+\cite{vasudeva2025muon,gonon2026insights,ma2026preconditioning,wang2026why,jawanpuria2026constant} contain the sign
+recursions, the soft-thresholding flow and the floors of constant-length steps; finite-time convergence of
+norm-constrained flows is in \cite{leplat2025norm,cortes2006finite,ma2021qualitative}, and extinction times of gradient
+flows of one-homogeneous functionals in \cite{bungert2021nonlinear}. \emph{Noise.} The gradient of a randomly smoothed
+support function is the expected maximizer \cite{duchi2012randomized,abernethy2014online,duboistaine2022fast}; for the
+nuclear norm and Gaussian perturbations see \cite{jiang2026adaptive}. That gradient noise smooths the polar map, and
+that Muon at low signal-to-noise ratio is a gradient step of size $\eta\,\E\nnuc Z/(Kd\sigma)$, are in
+\cite{xie2026muon,chen2026when,jacobs2026parallel,paquette2026phases}. That sign methods drive a median, not the mean,
+of the stochastic gradient to zero is known \cite{chen2020distributed}, with success-probability and symmetric-noise
+conditions in \cite{bernstein2018signsgd,bernstein2019majority,safaryan2021stochastic} and counterexamples in
+\cite{karimireddy2019error}; normalized steps on a location problem estimate the geometric median
+\cite{cardot2013efficient} (medians in Banach spaces: \cite{minsker2015geometric}; medians of gradients:
+\cite{schaipp2025tracking}); in dimension one, non-convergence of Muon for data with a nonzero third central moment is
+proved in \cite{do2026muon}; variance reduction inside sign or steepest-descent steps appears in
+\cite{chzhen2023signsvrg,li2026implicit}.
+
+\section{Setting and the dual picture}\label{sec:setting}
+
+$W\in\R^{K\times d}$, $r=\min(K,d)$, $\inner AB=\tr(A^\top B)$; $\nF\cdot$, $\nop\cdot$, $\nnuc\cdot$ are the Frobenius,
+spectral and nuclear norms. For $M=U\diag(s)V^\top$ (reduced on the nonzero singular values), $\polar(M)=UV^\top$ and
+$\abs M=(M^\top M)^{1/2}$; $\srank(M)=\nF M^2/\nop M^2$ and $\nr(M)=\nnuc M^2/\nF M^2$ are the stable and nuclear ranks.
+$\psi(G)=\nnuc G$ is convex and $\polar(G)\in\partial\psi(G)$. A \emph{polar step of length $\eta$} is
+$W^+=W-\eta\,\polar(G)$, $G=\nabla F(W)$; the \emph{nuclear-scaled step} is $W^+=W-\frac{\nnuc G}{L}\polar(G)$
+\cite{carlson2015stochastic,lau2025polargrad}. $F$ is $C^2$ with minimizer $W_\ast$, and for a norm $N$ we let
+$\mu_N,L_N$ be the best constants in
+$\mu_NN(\Delta)^2\le D^2F(W)[\Delta,\Delta]\le L_NN(\Delta)^2$ and $\kappa_N=L_N/\mu_N$; subscripts ``op'' and $F$ refer
+to the spectral and Frobenius norms. Two models are used: (LS) $F(W)=F_\ast+\frac12\tr((W-W_\ast)\Sigma(W-W_\ast)^\top)$,
+$\Sigma\succ0$, i.e.\ multi-output least squares, with $E=W-W_\ast$ and $G=E\Sigma$; (GLM)
+$F(W)=\frac1n\sum_i\ell_i(Wx_i)+\frac\lambda2\nF W^2$ with convex $C^2$ losses,
+$c_i=\sup_z\lmax(\nabla^2\ell_i(z))<\infty$, and $f_i(W)=\ell_i(Wx_i)+\frac\lambda2\nF W^2$.
+
+\begin{lemma}[dual picture]\label{lem:dual}
+Assume $0<\muop\le\Lop<\infty$ and let $F^\ast$ be the conjugate of $F$, $D_\Phi$ the Bregman divergence of $\Phi$.
+(a) A polar step is one step of mirror subgradient descent on $\psi$ in the space of gradients with mirror map
+$F^\ast$: $\nabla F^\ast(G^+)=\nabla F^\ast(G)-\eta O$, $O\in\partial\psi(G)$.
+(b) $D_{F^\ast}(\nabla F(W'),\nabla F(W))=D_F(W,W')$; in particular $D_{F^\ast}(0,G)=F(W)-F_\ast$.
+(c) $2\muop(F(W)-F_\ast)\le\nnuc{\nabla F(W)}^2\le2\Lop(F(W)-F_\ast)$.
+\end{lemma}
+Item (b) is Lemma~3.2 of \cite{maddison2021dual}, item (c) the dual-norm Polyak--\L{}ojasiewicz inequality and its
+converse \cite{balles2020geometry,leplat2025norm}; (a) is the nonsmooth instance of the reading of
+\cite{maddison2021dual}. Two classical rules follow at once. The nuclear-scaled step with $L=\Lop$ is the mirror
+Polyak step \cite{dorazio2023stochastic} for $\psi$ (whose optimal value $0$ is known), with the known rate
+$1-1/\kop$. And the geometric schedule $\eta_t=\eta_0(1-1/\kop)^{t/2}$, $\eta_0=\sqrt{2\muop\bar D_0}/\Lop$ with any
+$\bar D_0\ge F(W_0)-F_\ast$, gives $F(W_t)-F_\ast\le\bar D_0(1-1/\kop)^t$ when $r\ge2$; it requires $\muop$, $\Lop$ and
+a bound on the initial gap. This is the geometric step-size rule of subgradient methods on sharp functions
+\cite{goffin1977convergence}, transported to the dual (for spectral descent on sharp nonsmooth objectives see
+\cite{yang2026convergence}).
+
+\section{Conditioning: what no norm can buy}\label{sec:kappa}
+
+\begin{theorem}[no free lunch, for every norm]\label{thm:nfl}
+Consider (GLM) and assume that there is a sequence $W_t$ with $\max_i\nop{\nabla^2\ell_i(W_tx_i)}\to0$ (logistic and
+softmax losses: $W_t=tW_1$ for generic $W_1$). Let $N$ be any norm on $\R^{K\times d}$ and $c_N=\max_{\nF\Delta=1}N(\Delta)$.
+Then $\mu_N(F)=\lambda/c_N^2$ and $L_N(g)\ge L_F(g)/c_N^2$ for every convex $C^2$ function $g$. Consequently
+\[
+\kappa_N(F)\ \ge\ \kF(F),\qquad \frac{L_N(f_i)}{\mu_N(F)}\ \ge\ \frac{L_F(f_i)}{\mu_F(F)}=\frac{c_i\norm{x_i}^2+\lambda}{\lambda}\quad\text{for every }i .
+\]
+\end{theorem}
+\begin{proof}
+For all $W,\Delta$: $D^2F(W)[\Delta,\Delta]\ge\lambda\nF\Delta^2\ge(\lambda/c_N^2)N(\Delta)^2$. At a maximizer $\Delta_0$
+of $N/\nF\cdot$, $D^2F(W_t)[\Delta_0,\Delta_0]\le\max_i\nop{\nabla^2\ell_i(W_tx_i)}\frac1n\sum_i\norm{\Delta_0x_i}^2+\lambda\nF{\Delta_0}^2
+\to\lambda\nF{\Delta_0}^2$, so $\mu_N(F)=\lambda/c_N^2$. For convex $g$,
+$D^2g[\Delta,\Delta]/N(\Delta)^2\ge D^2g[\Delta,\Delta]/(c_N^2\nF\Delta^2)$; take suprema.
+\end{proof}
+
+The statement covers the spectral norm ($c_N=1$: $\muop=\mu_F=\lambda$ while $\Lop(f_i)=c_i\norm{x_i}^2+\lambda r$), its
+preconditioned versions $\nop{S^{1/2}\Delta P^{1/2}}$, the $\ell_\infty$ norm of sign descent, and Euclidean or
+Kronecker-factored metrics; for $K=1$ and Euclidean metrics it is the no-free-lunch result of our main project. The
+mechanism is that the curvature floor of a ridge-regularized model is isotropic, while a norm can only trade smoothness
+against strong convexity. Any advantage of a non-Euclidean step on such problems is therefore a property of the
+trajectory, not of the constants. The hypothesis on the losses cannot be dropped: for ridge least squares the norm
+$\nF{\Delta\Sigma^{1/2}}$ has condition number one. The literature checks covered the spectral norm and its
+preconditioned versions, not the statement for an arbitrary norm.
+
+In the spectral geometry there is in addition a dimension barrier. For a symmetric positive definite operator $H$ on
+$\R^{K\times d}$, with $q(\Delta)=\inner\Delta{H\Delta}$, one has $\Lop(H)=\max_{Q\in\cO}q(Q)$, where $\cO$ is the set of
+matrices with all singular values equal to one, and $1/\muop(H)=\max_{\norm u=\norm v=1}\inner{uv^\top}{H^{-1}uv^\top}$.
+The first formula is the smoothness constant for a norm \cite{balles2020geometry,islamov2026noneuclidean} reduced to the
+extreme points of the spectral ball; the second is the duality between strong convexity for a norm and smoothness of
+the conjugate for the dual norm \cite{kakade2012regularization}, applied to $q$. The first maximum contains the
+maximization of a convex quadratic over the cube, which is NP-hard in general
+\cite{islamov2026noneuclidean,balles2020geometry}.
+
+\begin{proposition}[frame bound, rigidity, comparison]\label{prop:frame}
+(a) For orthonormal families $(u_k)_{k\le r}$ in $\R^K$ and $(v_k)_{k\le r}$ in $\R^d$, with $h_k=q(u_kv_k^\top)$:
+$\Lop\ge\sum_kh_k$ and $\muop\le\min_kh_k$, so $\kop\ge\sum_kh_k/\min_kh_k\ge r$.
+(b) $\kop(H)=r$ if and only if $H$ is a multiple of the identity; hence a $C^2$ function has $\kop(F)=r$ iff
+$F=F_\ast+\frac\mu2\nF{W-W_\ast}^2$.
+(c) For every eigenpair $(\lambda,V)$ of $H$, $\Lop\ge\lambda\,\nr(V)$ and $\muop\le\lambda\,\srank(V)$; hence
+$\max\{r,\ \kF/r,\ \kF\,\nr(V_{\max})/\srank(V_{\min})\}\le\kop\le r\kF$, and the lower bound $\kF/r$ is approached.
+(d) For (LS) with $K\ge d$, $\Sigma=\hat\Sigma+\lambda I$, $\hat\Sigma=\frac1n\sum_ix_ix_i^\top$, and
+$f_i(W)=\frac12\norm{Wx_i-y_i}^2+\frac\lambda2\nF W^2$:
+$\Lop(F)=\tr\Sigma=\frac1n\sum_i\Lop(f_i)$, whereas $L_F(F)=\lmax(\Sigma)\le\frac1n\sum_iL_F(f_i)$.
+\end{proposition}
+\begin{proof}[Sketch]
+(a) With $Q_\varepsilon=\sum_k\varepsilon_ku_kv_k^\top\in\cO$ and uniform signs, $\E q(Q_\varepsilon)=\sum_kh_k$. (b) Equality
+forces $h_k=\muop$ for every frame and the vanishing of all cross terms $\inner{u_kv_k^\top}{Hu_lv_l^\top}$; polarization
+gives $H=\muop\mathrm{Id}$. (c) $\lambda\nnuc V=\inner{\polar V}{HV}\le\sqrt{q(\polar V)q(V)}\le\sqrt{\Lop\lambda}\,\nF V$.
+On $r\times r$ matrices, $q(\Delta)=m\nF\Delta^2+(1-m)\Delta_{12}^2-(m-b)(\tr\Delta)^2/r$ has $\kF=1/b$, $\Lop=1+m(r-1)$,
+$\muop=rmb/(m+(r-1)b)$, and $\kop/\kF\to1/r$ as $b/m\to0$, $m\to0$. (d) An isometry excites all samples at once.
+\end{proof}
+The barrier $\kop\ge r$ is the spectral form of a folklore fact on $\ell_\infty$ \cite{sidford2018coordinate}, and
+$\Lop(F)=\tr\Sigma$ is known \cite{davis2025spectral,jawanpuria2026constant,shen2025convergence}. The frame bound, the
+comparison (c) and the reading of (d) below were not found; the rigidity (b) and the example showing that $\kF/r$ is
+approached were added after the literature checks and were not searched for. The reading of (d) is that in the spectral
+geometry least squares has \emph{no averaging gain}: the smoothness of the average is the average smoothness, so
+$\kop(F)=\bar L_{\mathrm{op}}/\mu$ with $\bar L_{\mathrm{op}}=\frac1n\sum_i\Lop(f_i)=\tr\hat\Sigma+\lambda d$ and
+$\mu=\lmin(\Sigma)$. This is the constant $\bar L_F/\mu$, $\bar L_F=\frac1n\sum_iL_F(f_i)=\tr\hat\Sigma+\lambda$, of
+variance-reduced methods with importance sampling \cite{xiao2014proximal}, plus $(d-1)\lambda/\mu$: without ridge, the
+full-batch nuclear-scaled step has the condition number of an importance-sampled variance-reduced method while paying
+$n$ gradients per step. For $K<d$ the averaging gain reappears.
+
+\section{Gradient noise: convergence to a nuclear median}\label{sec:noise}
+
+Let $\xi$ be a random $K\times d$ matrix and
+\[
+\psi_\xi(G)=\E\big[\nnuc{G+\xi}-\nnuc\xi\big],\qquad \Phi_\xi(G)=\E\,\polar(G+\xi).
+\]
+No moment is required. $\psi_\xi$ is convex and $1$-Lipschitz for the nuclear norm, $\Phi_\xi(G)\in\partial\psi_\xi(G)$,
+with $\Phi_\xi(G)=\nabla\psi_\xi(G)$ when $G+\xi$ has full rank almost surely: this is the randomized-smoothing identity
+\cite{duchi2012randomized,abernethy2014online,duboistaine2022fast,jiang2026adaptive} for the spectral ball. We call
+$\Med(\xi)=\arg\min_C\E[\nnuc{\xi-C}-\nnuc\xi]$ the set of \emph{nuclear medians} of $\xi$ (the median of a law in a
+normed space \cite{minsker2015geometric}); $\arg\min\psi_\xi=-\Med(\xi)$ is nonempty, convex and compact, since
+$\psi_\xi(G)\ge(2\Prob(\nnuc\xi\le R)-1)\nnuc G-2R$ for any $R$ with $\Prob(\nnuc\xi\le R)>\frac12$.
+
+\begin{theorem}[stochastic polar steps are stochastic mirror descent]\label{thm:smd}
+Let $F$ satisfy $0<\muop\le\Lop<\infty$, let $\xi_t$ be i.i.d.\ copies of $\xi$ independent of the past, and
+$W_{t+1}=W_t-\eta_t\,\polar(\nabla F(W_t)+\xi_t)$, $G_t=\nabla F(W_t)$. For every $G^\dagger\in\arg\min\psi_\xi$, with
+$W^\dagger=\nabla F^\ast(G^\dagger)$:
+\begin{enumerate}[label=(\alph*),itemsep=1pt,topsep=2pt]
+\item $\E[D_F(W_{t+1},W^\dagger)\mid W_t]\le D_F(W_t,W^\dagger)-\eta_t(\psi_\xi(G_t)-\min\psi_\xi)+\frac{\Lop}2\eta_t^2$;
+\item $\E\,\psi_\xi(\bar G_T)-\min\psi_\xi\le\big(D_F(W_0,W^\dagger)+\frac{\Lop}2\sum_{t<T}\eta_t^2\big)/\sum_{t<T}\eta_t$ for
+the weighted average $\bar G_T=\sum_{t<T}\eta_tG_t/\sum_{t<T}\eta_t$, whatever the lengths;
+\item if $\sum_t\eta_t=\infty$ and $\sum_t\eta_t^2<\infty$, $G_t$ converges almost surely to a point of $-\Med(\xi)$;
+\item hence, for such lengths, $W_t\to W_\ast$ if $\Med(\xi)=\{0\}$, and if $0\notin\Med(\xi)$ then almost surely
+$\lim_tF(W_t)-F_\ast\ge\min_{C\in\Med(\xi)}\nnuc C^2/(2\Lop)>0$.
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+With $O_t=\polar(G_t+\xi_t)$, the three-point identity of mirror descent with mirror map $F^\ast$ gives
+$D_{F^\ast}(G^\dagger,G_{t+1})=D_{F^\ast}(G^\dagger,G_t)-\eta_t\inner{O_t}{G_t-G^\dagger}+D_{F^\ast}(G_t,G_{t+1})$. By
+Lemma~\ref{lem:dual}(b) the first two divergences are $D_F(W_{t+1},W^\dagger)$ and $D_F(W_t,W^\dagger)$, and the last one
+is $D_F(W_{t+1},W_t)\le\frac{\Lop}2\nop{W_{t+1}-W_t}^2\le\frac\Lop2\eta_t^2$. Conditionally on $W_t$,
+$\E\inner{O_t}{G_t-G^\dagger}=\inner{\Phi_\xi(G_t)}{G_t-G^\dagger}\ge\psi_\xi(G_t)-\psi_\xi(G^\dagger)$. This is (a); (b)
+follows by summation and convexity. (c) By the Robbins--Siegmund lemma, almost surely $D_F(W_t,W')$ converges,
+simultaneously for a countable dense set of minimizers $\nabla F(W')$, and
+$\sum_t\eta_t(\psi_\xi(G_t)-\min\psi_\xi)<\infty$; the iterates are bounded since
+$D_F(W_t,W^\dagger)\ge\frac{\muop}2\nop{W_t-W^\dagger}^2$, a cluster point of $G_t$ is a minimizer, and the whole
+sequence converges to it. (d) follows from Lemma~\ref{lem:dual}(c).
+\end{proof}
+
+The steps being bounded, no variance assumption is needed. The theorem replaces the usual condition $\E\xi=0$ by
+$\Med(\xi)=\{0\}$; if $0$ is a nuclear median but not the only one, $W_\ast$ is only one of the possible limits. The
+next statement makes the comparison with the mean field $W\mapsto\Phi_\xi(\nabla F(W))$ precise and bounds the offset.
+
+\begin{proposition}[medians, zeros of the mean field, size]\label{prop:median}
+(a) Every zero of $\Phi_\xi$ belongs to $-\Med(\xi)$; the converse holds at points $G$ where $G+\xi$ has full rank
+almost surely, and can fail otherwise (for $\xi=\pm\frac12\diag(1,-1)$, $G=\frac12I$ minimizes $\psi_\xi$ and
+$\Phi_\xi(G)=\frac12I$).
+(b) If $\xi$ and $-\xi$ have the same law, $0\in\Med(\xi)$, and $\Med(\xi)=\{0\}$ if moreover $0$ is in the support of
+$\xi$.
+(c) If $\E\xi=0$, every $C\in\Med(\xi)$ satisfies $\nnuc C\le\E\nnuc{\xi-C}\le\E\nnuc\xi$ (the constant $1$ is sharp), so
+the limit of Theorem~\ref{thm:smd} has $F(W^\dagger)-F_\ast\le(\E\nnuc\xi)^2/(2\muop)$.
+(d) For a SAGA or SVRG estimator, the stochastic gradient at $(W_\ast,\text{exact table})$ is $0$ for every index: a
+Dirac mass, whose median is its mean. Such estimators have a fixed point without offset, and it is the only one.
+\end{proposition}
+\begin{proof}
+(a) $\Phi_\xi(G)\in\partial\psi_\xi(G)$, a singleton under the rank condition. (b) $\psi_\xi$ is even and convex, and
+$\psi_\xi(G)-\psi_\xi(0)=\frac12\E[\nnuc{\xi+G}+\nnuc{\xi-G}-2\nnuc\xi]$ has a nonnegative integrand, positive on
+$\{\nnuc\xi<\nnuc G\}$. (c) $\nnuc C=\nnuc{\E(C-\xi)}\le\E\nnuc{\xi-C}\le\E\nnuc\xi$ by Jensen's inequality and the
+minimality of $C$. (d) Direct substitution.
+\end{proof}
+Item (b) is the matrix form of the symmetric-noise condition under which sign methods are known to converge
+\cite{bernstein2019majority,jacobs2026parallel}. Item (d) identifies a fixed point and says nothing about its
+attraction.
+
+When the law of the stochastic gradient depends on $W$ (minibatches of a finite sum), Theorem~\ref{thm:smd} does not
+apply as such, but the same mechanism can be followed by hand in the simplest case.
+
+\begin{proposition}[batch one on least squares]\label{prop:lad}
+Let $g_j(W)=(Wx_j-y_j)x_j^\top$ (no ridge term), $x_j\ne0$, $j$ uniform in $\{1,\dots,n\}$, and
+$\Lambda(W)=\frac1n\sum_i\norm{Wx_i-y_i}/\norm{x_i}$. Then $\polar(g_j(W))\in\partial_W(\norm{Wx_j-y_j}/\norm{x_j})$, with
+Frobenius norm at most one: the batch-one polar step is the stochastic subgradient method on $\Lambda$. With
+$\sum\eta_t=\infty$, $\sum\eta_t^2<\infty$ it converges almost surely to a minimizer of the weighted least-distances
+objective $\Lambda$ (least absolute deviations for $K=1$), which in general is not the least-squares solution.
+\end{proposition}
+\begin{proof}
+For $r=Wx-y\ne0$, $\polar(rx^\top)=rx^\top/(\norm r\norm x)=\nabla_W\norm{Wx-y}/\norm x$
+\cite[Lemma~H.1]{li2026implicit}; for $r=0$, $\polar(0)=0\in\partial_W(\norm{Wx-y}/\norm x)$. Hence
+$\E_j\polar(g_j(W))\in\partial\Lambda(W)$ for every $W$, and the rest is the standard analysis of the stochastic
+subgradient method in the Frobenius geometry.
+\end{proof}
+
+For $K=1$ the step is the normalized sign-error algorithm of adaptive filtering, classically associated with the
+minimization of a mean absolute error. For coordinatewise sign descent with batch size one, non-convergence to the
+minimizer for every step-size sequence is proved in \cite{karimireddy2019error} (Theorem~I) when all data points share
+a sign pattern, with a least-squares example. For $K\ge2$ the statement was not found.
+
+\begin{proposition}[size of the offset for minibatches; formal]\label{prop:offset}
+Let $\xi_b$ be the mean of $b$ i.i.d.\ centred matrices with i.i.d.\ entries of variance $\sigma^2$ and third cumulant
+$\kappa_3$, with a non-lattice law. A one-term Edgeworth expansion gives, for the minimizer $G_b^\dagger$ of $\psi_{\xi_b}$,
+\begin{equation}\label{eq:offset}
+G_b^\dagger=\frac{\kappa_3}{6\sigma^2b}\cdot\frac{a_{K,d}}{c_{K,d}}\;\ones\ones^\top+o\Big(\frac1b\Big),\qquad
+a_{K,d}=-\E\big[\polar(Z)_{11}(Z_{11}^3-3Z_{11})\big],\quad c_{K,d}=\frac{\E\nnuc Z}{Kd},
+\end{equation}
+with $Z$ a standard Gaussian $K\times d$ matrix: in every entry, the scalar offset $\kappa_3/(6\sigma^2b)$ of the median
+of a mean (Cornish--Fisher \cite{cornish1938moments}; $a_{1,1}=c_{1,1}=\sqrt{2/\pi}$) times $a_{K,d}/c_{K,d}$. The
+objective gap at the limit is of order $1/b^2$. For a plain exponential average with parameter $\beta$ in place of the
+batch mean (scalar case, frozen iterate), $1/b$ is replaced by $(1-\beta^2)/(1+\beta+\beta^2)$, which exceeds the factor
+$(1-\beta)/(1+\beta)$ by which the average reduces the variance (effective batch size $b(1+\beta)/(1-\beta)$
+\cite{paquette2026phases,xie2026muon}) by up to $4/3$.
+\end{proposition}
+\begin{proof}[Derivation]
+$\polar$ is homogeneous of degree $0$, so $\Phi_{\xi_b}(0)=\E\polar(\sqrt b\,\xi_b)$; the density of $\sqrt b\,\xi_b$ is
+the Gaussian one times $1+b^{-1/2}\frac{\kappa_3}{6\sigma^3}\sum_{ij}\mathrm{He}_3(z_{ij}/\sigma)+O(1/b)$ and the even terms
+integrate to zero against the odd map $\polar$: $\Phi_{\xi_b}(0)=-b^{-1/2}\frac{\kappa_3}{6\sigma^3}a_{K,d}\ones\ones^\top+O(b^{-3/2})$
+(by sign and permutation symmetries only the diagonal terms $\E[\polar(Z)_{ij}\mathrm{He}_3(Z_{ij})]$ survive). The
+derivative of $\Phi_{\xi_b}$ at $0$ is $\sqrt b\,(c_{K,d}/\sigma)\mathrm{Id}$ to leading order
+\cite{xie2026muon,chen2026when}. Solve $\Phi_{\xi_b}(G)=0$ to first order. For the average, use its cumulants
+$\kappa_n(1-\beta)^n/(1-\beta^n)$ (the factors $1/(1-\beta^2)$ and $1/(1-\beta^3)$ appear in \cite{do2026muon} for
+another functional of the momentum).
+\end{proof}
+
+The expansion is formal (an Edgeworth expansion against a discontinuous map) but its predictions are parameter-free and
+are confirmed numerically in Section~\ref{sec:num}. Two readings. First, \emph{what matters is the skewness of the
+gradient noise}: in a regression with symmetric inputs independent of the residuals, the per-sample gradient
+$\varepsilon x^\top$ is symmetric in law whatever the skewness of $\varepsilon$, and the population offset is zero (on a
+sample it is of the order of the sampling noise); an intercept is enough to create one. Second,
+$a_{K,d}/c_{K,d}$ is of order $1/d$: in Table~\ref{tab:ac}, $d\,a_{K,d}/c_{K,d}$ lies between $1$ and $2.8$ and is about
+$2$ for square matrices, and for $K=1$ one computes $a_{1,d}/c_{1,d}=3/(d+2)$ exactly. Per entry, the offset of the polar
+step is thus smaller than that of sign descent, $\kappa_3/(6\sigma^2b)$ in every coordinate, by a factor of order $d$,
+and its nuclear norm is at most about $2.3$ times the scalar offset for the sizes tried (smaller for wide matrices).
+Orthogonalization averages the skewness. In dimension one and for the Newton--Schulz map with momentum,
+non-convergence for bounded data with a nonzero third \emph{central} moment, for almost all batch sizes, is proved in
+\cite{do2026muon} (Theorem~1.3), where the limits are characterized as zeros of the mean field (Proposition~6.2).
+
+\section{Exact dynamics on least squares: complements}\label{sec:ls}
+
+For (LS) with $K\ge d$ the polar dynamics are largely understood \cite{shulgin2026quadratic,vasudeva2025muon}: at
+full-rank iterates the curvature along the polar factor is $\tr\Sigma=\Lop$ and the nuclear-scaled step is an exact
+line search; if $E_0^\top E_0$ commutes with $\Sigma$ the singular values of the error follow sign recursions that do
+not involve $\Sigma$, the flow is the singular-value soft-thresholding of $E_0$, and, while the amplitudes $a$ of the
+error are positive, the nuclear-scaled step maps them to $\abs{a-\E_p[a]}$, the mean being taken under
+$p_k=\lambda_k(\Sigma)/\tr\Sigma$, with one-step factor $\Var_p(a)/\E_p[a^2]$; the two-valued configurations
+$a=\delta((1-\pi)\ones_A+\pi\ones_{A^c})$, $\pi=p(A)<\frac12$, are invariant with factor $(1-2\pi)^2$
+\cite{shulgin2026quadratic,wang2026why}; the tail is slow because the step recreates tiny singular values. By the
+\emph{polar flow} we mean the solution of $\dot W\in-\partial\psi(\nabla F(W))$. For (LS) it is unique: in the variable
+$G=E\Sigma$ the inclusion reads $\dot G\in-\partial\psi(G)\Sigma$, the gradient flow of the convex function $\psi$ for the
+inner product $\tr(A\Sigma^{-1}B^\top)$ \cite{brezis1973operateurs,bungert2021nonlinear}; since
+$\polar(G)\in\partial\psi(G)$, every absolutely continuous curve with $\dot E=-\polar(E\Sigma)$ for almost every $t$ is
+this solution. We add the following complements.
+
+\begin{proposition}[rotation, conservation law, non-monotonicity]\label{prop:Q}
+Let $E$ have rank $d$. (a) $\polar(E\Sigma)=\polar(E)\,Q$ with $Q=\polar(\abs E\Sigma)\in SO(d)$, and $Q=I$ iff $\abs E$
+commutes with $\Sigma$. Along the flow $\dot E=-\polar(E\Sigma)$: $\frac d{dt}\frac12\nF E^2=-\tr(\Sigma^{-1}\abs G)<0$ and
+each simple singular value $s_i$ of $E$, with right singular vector $w_i$, has $\dot s_i=-w_i^\top Qw_i$.
+(b) If $K=d=2$, every polar step $E^+=E-\eta\polar(E\Sigma)$, of any length, conserves $s_1(E)-s_2(E)$ as long as
+$\det E$ keeps its sign.
+(c) If $d\ge3$, $\nop{E}$ can increase along the flow while $F$ and $\nF E$ decrease: for $E_0=\diag(300,200,1)$ and
+$\Sigma=\left(\begin{smallmatrix}2&4&12\\4&9&20\\12&20&89\end{smallmatrix}\right)$, $Q_{11}=-0.0143$, and $\nop{E(t)}$
+rises from $300$ to $303.27$ before decreasing. This needs an ill-conditioned error: for $d=3$,
+$\frac d{dt}\nop E<0$ for every $\Sigma$ as soon as $s_1^2<(2+\sqrt3)^3s_2s_3\approx52\,s_2s_3$.
+\end{proposition}
+\begin{proof}
+(a) $\polar(E)Q=E\abs E^{-1}\abs E\Sigma\abs G^{-1}=G\abs G^{-1}$ and $\det(\abs E\Sigma)>0$;
+$\inner E{\polar(E)Q}=\tr(\abs EQ)=\tr(\Sigma^{-1}\abs G)$. (b) Split a $2\times2$ matrix into its components $M_c$, $M_a$
+in the planes spanned by rotations and by reflections; its singular values are $m_c+m_a$ and $\abs{m_c-m_a}$ with
+$m_\bullet=\nF{M_\bullet}/\sqrt2$, and $\det M=m_c^2-m_a^2$. If $\det E>0$ the polar factor of $E\Sigma$ is a rotation, so
+the step leaves $E_a$ unchanged and $s_1-s_2=2m_a$; symmetrically if $\det E<0$. (c) Direct computation; the sign of
+$Q_{11}$ was certified in exact rational arithmetic. For the last claim, $B=Q^\top\abs E=\abs G\Sigma^{-1}$ has positive
+eigenvalues with product $s_1s_2s_3=:g^3$, so its trace $\sum_is_iq_i$ and the sum
+$s_2s_3q_1+s_1s_3q_2+s_1s_2q_3$ of its principal $2\times2$ minors ($q_i=w_i^\top Qw_i$) are at least $3g$ and $3g^2$;
+with $q_2+q_3\le1+q_1$ for a rotation this gives $q_1(s_1+s_2)(s_1+s_3)\ge3g(s_1+g)-s_1(s_2+s_3)$, which is positive
+under the stated condition.
+\end{proof}
+The ``if'' part of $Q=I$ is in \cite{shulgin2026quadratic} (in the commuting case the curvature drops out of the
+direction), and a formula of the same type for singular values along a projected polar flow is in
+\cite{beneventano2026spectral}. Item (b) explains the $45^\circ$ trajectories of singular values observed for $2\times2$
+problems in \cite{shulgin2026quadratic}; an $\ell_\infty$ analogue of (c) for a ball-proximal method is in
+\cite{gruntkowska2025broximal}. In our searches a negative $Q_{11}$ also required a condition number of $\Sigma$ of
+several hundreds.
+
+\begin{proposition}[contraction after the first step]\label{prop:mad}
+In the commuting case with positive amplitudes, the nuclear-scaled step with $L=\tr\Sigma$ satisfies
+$\frac{F(W_{t+1})-F_\ast}{F(W_t)-F_\ast}=\frac{\Var_p(a(t))}{\E_p[a(t)^2]}=1-\frac{\MAD_p(a(t-1))^2}{\Var_p(a(t-1))}$ for
+$t\ge1$ (the first equality is the published one-step identity), and this is at most
+$1-\frac{4p_{(1)}p_{(2)}}{p_{(1)}+p_{(2)}}\le1-\frac2{\kop}$, where $p_{(1)}\le p_{(2)}$ are
+the two smallest weights and $\MAD_p$ is the mean absolute deviation. The constant is sharp: it is a supremum, attained
+iff $d=2$, where the factor is the exact $((\kappa-1)/(\kappa+1))^2$, $\kappa=\lambda_1/\lambda_2$, proved in
+\cite{shulgin2026quadratic} for every $t\ge1$ and every full-rank start. The same bound holds for the second step from
+every full-rank start with $W_1\ne W_\ast$, commuting or not (new for $d\ge3$). At $t=0$ the factor can be arbitrarily
+close to the certified $1-1/\kop$ \cite{shulgin2026quadratic}. Conversely every invariant ray of
+$a\mapsto\abs{a-\E_pa}$ is two-valued, and for $d\ge3$ these rays are linearly unstable.
+\end{proposition}
+\begin{proof}[Sketch]
+After one step $a(t)=\abs X$ with $X$ centred under $p$. With $S=\E_p[X_+]=\E_p[X_-]$, convexity gives
+$\E_p[X_\pm^2]\le S^2/\min p_k$ on each side, the two minima being attained at distinct indices, so
+$(\E_p\abs X)^2/\E_pX^2\ge4p_{(1)}p_{(2)}/(p_{(1)}+p_{(2)})$. Without commutation, after one line-search step
+$G_1=\polar(G_0)M_1$ with $M_1$ symmetric of trace zero \cite{shulgin2026quadratic}; the same argument applied to the
+positive and negative parts of $M_1$, with Ky Fan's inequality, gives the bound for the second step. The derivative of
+the map on a ray is $\diag(\pm1)(I-\ones p^\top)$, with eigenvalues $\pm1$ besides $1-2\pi$ and $0$.
+\end{proof}
+
+\begin{proposition}[extinction time of the polar flow]\label{prop:ext}
+For a $C^2$ function with $0<\muop\le\Lop<\infty$, a solution of $\dot W\in-\partial\psi(\nabla F(W))$ reaches $W_\ast$ at a finite time
+$T$ with $\nop{W_0-W_\ast}\le T\le\sqrt{2(F(W_0)-F_\ast)/\muop}\le\sqrt{\kop}\,\nop{W_0-W_\ast}$. For (LS) the lower bound
+is attained in the commuting case, whatever $\Sigma$; from a full-rank start the flow is the segment
+$E_0-t\,\polar(G_0)$ until the first rank drop, at a time
+$\tau_\ast\in\big[s_d(E_0),(\prod_is_i(E_0))^{1/d}\big]$; for $d=2$, $T\le\frac{9\sqrt2}8\nop{E_0}$ whatever $\Sigma$; and
+no bound $T\le C\nop{E_0}$ with $C$ independent of both $d$ and $\Sigma$ holds.
+\end{proposition}
+\begin{proof}
+$\frac d{dt}(F-F_\ast)=-\nnuc G\le-\sqrt{2\muop(F-F_\ast)}$ \cite{leplat2025norm} and $\nop{\dot W}\le1$. Along
+$E_0-t\,\polar(G_0)$ the gradient is $\polar(G_0)(\abs{G_0}-t\Sigma)$, with the same polar factor while
+$\abs{G_0}-t\Sigma\succ0$ (the rank-drop times are those of \cite{shulgin2026quadratic}); $\tau_\ast$ is the smallest
+eigenvalue of $\Sigma^{-1/2}\abs{G_0}\Sigma^{-1/2}$, whose eigenvalues have product $\det\abs{E_0}$, and
+$\abs{G_0}\succeq s_d(E_0)\Sigma$. For a rank-one error the flow is the gradient flow of $\frac12e^\top\Sigma e$
+parametrized by arc length, of length at most $\sqrt d\,\norm{e_0}$ and possibly of order
+$\min\{\sqrt d,\sqrt{\log\kappa(\Sigma)}\}\norm{e_0}$ \cite{gupta2021path}. For $d=2$ both singular values decrease at the
+same speed (Proposition~\ref{prop:Q}), so the error has rank one and norm $s_1-s_2$ at
+$\tau_\ast\le\sqrt{s_1s_2}$, and $T\le\sqrt{s_1s_2}+\sqrt2(s_1-s_2)$.
+\end{proof}
+The first sentence is known: for the flow of any norm, finite extinction and the bound
+$\sqrt{2(F(W_0)-F_\ast)/\mu}$ under the dual-norm Polyak--\L{}ojasiewicz inequality are in \cite{leplat2025norm}, and
+for quadratics the two bounds are instances of the extinction-time bounds of \cite{bungert2021nonlinear}; the equality
+in the commuting case is read on the soft-thresholding flow of \cite{vasudeva2025muon}. Added here: the straight
+segment of the flow until the first rank drop, the bounds on $\tau_\ast$ and the bound for $d=2$. From generic
+(Gaussian, full-rank) starts, $T/\nop{E_0}\in[1,1.4]$ in all instances tried, far below $\sqrt{\kop}$ (up to $24$);
+larger ratios need a nearly rank-one error (up to $\sqrt2$ for $d=2$, and close to $\sqrt d$ in the rank-one limit
+with a widely spread spectrum). The head of the dynamics is thus nearly curvature-free beyond the commuting case, which
+remains to be explained.
+
+\section{Numerical illustrations}\label{sec:num}
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{@{}lccccccccc@{}}
+\toprule
+$(K,d)$ & $(1,1)$ & $(2,2)$ & $(2,3)$ & $(4,4)$ & $(8,8)$ & $(16,16)$ & $(32,32)$ & $(4,16)$ & $(16,64)$\\
+\midrule
+$a_{K,d}$ & 0.798 & 0.391 & 0.286 & 0.176 & 0.0737 & 0.0285 & 0.0107 & 0.0389 & 0.0053\\
+$c_{K,d}$ & 0.798 & 0.573 & 0.504 & 0.412 & 0.295 & 0.210 & 0.149 & 0.240 & 0.121\\
+$a_{K,d}/c_{K,d}$ & 1 & 0.683 & 0.568 & 0.428 & 0.250 & 0.136 & 0.072 & 0.162 & 0.044\\
+$d\cdot a_{K,d}/c_{K,d}$ & 1 & 1.37 & 1.70 & 1.71 & 2.00 & 2.17 & 2.29 & 2.59 & 2.80\\
+\bottomrule
+\end{tabular}
+\caption{Constants of the first-order offset \eqref{eq:offset}. Monte Carlo, with standard errors of $a_{K,d}$ between
+$1.4\cdot10^{-4}$ and $7.5\cdot10^{-4}$ (up to $3\%$ of $a_{K,d}$ for the largest sizes), except the column $(1,1)$,
+which is exact, and the column $(2,3)$, which gives the exact values obtained by quadrature (Monte Carlo:
+$a_{2,3}=0.2869\pm0.0006$); the column $(2,2)$ agrees with its exact values. The offset per entry, in units of the
+scalar offset $\kappa_3/(6\sigma^2b)$, is $a_{K,d}/c_{K,d}$, of order $1/d$; for sign descent it is $1$.}\label{tab:ac}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figT2_noise}
+\caption{Stochastic polar steps on a finite-sum least-squares problem ($n=2000$, $K=2$, $d=3$, intercept, skewed
+residuals). (a) Batch one, same decreasing lengths: with the minibatch gradient the averaged iterate converges to the
+least-distances solution $W_{\mathrm{LAD}}$ of Proposition~\ref{prop:lad}; with the SAGA estimator it converges to the
+least-squares solution $W_{\mathrm{LS}}$. (b) Batch size times the nuclear norm of the gradient at the limit point:
+zeros of the mean field (line), stochastic runs with decreasing lengths (dots), SAGA estimator with the nuclear-scaled
+length (squares; the gradient norms are at rounding level, below $3\cdot10^{-15}$). (c) Scalar case with momentum:
+median of an exponential average of skewed noise, with the two factors of Proposition~\ref{prop:offset}.}\label{fig:noise}
+\end{figure}
+
+\paragraph{Offset.} For $2\times3$ matrices with entries $\mathrm{Exp}(1)-1$ ($\sigma=1$, $\kappa_3=2$),
+\eqref{eq:offset} predicts $\sqrt b\,\nF{\Phi_{\xi_b}(0)}\to0.234$ and $b\,\nnuc{G_b^\dagger}\to0.464$. Computing the zero of
+the mean field directly, with exactly sampled batch means and $1.5\cdot10^6$ samples, gives $0.230$--$0.237$ and
+$0.450$--$0.498$ for $b=2,\dots,256$; an independent implementation with $3\cdot10^6$ samples gives $0.230$--$0.241$ and
+$0.449$--$0.483$ for $b$ up to $1024$. The fixed point is proportional to the all-ones matrix (cosine above $0.999$ for
+$b\le64$; $0.998$ and $0.996$ at $b=128$ and $256$, where the Monte-Carlo error of the root is no longer negligible),
+and with symmetrized noise the mean field at $0$ vanishes up to the Monte-Carlo error ($10^{-3}$).
+
+The dichotomy of Theorem~\ref{thm:smd} is visible on a finite sum (Figure~\ref{fig:noise}). For a least-squares
+problem with an intercept and skewed residuals, $\nF{W_{\mathrm{LAD}}-W_{\mathrm{LS}}}=0.170$; batch-one polar steps
+with decreasing lengths end (iterates averaged over the last half of the run and over $32$ runs) at distance
+$2.6\cdot10^{-3}$ from the least-distances solution and $0.169$ from the least-squares solution, while the same lengths
+with the SAGA estimator end at $2.1\cdot10^{-4}$ from the least-squares solution. For $b=1,2,4,8,16,32$ the zero of the
+mean field (estimated from $2\times2\cdot10^5$ sampled batches for $b\ge2$, with a spread up to $8\cdot10^{-4}$) has
+$\nnuc{\nabla F}$ equal to $0.168$, $0.120$, $0.069$, $0.036$, $0.019$, $0.0096$ ($b$ times this: $0.168$, $0.240$,
+$0.276$, $0.285$, $0.303$, $0.308$), and the stochastic runs (same averaging, $64$ runs) end at $0.166$, $0.118$,
+$0.068$, $0.035$, $0.018$, $0.0092$; with the SAGA estimator and the nuclear-scaled length the gradient norm ends below
+$2.4\cdot10^{-15}$ for every $b$. In this design the per-sample gradients have rank one and the entries of the noise
+are not independent, so \eqref{eq:offset} does not apply as such: what is observed is the $1/b$ regime, a plateau of
+$b$ times the offset, approached for $b$ large compared with the size of the matrix.
+
+\paragraph{Momentum.} Exact medians of the stationary exponential average of $\mathrm{Exp}(1)-1$ noise are
+$-0.0466$, $-0.0227$, $-0.0112$ for $\beta=0.8,0.9,0.95$; the third-cumulant factor gives $-0.0492$, $-0.0234$, $-0.0114$
+and the effective-batch heuristic $-0.0370$, $-0.0175$, $-0.0085$ (Figure~\ref{fig:noise}(c)).
+
+\paragraph{Dynamics.} For $K=d=100$ and a spectrum $1/k$ ($\kF=100$, $\kop=519$), from a generic start, the relative
+objective gap after $10$ and $100$ iterations is $4.0\cdot10^{-3}$ and $1.3\cdot10^{-4}$ for the nuclear-scaled polar step
+against $0.23$ and $9.0\cdot10^{-3}$ for gradient descent with step $1/\lambda_1$; after $1000$ iterations the order is
+reversed ($4.5\cdot10^{-8}$ against $1.8\cdot10^{-11}$). Over iterations $2500$ to $3000$ the exponent per step of the
+polar run, $0.0081$, is within $5\%$ of that of the flattest two-valued invariant configuration,
+$-2\log(1-2\lambda_d/\tr\Sigma)$, and $2.5$ times smaller than that of gradient descent, the ratio
+$\tr\Sigma/(2\lambda_1)=2.6$ predicted on that configuration (the slow regime of \cite{shulgin2026quadratic}, written
+with the stable rank of the data). This agreement is an observation, and only of the exponent: at the end of the run
+the error is nearly of rank one ($99.9\%$ of $\nF E^2$ on its top singular value) but not aligned with the flattest
+eigenvector (cosine $0.54$), and the configurations of the ten flattest directions have exponents within $10\%$ of
+each other. Moreover the invariant configurations are unstable for the commuting map (Proposition~\ref{prop:mad}), and
+in commuting runs the tail is governed by the direction that carries the largest amplitude after the first few
+iterations (exponent close to $-2\log(1-2p_k)$), not by the flattest one.
+
+\section{Discussion}\label{sec:discussion}
+
+\paragraph{What this says about Muon.} On the side of \emph{speed}, the spectral geometry cannot improve a worst-case
+constant on ridge-regularized classification models (Theorem~\ref{thm:nfl}), and its condition number is at least
+$\min(K,d)$; what polar steps buy is a property of trajectories --- a nearly curvature-free reduction of the error in
+the head of the run, paid by a tail that, on the flattest invariant configuration and in our runs, is slower than
+gradient descent with step $1/\lambda_1$ when $\tr\Sigma/\lambda_1$, the stable rank of the data, exceeds two. On the
+side of \emph{precision}, a polar step with stochastic gradients faces three distinct floors: a length floor for
+constant lengths (quadratic in the length, removed by a nuclear-scaled or decreasing length), the fluctuations of any
+constant-step stochastic method, and the median offset of Theorem~\ref{thm:smd}, which is the same for all schedules
+with $\sum_t\eta_t=\infty$, $\sum_t\eta_t^2<\infty$. When the gradient noise is symmetric, $W_\ast$ is a possible limit,
+and the only one if $0$ is in the support of the noise (Proposition~\ref{prop:median}(b)). Otherwise the offset is
+formally of order $1/b$ when the noise has a nonzero third cumulant (Proposition~\ref{prop:offset}), and smaller per
+entry than for sign descent by a factor of order $d$. In the scalar quasi-static computation of
+Proposition~\ref{prop:offset}, a plain exponential average multiplies it by
+$(1-\beta^2)/(1+\beta+\beta^2)\approx\frac23(1-\beta)$; with the Nesterov look-ahead of Muon implementations the
+first-order factor is larger ($0.125$ and $0.052$ at $\beta=0.9$ and $0.95$, against $0.070$ and $0.034$). A finite-sum
+variance-reduced estimator has a fixed point without offset. In experiments of the companion study with constant
+parameters, only finite-sum estimators combined with a nuclear-scaled or clipped length reach rounding precision;
+Figure~\ref{fig:noise}(b) shows the same for the limit point. This is the precise sense in which variance reduction
+can improve the precision of Muon-type steps: not by reducing a variance term in a rate, but by having the minimizer
+as its fixed point (the convergence to it is observed in Figure~\ref{fig:noise}, not proved).
+
+\paragraph{Limitations.} All statements are for strongly convex objectives. Theorem~\ref{thm:smd} assumes additive
+noise and no momentum; for minibatches of a finite sum the law of the noise depends on the iterate, and we only treat
+batch one on least squares. Proposition~\ref{prop:offset} is a formal expansion, supported by simulations; its momentum
+part is scalar, quasi-static and for a plain exponential average. No convergence of a variance-reduced polar method is
+proved: Proposition~\ref{prop:median}(d) only identifies its fixed point. The scaling of $a_{K,d}/c_{K,d}$ in $1/d$ is
+numerical (exact for $K=1$), and it concerns noise with independent entries in the regime $b\to\infty$ at fixed size;
+minibatch gradients of rank smaller than $\min(K,d)$ are outside it. ``Not found'' refers to automated literature
+checks of 12 and 16 November 2026, which opened about sixty papers; several of the closest ones are a few weeks old.
+Statements added during the revision (Theorem~\ref{thm:nfl} for an arbitrary norm, the rigidity and the sharpness
+example of Proposition~\ref{prop:frame}, the second-step bound and the instability of the invariant rays in
+Proposition~\ref{prop:mad}, the condition for $d=3$ in Proposition~\ref{prop:Q}, the bounds on $\tau_\ast$ and the bound
+for $d=2$ in Proposition~\ref{prop:ext}) were not the object of a separate search.
+
+\paragraph{Open questions.} Whether generic trajectories of the line-search polar iteration converge to the flattest
+two-valued configuration; a bound on the extinction time of the flow of order $\sqrt{\log\kappa}$ or $\sqrt d$; a proof
+of \eqref{eq:offset} and of its dimension dependence; a Lyapunov function for a SAGA table driven by nuclear-scaled
+polar steps; and whether the dependence of the final loss on the skewness of the minibatch gradient, on $b$ and on
+$\beta$ is visible when training a network.
+
+\paragraph{Reproducibility and use of AI tools.} Proofs of all statements, the status of each auxiliary result and the
+record of the review are in the companion notes (\texttt{muon/notes\_spectral\_theory.pdf}); every number comes from the
+scripts of \texttt{muon/theory\_checks/}. A large language model (Claude, Anthropic) was used, under the supervision of
+the authors, to derive and check the statements, to write the scripts, and to run the adversarial review (six
+independent passes re-deriving each proof and opening the cited sources, then three passes on this paper, whose
+corrections are included); statement numbers quoted from recent preprints are those read during that review, and the
+exact constants quoted for $K\le2$ in Table~\ref{tab:ac} and the identity $a_{1,d}/c_{1,d}=3/(d+2)$ come from it.
+
+\bibliographystyle{plain}
+\bibliography{paper_spectral_muon}
+
+\end{document}

@@ -1,0 +1,74 @@
+
+=== soft-mem (n = 1000): medians over the recorded states; 'n eff' = expected relative decrease per pass
+  family                   own: n eff_d2  realized  SAGA states: n eff_d2  cos_grad  dual_al  noise_nuc  smin_ratio  nr_omega   nr_G  frac_up  |m|/|G|  surr_gap
+  SAGA                             1.099     0.713                  1.099      1.00     0.58       4.53        66.0      3.41   7.26     0.18    1.084     2.332
+  B-SAGA                           1.329     0.706                  1.251      0.88     0.60       3.26        47.7      3.78   6.18     0.17    1.000     2.109
+  SAGA-Muon (joint)                1.703     0.668                 11.042      0.17     0.18       5.19       171.7      1.07   5.53     0.05    0.062     0.218
+  damped SAGA-Muon                 0.952     0.677                 14.397      0.06     0.07       3.68        93.3      1.09   5.29     0.22    0.060     0.169
+  mean-scaled SAGA-Muon            0.891     0.665                169.821      0.10     0.14       5.13       218.6      1.06   3.78     0.08    0.043     0.150
+  soft SAGA-Muon                   0.785     0.693                  2.055      0.98     0.59       5.54       210.5      1.63   5.86     0.57    0.466     1.303
+  split SAGA-Muon                  1.447     0.680                  9.638      0.30     0.34       4.79       164.8      1.36   5.79     0.30    0.400     1.278
+  tangent SAGA-Muon                0.457     0.566                  0.181      0.52     0.38       3.76       100.5      2.15   6.56     0.22    0.996     2.060
+  full-gradient steps at the SAGA states (relative decrease of dist2 per pass): gd 0.052, gd_ls 0.499, sharp 0.136, sharp_ls 0.645
+
+=== ls-mem (n = 1000): medians over the recorded states; 'n eff' = expected relative decrease per pass
+  family                   own: n eff_d2  realized  SAGA states: n eff_d2  cos_grad  dual_al  noise_nuc  smin_ratio  nr_omega   nr_G  frac_up  |m|/|G|  surr_gap
+  SAGA                             1.121     0.661                  1.121      1.00     0.52       5.39       111.3      2.28   5.66     0.36    0.726     4.993
+  B-SAGA                           1.345     0.666                  1.241      0.91     0.52       3.62        83.3      2.63   5.45     0.40    0.659     4.814
+  SAGA-Muon (joint)                1.027     0.620                  3.083      0.21     0.27       4.05       194.2      1.36   5.72     0.00    0.230     2.553
+  damped SAGA-Muon                 1.065     0.615                  2.411      0.17     0.20       1.78        49.8      2.34   5.81     0.01    0.298     3.675
+  mean-scaled SAGA-Muon            0.936     0.599                  7.513      0.16     0.19       4.00       228.0      1.36   4.99     0.02    0.275     3.527
+  soft SAGA-Muon                   0.857     0.649                  1.493      0.99     0.54       5.16       208.1      1.37   4.56     0.45    0.379     4.078
+  split SAGA-Muon                  1.290     0.644                  4.888      0.43     0.38       4.71       146.5      1.36   6.62     0.44    0.315     2.742
+  tangent SAGA-Muon                0.033     0.397                 -1.991      0.63     0.36       3.79       118.7      1.45   6.16     0.41    0.610     4.227
+  full-gradient steps at the SAGA states (relative decrease of dist2 per pass): gd 0.110, gd_ls 0.154, sharp 0.302, sharp_ls 0.389
+
+=== soft-cond (n = 200): medians over the recorded states; 'n eff' = expected relative decrease per pass
+  family                   own: n eff_d2  realized  SAGA states: n eff_d2  cos_grad  dual_al  noise_nuc  smin_ratio  nr_omega   nr_G  frac_up  |m|/|G|  surr_gap
+  SAGA                             0.193     0.176                  0.193      1.00     0.74       0.57         5.5      5.39   6.41     0.01    0.993     1.244
+  B-SAGA                           0.466     0.324                  0.786      0.30     0.21       1.16        26.9      3.13   2.52     0.56    0.229     3.723
+  SAGA-Muon (joint)                0.398     0.365                  0.198      0.11     0.15       3.17       122.5      1.76   3.35     0.30    0.349     4.534
+  damped SAGA-Muon                 0.270     0.332                  0.332      0.35     0.43       1.28        32.7      2.60   2.89     0.00    0.506     4.349
+  mean-scaled SAGA-Muon            0.728     0.400                  1.099      0.21     0.30       3.00       100.7      1.93   3.17     0.14    0.502     5.301
+  soft SAGA-Muon                   0.517     0.393                  0.689      0.67     0.55       2.98       196.3      1.79   2.71     0.37    0.477     3.578
+  split SAGA-Muon                  0.335     0.271                  0.644      0.16     0.23       2.42       131.0      1.99   3.23     0.01    0.464     1.876
+  tangent SAGA-Muon                0.127     0.093                  0.079      0.65     0.39       1.50        60.5      2.85   4.27     0.09    0.980     4.576
+  full-gradient steps at the SAGA states (relative decrease of dist2 per pass): gd 0.002, gd_ls 0.266, sharp 0.011, sharp_ls 0.233
+
+=== ls-cond (n = 200): medians over the recorded states; 'n eff' = expected relative decrease per pass
+  family                   own: n eff_d2  realized  SAGA states: n eff_d2  cos_grad  dual_al  noise_nuc  smin_ratio  nr_omega   nr_G  frac_up  |m|/|G|  surr_gap
+  SAGA                             0.121     0.132                  0.121      1.00     0.61       1.14        67.2      3.27   4.84     0.13    0.704     1.869
+  B-SAGA                           0.485     0.385                  0.577      0.62     0.59       1.05       110.0      2.13   1.53     0.59    0.097     4.618
+  SAGA-Muon (joint)                0.408     0.243                  0.108      0.10     0.13       2.64       100.9      1.81   2.75     0.32    0.468     5.496
+  damped SAGA-Muon                 0.423     0.341                  0.174      0.10     0.13       2.05       123.0      1.82   3.52     0.42    0.217    11.650
+  mean-scaled SAGA-Muon            0.248     0.320                  0.819      0.02     0.04       2.64       130.5      1.54   2.97     0.46    0.168     8.900
+  soft SAGA-Muon                   0.476     0.398                  0.393      0.24     0.23       2.93       353.7      1.36   3.71     0.55    0.134     5.844
+  split SAGA-Muon                  0.240     0.306                  0.515      0.11     0.14       2.56       121.2      1.61   3.06     0.53    0.232     5.685
+  tangent SAGA-Muon                0.103     0.042                  0.031      0.50     0.24       1.36        57.8      3.22   3.58     0.28    0.802     6.746
+  full-gradient steps at the SAGA states (relative decrease of dist2 per pass): gd 0.004, gd_ls 0.011, sharp 0.018, sharp_ls 0.031
+
+=== ls-orth (n = 500): medians over the recorded states; 'n eff' = expected relative decrease per pass
+  family                   own: n eff_d2  realized  SAGA states: n eff_d2  cos_grad  dual_al  noise_nuc  smin_ratio  nr_omega   nr_G  frac_up  |m|/|G|  surr_gap
+  SAGA                            -0.158     0.378                 -0.158      1.00     0.80       3.16     35741.8      1.43   1.59     0.48    0.235    67.594
+  B-SAGA                          -0.448     0.508                 -0.384      0.93     0.68       2.01     20488.4      1.62   2.19     0.57    0.161    63.139
+  SAGA-Muon (joint)                0.624     0.430                  2.185      0.09     0.18       2.75     10457.9      1.65   4.11     0.31    0.167    82.592
+  damped SAGA-Muon                 0.411     0.387                  1.368      0.11     0.24       1.34      3185.3      1.85   3.37     0.46    0.238    86.760
+  mean-scaled SAGA-Muon            0.293     0.481                  0.586     -0.02    -0.05       2.88      3036.0      1.82   3.58     0.59    0.231   142.148
+  soft SAGA-Muon                   0.452     0.431                  1.641      0.58     0.49       3.81     19139.5      1.48   2.61     0.45    0.403    62.760
+  split SAGA-Muon                  0.295     0.449                  2.087      0.28     0.35       2.92      5162.3      1.52   4.62     0.42    0.480    49.275
+  tangent SAGA-Muon                0.073     0.055                 -0.283      0.35     0.22       2.17      1871.5      3.50   6.35     0.25    0.932    75.567
+  full-gradient steps at the SAGA states (relative decrease of dist2 per pass): gd 0.046, gd_ls 0.049, sharp 0.105, sharp_ls 0.105
+
+=== soft-sq (n = 500): medians over the recorded states; 'n eff' = expected relative decrease per pass
+  family                   own: n eff_d2  realized  SAGA states: n eff_d2  cos_grad  dual_al  noise_nuc  smin_ratio  nr_omega   nr_G  frac_up  |m|/|G|  surr_gap
+  SAGA                             0.558     0.453                  0.558      1.00     0.68       2.70      1248.0      3.29   2.27     0.33    0.352     4.640
+  B-SAGA                           0.821     0.606                  1.449      0.91     0.59       1.63      1043.9      3.59   2.87     0.48    0.211     2.149
+  SAGA-Muon (joint)                0.701     0.621                  4.278      0.06     0.11       3.77      8423.2      1.71   4.49     0.45    0.978     6.990
+  damped SAGA-Muon                 0.736     0.595                  3.714      0.14     0.27       1.60      5530.6      2.59   3.76     0.07    0.587     6.477
+  mean-scaled SAGA-Muon            0.710     0.605                  6.164      0.08     0.19       3.16     20235.8      1.80   3.06     0.17    0.491     5.222
+  soft SAGA-Muon                   0.892     0.618                  2.230      0.43     0.39       3.98     12135.7      2.20   3.84     0.38    0.307     2.939
+  split SAGA-Muon                  0.808     0.638                  7.787      0.20     0.33       3.87     12839.8      1.68   3.55     0.29    0.248     2.617
+  tangent SAGA-Muon                0.399     0.131                  0.044      0.32     0.25       2.74      1682.0      2.97   4.60     0.18    1.984     7.264
+  full-gradient steps at the SAGA states (relative decrease of dist2 per pass): gd 0.007, gd_ls 0.027, sharp 0.109, sharp_ls 0.429
+
+M2 done in 225s

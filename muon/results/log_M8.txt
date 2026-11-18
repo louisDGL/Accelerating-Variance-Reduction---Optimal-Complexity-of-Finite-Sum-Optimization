@@ -1,0 +1,68 @@
+
+=== soft-cond, data seed 1: softmax_n200_d40_K8_k10000_a2_s1  R2/mu_true = 9775 (n = 200), cond(H*) = 232, budget 300 passes, target 1e-06
+  one-shot polar-metric B-SAGA theta=0.3, metric_floor=0.3, c_metric=4         23.4 [21.3, 26.8] hit 10/10 deep 10/10  metric_floor+
+  IS soft SAGA-Muon        eps_innov=0.3, gamma=4/R2_op                    25.1 [24.2, 27.8] hit 10/10 deep 10/10  
+  soft SAGA-Muon           eps_innov=0.01, gamma=0.5/R2_op                 25.1 [23.8, 27.2] hit 10/10 deep 10/10  
+  cov-metric SAGA          metric_floor=0.01, c_metric=1                   26.9 [26.1, 27.2] hit 10/10 deep 10/10  
+  split SAGA-Muon          gamma_c=1/R2, gamma=2/R2_op                     28.6 [25.2, 40.9] hit 10/10 deep 10/10  
+  IS-B-SAGA                theta=0.2, gamma=16/R2                          29.2 [26.9, 32.0] hit 10/10 deep 10/10  
+  B-SAGA                   theta=0.2, gamma=8/R2                           34.5 [34.2, 35.0] hit 10/10 deep 10/10  
+  one-shot polar-metric SAGA metric_floor=0.3, c_metric=2                    39.8 [39.7, 40.0] hit 10/10 deep 10/10  
+  SAGA-Muon (joint)        gamma=0.5/R2_op                                 43.5 [40.7, 47.3] hit 10/10 deep 10/10  
+  SAGA                     gamma=4/R2                                      67.9 [67.5, 68.3] hit 10/10 deep 10/10  
+
+=== soft-cond, data seed 2: softmax_n200_d40_K8_k10000_a2_s2  R2/mu_true = 9742 (n = 200), cond(H*) = 323, budget 300 passes, target 1e-06
+  soft SAGA-Muon           eps_innov=0.01, gamma=0.5/R2_op                 27.5 [26.3, 30.3] hit 10/10 deep 10/10  
+  IS soft SAGA-Muon        eps_innov=0.1, gamma=2/R2_op                    28.6 [25.1, 32.2] hit 10/10 deep 10/10  
+  split SAGA-Muon          gamma_c=0.5/R2, gamma=2/R2_op                   29.9 [26.2, 32.8] hit 10/10 deep 10/10  
+  one-shot polar-metric B-SAGA theta=0.1, metric_floor=0.3, c_metric=4         32.8 [27.0, 40.7] hit 10/10 deep 10/10  theta-,metric_floor+
+  IS-B-SAGA                theta=0.3, gamma=8/R2                           35.2 [34.7, 36.0] hit 10/10 deep 10/10  
+  cov-metric SAGA          metric_floor=0.01, c_metric=1                   35.3 [34.1, 35.5] hit 10/10 deep 10/10  
+  B-SAGA                   theta=0.15, gamma=8/R2                          35.6 [35.2, 37.0] hit 10/10 deep 10/10  
+  one-shot polar-metric SAGA metric_floor=0.3, c_metric=2                    38.3 [37.9, 40.7] hit 10/10 deep 10/10  
+  SAGA-Muon (joint)        gamma=0.5/R2_op                                 52.9 [46.4, 66.3] hit 10/10 deep 10/10  
+  SAGA                     gamma=2/R2                                   136.1 [136.0, 136.2] hit 10/10 deep 10/10  
+
+=== ls-cond, data seed 1: ls_n200_d40_K8_k10000_a2_s1  R2/mu_true = 7391 (n = 200), cond(H*) = 685, budget 300 passes, target 1e-06
+  cov-metric SAGA          metric_floor=0, c_metric=0.25                   15.9 [14.3, 17.2] hit 10/10 deep 10/10  metric_floor-
+  one-shot polar-metric B-SAGA theta=0.3, metric_floor=0.3, c_metric=2         25.9 [24.5, 27.7] hit 10/10 deep 10/10  metric_floor+
+  IS-B-SAGA                theta=0.2, gamma=8/R2                           27.4 [26.4, 30.1] hit 10/10 deep 10/10  
+  IS soft SAGA-Muon        eps_innov=0.03, gamma=0.5/R2_op                 29.5 [27.2, 33.8] hit 10/10 deep 10/10  eps_innov-
+  soft SAGA-Muon           eps_innov=0.03, gamma=0.5/R2_op                 29.6 [28.5, 30.7] hit 10/10 deep 10/10  
+  B-SAGA                   theta=0.1, gamma=8/R2                           30.1 [28.7, 31.2] hit 10/10 deep 10/10  
+  split SAGA-Muon          gamma_c=0.25/R2, gamma=1/R2_op                  31.9 [29.8, 66.5] hit 10/10 deep 10/10  
+  one-shot polar-metric SAGA metric_floor=0.6, c_metric=2                    35.1 [32.0, 40.3] hit 10/10 deep 10/10  metric_floor+
+  SAGA                     gamma=2/R2                                      98.1 [97.6, 98.3] hit 10/10 deep 10/10  
+  SAGA-Muon (joint)        gamma=0.125/R2_op                               117.6 [30.0, inf] hit 9/10 deep 0/10  
+
+=== ls-cond, data seed 2: ls_n200_d40_K8_k10000_a2_s2  R2/mu_true = 7010 (n = 200), cond(H*) = 834, budget 300 passes, target 1e-06
+  cov-metric SAGA          metric_floor=0, c_metric=0.25                   16.3 [15.1, 17.2] hit 10/10 deep 10/10  metric_floor-
+  one-shot polar-metric B-SAGA theta=0.3, metric_floor=0.3, c_metric=2         24.1 [23.1, 26.9] hit 10/10 deep 10/10  metric_floor+
+  IS soft SAGA-Muon        eps_innov=0.1, gamma=1/R2_op                    29.4 [27.9, 38.8] hit 10/10 deep 10/10  
+  IS-B-SAGA                theta=0.2, gamma=8/R2                           29.8 [27.2, 31.2] hit 10/10 deep 10/10  
+  soft SAGA-Muon           eps_innov=0.1, gamma=1/R2_op                    32.0 [28.5, 45.8] hit 10/10 deep 10/10  
+  SAGA-Muon (joint)        gamma=0.125/R2_op                               32.8 [30.9, 34.0] hit 10/10 deep 10/10  
+  B-SAGA                   theta=0.1, gamma=8/R2                           32.9 [31.1, 35.4] hit 10/10 deep 10/10  
+  split SAGA-Muon          gamma_c=0.25/R2, gamma=1/R2_op                  33.0 [31.3, 56.3] hit 10/10 deep 10/10  
+  one-shot polar-metric SAGA metric_floor=0.3, c_metric=1                    40.3 [39.9, 41.2] hit 10/10 deep 10/10  
+  SAGA                     gamma=2/R2                                     99.1 [98.4, 101.4] hit 10/10 deep 10/10  
+
+=== ls-orth, data seed 1: ls_n500_d20_K20_k100000_a2_s1_noise0.1_plantedorthogonal  R2/mu_true = 6266 (n = 500), cond(H*) = 394, budget 100 passes, target 1e-06
+Traceback (most recent call last):
+  File "C:\Users\Louis\Desktop\berkeley\projetSTATS\muon\experiments\exp_M8_dataseeds.py", line 74, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\Louis\Desktop\berkeley\projetSTATS\muon\experiments\exp_M8_dataseeds.py", line 57, in main
+    recs = C.tune_and_confirm([s], fams, inst["passes"], inst["tol"], f"{tag}_{key}_s{sd}", n_jobs=jobs)
+  File "C:\Users\Louis\Desktop\berkeley\projetSTATS\muon\experiments\common.py", line 503, in tune_and_confirm
+    run_points([(c, i, c["seeds"]) for c in cells for i in c["first"]])
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Louis\Desktop\berkeley\projetSTATS\muon\experiments\common.py", line 490, in run_points
+    res = run_tasks(tasks, name + "_tune", n_jobs) if tasks else []
+          ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Louis\Desktop\berkeley\projetSTATS\muon\experiments\common.py", line 329, in run_tasks
+    cache = _load_cache(path)
+  File "C:\Users\Louis\Desktop\berkeley\projetSTATS\muon\experiments\common.py", line 311, in _load_cache
+    return pickle.load(f)
+           ~~~~~~~~~~~^^^
+_pickle.UnpicklingError: invalid load key, '\x00'.

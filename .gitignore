@@ -2,6 +2,9 @@
 Bach_optimization.pdf
 _scratch/
 
+# Local clones of companion repositories of the team (private; kept for study, never redistributed here)
+external/
+
 # Result caches: only the small, costly ones are versioned; the others are rebuilt by their script
 results/*.pkl
 !results/A3.pkl
@@ -15,6 +18,7 @@ results/log_*.txt
 figures/*_quick.*
 
 # Python
+.venv/
 __pycache__/
 *.pyc
 .pytest_cache/

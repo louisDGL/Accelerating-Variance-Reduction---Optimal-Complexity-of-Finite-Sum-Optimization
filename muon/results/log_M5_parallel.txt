@@ -1,0 +1,59 @@
+
+=== ls-orth: ls_n500_d20_K20_k100000_a2_s0_noise0.1_plantedorthogonal, budget 100 passes, target 1e-06
+[M5_ls-orth_screen] 168 runs to do (56 cached), 3 processes
+[M5_ls-orth_screen] finished 168 runs in 27s
+[M5_ls-orth_tune] 114 runs to do (38 cached), 3 processes
+[M5_ls-orth_tune] 34/114 done, 61s
+[M5_ls-orth_tune] finished 114 runs in 104s
+[M5_ls-orth_confirm] 60 runs to do (0 cached), 3 processes
+[M5_ls-orth_confirm] 32/60 done, 61s
+[M5_ls-orth_confirm] finished 60 runs in 73s
+  passes to 1e-06: median [min, max] over the confirmation seeds (selected step)
+     b                       SAGA                                           B-SAGA                                        SAGA-Muon                   
+     1  27.1 [26.8, 27.3] (gamma=2/R2)                  18.8 [18.3, 19.1] (theta=0.3, gamma=4/R2)*      28.3 [27.7, 28.4] (gamma=0.0625/R2_op)        
+     4  35.8 [30.1, 36.0] (gamma=8/R2)                  20.5 [19.2, 21.2] (theta=0.1, gamma=16/R2)*     25.8 [18.4, inf] (gamma=0.25/R2_op)           
+    16  51.5 [51.2, 52.5] (gamma=16/R2)                 20.8 [20.6, 22.1] (theta=0.1, gamma=64/R2)*     94.8 [15.7, inf] (gamma=2/R2_op)              
+    64  - (gamma=16/R2)                                 46.6 [46.4, 50.8] (theta=0.3, gamma=64/R2)*     17.4 [16.2, 20.6] (gamma=8/R2_op)             
+  (* = a selected value on the edge of its grid)
+
+=== soft-cond: softmax_n200_d40_K8_k10000_a2_s0, budget 300 passes, target 1e-06
+[M5_soft-cond_screen] 224 runs to do (0 cached), 3 processes
+[M5_soft-cond_screen] 57/224 done, 60s
+[M5_soft-cond_screen] 196/224 done, 120s
+[M5_soft-cond_screen] finished 224 runs in 124s
+[M5_soft-cond_tune] 152 runs to do (0 cached), 3 processes
+[M5_soft-cond_tune] 27/152 done, 74s
+[M5_soft-cond_tune] 37/152 done, 138s
+[M5_soft-cond_tune] 67/152 done, 199s
+[M5_soft-cond_tune] 107/152 done, 262s
+[M5_soft-cond_tune] finished 152 runs in 286s
+[M5_soft-cond_confirm] 60 runs to do (0 cached), 3 processes
+[M5_soft-cond_confirm] finished 60 runs in 44s
+  passes to 1e-06: median [min, max] over the confirmation seeds (selected step)
+     b                       SAGA                                           B-SAGA                                        SAGA-Muon                   
+     1  69.6 [69.5, 69.7] (gamma=4/R2)                  34.6 [30.3, 35.2] (theta=0.1, gamma=16/R2)*     29.0 [26.9, 30.6] (gamma=0.5/R2_op)           
+     4  69.5 [69.5, 69.6] (gamma=16/R2)                 35.2 [34.1, 36.8] (theta=0.1, gamma=64/R2)*     24.3 [23.3, 26.0] (gamma=4/R2_op)             
+    16  70.7 [69.4, 71.6] (gamma=64/R2)                 34.9 [34.5, 35.2] (theta=0.3, gamma=128/R2)*    95.6 [81.9, 107.4] (gamma=16/R2_op)           
+    64  274.0 [274.0, 274.0] (gamma=64/R2)              68.8 [68.5, 69.2] (theta=0.3, gamma=256/R2)*    226.9 [225.0, 231.7] (gamma=32/R2_op)         
+  (* = a selected value on the edge of its grid)
+
+=== ls-cond: ls_n200_d40_K8_k10000_a2_s0, budget 300 passes, target 1e-06
+[M5_ls-cond_screen] 224 runs to do (0 cached), 3 processes
+[M5_ls-cond_screen] finished 224 runs in 47s
+[M5_ls-cond_tune] 152 runs to do (0 cached), 3 processes
+[M5_ls-cond_tune] 28/152 done, 60s
+[M5_ls-cond_tune] 46/152 done, 121s
+[M5_ls-cond_tune] 87/152 done, 181s
+[M5_ls-cond_tune] finished 152 runs in 214s
+[M5_ls-cond_confirm] 60 runs to do (0 cached), 3 processes
+[M5_ls-cond_confirm] 36/60 done, 60s
+[M5_ls-cond_confirm] finished 60 runs in 69s
+  passes to 1e-06: median [min, max] over the confirmation seeds (selected step)
+     b                       SAGA                                           B-SAGA                                        SAGA-Muon                   
+     1  98.8 [98.3, 99.1] (gamma=2/R2)                  32.1 [30.7, 34.1] (theta=0.1, gamma=8/R2)*      31.9 [30.2, inf] (gamma=0.125/R2_op)          
+     4  134.1 [103.3, 217.1] (gamma=8/R2)               33.2 [31.5, 36.2] (theta=0.1, gamma=32/R2)*     66.2 [62.4, 70.6] (gamma=2/R2_op)             
+    16  - (gamma=8/R2)                                  54.4 [52.3, 57.6] (theta=0.1, gamma=64/R2)*     89.2 [76.3, 117.8] (gamma=8/R2_op)            
+    64  - (gamma=16/R2)                                 198.8 [194.9, 214.8] (theta=0.3, gamma=64/R2)*  - (gamma=8/R2_op)                             
+  (* = a selected value on the edge of its grid)
+
+M5 done in 990s

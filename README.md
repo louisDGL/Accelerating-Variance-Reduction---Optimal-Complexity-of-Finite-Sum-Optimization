@@ -24,6 +24,7 @@ Proposition 5.9 are loose? (B1 quadratic-metric / preconditioned SAGA, B2 trajec
 | `theory/` | LaTeX notes with full proofs: `B3_prop59_tightness.tex`, `B2_effective_curvature.tex`, `B1_preconditioned_saga.tex`, `A1_lower_bound.tex`, `A3_lkatyusha_lyapunov.tex`; `main.tex` compiles them |
 | `bibliography/` | `literature_review.md` (annotated state of the art organised by hypothesis), `references.bib`, `refs.json` |
 | `report/` | the final report: `main.tex` → `main.pdf` (main body in `sections/`, with Section 4 in `sections/overview/` and Section 5 in `sections/exp/`; the five notes as appendices) and `synthesis.tex` → `synthesis.pdf` (Section 4 alone). Section 4 states the main results of the appendices verbatim under their appendix numbers: `make_restated.py` copies the statements of the notes into `restated/` (never edit these files: edit the note), and `restate_defs.tex` defines `\restate{label}` and `\resref{label}` (reference by number and name). `build.py` runs everything in order |
+| `external/` | local clones of companion repositories of the team, kept for study (not versioned here; see `external/README.md` in a local copy) |
 | `_scratch/` | local working files, not versioned (extracted book text, downloaded papers, transcription of the proof of Prop. 5.9) |
 
 ## Conventions

@@ -76,12 +76,19 @@ Dividing~\eqref{eq:B1-stat-RP} by~\eqref{ineq:P-trajsc} bounds the effective rel
 In the last two bounds of~\eqref{eq:B1-kappa-traj-stat}, the eigenvalues of $\hat\Sigma$ appear only through
 $d_\infty(\lambda)\le C\,d_{\mathrm{eff}}(\lambda)$, and $d_{\mathrm{eff}}(\lambda)$ counts the directions not killed by
 the regularization, whatever the dynamic range of the spectrum. The price is the smallest segment curvature
-$m(\theta)$, and on the instances of Section~\ref{sec:exp-B1} it dominates. There, as $\theta\to\etastar$,
+$m(\theta)$, and on the instances of Figure~\ref{fig:B1} it dominates. There, as $\theta\to\etastar$,
 $m(\theta)\to\min_iw_i$ with $w_i=\sigma'(y_ix_i^\top\etastar)$, and $\min_iw_i=7.4\cdot10^{-3}$ ($\alpha=1$) and
 $6.1\cdot10^{-3}$ ($\alpha=2$), so that the first bound in~\eqref{eq:B1-kappa-traj-stat} tends to $1.7\cdot10^3$ and
 $1.2\cdot10^3$: above $\kappa=10^3$, and above the upper bound in~\eqref{eq:B1-kappa-traj-I} for $P=I$ with the same
 $m(\theta)$ ($968$ and $999$). On these instances this rigorous bound therefore predicts no gain of
 $\hat\Sigma+\lambda I$.
+% Sources: experiments/exp_B1_coherence.py -> results/B1_coherence_summary.json (families/lc and families/hc: w_min;
+% runs/<data set>|stat: cor_bound_over_kappa_eff_2_20, cor_bound_frac_above_kappa_2_20); role of the labels: Section
+% exp-B1, variant "labels" of experiments/exp_B3_families.py -> results/B3_families_summary.json (sigma_prime_min).
+Whether this bound is informative depends on the instances: on the designs of~\cite{na2023hessian}, whose labels, nearly
+pure noise, make the curvatures at the optimum nearly homogeneous ($\min_iw_i$ between $0.08$ and $0.18$), it is $1.3$
+to $2.5$ times the measured $\kappa^P_{\mathrm{eff}}$ over passes 2--20 and stays below $\kappa=10^3$ on seven of their
+eight data sets (Section~\ref{sec:exp-B1}).
 
 \paragraph{Jacobi and Newton metrics; local constants.}
 The Jacobi metric $P_{\mathrm J}=\diag(\hat\Sigma)+\lambda I$ costs $O(d)$ per iteration, like $P=I$, whereas a dense
@@ -104,7 +111,8 @@ sample $i$ enters it with its largest curvature $\frac14$ in the numerator and i
 metric, hence the factor $1/w_i$ in~\eqref{eq:B1-newton-RP}. Near the optimum, the realized smoothness constant does
 not pay this factor, and the realized strong convexity is a local curvature:
 \restate{lem:B1-asymptotic}
-Only these local constants account for the gains observed in Section~\ref{sec:exp-B1}. Whatever the direction of the
+On the instances of Figure~\ref{fig:B1}, only these local constants account for the observed gains (on the designs
+of~\cite{na2023hessian}, \resref*{cor:B1-kappa-traj} is informative, as noted above). Whatever the direction of the
 error, $\liminf_{\theta\to\etastar}\muEff^P(\theta)\ge\lmin(M_P)$ with $M_P=P^{-1/2}F''(\etastar)P^{-1/2}$, so that
 $R_P^2/\lmin(M_P)$ bounds $\limsup_{\theta\to\etastar}\kappa^P_{\mathrm{eff}}(\theta)$. For $P=\hat\Sigma+\lambda I$,
 $\lmin(M_P)$ is the smallest over directions $v$ of a weighted average of $w_1,\dots,w_n,1$ (weights $(x_i^\top v)^2/n$
@@ -126,5 +134,5 @@ constants $(\frac12,\frac18)$ instead of $(\frac13,\frac3{16})$~\cite[Corollary~
 and statistical preconditioning~\cite{hendrikx2020statistically} are known. To our knowledge,
 \resref{prop:B1-nofreelunch} and \resref{cor:B1-kappa-traj} are not in the sources we reviewed in this form; the first
 shows that, for logistic regression, the benefit of a fixed metric is entirely trajectory-dependent, and the second
-does not certify the gains observed in Section~\ref{sec:exp-B1}, which only the local constants of
-\resref{lem:B1-asymptotic} account for, and only heuristically.
+does not certify the gains observed in Section~\ref{sec:exp-B1}; on the instances of Figure~\ref{fig:B1}, only the local
+constants of \resref{lem:B1-asymptotic} account for them, and only heuristically.

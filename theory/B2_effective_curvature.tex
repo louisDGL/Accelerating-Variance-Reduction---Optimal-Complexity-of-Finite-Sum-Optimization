@@ -526,6 +526,59 @@ $\hat\Sigma$ is $\{w:x_i^\top w=0\ \forall i\}=S^\perp$, so its range is $S$ and
 nonzero eigenvalues of $\hat\Sigma$, whence $u^\top\hat\Sigma u\ge\lambda^+_{\min}(\hat\Sigma)$ for unit $u\in S$.
 \end{proof}
 
+Far from $\etastar$ the factors $e^{\pm R_x\norm{\theta-\etastar}}$ make Corollary~\ref{cor:B2-local} uninformative. Along
+the ray through the initial point $\theta_0=0$ of the experiments, however, the curvature can be compared with the
+curvature at the optimum in one direction and without any factor.
+
+\begin{remark}[curvature along the ray through $\theta_0=0$]\label{rem:B2-ray}
+For $\ell_2$-regularized logistic regression with $\etastar\neq0$ (equivalently $\sum_iy_ix_i\neq0$, because
+$\Fp(0)=-\frac1{2n}\sum_iy_ix_i$), let $u=\etastar/\norm{\etastar}$ and $H_\ast=F''(\etastar)$.
+\begin{enumerate}[label=(\alph*)]
+\item The map $\tau\mapsto F''(\tau\etastar)$ is non-increasing on $[0,\infty)$ in the Loewner order. Hence
+$\tau\mapsto\lmin(F''(\tau\etastar))$ is non-increasing on $[0,\infty)$, from $\lambda+\frac14\lmin(\hat\Sigma)$ at
+$\tau=0$ through $\lmin(H_\ast)$ at $\tau=1$, and it tends to $\lambda$ as $\tau\to\infty$; in particular
+$F''(\tau\etastar)\succcurlyeq H_\ast$ for every $\tau\in[0,1]$.
+\item The segment $[\etastar,\theta_0]=\{\tau\etastar:\tau\in[0,1]\}$ joining the optimum to the initial point
+$\theta_0=0$ lies on this ray, the error $\theta_0-\etastar=-\etastar$ is parallel to $u$, and
+\[
+\lmin(H_\ast)\;\le\;u^\top H_\ast u\;\le\;\muEff(0)\;=\;\int_0^1u^\top F''(\tau\etastar)\,u\,d\tau\;\le\;
+u^\top F''(0)\,u\;=\;\lambda+\tfrac14\,u^\top\hat\Sigma u .
+\]
+\end{enumerate}
+\end{remark}
+
+\begin{proof}
+(a) Write $a_i^\ast=y_ix_i^\top\etastar$. By \eqref{eq:B2-logistic-hessian}, for $0\le\tau\le\tau'$,
+\[
+F''(\tau\etastar)-F''(\tau'\etastar)=\frac1n\sum_{i=1}^n\big[\ell''(\tau a_i^\ast)-\ell''(\tau'a_i^\ast)\big]\,x_ix_i^\top ,
+\]
+and every coefficient is nonnegative, because $\abs{\tau a_i^\ast}\le\abs{\tau'a_i^\ast}$ and $\ell''$ is even and
+non-increasing on $[0,\infty)$ (Section~\ref{sec:B2-logistic}); a combination of the positive semidefinite matrices
+$x_ix_i^\top$ with nonnegative coefficients is positive semidefinite. If $A\succcurlyeq B$ then
+$\lmin(A)=\min_{\norm w=1}w^\top Aw\ge\min_{\norm w=1}w^\top Bw=\lmin(B)$, which gives the monotonicity of
+$\tau\mapsto\lmin(F''(\tau\etastar))$. At $\tau=0$, $\ell''(0)=\frac14$ gives $F''(0)=\frac14\hat\Sigma+\lambda I$; at
+$\tau=1$, $F''(\etastar)=H_\ast$; taking $\tau'=1$ gives $F''(\tau\etastar)\succcurlyeq H_\ast$ for $\tau\in[0,1]$. As
+$\tau\to\infty$, \eqref{ineq:global-ray} with $\hat d=u$ and $t=\tau\norm{\etastar}$ (Proposition~\ref{prop:B2-global}(d))
+and $F''\succcurlyeq\lambda I$ give $\lmin(F''(\tau\etastar))\to\lambda$.
+
+(b) Lemma~\ref{lem:B2-integral} at $\theta=0$, where $v=-\etastar$ and $v/\norm v=-u$, gives
+$\bar H(0)=\int_0^1F''((1-s)\etastar)\,ds=\int_0^1F''(\tau\etastar)\,d\tau$ (substitute $\tau=1-s$) and
+$\muEff(0)=(-u)^\top\bar H(0)(-u)=\int_0^1u^\top F''(\tau\etastar)\,u\,d\tau$. By (a),
+$H_\ast\preccurlyeq F''(\tau\etastar)\preccurlyeq F''(0)$ for every $\tau\in[0,1]$, hence
+$u^\top H_\ast u\le u^\top F''(\tau\etastar)\,u\le u^\top F''(0)\,u$; integrating over $\tau\in[0,1]$ gives the two
+inner inequalities. The outer ones are $u^\top H_\ast u\ge\lmin(H_\ast)$ ($\norm u=1$) and
+$u^\top F''(0)\,u=\lambda+\frac14u^\top\hat\Sigma u$.
+\end{proof}
+
+Thus $\muEff(0)$ is an average of curvatures in the direction of the initial error, all at least the curvature
+$u^\top H_\ast u$ at the optimum in that direction. In the fifteen problems of the B3 experiment of the report
+($n=1000$, $d=50$, $\kappa\in\{10,\dots,10^5\}$, $\alpha\in\{0,1,2\}$; script \texttt{experiments/exp\_B2\_checks.py},
+output \texttt{results/B2\_checks\_summary.json}), every weight $\ell''(\tau a_i^\ast)$ and $\lmin(F''(\tau\etastar))/\mu$
+are non-increasing on a grid of $681$ values of $\tau\in[0,30]$, the latter lying between $1.00004$ and $1.0045$ at
+$\tau=30$, and $\muEff(0)$ is $1.0006$ to $6.1$ times $u^\top H_\ast u$. In the nine runs of
+Remark~\ref{rem:B2-P2-outcome}, $u^\top H_\ast u/\mu$ lies between $1.68$ and $10.4$, and the starting values of
+$\muEff/\mu$ (column ``start'' of the table there) are $1.07$ to $4.8$ times larger.
+
 \paragraph{How the data spectrum and $\lambda$ control the gap $\muEff/\mu$.}
 Since $\mu=\lambda$ exactly (Proposition~\ref{prop:B2-global}), the ratio measuring the slack of the
 strong-convexity step along a trajectory is $\muEff(\theta_t)/\lambda$. Corollary~\ref{cor:B2-local} shows

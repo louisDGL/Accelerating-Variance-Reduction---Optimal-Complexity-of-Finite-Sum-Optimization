@@ -50,6 +50,39 @@ def test_newton_no_stall_near_optimum():
     assert np.linalg.norm(prob.grad(theta)) <= 1e-15
 
 
+
+def test_newton_armijo_only_legacy():
+    """armijo_only=True is the solver of the cached runs (always Armijo on F): on the same problem it stalls at
+    ||F'|| = 1.3e-12, the value stored in results/B3_summary.json, whereas the default reaches 1e-15; both satisfy the
+    strong-convexity error bound ||theta - eta_*|| <= ||F'(theta)|| / mu."""
+    prob = problems.make_logistic(1000, 50, kappa=10.0, alpha=1.0, seed=0)
+    th_new, info_new = solvers.newton_solve(prob)
+    th_old, info_old = solvers.newton_solve(prob, armijo_only=True)
+    assert 1e-13 < info_old["grad_norm"] < 1e-11, info_old
+    assert np.linalg.norm(th_new - th_old) <= 1.01 * (info_new["err_bound"] + info_old["err_bound"])
+
+
+def test_make_logistic_ndm():
+    """Designs of Na, Derezinski and Mahoney: hat Sigma exactly diagonal with singular values equally spaced from 1 to
+    d**kap, max row norm 1, kappa = R2/mu, labels +-1, deterministic column signs that change only the labels."""
+    n, d = 200, 10
+    for hc in (False, True):
+        prob = problems.make_logistic_ndm(n, d, 100.0, kap=1.0, high_coherence=hc, seed=1)
+        S = prob.X.T @ prob.X / n
+        assert np.linalg.norm(S - np.diag(np.diag(S))) <= 1e-12 * np.linalg.norm(S)
+        sv = np.sqrt(np.sort(np.diag(S)))
+        assert np.allclose(sv / sv[0], np.linspace(1.0, float(d), d), rtol=1e-10, atol=0)
+        assert abs(np.linalg.norm(prob.X, axis=1).max() - 1.0) < 1e-14
+        assert abs(prob.R2 / prob.mu - 100.0) < 1e-9
+        assert set(np.unique(prob.y)) <= {-1.0, 1.0}
+        rows = np.argmax(np.abs(prob.X), axis=0)
+        assert np.all(prob.X[rows, np.arange(d)] > 0)
+        raw = problems.make_logistic_ndm(n, d, 100.0, kap=1.0, high_coherence=hc, seed=1, fix_signs=False)
+        assert np.array_equal(np.abs(raw.X), np.abs(prob.X)) and raw.lam == prob.lam
+    lev_lc = problems.make_logistic_ndm(n, d, 100.0, seed=1).leverage_scores(lam=0.0)
+    lev_hc = problems.make_logistic_ndm(n, d, 100.0, high_coherence=True, seed=1).leverage_scores(lam=0.0)
+    assert lev_hc.max() > 2 * lev_lc.max()        # the Gamma rescaling makes the leverage scores coherent
+
 def test_newton_optimum():
     prob = _small_logistic()
     assert prob.opt_info["grad_norm"] < 1e-12

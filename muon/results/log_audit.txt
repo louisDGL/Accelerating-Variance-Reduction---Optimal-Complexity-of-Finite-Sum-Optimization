@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "C:\Users\Louis\Desktop\berkeley\projetSTATS\muon\experiments\audit_cache.py", line 131, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\Louis\Desktop\berkeley\projetSTATS\muon\experiments\audit_cache.py", line 90, in main
+    cache = C._load_cache(os.path.join(C.RESULTS, f"{name}.pkl"))
+  File "C:\Users\Louis\Desktop\berkeley\projetSTATS\muon\experiments\common.py", line 311, in _load_cache
+    return pickle.load(f)
+           ~~~~~~~~~~~^^^
+_pickle.UnpicklingError: invalid load key, '\x00'.

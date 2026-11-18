@@ -1,0 +1,54 @@
+[M3] 228 runs to do (0 cached), 4 processes
+[M3] 16/228 done, 70s
+[M3] 32/228 done, 136s
+[M3] 47/228 done, 197s
+[M3] 119/228 done, 257s
+[M3] 133/228 done, 323s
+[M3] 156/228 done, 383s
+[M3] finished 228 runs in 413s
+
+=== soft-mem: softmax_n1000_d50_K10_k1000_a1_s0; 3 seeds, median [min, max] of the relative squared distance
+  configuration                                                reached from W_0 = 0 (60 passes)      stationary level (start at 1e-14)
+  SAGA est., fixed length 1e-1                                    4.6e-05 [4.6e-05, 4.8e-05]        4.6e-05 [4.5e-05, 4.7e-05]
+  SAGA est., fixed length 1e-2                                    4.6e-07 [4.6e-07, 4.6e-07]        4.6e-07 [4.5e-07, 4.6e-07]
+  SAGA est., fixed length 1e-3                                    4.6e-09 [4.5e-09, 4.7e-09]        4.6e-09 [4.6e-09, 4.7e-09]
+  SAGA est., nuclear-scaled                                       2.0e-27 [6.6e-28, 5.1e-27]        4.4e-26 [8.1e-27, 1.6e-25]
+  SAGA est., clipped (rho = 1e-1)                                 5.3e-27 [8.3e-28, 8.0e-27]        4.4e-26 [8.1e-27, 1.6e-25]
+  SAGA est., clipped (rho = 1e-2)                                 2.1e-27 [1.4e-27, 1.0e-26]        4.4e-26 [8.1e-27, 1.6e-25]
+  SAGA est., bounded gain (eps = 0.4), fixed length 1e-1          6.1e-09 [6.1e-09, 6.2e-09]        5.7e-18 [5.7e-18, 5.8e-18]
+  SAGA est., bounded gain (eps = 0.04), fixed length 1e-2         6.3e-09 [6.3e-09, 6.4e-09]        5.7e-18 [5.7e-18, 5.8e-18]
+  minibatch b=32, nuclear-scaled                                  1.3e-01 [1.2e-01, 1.3e-01]        1.2e-01 [1.2e-01, 1.3e-01]
+  minibatch b=32, fixed length 1e-2                               2.9e-01 [2.9e-01, 2.9e-01]        1.1e-03 [9.9e-04, 1.2e-03]
+  Muon b=32, lr 1e-1                                              5.8e-02 [5.7e-02, 5.9e-02]        5.7e-02 [5.6e-02, 5.8e-02]
+  Muon b=32, lr 1e-2                                              1.7e-02 [1.6e-02, 1.7e-02]        5.7e-03 [5.1e-03, 6.0e-03]
+  Muon b=32, lr 1e-1, cosine                                      8.2e-03 [8.1e-03, 8.8e-03]        1.8e-02 [1.6e-02, 1.9e-02]
+  MARS-M b=32, lr 1e-2                                            1.6e-01 [1.6e-01, 1.6e-01]        4.8e-03 [4.8e-03, 5.4e-03]
+  STORM-Muon b=32, lr 1e-2                                        1.6e-01 [1.6e-01, 1.6e-01]        4.7e-03 [4.6e-03, 5.2e-03]
+  STORM-Muon b=32, lr 1e-1, cosine                                1.3e-02 [1.2e-02, 1.4e-02]        2.1e-02 [2.1e-02, 2.1e-02]
+  STORM buffer b=32, nuclear-scaled                               4.4e-02 [4.3e-02, 4.6e-02]        4.1e-02 [4.1e-02, 4.3e-02]
+  STORM buffer b=1, nuclear-scaled                                3.4e-01 [3.4e-01, 3.6e-01]        3.5e-01 [3.5e-01, 3.5e-01]
+  SAGA (Euclidean)                                                4.0e-16 [3.9e-16, 4.1e-16]        6.1e-21 [5.9e-21, 6.2e-21]
+
+=== ls-mem: ls_n1000_d50_K10_k1000_a1_s0; 3 seeds, median [min, max] of the relative squared distance
+  configuration                                                reached from W_0 = 0 (60 passes)      stationary level (start at 1e-14)
+  SAGA est., fixed length 1e-1                                    5.3e-05 [5.1e-05, 5.3e-05]        5.3e-05 [5.2e-05, 5.3e-05]
+  SAGA est., fixed length 1e-2                                    5.2e-07 [5.2e-07, 5.3e-07]        5.2e-07 [5.2e-07, 5.3e-07]
+  SAGA est., fixed length 1e-3                                    5.2e-09 [5.2e-09, 5.3e-09]        5.3e-09 [5.2e-09, 5.3e-09]
+  SAGA est., nuclear-scaled                                       3.3e-20 [3.2e-20, 8.8e-20]        1.4e-22 [8.1e-23, 6.4e-22]
+  SAGA est., clipped (rho = 1e-1)                                 1.1e-20 [1.0e-20, 5.8e-20]        1.4e-22 [8.1e-23, 6.4e-22]
+  SAGA est., clipped (rho = 1e-2)                                 7.2e-21 [7.1e-21, 1.7e-20]        1.4e-22 [8.1e-23, 6.4e-22]
+  SAGA est., bounded gain (eps = 0.4), fixed length 1e-1          5.4e-26 [2.1e-26, 5.5e-26]        2.3e-25 [1.8e-25, 5.3e-25]
+  SAGA est., bounded gain (eps = 0.04), fixed length 1e-2         5.0e-26 [2.3e-26, 9.8e-26]        2.3e-25 [1.8e-25, 5.3e-25]
+  minibatch b=32, nuclear-scaled                                  4.9e-02 [4.9e-02, 5.0e-02]        4.8e-02 [4.8e-02, 4.9e-02]
+  minibatch b=32, fixed length 1e-2                               1.5e-01 [1.5e-01, 1.5e-01]        6.9e-04 [6.9e-04, 7.6e-04]
+  Muon b=32, lr 1e-1                                              1.6e-02 [1.5e-02, 1.6e-02]        1.6e-02 [1.5e-02, 1.6e-02]
+  Muon b=32, lr 1e-2                                              1.3e-02 [1.3e-02, 1.5e-02]        1.7e-03 [1.5e-03, 1.7e-03]
+  Muon b=32, lr 1e-1, cosine                                      1.4e-03 [1.3e-03, 1.5e-03]        3.8e-03 [3.6e-03, 3.9e-03]
+  MARS-M b=32, lr 1e-2                                            2.1e-01 [2.1e-01, 2.1e-01]        1.7e-03 [1.6e-03, 1.7e-03]
+  STORM-Muon b=32, lr 1e-2                                        2.1e-01 [2.1e-01, 2.1e-01]        1.6e-03 [1.5e-03, 1.6e-03]
+  STORM-Muon b=32, lr 1e-1, cosine                                2.5e-03 [2.0e-03, 2.5e-03]        4.5e-03 [4.1e-03, 4.6e-03]
+  STORM buffer b=32, nuclear-scaled                               9.0e-03 [8.9e-03, 9.2e-03]        9.1e-03 [9.0e-03, 9.2e-03]
+  STORM buffer b=1, nuclear-scaled                                1.3e-01 [1.3e-01, 1.4e-01]        1.4e-01 [1.3e-01, 1.4e-01]
+  SAGA (Euclidean)                                                1.8e-26 [1.0e-26, 4.8e-26]        2.3e-25 [1.8e-25, 5.4e-25]
+
+M3 done in 413s

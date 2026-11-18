@@ -10,7 +10,7 @@ from .problems import BlockQuadraticProblem, SharedQuadraticProblem, AlignedChai
 DEC_ROUNDING = 1e-12
 
 
-def newton_solve(prob, theta0=None, tol=1e-15, max_iter=200, verbose=False):
+def newton_solve(prob, theta0=None, tol=1e-15, max_iter=200, verbose=False, armijo_only=False):
     """Damped Newton method, run until ||F'(theta)|| <= tol or stagnation.
 
     Step size: Armijo backtracking on F while the Newton decrement dec = F'(theta)^T F''(theta)^{-1} F'(theta)
@@ -21,6 +21,10 @@ def newton_solve(prob, theta0=None, tol=1e-15, max_iter=200, verbose=False):
     gradient). Returns (theta, info) for the iterate with the smallest ||F'||, with
     info = {'grad_norm', 'iters', 'err_bound'} where err_bound = ||F'(theta)|| / mu bounds ||theta - eta_*||
     (strong convexity).
+
+    armijo_only=True always uses the Armijo backtracking on F, i.e. the solver of commit 451da40 with which the cached
+    logistic results (B3, B2, B1, Figure C, A3, A2) were computed; it reproduces their eta_* bit for bit with the same
+    BLAS thread count (see experiments/check_optima_mp.py). It stalls at ||F'|| = 1.3e-12 on kappa = 10, alpha = 1.
     """
     d = prob.d
     theta = np.zeros(d) if theta0 is None else np.array(theta0, dtype=np.float64)
@@ -38,7 +42,7 @@ def newton_solve(prob, theta0=None, tol=1e-15, max_iter=200, verbose=False):
         dec = float(g @ step)
         F0 = prob.F(theta)
         t = 1.0
-        if dec > DEC_ROUNDING * max(1.0, abs(F0)):
+        if armijo_only or dec > DEC_ROUNDING * max(1.0, abs(F0)):
             # Armijo backtracking on F
             while prob.F(theta - t * step) > F0 - 1e-4 * t * dec and t > 1e-10:
                 t *= 0.5

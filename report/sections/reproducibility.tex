@@ -4,6 +4,10 @@
 % results/log_A4.txt and log_A4b.txt (4000 s, then 8000 s for the last A4b runs), results/A4.pkl and A4b.pkl (statuses:
 % 264 stop_D and 30 diverged; 128 stop_D), results/B3_summary.json (grad_star_norm, final_D), vrlab/solvers.py,
 % experiments/run_all.py (list SCRIPTS, then make_digest.py unless --quick), report/make_restated.py, report/build.py.
+% Minimizers, floors, BLAS: experiments/check_optima_mp.py -> results/optima_mp_summary.json (keys quoted in the
+% paragraphs). Independent implementation (cross-check with private code, not reproducible from this repository):
+% _scratch/cmp_results/replicate.md, reference.md and position.md. Other data designs: vrlab/problems.py
+% (make_logistic_ndm), the docstrings of experiments/exp_B3_families.py, exp_B1_coherence.py and exp_B2_checks.py.
 \paragraph{Code and data.} The code, the small cached results, the summaries and the figures are available at
 \begin{center}\small
 \url{https://github.com/louisDGL/Accelerating-Variance-Reduction---Optimal-Complexity-of-Finite-Sum-Optimization}
@@ -15,9 +19,13 @@ report in \nolinkurl{report/}, the summaries (\nolinkurl{results/*_summary.json}
 their analysis (\nolinkurl{results/findings.md}), the small cached runs (\nolinkurl{A3.pkl}, \nolinkurl{A4.pkl},
 \nolinkurl{A4b.pkl}, \nolinkurl{B2.pkl}, \nolinkurl{GammaDelta.pkl} and \nolinkurl{validation_book.pkl} in
 \nolinkurl{results/}) and the figures in \nolinkurl{figures/}. The large caches
-\nolinkurl{results/A2.pkl}, \nolinkurl{results/B1.pkl} and \nolinkurl{results/B3.pkl} are not versioned and are
-rebuilt by the scripts that produce them. Dependencies: numpy, scipy, matplotlib (see \nolinkurl{requirements.txt});
-Python~3.14 was used.
+\nolinkurl{results/A2.pkl}, \nolinkurl{results/B1.pkl}, \nolinkurl{results/B3.pkl}, \nolinkurl{results/B3_families.pkl}
+and \nolinkurl{results/B1_coherence.pkl} are not versioned and are rebuilt by the scripts that produce them (for
+\nolinkurl{results/B3.pkl} as reported, see the paragraph \emph{Minimizers}). Dependencies: numpy, scipy, matplotlib and mpmath (see
+\nolinkurl{requirements.txt}), mpmath being needed only by \nolinkurl{vrlab/highprec.py}, the high-precision evaluation
+of the logistic gradient used by \nolinkurl{experiments/check_optima_mp.py}, \nolinkurl{exp_B2_checks.py},
+\nolinkurl{exp_B3_families.py} and \nolinkurl{exp_B1_coherence.py}; Python~3.14 (numpy~2.5.1 with OpenBLAS~0.3.33,
+scipy~1.18, mpmath~1.4.1) was used.
 
 \paragraph{Commands.} The commands of \nolinkurl{README.md}, each run from the root of the repository, install the
 dependencies, run the tests and the experiments, rebuild the digest and compile the documents:
@@ -27,24 +35,33 @@ pip install -r requirements.txt
 python tests/test_vrlab.py              # or: python -m pytest tests -q
 python experiments/run_all.py --quick   # smoke test (a few minutes)
 python experiments/run_all.py           # full experiments (many CPU hours)
+python experiments/check_optima_mp.py --threads1   # default BLAS threads
+python experiments/exp_B2_checks.py                # default BLAS threads
 python experiments/retry_timeouts.py A4 A4b   # drop the entries that hit the CPU budget
 export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 VRLAB_MAX_TIME=4000
 python experiments/exp_A4_hard_instance.py
 python experiments/exp_A4b_instances.py
+python experiments/exp_B3_families.py
+python experiments/exp_B1_coherence.py
 python experiments/make_digest.py
 cd theory && pdflatex main.tex && bibtex main && pdflatex main.tex && pdflatex main.tex
 python report/build.py                  # make_restated.py, main.pdf, synthesis.pdf
 \end{verbatim}
 \end{small}
-\nolinkurl{experiments/run_all.py} runs the scripts of all the experiments, those of hypotheses B3, B2, B1, A3, A2 and
+\nolinkurl{experiments/run_all.py} runs the scripts of the cached experiments, those of hypotheses B3, B2, B1, A3, A2 and
 A4 (\nolinkurl{exp_A4_hard_instance.py} and \nolinkurl{exp_A4b_instances.py}), of Section~\ref{sec:exp-constants} and of
 Section~\ref{sec:exp-validation}, together with \nolinkurl{check_B2_fp_heuristic.py}, the sanity check of
 \resref{rem:B2-gd-heuristic} (it writes \nolinkurl{results/B2_fp_check_summary.json}), and then
 \nolinkurl{experiments/make_digest.py}; with \texttt{-{}-quick} it runs a smoke test, whose figures get a
-\nolinkurl{_quick} suffix, and skips the digest. Results are cached in \nolinkurl{results/*.pkl} (delete a cache to
-recompute its experiment) and summarised in \nolinkurl{results/*_summary.json}, which
-\nolinkurl{experiments/make_digest.py} collects in \nolinkurl{results/digest.md}; every number quoted in this report is
-read from these files or computed from them and from the cached runs. The statements restated in
+\nolinkurl{_quick} suffix, and skips the digest. The certification of the minimizers (\nolinkurl{check_optima_mp.py}),
+the checks of Section~\ref{sec:exp-B2} (\nolinkurl{exp_B2_checks.py}) and the experiments on other data designs
+(\nolinkurl{exp_B3_families.py}, \nolinkurl{exp_B1_coherence.py}) are run separately, with the BLAS settings of the
+commands above (paragraphs below); \nolinkurl{check_optima_mp.py} needs \nolinkurl{results/B3.pkl} as reported
+(paragraph \emph{Minimizers}). Results are cached in \nolinkurl{results/*.pkl} (delete a cache to recompute its
+experiment) and summarised in \nolinkurl{results/*_summary.json}; \nolinkurl{experiments/make_digest.py} collects those
+of the cached experiments of \nolinkurl{run_all.py} in \nolinkurl{results/digest.md}; every number quoted in this report is
+read from these files or computed from them and from the cached runs, except those of the cross-check with an
+independent implementation (paragraph \emph{Independent implementation}). The statements restated in
 Section~\ref{sec:theory} are not typed in the report: \nolinkurl{report/make_restated.py} copies them from the theory
 notes into \nolinkurl{report/restated/} (one file per labelled result of the notes, and
 \nolinkurl{report/restated/names.tex} with the type, appendix and name of each), so that the notes remain their only
@@ -56,8 +73,14 @@ the extract are read from \nolinkurl{main.aux}.
 \paragraph{Tests.} The test suite (\nolinkurl{tests/test_vrlab.py}) checks the gradients and Hessians of logistic
 regression against finite differences and its per-sample smoothness constants; the Newton solver, on a small problem
 ($\norm{\Fp(\etastar)}<10^{-12}$) and on the problem $\kappa=10$, $\alpha=1$ of Section~\ref{sec:exp-B3}, where the
-corrected line search must reach $\norm{\Fp(\etastar)}\le10^{-15}$ within ten iterations; the constants and the exact
-minimizers of the instances (H), (S) and (A), including the geometric minimizers of (S) and (A); that the exact
+corrected line search must reach $\norm{\Fp(\etastar)}\le10^{-15}$ within ten iterations, whereas the solver of the
+cached runs (\texttt{armijo\_only=True}) stops between $10^{-13}$ and $10^{-11}$, the two solutions lying within the sum
+of their strong-convexity error bounds; the designs of~\cite{na2023hessian} generated by \nolinkurl{make_logistic_ndm}
+(exactly diagonal $\hat\Sigma$ with equally spaced singular values, largest row norm~$1$, $\kappa=R^2/\mu$, labels
+$\pm1$, column signs fixed, without which the features differ only in the signs of their columns and $\lambda$ is the
+same, more coherent leverage scores in the high-coherence family);
+the constants and the exact minimizers of the instances (H), (S) and (A), including the geometric minimizers of (S) and
+(A); that the exact
 conditional expectations used in the tightness analysis coincide with the average over the $n$ possible indices of the
 realized next state, for SAGA in the Euclidean metric, in a dense and in a diagonal quadratic metric and on (S), and for
 the Lyapunov function of L-Katyusha (both outcomes of the coin included); that the tightness ratios of I1--I5 lie in
@@ -73,16 +96,48 @@ scheme (Nesterov momentum with the SVRG estimator) on an easy problem, whose gra
 error of SGD decreases; and the log--log slope fit with its interval. The divergence of L-Katyusha with $\theta_2=0$ on
 ill-conditioned instances is observed in the experiments only.
 
-\paragraph{Experiments.} Seeds: the logistic data sets are generated with seed~$0$ (for each $\alpha$, one data set
-shared by all values of $\kappa$, which only set $\lambda$), the random block quadratics (R) with the sampling seed (one
-instance per seed), and the chain instances (H), (S) and (A) are deterministic; the algorithms are run with seeds
-$0, \dots, S-1$ (the number of seeds $S$ is stated with each figure). Every ``expectation'' of a one-step quantity is
-computed exactly by enumerating the sampled index; curves labelled ``mean over seeds'' are empirical averages over the
-$S$ runs. Trajectories are analysed only above the rounding floor ($10^{-18}$ on $V_t$ for SAGA and on
-$\norm{\theta_t-\etastar}^2$ in Section~\ref{sec:exp-B2}, a floor set by the precision of $\etastar$; $10^{-10}$ for the
-Lyapunov function of L-Katyusha, whose $W$-term amplifies the rounding error of $F(w) - F(\etastar)$ by the factor
-$\theta_2(1+\theta_1)/(p\theta_1)$, from about $250$ to about $2400$ in our runs). Running times on one core range from
-tens of seconds per logistic configuration of Section~\ref{sec:exp-B3} to several hours for each $\kappa$ sweep.
+\paragraph{Experiments.}
+% Sources: experiments/check_optima_mp.py -> results/optima_mp_summary.json (overview: recorded_vs_instrumented_V_max_rel,
+% uninstrumented_memory_error; memory_error_uninstrumented/checkpoints).
+Seeds: the logistic data sets of the cached results are generated with seed~$0$ (for each $\alpha$, one data set shared
+by all values of $\kappa$, which only set $\lambda$; the experiments on other data sets state their data seeds), the
+random block quadratics (R) with the sampling seed (one instance per seed), and the chain instances (H), (S) and (A) are
+deterministic; the algorithms are run with seeds $0, \dots, S-1$ (the number of seeds $S$ is stated with each figure).
+Every ``expectation'' of a one-step quantity is computed exactly by enumerating the sampled index; curves labelled
+``mean over seeds'' are empirical averages over the $S$ runs. Trajectories are analysed only above the floors of
+Section~\ref{sec:exp-protocol}: $10^{-18}$ on $V_t$ for SAGA and on $\norm{\theta_t-\etastar}^2$ in
+Section~\ref{sec:exp-B2}, below which the error of $\etastar$, amplified in $V_t$ by its memory term, and then the floor
+of the double-precision iterates themselves become visible (paragraph \emph{Certification of the minimizers}); and
+$10^{-10}$ for the Lyapunov function of L-Katyusha, whose $W$-term amplifies the rounding error of $F(w)-F(\etastar)$ by
+the factor $\theta_2(1+\theta_1)/(p\theta_1)$, from about $250$ to about $2400$ in our runs. The recorded $V_t$ of SAGA
+uses a memory error $\sum_i\norm{z_i-\fip(\etastar)}^2$ updated incrementally after each step and re-summed exactly at
+every instrumented state (every $n/10$ iterations). The quantities of Sections~\ref{sec:exp-B3}, \ref{sec:exp-B2}
+and~\ref{sec:exp-B1} are computed at the instrumented states, from the exact sum; the recorded values (the realized
+$V_t$ of Figure~\ref{fig:fig1}), which carry at most $n/10$ incremental updates since the last re-summation, differ from
+the exact ones by at most $1.2\cdot10^{-14}$ in relative terms at the instrumented times of the ten runs re-checked by
+\nolinkurl{check_optima_mp.py}. Without instrumentation the incremental sum keeps the rounding error accumulated
+early in the run: at $\kappa=10^3$, $\alpha=1$ (seed $0$) its absolute error is $1.5\cdot10^{-14}$ at passes 20, 49
+and 99.95, the three passes checked (the same to nine digits), so that the recorded $V_t$ is $3.4\cdot10^4$ times too
+large when its exact value is $1.4\cdot10^{-18}$ (pass 49); no reported result uses $V_t$ from such a run. Running times on one core range from tens of seconds per logistic configuration of
+Section~\ref{sec:exp-B3} to several hours for each $\kappa$ sweep.
+
+\paragraph{BLAS threads.}
+% Sources: experiments/check_optima_mp.py --threads1 -> results/optima_mp_summary.json (environment; threads1/overview:
+% max_eta_dist_to_default, sqerr_bound_ratio_min/max, V_floor_worst_rel_err_*, B2_D_floor_worst_rel_err_max_reaching;
+% threads1/problems/*: X_max_abs_diff, X_frac_entries_differ, y_identical, summary_vs_B3_json); the docstrings of the
+% scripts of the paragraph Other data designs.
+The cached results of Sections~\ref{sec:exp-validation}--\ref{sec:exp-A2}, except the experiments on other data designs
+(paragraph \emph{Other data designs}), were computed with the default multithreaded BLAS (OpenBLAS with eight threads on
+our machine), with which \nolinkurl{check_optima_mp.py} rebuilds the fifteen problems of Section~\ref{sec:exp-B3} and
+the ten re-checked runs bit for bit; the experiments on other data designs and the $\kappa$ sweeps of
+Section~\ref{sec:exp-A4} (next paragraph) were run with single-threaded BLAS. With single-threaded BLAS, \nolinkurl{make_logistic} returns features
+that differ by at most $1.4\cdot10^{-16}$, in $0.6\%$ of their entries (the random rotation is a BLAS product; the labels
+are identical). On the fifteen problems, the minimizers of the solver of the cached runs then move by at most
+$9.8\cdot10^{-14}$ and the other fields of the problem summaries by at most $9.3\cdot10^{-14}$ in relative terms, except
+the double-precision residuals, which are rounding noise; the bounds $\norm{\Fp(\etastar)}^2/\mu^2$ change by factors
+between $0.06$ and $1.74$, and the worst cases at the floors of Section~\ref{sec:exp-protocol} are unchanged at the
+precision quoted ($57\%$,
+$2.6\%$ and $0.55\%$; option \texttt{-{}-threads1}).
 
 \paragraph{CPU-time budget of the $\kappa$ sweeps.} In the sweeps of Section~\ref{sec:exp-A4}, every solver run is capped
 by \nolinkurl{VRLAB_MAX_TIME} seconds of CPU time, measured with \texttt{time.process\_time} (default $600$; a suspended
@@ -93,16 +148,116 @@ momentum, which diverge for $\kappa\ge10^3$. The grid search of the naive scheme
 the grid runs have the same cost per iteration, so a run cut by this budget had already used more gradients than the
 selected setting needed in total, and the cap does not affect the selection.
 
-\paragraph{Minimizers.} For the quadratic instances, $\etastar$ is obtained by a direct solve. For logistic regression,
-the cached results were computed with a damped Newton method whose Armijo test, decided by the rounding error of $F$ near
-the optimum, stalled at $\norm{\Fp(\etastar)}=1.3\cdot10^{-12}$ on one problem ($\kappa=10$, $\alpha=1$; at most
-$9\cdot10^{-16}$ on the fourteen other problems of Section~\ref{sec:exp-B3}). By strong convexity the squared error of
-$\etastar$ is at most $\norm{\Fp(\etastar)}^2/\mu^2$: $2.1\cdot10^{-21}$ on that problem, where the corrected solver
-moves $\etastar$ by a squared distance of $1.3\cdot10^{-21}$, and $7\cdot10^{-20}$ at most over the fifteen problems,
-attained at $\kappa=10^5$, $\alpha=0$, whose runs stay above $10^{-13}$. On the problems whose runs reach the analysis
-floor, these errors change $\norm{\theta_t-\etastar}^2=10^{-18}$ by at most about $10\%$. The line search has since been
-corrected in \nolinkurl{vrlab/solvers.py} (near the optimum, a step is accepted as soon as it decreases $\norm{\Fp}$);
-the results reported here were computed before this correction.
+\paragraph{Minimizers.}
+% Sources: experiments/check_optima_mp.py -> results/optima_mp_summary.json (problems/*/a_summary_vs_B3_json,
+% problems/*/e_current_solver: identical_to_cached; overview: n_summaries_bitwise, r_mp_kappa10_alpha1, r_mp_max_other,
+% current_solver_differs_on, current_solver); experiments/common.py (logistic_problem), the solver calls of
+% exp_B3_families.py (make_problem) and exp_B1_coherence.py (build); .gitignore (results/*.pkl).
+For the quadratic instances, $\etastar$ is obtained by a direct solve. For logistic regression, the cached results were
+computed with a damped Newton method whose Armijo test, decided by the rounding error of $F$ near the optimum, stalled at
+$\norm{\Fp(\etastar)}=1.3\cdot10^{-12}$ on one problem ($\kappa=10$, $\alpha=1$; at most $9.14\cdot10^{-16}$ on the
+fourteen other problems of Section~\ref{sec:exp-B3}). The line search has since been corrected in
+\nolinkurl{vrlab/solvers.py} (near the optimum, a step is accepted as soon as it decreases $\norm{\Fp}$), and the scripts
+of the cached experiments now call the corrected solver, those of Sections~\ref{sec:exp-B3}--\ref{sec:exp-A2} through
+\texttt{logistic\_problem} in \nolinkurl{experiments/common.py}. It changes $\etastar$ on three of the fifteen problems,
+by $3.5\cdot10^{-11}$ ($\kappa=10$, $\alpha=1$), $4.7\cdot10^{-14}$ ($\kappa=10^2$, $\alpha=2$) and $3.2\cdot10^{-12}$
+($\kappa=10^5$, $\alpha=0$), to minimizers whose residuals in 60-digit arithmetic are $1.3\cdot10^{-17}$,
+$9.2\cdot10^{-18}$ and $3.4\cdot10^{-18}$, and returns the cached $\etastar$ bit for bit on the twelve others, so that a
+cache recomputed by its script differs from the reported one on these three problems. The results of
+Sections~\ref{sec:exp-validation}--\ref{sec:exp-A2} use the solver before this correction, available as
+\texttt{solve\_optimum(prob, armijo\_only=True)}, except the experiments on other data sets and designs (paragraph
+\emph{Other data designs}), which use the corrected solver; this option reproduces the $\etastar$ of the cached runs,
+and every field of the fifteen problem summaries of \nolinkurl{results/B3_summary.json}, bit for bit with the default
+multithreaded BLAS. To rebuild \nolinkurl{results/B3.pkl}, the only unversioned cache that contains these three
+problems, and \nolinkurl{results/B3_summary.json} as reported, \texttt{logistic\_problem} must call this solver, with the
+default multithreaded BLAS.
+
+\paragraph{Certification of the minimizers.}
+% Sources: experiments/check_optima_mp.py -> results/optima_mp_summary.json (problems/*/b_c: r_mp, r64_grad, r64_stored,
+% realized; overview: max_rel_diff_60_100_digits,
+% r_mp_over_r64_grad_range, r_mp_over_r64_stored_range, Fgap_bound_max, r_c_max, e1_sq_kappa10_alpha1,
+% sqerr_interval_kappa10_alpha1, e1_sq_max_other_reaching, e1_sq_max_other, impact, iterate_floor; impact/*/per_seed
+% and summary_legacy/summary_corrected (speedup_late_20_100); iterate_floor/runs; iterate_floor/sqerr_bound_eta_c);
+% cross-check of the residuals with private code: _scratch/cmp_results/reference.md and position.md.
+\nolinkurl{experiments/check_optima_mp.py} certifies these minimizers and measures their effect
+(\nolinkurl{results/optima_mp_summary.json}). It uses \nolinkurl{vrlab} only; the module \nolinkurl{vrlab/highprec.py}
+evaluates in high precision the logistic gradient of the problem as represented in double precision (features, labels,
+$\lambda$ and $\etastar$ taken as their binary values; careful high-precision evaluation, not interval arithmetic). The
+residuals $\norm{\Fp(\etastar)}$ in 60-digit arithmetic are unchanged at 100 digits; the double-precision residuals
+agree with them to within $0.5\%$ above $10^{-16}$ and are rounding noise below (up to twice as large). By strong
+convexity, the exact minimizer $\eta_{\rm exact}$ of these data satisfies
+$\norm{\etastar-\eta_{\rm exact}}\le\norm{\Fp(\etastar)}/\mu$ and
+$F(\etastar)-F(\eta_{\rm exact})\le\norm{\Fp(\etastar)}^2/(2\mu)\le2.95\cdot10^{-23}$. Since $\sqrt{V_t}$ is the Euclidean
+norm of $(\theta_t-\etastar,\sqrt\Delta(z_1-f_1'(\etastar)),\dots,\sqrt\Delta(z_n-f_n'(\etastar)))$ and each $\fip$ is
+$L_i$-Lipschitz, moving $\etastar$ moves $\sqrt{V_t}$ by at most $(1+\Delta\sum_iL_i^2)^{1/2}$ times the displacement,
+which gives the worst cases of Section~\ref{sec:exp-protocol}. One Newton step from the 60-digit gradient gives the
+corrected minimizer $\etastar-F''(\etastar)^{-1}\Fp(\etastar)$ and estimates the realized error of the cached
+$\etastar$: its square is
+$1.25595\cdot10^{-21}$ at $\kappa=10$, $\alpha=1$, at most $2.43\cdot10^{-25}$ on the other problems whose runs reach the
+floor and at most $1.02\cdot10^{-23}$ on the fourteen; the corrected minimizers have 60-digit residuals of at most
+$3.43\cdot10^{-18}$, which certifies the first value to within $3.2\cdot10^{-6}$ in relative terms. The script re-runs the
+five seeds of Section~\ref{sec:exp-B3} at $(\kappa,\alpha)=(10,1)$ and $(10^3,1)$. With the cached $\etastar$, the
+runs reproduce \nolinkurl{results/B3.pkl}, and their statistics \nolinkurl{results/B3_summary.json}, bit for bit. With
+the corrected minimizer the iterates are unchanged (only the recorded and instrumented quantities and the stopping rule
+depend on $\etastar$); at $\kappa=10$ the changes are those of Section~\ref{sec:exp-protocol} (and $0.2\%$ for the
+speed-up of the late window), the runs now meeting the stopping rule after 41 to 48.4 passes, and at $\kappa=10^3$ the
+retained $V_t$ change by at most $1.31\cdot10^{-4}$, the statistics of passes 2--20 by at most $8\cdot10^{-11}$
+(relative) and the shares of the late window by at most $1.04\cdot10^{-6}$ (absolute). Finally, the script measures the floor of the
+double-precision iterates at $\kappa=10^3$, $\alpha=1$ (seed $0$, no stopping rule; level: median over the last 20
+passes; onset: first record from which every record lies within $10\%$ of the level). Their squared distance to the
+corrected minimizer, itself within $6.5\cdot10^{-15}$ of $\eta_{\rm exact}$, stops decreasing at $4.25\cdot10^{-25}$ from
+about pass 68 with the textbook step $1/(4R^2)$, at $1.1\cdot10^{-27}$ from about pass 66 with $1/(2R^2)$, and at
+$8.8\cdot10^{-24}$ from about pass 127 with $1/(8R^2)$ (a run of 300 passes; after 100 passes it is still decreasing).
+This floor depends on the
+step, not on $\etastar$: measured from the corrected minimizer, the five runs end between $4.3\cdot10^{-25}$ and
+$5.9\cdot10^{-25}$ ($4.6\cdot10^{-25}$ to $6.0\cdot10^{-25}$ from the cached $\etastar$, mean $5.5\cdot10^{-25}$ in
+\nolinkurl{results/B3_summary.json}), above the stopping rule $10^{-26}$. As a cross-check with private code, the
+50-digit residual check of the independent implementation described below gives the same residuals as our 60-digit
+evaluation, to double precision, on the fifteen problems.
+
+\paragraph{Independent implementation.}
+% Sources (cross-check with private code, not reproducible from this repository): _scratch/cmp_results/replicate.md
+% (summary, key results and tables 1-3; scripts _scratch/cmp_replicate/s0-s11) and position.md (reference solver).
+An independent implementation of the logistic objective, of SAGA with the constants of Proposition~\ref{prop:59} and of
+Nesterov's method, written within the course project (repository saga-geometry-convergence, commit \texttt{059efcd}, not
+public), was compared with ours; this cross-check uses private code and cannot be reproduced from our repository alone.
+On identical stored problems (the problem $\kappa=10^3$, $\alpha=1$ of Section~\ref{sec:exp-B3} and two problems
+of the other code, with $n=200$ and $d=20$), the objectives coincide bit for bit at the 30 points tested, the gradients
+and Hessians agree within $6.3\cdot10^{-16}$ (relative), and $R^2$, $\gamma$, $\Delta$ and $L_F$ within three ulps;
+equal seeds give equal index streams. From $\theta_0=0$ with the same indices, the SAGA iterates of the two codes differ
+by at most $9.1\cdot10^{-14}$ over 100 passes ($1.8\cdot10^{-14}$ on the two other problems), and, while
+$V_t\ge10^{-18}$, their recorded $\norm{\theta_t-\etastar}^2$, memory error and $V_t$ agree within $1.4\cdot10^{-5}$
+(relative); each code lies within $1.8\cdot10^{-4}$ of an exact-arithmetic run of the same recursion, measured from the
+exact minimizer (fixed point with resolution $2^{-160}$, checked against 50-digit arithmetic). Its Nesterov method is the
+recursion of our AGD (iterates within $2.6\cdot10^{-14}$ over 300 iterations), and both codes count $n+t$ gradients
+after $t$ SAGA steps and $nt$ after $t$ AGD steps. Its default Newton reference stops at the first iterate with
+$\norm{\Fp}\le10^{-12}$ and $\norm{\Fp}/\lambda\le10^{-8}$, up to one Newton step before ours, and lies up to
+$3.0\cdot10^{-10}$ from the exact minimizer of our problems ($\kappa=10^4$, $\alpha=1$), which could change
+$\norm{\theta_t-\etastar}^2=10^{-18}$ by up to $68\%$: too far for our floors.
+
+\paragraph{Other data designs.}
+% Sources: vrlab/problems.py (make_logistic_ndm and its docstring), tests/test_vrlab.py (test_make_logistic_ndm), the
+% public code of na2023hessian (required_func.py at commit e5f9296), the docstrings of exp_B3_families.py,
+% exp_B1_coherence.py and exp_B2_checks.py; bitwise identity with the data of the independent implementation (seed 2022,
+% both families, both spectra) checked on our machine with private code.
+\nolinkurl{vrlab.problems.make_logistic_ndm} generates the synthetic designs of Section~5 of~\cite{na2023hessian} as
+written in the public code of that paper (\url{https://github.com/senna1128/Hessian-Averaging}, commit
+\texttt{e5f9296}): $X=cU\mathrm{diag}(\sigma_1,\dots,\sigma_d)$, where $U$ holds the left singular vectors of an
+$n\times d$ standard Gaussian matrix, the $\sigma_j$ are equally spaced from $1$ to a power of $d$ ($d^{1/2}$ or $d$ in
+our experiments) and $c$ sets the largest row norm to $1$, so that $\hat\Sigma=X^\top X/n$ is exactly diagonal; for the
+high-coherence family, the rows of the Gaussian matrix are first divided by the square roots of independent Gamma
+variables of shape $\frac12$ and scale $2$, as in the code (the text of the paper rescales the rows of $U$). The labels
+follow the logistic model with a planted vector $w\sim\mathcal N(0,I_d/d)$, $y_i=1$ with probability
+$1/(1+e^{-x_i^\top w})$, and $\lambda=\max_i\norm{x_i}^2/(4(\kappa-1))$, so that $\kappa=R^2/\mu$ exactly. We fix the
+column signs of $U$ (the entry of largest magnitude of each column is made positive), so that the labels do not depend
+on the sign convention of the LAPACK singular value decomposition; the features and the constants do not depend on it.
+Without this convention the port reproduces the data of the independent implementation bit for bit on our machine. The
+experiments on these designs are run by \nolinkurl{experiments/exp_B3_families.py} (Section~\ref{sec:exp-B3},
+\nolinkurl{results/B3_families_summary.json}) and \nolinkurl{experiments/exp_B1_coherence.py}
+(Section~\ref{sec:exp-B1}, \nolinkurl{results/B1_coherence_summary.json}), with single-threaded BLAS, and the checks of
+Section~\ref{sec:exp-B2} on the cached problems by \nolinkurl{experiments/exp_B2_checks.py}
+(\nolinkurl{results/B2_checks_summary.json}), with the default BLAS and the solver of the cached runs; none of these
+scripts uses code of the independent implementation.
 
 \paragraph{Figures.} Colours follow a fixed, colour-blind-safe categorical palette: a given algorithm or a given
 inequality keeps its colour across all figures; sequential magnitudes use a single-hue ramp.

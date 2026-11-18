@@ -250,6 +250,55 @@ def make_logistic_book(n, d=40, seed=0, noise=1.0):
     return prob
 
 
+def _sigmoid_logaddexp(u):
+    """sigmoid(u) = exp(-log(1 + exp(-u))), the formula of the public code of Na et al. used to draw their labels."""
+    return np.exp(-np.logaddexp(0.0, -u))
+
+
+def make_logistic_ndm(n, d, kappa, kap=1.0, high_coherence=False, seed=0, max_row_norm=1.0, fix_signs=True,
+                      name=None):
+    """Synthetic designs of Section 5 of Na, Derezinski and Mahoney (Math. Program. 201, 2023), as written in their
+    public code (github.com/senna1128/Hessian-Averaging, commit e5f9296, required_func.py), with the ridge chosen so
+    that kappa = R2 / mu exactly.
+
+    * G is an n x d standard Gaussian matrix; for the high-coherence family its rows are first divided by sqrt(z_i),
+      z_i ~ Gamma(shape 1/2, scale 2) i.i.d. (the code rescales the rows of G before the SVD; the text of the paper
+      rescales the rows of U); U holds the left singular vectors of G (thin SVD);
+    * X = c U diag(sigma), sigma_j equally spaced from 1 to d**kap, c such that max_i ||x_i|| = max_row_norm; hence
+      hat Sigma = X^T X / n = c^2 diag(sigma)^2 / n is exactly diagonal (axis-aligned anisotropy, condition number
+      d**(2 kap)) and the leverage scores are those of G;
+    * labels y_i = +1 with probability sigmoid(x_i^T w), w ~ N(0, I_d / d), drawn after the scaling (logistic model);
+    * lam = (max_i ||x_i||^2 / 4) / (kappa - 1) from the realized rows, so that R2 / mu = kappa.
+    All draws come from numpy RandomState(seed), in the order Gamma scales (high coherence only), G, w, labels.
+    fix_signs=True makes the columns of U deterministic (the entry of largest magnitude of each column is made
+    positive), so that the labels do not depend on the sign convention of the LAPACK SVD; with fix_signs=False the
+    construction is that of the public code (and of the companion implementation of the course project), whose data
+    then coincide on the same platform. The features and their constants do not depend on fix_signs, only the labels.
+    """
+    assert kappa > 1 and 1 <= d <= n
+    rng = np.random.RandomState(seed)
+    if high_coherence:
+        scale = np.sqrt(rng.gamma(0.5, 2, n))[:, None]
+        G = rng.randn(n, d) / scale
+    else:
+        G = rng.randn(n, d)
+    U, _, _ = np.linalg.svd(G, full_matrices=False)
+    if fix_signs:
+        rows = np.argmax(np.abs(U), axis=0)
+        U = U * np.sign(U[rows, np.arange(d)])[None, :]
+    sigma = np.linspace(1.0, float(d) ** kap, d)
+    X = U * sigma
+    X *= max_row_norm / np.max(np.linalg.norm(X, axis=1))
+    lam = float(np.max(np.sum(X ** 2, axis=1)) / (4.0 * (kappa - 1.0)))
+    w = rng.randn(d) / np.sqrt(d)
+    y = (2 * rng.binomial(1, _sigmoid_logaddexp(X @ w)) - 1).astype(np.float64)
+    family = "hc" if high_coherence else "lc"
+    prob = LogisticProblem(X, y, lam, name=name or f"ndm-{family}(n={n},d={d},kappa={kappa:g},kap={kap:g},seed={seed})")
+    prob.meta = dict(n=n, d=d, kappa=kappa, kap=kap, high_coherence=bool(high_coherence), seed=seed,
+                     max_row_norm=max_row_norm, fix_signs=bool(fix_signs), planted=w)
+    return prob
+
+
 # ----------------------------------------------------------------------------------------------
 # block-separable quadratic finite sums (hard instance of the lower bound)
 # ----------------------------------------------------------------------------------------------

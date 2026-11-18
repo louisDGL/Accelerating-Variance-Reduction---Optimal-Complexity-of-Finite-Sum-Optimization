@@ -1,0 +1,2224 @@
+{
+ "ls-orth": {
+  "spec": {
+   "loss": "ls",
+   "n": 500,
+   "d": 20,
+   "K": 20,
+   "kappa": 100000.0,
+   "alpha": 2.0,
+   "seed": 0,
+   "noise": 0.1,
+   "planted": "orthogonal"
+  },
+  "passes": 100,
+  "tol": 1e-06,
+  "rows": [
+   {
+    "family": "SAGA b=1",
+    "batch": 1,
+    "kind": "SAGA",
+    "best": {
+     "gamma": {
+      "over": "R2",
+      "c": 2.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 13.0,
+      "min": 12.4,
+      "max": 13.6,
+      "q1": 12.6,
+      "q3": 13.3,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 27.15,
+      "min": 26.8,
+      "max": 27.6,
+      "q1": 26.8,
+      "q3": 27.3,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 41.8,
+      "min": 41.2,
+      "max": 42.5,
+      "q1": 41.5,
+      "q3": 42.1,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.738557106100488e-11,
+     "min": 9.588718549508348e-11,
+     "max": 9.906578465611917e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "B-SAGA b=1",
+    "batch": 1,
+    "kind": "B-SAGA",
+    "best": {
+     "theta": 0.2,
+     "gamma": {
+      "over": "R2",
+      "c": 4.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 10.35,
+      "min": 9.8,
+      "max": 11.5,
+      "q1": 10.0,
+      "q3": 10.7,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 18.35,
+      "min": 17.2,
+      "max": 19.7,
+      "q1": 17.4,
+      "q3": 18.5,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 26.35,
+      "min": 25.1,
+      "max": 29.5,
+      "q1": 25.3,
+      "q3": 28.0,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.479320698863747e-11,
+     "min": 8.464965531301747e-11,
+     "max": 9.925923908857512e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA-Muon b=1",
+    "batch": 1,
+    "kind": "SAGA-Muon",
+    "best": {
+     "gamma": {
+      "over": "R2_op",
+      "c": 0.0625
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 16.15,
+      "min": 15.8,
+      "max": 16.4,
+      "q1": 15.9,
+      "q3": 16.3,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 28.1,
+      "min": 27.7,
+      "max": 28.4,
+      "q1": 27.9,
+      "q3": 28.3,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 40.4,
+      "min": 39.6,
+      "max": 41.0,
+      "q1": 40.2,
+      "q3": 40.6,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.766760987303562e-11,
+     "min": 9.470189594200571e-11,
+     "max": 9.951937065858229e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA b=4",
+    "batch": 4,
+    "kind": "SAGA",
+    "best": {
+     "gamma": {
+      "over": "R2",
+      "c": 8.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 17.08,
+      "min": 14.92,
+      "max": 18.952,
+      "q1": 16.36,
+      "q3": 17.8,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 33.784,
+      "min": 30.088,
+      "max": 39.592,
+      "q1": 32.392,
+      "q3": 35.944,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 51.352000000000004,
+      "min": 46.216,
+      "max": 55.048,
+      "q1": 49.192,
+      "q3": 52.936,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.606716164731083e-11,
+     "min": 8.458612069277066e-11,
+     "max": 9.899508610372818e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "B-SAGA b=4",
+    "batch": 4,
+    "kind": "B-SAGA",
+    "best": {
+     "theta": 0.2,
+     "gamma": {
+      "over": "R2",
+      "c": 16.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 10.792,
+      "min": 10.216,
+      "max": 12.04,
+      "q1": 10.6,
+      "q3": 10.984,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 19.0,
+      "min": 17.32,
+      "max": 21.256,
+      "q1": 17.704,
+      "q3": 20.2,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 27.592,
+      "min": 25.096,
+      "max": 29.224,
+      "q1": 26.056,
+      "q3": 27.88,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.69302699768866e-11,
+     "min": 8.600185511565344e-11,
+     "max": 9.995175114025342e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA-Muon b=4",
+    "batch": 4,
+    "kind": "SAGA-Muon",
+    "best": {
+     "gamma": {
+      "over": "R2_op",
+      "c": 0.5
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 14.632,
+      "min": 14.44,
+      "max": 15.016,
+      "q1": 14.536,
+      "q3": 14.824,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 25.96,
+      "min": 25.48,
+      "max": 26.344,
+      "q1": 25.672,
+      "q3": 26.248,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 37.19199999999999,
+      "min": 36.424,
+      "max": 37.48,
+      "q1": 36.904,
+      "q3": 37.48,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.535045707018262e-11,
+     "min": 8.785339245211564e-11,
+     "max": 9.913497758954691e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA b=16",
+    "batch": 16,
+    "kind": "SAGA",
+    "best": {
+     "gamma": {
+      "over": "R2",
+      "c": 16.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 22.792,
+      "min": 22.504,
+      "max": 24.712,
+      "q1": 22.6,
+      "q3": 23.56,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 51.448,
+      "min": 51.208,
+      "max": 53.032,
+      "q1": 51.4,
+      "q3": 51.592,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 80.872,
+      "min": 80.584,
+      "max": 82.312,
+      "q1": 80.776,
+      "q3": 81.064,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.88605368247174e-11,
+     "min": 9.815005818055118e-11,
+     "max": 9.99143151194468e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "B-SAGA b=16",
+    "batch": 16,
+    "kind": "B-SAGA",
+    "best": {
+     "theta": 0.1,
+     "gamma": {
+      "over": "R2",
+      "c": 64.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 12.472,
+      "min": 11.656,
+      "max": 12.904,
+      "q1": 11.848,
+      "q3": 12.616,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 20.823999999999998,
+      "min": 20.104,
+      "max": 22.12,
+      "q1": 20.584,
+      "q3": 21.448,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 28.984,
+      "min": 28.36,
+      "max": 30.28,
+      "q1": 28.744,
+      "q3": 29.32,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.571671477609596e-11,
+     "min": 8.905973375074272e-11,
+     "max": 9.901769958142226e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA-Muon b=16",
+    "batch": 16,
+    "kind": "SAGA-Muon",
+    "best": {
+     "gamma": {
+      "over": "R2_op",
+      "c": 4.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 10.792,
+      "min": 10.504,
+      "max": 10.984,
+      "q1": 10.6,
+      "q3": 10.984,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 19.576,
+      "min": 19.336,
+      "max": 20.008,
+      "q1": 19.432,
+      "q3": 19.72,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 28.6,
+      "min": 28.072,
+      "max": 29.032,
+      "q1": 28.168,
+      "q3": 28.84,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.568909946080112e-11,
+     "min": 8.764186440204475e-11,
+     "max": 9.760186173452136e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA b=64",
+    "batch": 64,
+    "kind": "SAGA",
+    "best": {
+     "gamma": {
+      "over": "R2",
+      "c": 16.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 85.992,
+      "min": 85.864,
+      "max": 85.992,
+      "q1": 85.992,
+      "q3": 85.992,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 0.00041679093587636544,
+     "min": 0.00041506279879633193,
+     "max": 0.0004176084447237576
+    },
+    "stop_level": {
+     "reached": 0,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "B-SAGA b=64",
+    "batch": 64,
+    "kind": "B-SAGA",
+    "best": {
+     "theta": 0.2,
+     "gamma": {
+      "over": "R2",
+      "c": 128.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 18.792,
+      "min": 15.208,
+      "max": 26.728,
+      "q1": 16.872,
+      "q3": 21.352,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 32.232,
+      "min": 26.856,
+      "max": 39.144,
+      "q1": 31.336,
+      "q3": 34.152,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 45.736,
+      "min": 39.656,
+      "max": 53.608,
+      "q1": 42.728,
+      "q3": 47.848,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.188257006901634e-11,
+     "min": 8.579203828128132e-11,
+     "max": 9.984031746906931e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA-Muon b=64",
+    "batch": 64,
+    "kind": "SAGA-Muon",
+    "best": {
+     "gamma": {
+      "over": "R2_op",
+      "c": 8.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 8.936,
+      "min": 8.552,
+      "max": 10.472,
+      "q1": 8.68,
+      "q3": 9.32,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 16.68,
+      "min": 16.232,
+      "max": 20.584,
+      "q1": 16.488,
+      "q3": 17.384,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 24.744,
+      "min": 23.528,
+      "max": 91.368,
+      "q1": 24.168,
+      "q3": 25.96,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.173817780269205e-11,
+     "min": 8.064884570280112e-11,
+     "max": 4.795951372937627e-10
+    },
+    "stop_level": {
+     "reached": 9,
+     "runs": 10
+    },
+    "diverged": 0
+   }
+  ],
+  "code": "76badfd44eeefd38d79791610b95c83a6f187caa"
+ },
+ "soft-cond": {
+  "spec": {
+   "loss": "softmax",
+   "n": 200,
+   "d": 40,
+   "K": 8,
+   "kappa": 10000.0,
+   "alpha": 2.0,
+   "seed": 0
+  },
+  "passes": 300,
+  "tol": 1e-06,
+  "rows": [
+   {
+    "family": "SAGA b=1",
+    "batch": 1,
+    "kind": "SAGA",
+    "best": {
+     "gamma": {
+      "over": "R2",
+      "c": 4.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 32.6,
+      "min": 32.4,
+      "max": 32.7,
+      "q1": 32.4,
+      "q3": 32.6,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 69.55,
+      "min": 69.4,
+      "max": 69.7,
+      "q1": 69.5,
+      "q3": 69.6,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 107.95,
+      "min": 107.8,
+      "max": 108.1,
+      "q1": 107.8,
+      "q3": 108.0,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.939936915306306e-11,
+     "min": 9.829724954480862e-11,
+     "max": 9.999397526770855e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "B-SAGA b=1",
+    "batch": 1,
+    "kind": "B-SAGA",
+    "best": {
+     "theta": 0.2,
+     "gamma": {
+      "over": "R2",
+      "c": 16.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 15.1,
+      "min": 12.7,
+      "max": 16.4,
+      "q1": 13.0,
+      "q3": 15.5,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 33.8,
+      "min": 27.5,
+      "max": 46.3,
+      "q1": 28.9,
+      "q3": 40.6,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 51.8,
+      "min": 45.2,
+      "max": 65.0,
+      "q1": 47.8,
+      "q3": 58.0,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.638937273547988e-11,
+     "min": 8.883730040222802e-11,
+     "max": 9.952048922882901e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA-Muon b=1",
+    "batch": 1,
+    "kind": "SAGA-Muon",
+    "best": {
+     "gamma": {
+      "over": "R2_op",
+      "c": 0.5
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 14.0,
+      "min": 12.5,
+      "max": 14.7,
+      "q1": 13.8,
+      "q3": 14.5,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 29.0,
+      "min": 26.9,
+      "max": 32.3,
+      "q1": 28.7,
+      "q3": 30.6,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 44.0,
+      "min": 43.2,
+      "max": 49.2,
+      "q1": 43.5,
+      "q3": 45.2,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.647262810734824e-11,
+     "min": 9.078422224803855e-11,
+     "max": 9.995333598881623e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA b=4",
+    "batch": 4,
+    "kind": "SAGA",
+    "best": {
+     "gamma": {
+      "over": "R2",
+      "c": 16.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 32.5,
+      "min": 32.3,
+      "max": 32.6,
+      "q1": 32.5,
+      "q3": 32.6,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 69.5,
+      "min": 69.3,
+      "max": 69.6,
+      "q1": 69.5,
+      "q3": 69.5,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 107.9,
+      "min": 107.7,
+      "max": 108.0,
+      "q1": 107.8,
+      "q3": 107.9,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.908938999472943e-11,
+     "min": 9.847265915193046e-11,
+     "max": 9.99862309320933e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "B-SAGA b=4",
+    "batch": 4,
+    "kind": "B-SAGA",
+    "best": {
+     "theta": 0.1,
+     "gamma": {
+      "over": "R2",
+      "c": 64.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 15.649999999999999,
+      "min": 14.1,
+      "max": 19.3,
+      "q1": 14.9,
+      "q3": 17.5,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 34.849999999999994,
+      "min": 32.0,
+      "max": 41.1,
+      "q1": 33.1,
+      "q3": 36.2,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 54.5,
+      "min": 48.2,
+      "max": 74.6,
+      "q1": 48.9,
+      "q3": 56.1,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.686032892420003e-11,
+     "min": 9.111152665296155e-11,
+     "max": 9.995921067335319e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA-Muon b=4",
+    "batch": 4,
+    "kind": "SAGA-Muon",
+    "best": {
+     "gamma": {
+      "over": "R2_op",
+      "c": 4.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 11.45,
+      "min": 10.4,
+      "max": 12.4,
+      "q1": 10.8,
+      "q3": 11.9,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 24.1,
+      "min": 21.5,
+      "max": 27.0,
+      "q1": 23.3,
+      "q3": 25.2,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 36.4,
+      "min": 32.8,
+      "max": 40.6,
+      "q1": 35.2,
+      "q3": 38.1,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.708334032366603e-11,
+     "min": 9.286460016881205e-11,
+     "max": 9.977584598296578e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA b=16",
+    "batch": 16,
+    "kind": "SAGA",
+    "best": {
+     "gamma": {
+      "over": "R2",
+      "c": 64.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 32.68,
+      "min": 32.52,
+      "max": 33.48,
+      "q1": 32.6,
+      "q3": 32.68,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 69.72,
+      "min": 69.4,
+      "max": 71.64,
+      "q1": 69.4,
+      "q3": 70.68,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 107.96,
+      "min": 107.64,
+      "max": 141.24,
+      "q1": 107.72,
+      "q3": 109.8,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.910024423471743e-11,
+     "min": 9.142954017689374e-11,
+     "max": 9.990813041770894e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "B-SAGA b=16",
+    "batch": 16,
+    "kind": "B-SAGA",
+    "best": {
+     "theta": 0.3,
+     "gamma": {
+      "over": "R2",
+      "c": 128.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 16.84,
+      "min": 16.36,
+      "max": 17.4,
+      "q1": 16.68,
+      "q3": 16.92,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 34.92,
+      "min": 34.52,
+      "max": 35.64,
+      "q1": 34.84,
+      "q3": 35.08,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 53.84,
+      "min": 53.56,
+      "max": 54.6,
+      "q1": 53.64,
+      "q3": 53.96,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.829044367823843e-11,
+     "min": 9.724709434546069e-11,
+     "max": 9.978342678860699e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA-Muon b=16",
+    "batch": 16,
+    "kind": "SAGA-Muon",
+    "best": {
+     "gamma": {
+      "over": "R2_op",
+      "c": 16.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 14.84,
+      "min": 13.4,
+      "max": 20.44,
+      "q1": 13.8,
+      "q3": 18.44,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 94.52000000000001,
+      "min": 81.88,
+      "max": 107.4,
+      "q1": 87.24,
+      "q3": 105.0,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 186.68,
+      "min": 172.36,
+      "max": 200.12,
+      "q1": 176.84,
+      "q3": 196.28,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.979443523653254e-11,
+     "min": 9.941006192685918e-11,
+     "max": 9.998697153119971e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA b=64",
+    "batch": 64,
+    "kind": "SAGA",
+    "best": {
+     "gamma": {
+      "over": "R2",
+      "c": 64.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 126.44,
+      "min": 126.44,
+      "max": 126.76,
+      "q1": 126.44,
+      "q3": 126.44,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 273.96,
+      "min": 273.96,
+      "max": 273.96,
+      "q1": 273.96,
+      "q3": 273.96,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 2.987370395057929e-07,
+     "min": 2.976827066561702e-07,
+     "max": 3.005469397559173e-07
+    },
+    "stop_level": {
+     "reached": 0,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "B-SAGA b=64",
+    "batch": 64,
+    "kind": "B-SAGA",
+    "best": {
+     "theta": 0.3,
+     "gamma": {
+      "over": "R2",
+      "c": 256.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 32.2,
+      "min": 32.04,
+      "max": 32.68,
+      "q1": 32.04,
+      "q3": 32.36,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 68.52,
+      "min": 68.2,
+      "max": 69.16,
+      "q1": 68.52,
+      "q3": 68.84,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 106.28,
+      "min": 105.96,
+      "max": 106.92,
+      "q1": 106.28,
+      "q3": 106.6,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.726971059916103e-11,
+     "min": 9.486517249182906e-11,
+     "max": 9.858171587651987e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA-Muon b=64",
+    "batch": 64,
+    "kind": "SAGA-Muon",
+    "best": {
+     "gamma": {
+      "over": "R2_op",
+      "c": 32.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 79.24000000000001,
+      "min": 75.88,
+      "max": 85.48,
+      "q1": 78.44,
+      "q3": 81.0,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 227.56,
+      "min": 220.52,
+      "max": 231.72,
+      "q1": 225.0,
+      "q3": 228.84,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 3.751862940128608e-08,
+     "min": 2.659667675798061e-08,
+     "max": 4.4066966090546905e-08
+    },
+    "stop_level": {
+     "reached": 0,
+     "runs": 10
+    },
+    "diverged": 0
+   }
+  ],
+  "code": "76badfd44eeefd38d79791610b95c83a6f187caa"
+ },
+ "ls-cond": {
+  "spec": {
+   "loss": "ls",
+   "n": 200,
+   "d": 40,
+   "K": 8,
+   "kappa": 10000.0,
+   "alpha": 2.0,
+   "seed": 0
+  },
+  "passes": 300,
+  "tol": 1e-06,
+  "rows": [
+   {
+    "family": "SAGA b=1",
+    "batch": 1,
+    "kind": "SAGA",
+    "best": {
+     "gamma": {
+      "over": "R2",
+      "c": 2.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 42.5,
+      "min": 42.2,
+      "max": 43.0,
+      "q1": 42.3,
+      "q3": 42.7,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 98.7,
+      "min": 98.3,
+      "max": 99.1,
+      "q1": 98.5,
+      "q3": 98.8,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 158.35000000000002,
+      "min": 158.1,
+      "max": 159.1,
+      "q1": 158.3,
+      "q3": 158.9,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.922626004634878e-11,
+     "min": 9.890076941568266e-11,
+     "max": 9.990498625790489e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "B-SAGA b=1",
+    "batch": 1,
+    "kind": "B-SAGA",
+    "best": {
+     "theta": 0.1,
+     "gamma": {
+      "over": "R2",
+      "c": 8.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 19.1,
+      "min": 17.4,
+      "max": 20.9,
+      "q1": 18.2,
+      "q3": 20.3,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 31.9,
+      "min": 30.4,
+      "max": 36.7,
+      "q1": 31.1,
+      "q3": 32.9,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 44.85,
+      "min": 43.5,
+      "max": 50.0,
+      "q1": 44.3,
+      "q3": 47.2,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.792723808745141e-11,
+     "min": 9.582907056896515e-11,
+     "max": 9.943286919473078e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA-Muon b=1",
+    "batch": 1,
+    "kind": "SAGA-Muon",
+    "best": {
+     "gamma": {
+      "over": "R2_op",
+      "c": 0.125
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 16.9,
+      "min": 15.8,
+      "max": 18.8,
+      "q1": 16.1,
+      "q3": 17.3,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 43.55,
+      "min": 29.5,
+      "max": Infinity,
+      "q1": 31.0,
+      "q3": 171.3,
+      "reached": 9,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": Infinity,
+      "min": 43.5,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 2,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 1.9058044285257858e-08,
+     "min": 9.741770383194556e-11,
+     "max": 3.277316345203749e-06
+    },
+    "stop_level": {
+     "reached": 1,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA b=4",
+    "batch": 4,
+    "kind": "SAGA",
+    "best": {
+     "gamma": {
+      "over": "R2",
+      "c": 8.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 54.05,
+      "min": 45.2,
+      "max": 101.9,
+      "q1": 51.5,
+      "q3": 65.6,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 117.0,
+      "min": 100.4,
+      "max": 217.1,
+      "q1": 107.7,
+      "q3": 134.1,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 181.6,
+      "min": 160.1,
+      "max": 268.1,
+      "q1": 171.8,
+      "q3": 212.6,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.92869982790237e-11,
+     "min": 9.8756237525872e-11,
+     "max": 7.904078845506428e-10
+    },
+    "stop_level": {
+     "reached": 9,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "B-SAGA b=4",
+    "batch": 4,
+    "kind": "B-SAGA",
+    "best": {
+     "theta": 0.1,
+     "gamma": {
+      "over": "R2",
+      "c": 32.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 19.75,
+      "min": 18.4,
+      "max": 21.8,
+      "q1": 18.4,
+      "q3": 20.6,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 34.05,
+      "min": 31.5,
+      "max": 36.2,
+      "q1": 32.6,
+      "q3": 34.7,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 48.6,
+      "min": 44.7,
+      "max": 50.3,
+      "q1": 47.1,
+      "q3": 49.8,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.791801355185858e-11,
+     "min": 8.875741477536137e-11,
+     "max": 9.987854399163752e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA-Muon b=4",
+    "batch": 4,
+    "kind": "SAGA-Muon",
+    "best": {
+     "gamma": {
+      "over": "R2_op",
+      "c": 2.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 37.75,
+      "min": 32.2,
+      "max": 39.9,
+      "q1": 37.6,
+      "q3": 38.2,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 69.4,
+      "min": 62.4,
+      "max": 75.6,
+      "q1": 66.2,
+      "q3": 70.6,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 101.75,
+      "min": 91.8,
+      "max": 108.8,
+      "q1": 96.1,
+      "q3": 104.6,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.636519363709029e-11,
+     "min": 9.321116900111968e-11,
+     "max": 9.940240911231442e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA b=16",
+    "batch": 16,
+    "kind": "SAGA",
+    "best": {
+     "gamma": {
+      "over": "R2",
+      "c": 8.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 164.8,
+      "min": 164.44,
+      "max": 165.0,
+      "q1": 164.6,
+      "q3": 164.84,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 1.4703500115109236e-05,
+     "min": 1.4587037942435389e-05,
+     "max": 1.4870048894489731e-05
+    },
+    "stop_level": {
+     "reached": 0,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "B-SAGA b=16",
+    "batch": 16,
+    "kind": "B-SAGA",
+    "best": {
+     "theta": 0.2,
+     "gamma": {
+      "over": "R2",
+      "c": 64.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 25.2,
+      "min": 24.52,
+      "max": 26.28,
+      "q1": 24.68,
+      "q3": 25.56,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 51.16,
+      "min": 50.12,
+      "max": 52.28,
+      "q1": 50.52,
+      "q3": 52.04,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 79.68,
+      "min": 77.56,
+      "max": 81.8,
+      "q1": 79.0,
+      "q3": 80.6,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.901490082382826e-11,
+     "min": 9.817716748191676e-11,
+     "max": 9.971189520999217e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA-Muon b=16",
+    "batch": 16,
+    "kind": "SAGA-Muon",
+    "best": {
+     "gamma": {
+      "over": "R2_op",
+      "c": 8.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 46.400000000000006,
+      "min": 33.8,
+      "max": 60.44,
+      "q1": 39.08,
+      "q3": 54.6,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 89.03999999999999,
+      "min": 68.28,
+      "max": 117.8,
+      "q1": 81.8,
+      "q3": 93.0,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": 129.96,
+      "min": 106.76,
+      "max": 152.2,
+      "q1": 125.4,
+      "q3": 134.52,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 9.702378317214099e-11,
+     "min": 9.390415318467548e-11,
+     "max": 9.986579661366692e-11
+    },
+    "stop_level": {
+     "reached": 10,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA b=64",
+    "batch": 64,
+    "kind": "SAGA",
+    "best": {
+     "gamma": {
+      "over": "R2",
+      "c": 16.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 0.0015785762654058491,
+     "min": 0.001573224215729217,
+     "max": 0.0015934535918852991
+    },
+    "stop_level": {
+     "reached": 0,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "B-SAGA b=64",
+    "batch": 64,
+    "kind": "B-SAGA",
+    "best": {
+     "theta": 0.3,
+     "gamma": {
+      "over": "R2",
+      "c": 64.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 86.28,
+      "min": 83.56,
+      "max": 100.84,
+      "q1": 84.2,
+      "q3": 87.72,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": 197.48,
+      "min": 194.92,
+      "max": 214.76,
+      "q1": 195.56,
+      "q3": 198.76,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 2.3987706726160764e-09,
+     "min": 2.0534362464620227e-09,
+     "max": 7.3463493733864545e-09
+    },
+    "stop_level": {
+     "reached": 0,
+     "runs": 10
+    },
+    "diverged": 0
+   },
+   {
+    "family": "SAGA-Muon b=64",
+    "batch": 64,
+    "kind": "SAGA-Muon",
+    "best": {
+     "gamma": {
+      "over": "R2_op",
+      "c": 8.0
+     }
+    },
+    "edge": [],
+    "summary": {
+     "0.001": {
+      "median": 131.56,
+      "min": 118.12,
+      "max": 149.48,
+      "q1": 127.4,
+      "q3": 142.76,
+      "reached": 10,
+      "runs": 10
+     },
+     "1e-06": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     },
+     "1e-09": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     },
+     "1e-12": {
+      "median": Infinity,
+      "min": Infinity,
+      "max": Infinity,
+      "q1": Infinity,
+      "q3": Infinity,
+      "reached": 0,
+      "runs": 10
+     }
+    },
+    "final_rel": {
+     "median": 2.0775745207088474e-05,
+     "min": 1.1712201026682021e-05,
+     "max": 3.167427072017371e-05
+    },
+    "stop_level": {
+     "reached": 0,
+     "runs": 10
+    },
+    "diverged": 0
+   }
+  ],
+  "code": "76badfd44eeefd38d79791610b95c83a6f187caa"
+ }
+}

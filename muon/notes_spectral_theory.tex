@@ -1,0 +1,1306 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[margin=1in]{geometry}
+\graphicspath{{figures/}}
+\setlength{\emergencystretch}{2em}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\norm}[1]{\left\|#1\right\|}
+\newcommand{\nop}[1]{\left\|#1\right\|_{\mathrm{op}}}
+\newcommand{\nnuc}[1]{\left\|#1\right\|_{*}}
+\newcommand{\nF}[1]{\left\|#1\right\|_{F}}
+\newcommand{\inner}[2]{\left\langle #1, #2 \right\rangle}
+\newcommand{\abs}[1]{\left|#1\right|}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\polar}{\operatorname{polar}}
+\newcommand{\sharpop}{\operatorname{sharp}}
+\newcommand{\srank}{\operatorname{srank}}
+\newcommand{\nr}{\operatorname{nr}}
+\newcommand{\sign}{\operatorname{sign}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\MAD}{\operatorname{MAD}}
+\newcommand{\Med}{\operatorname{Med}_\ast}
+\newcommand{\Lop}{L_{\mathrm{op}}}
+\newcommand{\muop}{\mu_{\mathrm{op}}}
+\newcommand{\kop}{\kappa_{\mathrm{op}}}
+\newcommand{\kF}{\kappa_{F}}
+\newcommand{\cO}{\mathcal{O}}
+\newcommand{\lmin}{\lambda_{\min}}
+\newcommand{\lmax}{\lambda_{\max}}
+\newcommand{\ones}{\mathbf{1}}
+
+\title{Polar (Muon-type) steps on strongly convex matrix problems:\\ condition numbers, exact dynamics, and the effect of noise}
+\author{Theory notes of the side study \texttt{muon/} --- project ``Accelerating Variance Reduction''\\ (Statistical Learning Theory, UC Berkeley, November 2026)}
+\date{Version of 16 November 2026, revised after an adversarial review}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+These notes push the theoretical side of the question ``what do the results of the main project say about Muon?''.
+Muon moves a matrix parameter along the polar factor of (a momentum of) its gradient: steepest descent for the spectral
+norm. The main project showed, for SAGA, that worst-case constants hide what happens along trajectories (notes B2 and
+B3) and that no fixed metric improves the global condition number of logistic regression (note B1). A first version of
+these notes derived the counterparts for the spectral geometry; it was then reviewed by six independent referee passes
+(three on the mathematics, three on the literature, 16 November 2026). The mathematics survived with corrections;
+the literature review showed that a large part of the dynamics on least squares and of the noise analysis was already
+published in 2025--2026. This version separates what is known (attributed, with the statement numbers read by the
+referees) from what is added. The additions are: (i) on conditioning, a frame bound refining the dimension barrier
+$\kop\ge\min(K,d)$, with its rigidity, a sharp comparison with the Euclidean condition number through nuclear and stable
+ranks, and a \emph{no-free-lunch principle valid for every norm}: for ridge-regularized generalized linear models whose
+loss curvature vanishes along a sequence of parameters (logistic, softmax), no norm, spectral or other, has a better
+worst-case condition number than the Frobenius norm; (ii) the reading of polar
+steps as mirror \emph{subgradient} descent on the nuclear norm of the gradient (the nonsmooth case left out by the
+theory of dual-space preconditioning), which makes the nuclear-scaled step a Polyak step and gives a geometric schedule
+for every smooth strongly convex objective; (iii) on the least-squares model, whose dynamics are mostly published, a
+rotation factor between the error and its gradient, an exact conservation law in dimension two, a counterexample to
+the monotonicity of the spectral norm of the error in dimension three, and a sharp contraction bound after the first
+step; (iv) on noise: stochastic polar steps with additive noise are stochastic mirror descent on a noise-smoothed
+nuclear norm, hence, for lengths with $\sum_t\eta_t=\infty$ and $\sum_t\eta_t^2<\infty$, converge almost surely to a
+point where zero is a \emph{nuclear median}, not the mean, of the stochastic gradient; for batch one on least squares
+the limit is a weighted least-distances estimator; for skewed gradient noise with independent entries a formal
+expansion gives an offset of order $1/b$ with explicit constants, smaller per entry than for sign descent by a
+factor of order $1/d$; a finite-sum variance-reduced estimator has a fixed point without offset. Every statement
+carries its status; ``not found'' means not found by the literature checks of 12 and 16 November 2026, and the
+statements added during the revision, which were not searched separately, are listed in Appendix~\ref{app:review}.
+\end{abstract}
+
+\tableofcontents
+
+\section{Setting, notation, status of the statements}\label{sec:setting}
+
+\paragraph{Matrices and norms.} $W\in\R^{K\times d}$, $r=\min(K,d)$, $\inner{A}{B}=\tr(A^\top B)$. $\nF{\cdot}$ is the
+Frobenius norm, $\nop{\cdot}$ the spectral norm, $\nnuc{\cdot}$ the nuclear norm (its dual:
+$\abs{\inner AB}\le\nnuc A\nop B$). For $M=U\diag(s)V^\top$ (thin singular value decomposition restricted to the nonzero
+singular values) we write
+\[
+\polar(M)=UV^\top,\qquad \sharpop(M)=\nnuc M\,\polar(M),\qquad \abs{M}=(M^\top M)^{1/2},
+\]
+$\srank(M)=\nF M^2/\nop M^2$ (stable rank) and $\nr(M)=\nnuc M^2/\nF M^2$ (nuclear rank, the term of Davis and
+Drusvyatskiy); $\srank(M)\le\nr(M)$. The function $\psi(G)=\nnuc G$ is convex with subdifferential
+$\partial\psi(G)=\{UV^\top+P_{U^\perp}CP_{V^\perp}:\nop C\le1\}$; $\polar(G)$ is its element of least Frobenius norm,
+$\inner GO=\nnuc G$ for every $O\in\partial\psi(G)$, and $\nop O=1$ if $G\ne0$. With this convention $\polar(0)=0$:
+statements about floors below need $G\ne0$, statements about upper bounds hold for every selection
+$O\in\partial\psi(G)$. $\cO$ denotes the set of $K\times d$ matrices whose $r$ singular values are all equal to one.
+
+\paragraph{Objective.} $F:\R^{K\times d}\to\R$ is twice continuously differentiable, with minimizer $W_\ast$,
+$F_\ast=F(W_\ast)$, $G=\nabla F(W)$, $E=W-W_\ast$. The constants of $F$ in the spectral geometry are the best numbers
+such that, for all $W$ and all directions $\Delta$,
+\begin{equation}\label{eq:consts}
+\muop\nop\Delta^2\ \le\ D^2F(W)[\Delta,\Delta]\ \le\ \Lop\nop\Delta^2,\qquad \kop=\Lop/\muop ,
+\end{equation}
+and $\mu_F$, $L_F$, $\kF=L_F/\mu_F$ denote the same constants for the Frobenius norm; for another norm $N$ we write
+$\mu_N,L_N,\kappa_N$. Since $\nop\Delta\le\nF\Delta\le\sqrt r\nop\Delta$, one has $L_F\le\Lop\le rL_F$ and
+$\mu_F\le\muop\le r\mu_F$.
+
+\paragraph{Steps.} A \emph{polar step of length $\eta$} is $W^+=W-\eta O$ with $O\in\partial\psi(G)$ (in practice
+$O=\polar(G)$); with a scheduled $\eta$ and a momentum of stochastic gradients in place of $G$ it is Muon. The
+\emph{nuclear-scaled step} is $W^+=W-\frac{1}{L}\sharpop(G)$: the ``sharp operator'' of stochastic spectral descent
+(Carlson, Cevher and Carin, AISTATS 2015), called PolarGrad by Lau, Long and Su (arXiv:2505.21799).
+
+\paragraph{Two models.} (LS) the \emph{one-sided quadratic}
+$F(W)=F_\ast+\frac12\tr\big((W-W_\ast)\Sigma(W-W_\ast)^\top\big)$ with $\Sigma\in\R^{d\times d}$ symmetric positive
+definite: multi-output least squares, $\Sigma=\hat\Sigma+\lambda I$, $\hat\Sigma=\frac1n\sum_ix_ix_i^\top$; then
+$G=E\Sigma$. (GLM) $F(W)=\frac1n\sum_i\ell_i(Wx_i)+\frac\lambda2\nF W^2$ with convex $C^2$ losses,
+$c_i=\sup_z\lmax(\nabla^2\ell_i(z))<\infty$, and $f_i(W)=\ell_i(Wx_i)+\frac\lambda2\nF W^2$: per-sample loss gradients
+have rank at most one.
+
+\paragraph{Status.} \textbf{[P]} proved here (complete proof given). \textbf{[K]} known; the source is given and the
+proof, when included, is for completeness. \textbf{[F]} formal computation (an expansion whose remainder is not
+controlled here). \textbf{[N]} numerical: supported by the script named with the statement, not proved.
+Table~\ref{tab:status} lists all statements with their status and the closest published statements. Statement numbers of
+published papers are those read by the referees of 16 November 2026 in the versions they cite; they should be re-read
+before being quoted elsewhere.
+
+\section{Condition numbers in the spectral geometry}\label{sec:kappa}
+
+In this section $H$ is a symmetric positive definite linear operator on $\R^{K\times d}$ (for the Frobenius inner
+product), $q(\Delta)=\inner{\Delta}{H\Delta}$, and $\Lop(H)=\sup_{\Delta\ne0}q(\Delta)/\nop\Delta^2$,
+$\muop(H)=\inf_{\Delta\ne0}q(\Delta)/\nop\Delta^2$. For a $C^2$ function, $\Lop(F)=\sup_W\Lop(\nabla^2F(W))$ and
+$\muop(F)=\inf_W\muop(\nabla^2F(W))$. That $\Lop(H)$ is the smoothness constant for the spectral norm is known (for any
+norm: Balles, Pedregosa and Le Roux, arXiv:2002.08056, Proposition~3; for the spectral norm: Shen et al.,
+arXiv:2505.23737; Jawanpuria, Garai and Mishra, arXiv:2610.27747, Appendix~C, Remark~2; Islamov et al.,
+arXiv:2603.05002, Eq.~(19)).
+
+\begin{proposition}[variational formulas]\label{prop:var} \textbf{[P]}
+\begin{enumerate}[label=(\alph*)]
+\item $\displaystyle \Lop(H)=\max_{Q\in\cO}\inner{Q}{HQ}$.
+\item $\displaystyle \frac1{\muop(H)}=\max_{\norm u=\norm v=1}\inner{uv^\top}{H^{-1}(uv^\top)}$; if $(u_\ast,v_\ast)$
+attains the maximum, $\Delta_\ast=H^{-1}(u_\ast v_\ast^\top)$ attains $\muop(H)=q(\Delta_\ast)/\nop{\Delta_\ast}^2$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) Let $\nop\Delta\le1$, $\Delta=U\diag(s)V^\top$ with $s\in[0,1]^r$. The cube $[-1,1]^r$ is the convex hull of
+$\{-1,1\}^r$, so $s=\sum_\varepsilon c_\varepsilon\varepsilon$ and $\Delta=\sum_\varepsilon c_\varepsilon U\diag(\varepsilon)V^\top$ is a convex
+combination of elements of $\cO$. Since $q$ is convex, $q(\Delta)\le\max_{Q\in\cO}q(Q)$; $\cO$ is compact.
+
+(b) We show that, for $\mu>0$, [$q(\Delta)\ge\mu\nop\Delta^2$ for all $\Delta$] is equivalent to
+[$\inner{Y}{H^{-1}Y}\le\nnuc Y^2/\mu$ for all $Y$]. If the first holds, let $\Delta=H^{-1}Y$:
+$\inner Y{H^{-1}Y}=\inner Y\Delta\le\nnuc Y\nop\Delta\le\nnuc Y\sqrt{q(\Delta)/\mu}$ and $q(\Delta)=\inner Y{H^{-1}Y}$.
+If the second holds, take $Y=u_1v_1^\top$, a top singular pair of $\Delta$:
+$\nop\Delta=\inner Y\Delta=\inner{H^{-1/2}Y}{H^{1/2}\Delta}\le\sqrt{\inner Y{H^{-1}Y}}\sqrt{q(\Delta)}\le\sqrt{q(\Delta)/\mu}$.
+Hence $1/\muop=\sup_{\nnuc Y\le1}\inner Y{H^{-1}Y}$, the maximum of a convex function over the nuclear ball, attained at
+an extreme point $\pm uv^\top$. At a maximizer $Y_\ast$, optimality gives $\inner{\Delta_\ast}{Y-Y_\ast}\le0$ on the ball
+with $\Delta_\ast=H^{-1}Y_\ast$, i.e.\ $\inner{\Delta_\ast}{Y_\ast}=\nop{\Delta_\ast}$; then
+$q(\Delta_\ast)=\inner{\Delta_\ast}{Y_\ast}=\nop{\Delta_\ast}=1/\muop$ and $q(\Delta_\ast)/\nop{\Delta_\ast}^2=\muop$.
+\end{proof}
+
+Item (b) is the classical duality between strong convexity for a norm and smoothness of the conjugate for the dual
+norm (Kakade, Shalev-Shwartz and Tewari, JMLR 2012, Theorem~3) applied to a quadratic, with the reduction to extreme
+points; its $\ell_1$ analogue is in Nutini et al.\ (ICML 2015, Section~4). The formulas are not a polynomial-time
+recipe: maximizing a convex quadratic over the spectral ball contains the $\ell_\infty$ case (diagonal matrices), which
+is NP-hard in general (Islamov et al., Appendix~A; Balles et al., Section~4.2). The values printed by
+\texttt{check\_condition\_numbers.py} for operators without structure are therefore values of a multi-start ascent, i.e.\
+lower bounds of $\Lop$ and of $1/\muop$; they are exact for the structured operators of Proposition~\ref{prop:struct}.
+
+\begin{proposition}[frame bound, dimension barrier, rigidity]\label{prop:frame} \textbf{[P]; the barrier $\kop\ge r$ is [K]}
+Let $(u_k)_{k\le r}$ be orthonormal in $\R^K$, $(v_k)_{k\le r}$ orthonormal in $\R^d$, and $h_k=q(u_kv_k^\top)$. Then
+\[
+\Lop(H)\ \ge\ \sum_{k\le r}h_k,\qquad \muop(H)\ \le\ \min_{k\le r}h_k,\qquad
+\kop(H)\ \ge\ \frac{\sum_kh_k}{\min_kh_k}\ \ge\ r .
+\]
+Consequently $\kop(F)\ge r=\min(K,d)$ for every $C^2$ function satisfying \eqref{eq:consts}. Moreover $\kop(H)=r$ if
+and only if $H$ is a multiple of the identity; hence $\kop(F)=r$ if and only if
+$F=F_\ast+\frac\mu2\nF{W-W_\ast}^2$.
+\end{proposition}
+\begin{proof}
+$\nop{u_kv_k^\top}=1$ gives $\muop\le h_k$. For signs $\varepsilon\in\{\pm1\}^r$ let
+$Q_\varepsilon=\sum_k\varepsilon_ku_kv_k^\top\in\cO$. Averaging over uniform signs,
+$\E\,q(Q_\varepsilon)=\sum_{k,l}\E[\varepsilon_k\varepsilon_l]\inner{u_kv_k^\top}{Hu_lv_l^\top}=\sum_kh_k$, so some $Q_\varepsilon$ has
+$q(Q_\varepsilon)\ge\sum_kh_k$. For a function, apply this to $\nabla^2F(W)$ at any $W$.
+\emph{Rigidity} (argument of the referee of Sections 2--3). If $\Lop=r\muop$, then for every frame
+$r\muop\le\sum_kh_k\le\Lop$ forces $h_k=\muop$: $q(uv^\top)=\muop$ for all unit $u,v$. Moreover
+$q(Q_\varepsilon)=r\muop+\sum_{k\ne l}\varepsilon_k\varepsilon_l\inner{u_kv_k^\top}{Hu_lv_l^\top}\le r\muop$ for all signs while the
+cross terms have mean zero, so the cross terms vanish for all signs, i.e.\ $\inner{u_kv_k^\top}{Hu_lv_l^\top}=0$ for
+$k\ne l$. With coordinate frames this gives $H_{ia,jb}=0$ for $i\ne j$, $a\ne b$; polarizing $q(uv^\top)=\muop\norm
+u^2\norm v^2$ gives $H_{ia,ib}=\muop\delta_{ab}$ and $H_{ia,ja}=\muop\delta_{ij}$. So $H=\muop\,\mathrm{Id}$. For a
+function, apply this at every $W$.
+\end{proof}
+
+The barrier itself is the matrix form of a folklore fact: a function that is $1$-strongly convex for $\ell_\infty$ on
+$[-1,1]^n$ has range at least $n/2$ (Sidford and Tian, arXiv:1808.01278, Lemma~A.1), equivalently the cube is at
+Banach--Mazur distance $\sqrt n$ from the Euclidean ball; restricting $F$ to $\{U\diag(s)V^\top\}$ reduces the spectral
+case to it. The frame bound was not found; the rigidity was added during the revision and has not been searched for.
+The frame bound can be loose: $q=\nF\Delta^2+2c\det\Delta$
+on $2\times2$ matrices has all $h_k$ equal and $\kop=2/(1-\abs c)$.
+
+\begin{corollary}[comparison with the Euclidean condition number]\label{cor:compare} \textbf{[P]}
+For every eigenpair $(\lambda,V)$ of $H$: $\Lop(H)\ge\lambda\,\nr(V)$ and $\muop(H)\le\lambda\,\srank(V)$. With
+$V_{\max},V_{\min}$ eigen-matrices for $\lmax(H)$ and $\lmin(H)$,
+\[
+\max\Big\{r,\ \frac{\kF(H)}{r},\ \kF(H)\,\frac{\nr(V_{\max})}{\srank(V_{\min})}\Big\}\ \le\ \kop(H)\ \le\ r\,\kF(H).
+\]
+In particular $\kop<\kF$ requires $\srank(V_{\min})>\nr(V_{\max})$: flat directions of higher rank than the sharp
+ones. Both cases occur: $\kop\ge\kF$ whenever $V_{\min}$ can be chosen of rank one, and the lower bound $\kF/r$ is
+approached (Example~\ref{ex:sharp}).
+\end{corollary}
+\begin{proof}
+$\lambda\nnuc V=\inner{\polar(V)}{HV}\le\sqrt{q(\polar V)}\sqrt{q(V)}\le\sqrt{\Lop}\,\sqrt\lambda\,\nF V$ (Cauchy--Schwarz
+for $q$, $\nop{\polar V}=1$), which is $\Lop\ge\lambda\nr(V)$ (sharpening due to the referee; the first version had
+$\srank$). $\muop\le q(V)/\nop V^2=\lambda\srank(V)$. The other bounds are Proposition~\ref{prop:frame} and the comparison
+of the norms.
+\end{proof}
+
+\begin{example}[the bound $\kF/r$ is sharp]\label{ex:sharp} \textbf{[P]} (Referee of Sections 2--3; it replaces a
+numerical $\ell_\infty$ example of the first version whose printed bound was not established.) On $\R^{r\times r}$, for
+$0<b\le m\le1$, let $q(\Delta)=m\nF\Delta^2+(1-m)\Delta_{12}^2-(m-b)(\tr\Delta)^2/r$: eigenvalues $1$ (on $E_{12}$),
+$b$ (on $I/\sqrt r$) and $m$, so $\kF=1/b$. Then $\Lop=1+m(r-1)$ (for $Q$ orthogonal
+$q(Q)=mr+(1-m)Q_{12}^2-(m-b)(\tr Q)^2/r\le mr+1-m$, with equality for a cyclic permutation with $Q_{12}=1$) and
+$\muop=rmb/(m+(r-1)b)$ (attained at $\diag(1,c,\dots,c)$, $c=(m-b)/(m+(r-1)b)$). Hence
+$\kop/\kF=(1+m(r-1))(m+(r-1)b)/(rm)$, which tends to $1/r$ when $b/m\to0$ and then $m\to0$; for $r=10$, $m=10^{-2}$,
+$b=10^{-5}$, $\kop=\kF/9.09$. Checked in \texttt{check\_review\_additions.py}.
+\end{example}
+
+\begin{proposition}[structured Hessians]\label{prop:struct} \textbf{[P]; see Remark~\ref{rem:kappa} for what is [K]}
+\begin{enumerate}[label=(\alph*)]
+\item \emph{Kronecker.} If $H\Delta=B\Delta A$ with $A\in\R^{d\times d}$, $B\in\R^{K\times K}$ symmetric positive definite
+with eigenvalues $a_1\ge\dots\ge a_d$, $b_1\ge\dots\ge b_K$, then
+$\Lop=\sum_{k\le r}a_kb_k$, $\muop=a_db_K$, so that $\kop/\kF=\sum_{k\le r}a_kb_k/(a_1b_1)\in[1,r]$.
+\item \emph{Least squares.} For (LS) with $\Sigma=\hat\Sigma+\lambda I$: $\muop(F)=\lmin(\Sigma)$ and $\Lop(F)$ is the sum
+of the $r$ largest eigenvalues of $\Sigma$; with $f_i(W)=\frac12\norm{Wx_i-y_i}^2+\frac\lambda2\nF W^2$,
+$\Lop(f_i)=\norm{x_i}^2+\lambda r$. If $K\ge d$,
+\[
+\Lop(F)=\tr\Sigma=\frac1n\sum_i\Lop(f_i),\quad\text{whereas}\quad
+L_F(F)=\lmax(\hat\Sigma)+\lambda\le\frac1n\sum_iL_F(f_i)=\tr\hat\Sigma+\lambda :
+\]
+\emph{no averaging gain}, and $\kop(F)=\kF(F)\cdot\tr(\Sigma)/\lmax(\Sigma)$. If $K<d$ the averaging gain reappears
+($\Lop(F)=\sum_{k\le K}\lambda_k(\Sigma)<\frac1n\sum_i\Lop(f_i)$ unless $\hat\Sigma$ has rank at most $K$), and for $K=1$ the
+spectral norm is the Euclidean norm.
+\item \emph{Ridge-regularized models: no free lunch, for every norm.} For (GLM), assume there is a sequence $W_t$ along
+which $\max_i\nop{\nabla^2\ell_i(W_tx_i)}\to0$ (softmax and logistic losses: $W_t=tW_1$ for a generic $W_1$). Let $N$ be
+\emph{any} norm on $\R^{K\times d}$ and $c_N=\max_{\nF\Delta=1}N(\Delta)$. Then, for every convex $C^2$ function $g$,
+\[
+\mu_N(F)=\frac{\lambda}{c_N^2}=\frac{\mu_F(F)}{c_N^2},\qquad L_N(g)\ \ge\ \frac{L_F(g)}{c_N^2},
+\]
+hence
+\[
+\frac{L_N(F)}{\mu_N(F)}\ \ge\ \kF(F),\qquad \frac{L_N(f_i)}{\mu_N(F)}\ \ge\ \frac{L_F(f_i)}{\mu_F(F)}=\frac{c_i\norm{x_i}^2+\lambda}{\lambda}\quad\text{for every } i :
+\]
+no norm has a better worst-case condition number than the Frobenius norm, for the full objective, and for the maximum
+or the mean of the per-sample constants that govern variance-reduced methods.
+\item \emph{Instances of (c).} Spectral norm ($c_N=1$): $\muop(F)=\mu_F(F)=\lambda$ and $\Lop(f_i)=c_i\norm{x_i}^2+\lambda
+r$. Right- and two-sided preconditioned spectral norms $N(\Delta)=\nop{S^{1/2}\Delta P^{1/2}}$ ($c_N^2=\lmax(S)\lmax(P)$),
+e.g.\ $\mu_{N_P}(F)=\lambda/\lmax(P)$ and, with $y_i=P^{-1/2}x_i$,
+$L_{N_P}(f_i)=\sum_{k\le r}\lambda_k\big(c_iy_iy_i^\top+\lambda P^{-1}\big)$ for $N_P(\Delta)=\nop{\Delta P^{1/2}}$.
+Euclidean metrics $\nF{\Delta P^{1/2}}$ and their Kronecker-factored versions. For $K=1$ and the logistic loss, the
+last case is Proposition B1-nofreelunch of the note B1.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) For $Q\in\cO$, $q(Q)=\tr(A\,Q^\top BQ)\le\sum_k\lambda_k(A)\lambda_k(Q^\top BQ)$ (von Neumann's trace inequality).
+If $K\ge d$, $Q^\top Q=I_d$ and $\lambda_k(Q^\top BQ)\le b_k$ (Poincar\'e separation); if $K<d$, $QQ^\top=I_K$ and the
+nonzero eigenvalues of $Q^\top BQ$ are those of $B$. In both cases $q(Q)\le\sum_{k\le r}a_kb_k$, with equality for
+$Q=\sum_{k\le r}u^B_k(u^A_k)^\top$. Next, $q(\Delta)=\nF{B^{1/2}\Delta A^{1/2}}^2\ge b_Ka_d\nF\Delta^2\ge b_Ka_d\nop\Delta^2$,
+with equality for $\Delta=u^B_K(u^A_d)^\top$.
+(b) is (a) with $A=\Sigma$, $B=I$; $D^2f_i[\Delta,\Delta]=\norm{\Delta x_i}^2+\lambda\nF\Delta^2$ is at most
+$\norm{x_i}^2+\lambda r$ on the spectral unit ball, with equality for an element of $\cO$ whose row space contains $x_i$,
+and at most $(\norm{x_i}^2+\lambda)\nF\Delta^2$, with equality for $\Delta=ux_i^\top/\norm{x_i}$.
+(c) For every $W$ and $\Delta$, $D^2F(W)[\Delta,\Delta]\ge\lambda\nF\Delta^2\ge(\lambda/c_N^2)N(\Delta)^2$; at a maximizer
+$\Delta_0$ of $N/\nF\cdot$, $D^2F(W_t)[\Delta_0,\Delta_0]\le\max_i\nop{\nabla^2\ell_i(W_tx_i)}\frac1n\sum_i\norm{\Delta_0x_i}^2
++\lambda\nF{\Delta_0}^2\to\lambda\nF{\Delta_0}^2$. So $\mu_N(F)=\lambda/c_N^2$. For a convex $g$,
+$D^2g[\Delta,\Delta]/N(\Delta)^2\ge D^2g[\Delta,\Delta]/(c_N^2\nF\Delta^2)$; take suprema. $L_F(f_i)=c_i\norm{x_i}^2+\lambda$
+is attained in the direction $ex_i^\top/\norm{x_i}$ with $e$ a top eigenvector of $\nabla^2\ell_i$.
+(d) $\Lop(f_i)$: an element of $\cO$ mapping $x_i/\norm{x_i}$ to a top eigenvector of $\nabla^2\ell_i$. For $N_P$, by
+Proposition~\ref{prop:var}(a) one maximizes over $\Delta'=\Delta P^{1/2}\in\cO$; for $K\le d$ with row space $S$,
+$(\Delta'y_i)^\top M(\Delta'y_i)+\lambda\tr(\Delta'P^{-1}\Delta'^\top)\le\tr\big((\lmax(M)y_iy_i^\top+\lambda P^{-1})\Pi_S\big)$
+with equality when $\Delta'$ maps $\Pi_Sy_i$ to a top eigenvector of $M=\nabla^2\ell_i$; maximize over $S$ (Ky Fan); for
+$K\ge d$ the full trace is obtained.
+\end{proof}
+
+\begin{remark}[reading and attribution]\label{rem:kappa}
+(i) \emph{What is known.} For a least-squares layer, $\Lop=\tr\Sigma$, $L_F=\lmax(\Sigma)$ and the reading of their ratio
+as the stable rank of the data are in Davis and Drusvyatskiy (arXiv:2512.04299, Eq.~(1.5) and Section~1.2.1); the sum of
+the $K$ largest eigenvalues for $K<d$ is in Jawanpuria et al.\ (Appendix~C, Remark~2); the bound $\sum_ka_kb_k$ for a
+Kronecker Hessian, by von Neumann's inequality, is in Shen et al.\ (arXiv:2505.23737, Section~4.3.1), and the trace norm
+as non-Euclidean smoothness constant in Kovalev and Borodich (arXiv:2511.11466, Lemma~2). The rate
+$1-\lmin(H)/\tr(H)$ of the nuclear-scaled step on matrix quadratics is in Jawanpuria et al.\ (Theorem~3) and Shulgin,
+Laing, Orvieto and Richt\'arik (arXiv:2610.30280, Theorem~3, Eq.~(16), tight); PolarGrad has the weaker factor $r\kappa$
+with Frobenius constants (Theorem~3.2 of v4). For $\ell_\infty$, comparisons of $L_\infty$ with $L_2$ are in Balles et
+al.\ (Propositions 4--5, Eq.~(22)) and of $\mu_1$ with $\mu_2$ in Nutini et al. Not found: the frame bound,
+Corollary~\ref{cor:compare} in its first form (with the stable rank on both sides), the attainment and $\muop$ in (a),
+the identity ``$\Lop(F)$ = mean of the $\Lop(f_i)$'' read as an absence of averaging gain, and items (c)--(d) for the
+spectral norm and its preconditioned versions. Not searched (added during the revision): the rigidity, the nuclear-rank
+form of Corollary~\ref{cor:compare}, Example~\ref{ex:sharp}, and item (c) for an arbitrary norm.
+
+(ii) \emph{No averaging gain.} In the Euclidean geometry the smoothness of an average is smaller than the average
+smoothness because the curvatures $x_ix_i^\top$ of different samples point in different directions; an isometry
+$\Delta$ excites all samples at once, so for $K\ge d$ the triangle inequality is an equality. Then
+$\kop(F)=\bar L_{\mathrm{op}}/\mu$ with $\bar L_{\mathrm{op}}=\frac1n\sum_i\Lop(f_i)=\tr\hat\Sigma+\lambda d$: this is the
+constant $\bar L_F/\mu$ of variance-reduced methods with importance sampling ($\bar L_F=\tr\hat\Sigma+\lambda$; Xiao and
+Zhang, SIAM J.\ Optim.\ 2014, arXiv:1403.4699, Theorem~1 and the remarks that follow it) plus
+$(d-1)\lambda/\mu$, and equal to it when $\lambda=0$. The full-batch nuclear-scaled step has, up to that term, the
+condition number of an importance-sampled variance-reduced method, but pays $n$ gradients per step.
+
+(iii) \emph{Counterpart of B1 and B3.} Item (c) says nothing specific about the spectral geometry: it is one
+norm-independent fact, with a three-line proof, of which Proposition B1-nofreelunch (Euclidean metrics $P$, $K=1$) is
+an instance; the referee of Sections 2--3 and the author arrived at it independently during the revision. The mechanism
+is that the curvature floor of a ridge-regularized model is isotropic. For softmax the hypothesis is not even needed for
+the spectral norm: $\nabla^2\ell_i(z)\ones=0$, so the gauge direction $\ones v^\top$ has curvature exactly
+$\lambda\nF\cdot^2$ at every $W$. Any advantage of a polar step on such problems must therefore be a property of the
+trajectory, as for preconditioned SAGA in B1. Sections~\ref{sec:dual}--\ref{sec:ls} make this quantitative.
+\end{remark}
+
+\section{Polar steps as mirror descent on the nuclear norm of the gradient}\label{sec:dual}
+
+Assume \eqref{eq:consts} with $\muop>0$. Then $\nabla F$ is a bijection of $\R^{K\times d}$, with inverse
+$\nabla F^\ast$, where $F^\ast$ is the convex conjugate of $F$; $F^\ast$ is $\frac1{\Lop}$-strongly convex and
+$\frac1{\muop}$-smooth for the nuclear norm (Kakade et al., Theorem~3). Write
+$D_\Phi(a,b)=\Phi(a)-\Phi(b)-\inner{\nabla\Phi(b)}{a-b}$.
+
+\begin{proposition}[dual representation]\label{prop:dual} \textbf{[K], except the nonsmooth reading of (a)}
+\begin{enumerate}[label=(\alph*)]
+\item With $G=\nabla F(W)$, the polar step $W^+=W-\eta O$, $O\in\partial\psi(G)$, is
+\[
+\nabla F^\ast(G^+)=\nabla F^\ast(G)-\eta\,O,\qquad O\in\partial\psi(G):
+\]
+one step of mirror \emph{subgradient} descent on the convex, $1$-Lipschitz function $\psi=\nnuc\cdot$, in the space of
+gradients, with mirror map $F^\ast$. The minimizer of $\psi$ is $G=0$, i.e.\ $W=W_\ast$, and $\min\psi=0$ is known.
+\item $D_{F^\ast}(G',G)=D_F(W,W')$ for $G=\nabla F(W)$, $G'=\nabla F(W')$; in particular $D_{F^\ast}(0,G)=F(W)-F_\ast$.
+\item (Dual sharpness and smoothness.) $2\muop\,(F(W)-F_\ast)\le\nnuc{\nabla F(W)}^2\le2\Lop\,(F(W)-F_\ast)$.
+\item (One step.) $F(W^+)-F_\ast\le F(W)-F_\ast-\eta\nnuc G+\frac{\Lop}2\eta^2$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) $W=\nabla F^\ast(G)$ and $W^+=\nabla F^\ast(G^+)$. (b) $F^\ast(G)=\inner WG-F(W)$; substitute. (c) Strong convexity
+gives, for all $W'$, $F(W')\ge F(W)-\nnuc G\nop{W'-W}+\frac{\muop}2\nop{W'-W}^2\ge F(W)-\nnuc G^2/(2\muop)$; take
+$W'=W_\ast$. Smoothness gives $F_\ast\le F(W-t\,\polar(G))\le F(W)-t\nnuc G+\frac{\Lop}2t^2$; take $t=\nnuc G/\Lop$. (d) is
+smoothness with $\inner GO=\nnuc G$, $\nop O\le1$.
+\end{proof}
+
+For a quadratic $F$ with Hessian $H$ and $G\ne0$, write (the quantity $J$ is the $J_t$ of Shen et al., Theorem~4.14)
+\[
+J(W)=\inner{O}{HO}\in[\muop,\Lop]\quad(O=\polar(G)),\qquad
+\mu_{\mathrm{PL}}(W)=\frac{\nnuc G^2}{2(F(W)-F_\ast)}\in[\muop,J(W)].
+\]
+
+\begin{proposition}[exact one-step representation]\label{prop:repr} \textbf{[K] for (LS); immediate in general}
+For a quadratic $F$ and the step $W^+=W-\frac{\nnuc G}{L}\polar(G)$,
+\begin{equation}\label{eq:repr}
+\frac{F(W^+)-F_\ast}{F(W)-F_\ast}=1-\frac{\mu_{\mathrm{PL}}(W)}{L}\Big(2-\frac{J(W)}{L}\Big),
+\end{equation}
+and the best $L$ is $J(W)$ (exact line search), with ratio $1-\mu_{\mathrm{PL}}(W)/J(W)\ge0$. With $L=\Lop$, the
+certified factor $1-1/\kop$ is the value of \eqref{eq:repr} at the worst cases $J=\Lop$, $\mu_{\mathrm{PL}}=\muop$. The
+slack of the smoothness step can improve the exponent by a factor at most $2$ (since $2-J/\Lop\in[1,2)$); the slack of
+the sharpness step, $\mu_{\mathrm{PL}}/\muop\in[1,\kop]$, is the only unbounded one. Moreover
+$\mu_{\mathrm{PL}}(W)=\nr(G)\cdot\nF G^2/(2(F(W)-F_\ast))$ and
+$\inner GE/\nop E^2=\srank(E)\cdot\inner GE/\nF E^2$: the spectral effective constants are the Euclidean ones of the
+note B2 multiplied by the nuclear rank of the gradient and by the stable rank of the error.
+\end{proposition}
+\begin{proof}
+$F(W-\eta O)=F(W)-\eta\inner GO+\frac{\eta^2}2\inner O{HO}$ exactly; substitute $\eta=\nnuc G/L$ and divide by
+$F(W)-F_\ast=\nnuc G^2/(2\mu_{\mathrm{PL}})$.
+\end{proof}
+
+For the one-sided quadratic, \eqref{eq:repr} is Eq.~(17) of Theorem~3 of Shulgin et al.\ (with $\alpha=J/L$,
+$p=\mu_{\mathrm{PL}}/J$) and Eq.~(8) of Jawanpuria et al. Its interest here is the parallel with SAGA in the note B3
+(Proposition B3-representation): the proof of the certified rate is a worst-case substitution into an exact formula,
+the gain available from the smoothness inequality is bounded (there $8/3$, here $2$), and the curvature met along the
+trajectory is the unbounded factor.
+
+\begin{theorem}[step rules]\label{thm:steps} \textbf{[P]; the rate of (a) is [K]}
+Let $D_t=F(W_t)-F_\ast$ along polar steps $W_{t+1}=W_t-\eta_tO_t$, $O_t\in\partial\psi(G_t)$.
+\begin{enumerate}[label=(\alph*)]
+\item \emph{Polyak step = nuclear-scaled step.} The mirror Polyak step for $\psi$ (optimal value $0$, mirror map $F^\ast$
+of modulus $1/\Lop$, subgradients of dual norm $1$) is $\eta_t=\psi(G_t)/\Lop$; it gives $D_{t+1}\le(1-1/\kop)D_t$.
+\item \emph{Geometric schedule.} Let $\bar D_0\ge D_0$, $\rho=\max\{1/\kop,\,1-1/\kop\}$ (equal to $1-1/\kop$ as soon as
+$r\ge2$, by Proposition~\ref{prop:frame}) and $\eta_t=\eta_0\rho^{t/2}$ with $\eta_0=\sqrt{2\muop\bar D_0}/\Lop$. Then
+$D_t\le\bar D_0\rho^t$ for all $t$: a fixed-length schedule reaches the rate of the nuclear-scaled step, at the price of
+knowing $\muop$ and a bound on $D_0$.
+\item \emph{Constant length.} If $\eta_t=\eta$, then for every $t$ with $G_t\ne0$, $\max(D_t,D_{t+1})\ge\muop\eta^2/8$
+(the constant is attained: $F=\frac\mu2w^2$, $w_0=\eta/2$), and
+$\limsup_tD_t\le\max\{\kop/8,1/2\}\,\Lop\eta^2$.
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+By Proposition~\ref{prop:dual}(c)--(d), $D_{t+1}\le\varphi_{\eta_t}(D_t)$ with
+$\varphi_\eta(x)=x-\eta\sqrt{2\muop x}+\frac{\Lop}2\eta^2$, a convex function of $x\ge0$.
+(a) Minimize $-\eta\nnuc{G_t}+\frac\Lop2\eta^2$ directly:
+$D_{t+1}\le D_t-\nnuc{G_t}^2/(2\Lop)\le(1-\muop/\Lop)D_t$.
+(b) Induction: if $D_t\le\bar D_t:=\bar D_0\rho^t$ and $\eta_t=\sqrt{2\muop\bar D_t}/\Lop$, convexity gives
+$D_{t+1}\le\max\{\varphi_{\eta_t}(0),\varphi_{\eta_t}(\bar D_t)\}=\max\{\bar D_t/\kop,\ \bar D_t(1-1/\kop)\}=\rho\bar D_t$;
+and $\eta_{t+1}=\eta_t\sqrt\rho$.
+(c) If $G_t\ne0$, $\eta=\nop{W_{t+1}-W_t}\le\nop{E_t}+\nop{E_{t+1}}$ and $D\ge\frac{\muop}2\nop E^2$ give the lower bound.
+For the upper bound, $\varphi_\eta(x)\le x$ iff $x\ge x_0:=\Lop^2\eta^2/(8\muop)$, and
+$x_1:=\max\{\varphi_\eta(0),\varphi_\eta(x_0)\}=\max\{\Lop\eta^2/2,x_0\}$. The interval $[0,x_1]$ is invariant: if
+$D_t\le x_0$ then $D_{t+1}\le x_1$ by convexity, and if $x_0<D_t\le x_1$ then $D_{t+1}\le\varphi_\eta(D_t)\le D_t$. If
+$D_t>x_1$ for all $t$, then $(D_t)$ is nonincreasing and converges to some $D_\infty\ge x_1\ge x_0$; passing to the
+limit in $D_{t+1}\le\varphi_\eta(D_t)$ gives $D_\infty\le\varphi_\eta(D_\infty)$, i.e.\ $D_\infty\le x_0$, so
+$D_\infty=x_0=x_1$. In both cases $\limsup D_t\le x_1$.
+\end{proof}
+
+\begin{proposition}[flow]\label{prop:flow} \textbf{[K] in substance; the spectral instance is written out here}
+Let $W(\cdot)$ be an absolutely continuous solution of the differential inclusion
+$\dot W(t)\in-\partial\psi(\nabla F(W(t)))$. Then, for almost every $t$ with $G(t)\ne0$,
+\[
+\frac{d}{dt}F(W(t))=-\nnuc{G(t)},\qquad \frac{d}{dt}\nnuc{G(t)}=-J(t),\quad
+J(t)=D^2F(W(t))[O_t,O_t]\in[\muop,\Lop],
+\]
+where $O_t=-\dot W(t)$. Hence $G$ vanishes at a finite time $T$ (and $W(t)=W_\ast$ for $t\ge T$) with
+\begin{equation}\label{eq:sandwich}
+\nop{W_0-W_\ast}\ \le\ T\ \le\ \sqrt{\frac{2(F(W_0)-F_\ast)}{\muop}}\ \le\ \sqrt{\kop}\,\nop{W_0-W_\ast}.
+\end{equation}
+For a quadratic $F$ the solution exists and is unique (in the variable $G$ it is the gradient flow of $\psi$ for the
+inner product $\inner\cdot{H^{-1}\cdot}$), $t\mapsto\nnuc{G(t)}$ is convex and $J(t)$ is nonincreasing.
+\end{proposition}
+\begin{proof}
+$\frac d{dt}F(W)=\inner G{\dot W}=-\inner G{O_t}=-\nnuc G$. The curves $G(\cdot)$ and $\psi(G(\cdot))$ are Lipschitz on
+bounded intervals, hence differentiable at almost every $t$; at such a $t$ and for $Z\in\partial\psi(G(t))$,
+$\psi(G(t+h))-\psi(G(t))\ge\inner Z{G(t+h)-G(t)}$ for $h$ of both signs, so $\frac d{dt}\psi(G(t))=\inner Z{\dot G(t)}$;
+take $Z=O_t$ and $\dot G=-\nabla^2F(W)[O_t]$. Since $\nop{O_t}=1$ when $G\ne0$, the bounds on $J$ follow from
+\eqref{eq:consts}. With $D=F(W)-F_\ast$ and Proposition~\ref{prop:dual}(c), $\dot D=-\nnuc G\le-\sqrt{2\muop D}$, i.e.\
+$\frac d{dt}\sqrt D\le-\sqrt{\muop/2}$: extinction before $\sqrt{2D_0/\muop}$, and $D_0\le\frac\Lop2\nop{E_0}^2$. After
+$T$, $F=F_\ast$ since $F$ is nonincreasing. Finally $\nop{\dot W}\le1$ gives $\nop{W_0-W_\ast}\le T$. For a quadratic,
+$\dot G\in-H\partial\psi(G)$ is the gradient flow of a convex function in a Hilbert space: existence, uniqueness,
+convexity of $t\mapsto\psi(G(t))$ and monotonicity of the speed $\inner{O_t}{HO_t}^{1/2}$ are Theorems 3.1--3.2 of
+Br\'ezis (\emph{Op\'erateurs maximaux monotones}, 1973), as quoted by Bungert, Burger, Chambolle and Novaga
+(Analysis \& PDE 2021, Theorems 4.1--4.2).
+\end{proof}
+
+\begin{remark}[attribution and use]\label{rem:dual}
+\emph{Dual reading.} Methods $W^+=W-\eta\nabla k(\nabla F(W))$ are the dual-space preconditioned gradient methods of
+Maddison, Paulin, Teh and Doucet (SIAM J.\ Optim.\ 2021). Their Section~5 already describes the method as ``a Bregman
+gradient method in the dual space, which minimizes the designed $k$ while the conjugate $f^\ast$ plays the role of the
+reference function'', names steepest descent for a smooth norm as the case $k=\frac12\norm\cdot_\ast^2$, and states that
+the analysis ``does not apply in the case of other norms or normalized steepest descent''; item (b) is their Lemma~3.2.
+The same method is the dual mirror descent of Kim et al.\ (arXiv:2311.17296). Chen, Li and Liu (arXiv:2506.15054) identify
+Muon's direction with a subgradient of the nuclear norm (Lion-$\mathcal K$), and Ghane, Akhtiamov and Hassibi
+(arXiv:2603.10485) list nonsmooth preconditioners ``such as Muon'' as future work. What is added here is that nonsmooth
+case carried out: $k=\psi$ (mirror subgradient descent on a sharp function) and $k=\frac12\psi^2$ (nuclear-scaled step).
+\emph{Step rules.} The rate of (a) is known: Balles et al.\ (Proposition~9, any norm), Gluon (Riabinin et al.,
+arXiv:2505.13416, Theorem~5, spectral constants), Nutini et al.\ and Karimi, Nutini and Schmidt for $\ell_1$/sign steps.
+The mirror Polyak step is defined by D'Orazio et al.\ (arXiv:2110.15412); the identification with the nuclear-scaled step
+was not found. Statement (b) is the geometric step-size rule of subgradient methods on sharp functions (Goffin, Math.\
+Programming 1977; Shor) transported by Proposition~\ref{prop:dual}; the closest published statement is Theorem~4.1 of Yang,
+He and Li (arXiv:2605.26977: spectral descent with a geometric schedule on convex, Lipschitz, sharp objectives, same
+induction); geometric schedules for specific models are in Ma, Huang, Chi and Chen (arXiv:2601.13474) and Rhee, Simon and
+Karkada (arXiv:2606.30509). For a general smooth strongly convex $F$ the statement was not found. Floors of
+constant-length steps are in Jawanpuria et al.\ (Lemma~4), Gonon, Mu\c{s}at and Boumal (arXiv:2602.11948, Section~3.1),
+PolarGrad (Theorem~3.4, an upper-bound recursion) and Vaswani, Sun and Babanezhad (arXiv:2605.30648, Proposition~8, the
+two-cycle of value $\eta^2/8$); the explicit $\limsup$ bound was not found. \emph{Flow.} The inclusion for an arbitrary
+norm, existence, the identity $\frac d{dt}F=-\norm{\nabla F}_\ast$ and the bound $T\le\sqrt{2D_0/\mu}$ under a dual-norm
+Polyak--\L{}ojasiewicz inequality are in Leplat, Mayorga, Hildebrand and Gasnikov (arXiv:2508.18510, Theorem~3.1 and
+Eq.~(16)--(18)); for sign flows see also Ma, Wu and E (MSML 2021) and Cort\'es (Automatica 2006), whose Theorem~9
+(numbering of the preprint read by the referees) uses
+$\norm{\nabla f}_1$ as Lyapunov function with derivative $-v^\top\nabla^2f\,v$: the $\ell_\infty$ form of the second
+identity. For quadratics the extinction-time bounds are those of Bungert et al.\ for gradient flows of one-homogeneous
+functionals (Theorem~6.2, Proposition~6.9). A continuous-time analysis of \emph{smoothed} polar flows is in Liu et al.\
+(arXiv:2608.01911); it leaves the exact flow through rank changes for future work. The first version of these notes
+stated the weaker bounds $\nnuc{G_0}/\Lop\le T\le\nnuc{G_0}/\muop$ and presented their ratio $\kop$ as intrinsic; both
+are implied by \eqref{eq:sandwich}, whose ratio is $\sqrt{\kop}$. Each of the two weaker bounds is attained on (LS)
+($E_0=au\,v_d^\top$ and $E_0=aQ$, $Q^\top Q=I_d$). The numerical checks are in \texttt{check\_dual\_mirror.py} and
+\texttt{check\_review\_additions.py}.
+\end{remark}
+
+\section{The least-squares model: published dynamics and additions}\label{sec:ls}
+
+Throughout this section $F$ is the one-sided quadratic (LS), $K\ge d$, $\Sigma$ has eigenvalues
+$\lambda_1\ge\dots\ge\lambda_d>0$ with orthonormal eigenvectors $v_1,\dots,v_d$, $p_k=\lambda_k/\tr\Sigma$, and
+$G=E\Sigma$. By Proposition~\ref{prop:struct}, $\Lop=\tr\Sigma$, $\muop=\lambda_d$, $\kop=1/p_d$. The first version of
+these notes presented the dynamics of this model as new. The literature review showed that most of it is published,
+in particular in the study of matrix quadratics by Shulgin, Laing, Orvieto and Richt\'arik (arXiv:2610.30280, 21 October
+2026; their matrices are the transposes of ours, $H=\Sigma$ acting on the row side). Section~\ref{sec:ls-known} lists
+what is known in our notation; Section~\ref{sec:ls-new} contains the additions.
+
+\paragraph{Convention.} In this section a polar step uses $O_t=\polar(G_t)$, the thin polar factor, which vanishes on
+the kernel of $G_t$: this is what makes the rank of the error non-increasing and gives $\sign(0)=0$ in (K3). For this
+model it is also the direction selected by the flow. Indeed, for $Z=UV^\top+P_{U^\perp}CP_{V^\perp}\in\partial\psi(G)$,
+\[
+\tr(Z\Sigma Z^\top)=\tr(V^\top\Sigma V)+\nF{P_{U^\perp}CP_{V^\perp}\Sigma^{1/2}}^2
+\]
+(the cross term $2\tr(UV^\top\Sigma P_{V^\perp}C^\top P_{U^\perp})$ vanishes because $P_{U^\perp}U=0$), so $\polar(G)\Sigma$
+is the element of least norm of $\partial\psi(G)\Sigma$ for the inner product $\inner{\cdot}{\cdot\,\Sigma^{-1}}$ of
+Proposition~\ref{prop:flow}, hence minus the right derivative of $G(t)$ at \emph{every} time (same theorem of Br\'ezis).
+With another element of the subdifferential (what a full singular value decomposition returns at an exactly singular
+matrix) the zero amplitudes are re-excited at the scale of the step. This selection property, pointed out by the
+mathematical referee of this section, is specific to one-sided Hessians: it fails for $\Delta\mapsto B\Delta A$.
+
+\subsection{What is published}\label{sec:ls-known}
+
+\begin{enumerate}[label=(K\arabic*)]
+\item \emph{Constant curvature along the polar factor.} When $G$ has rank $d$, $O=\polar(G)$ satisfies $O^\top O=I_d$, so
+\begin{equation}\label{eq:Jconst}
+J(W)=\tr(O\Sigma O^\top)=\tr\Sigma=\Lop :
+\end{equation}
+the smoothness inequality of the spectral geometry is an equality at every full-rank iterate, the nuclear-scaled step
+with $L=\tr\Sigma$ is the exact line search along the polar factor, and its contraction factor is $1-p(W)$ with
+$p(W)=\nnuc G^2/(2\tr\Sigma\,(F-F_\ast))=(\tr\abs G)^2/(\tr\Sigma\,\tr(\Sigma^{-1}\abs G^2))\ge\lambda_d/\tr\Sigma$, the lower
+bound being tight as a supremum, on errors that are nearly of rank one (Shulgin et al., Theorem~3, Eq.~(14)--(16) and
+Appendix~E.2, Eq.~(17) for a general length, Corollary~3; Jawanpuria et al., Remark~2, Eq.~(8), Theorem~3; Wang, Zhang,
+Li, Bergemann and Yang, arXiv:2606.04662, Eq.~(E.1); Davis and Drusvyatskiy, Eq.~(1.5)). At an iterate of rank $\rho<d$,
+$J=\tr(\Sigma P)<\tr\Sigma$ with $P$ the projector on the row space of $G$ (Shulgin et al., Eq.~(18)), and for a
+gradient of rank one the polar factor is proportional to the gradient: the two line searches coincide (their Remark~1).
+\item \emph{One step along the polar factor.} With $G_0=O_0Y_0$, $Y_0=\abs{G_0}\succ0$: along $W_0-\gamma O_0$ the gradient
+is $O_0(Y_0-\gamma\Sigma)$, $F=F(W_0)-\gamma\tr Y_0+\frac12\gamma^2\tr\Sigma$, the rank drops iff $\gamma$ is an eigenvalue of
+$\Sigma^{-1/2}Y_0\Sigma^{-1/2}$, and the next root is $\abs{Y_0-\gamma\Sigma}$ (Shulgin et al., Propositions~9, 10, 12
+and 17). The line-search step is exact in one step iff $E_0^\top E_0$ is a multiple of $I_d$ (their Theorem~1(iii)), and
+after a line-search step $\tr(Y_0-\gamma\Sigma)=0$ (proof of their Proposition~18). For $d=2$ the line-search iteration
+is solved completely from every full-rank start: after one step the root is a multiple of the identity and then $F$
+contracts by $((\kappa-1)/(\kappa+1))^2$ per step (their Proposition~18, Corollary~6 and Remark~7).
+\item \emph{Commuting case.} If $E_0^\top E_0$ commutes with $\Sigma$, write $E_0=\sum_ka_ku_kv_k^\top$ with $a_k\ge0$.
+Then for any lengths $E_t=\sum_k\sigma_k(t)u_kv_k^\top$ with $\sigma_k(t+1)=\sigma_k(t)-\eta_t\sign(\sigma_k(t))$: the
+iterates do not depend on $\Sigma$. This is Eq.~(4) of Gonon, Mu\c{s}at and Boumal for $\Sigma=I$; Proposition~1 and
+Appendix~B.2 of Vasudeva, Deora, Zhao, Sharan and Thrampoulidis (arXiv:2510.22980) for this model from $W_0=0$ under joint
+diagonalizability, including the flow $E(t)=\sum_k(a_k-t)_+u_kv_k^\top$ (singular-value soft-thresholding of the
+initial error); Ma et al.\ for their models; Corollary~4 of Shulgin et al.\ (``$H$ drops out of the direction''; the
+paragraph that follows it treats the fixed dual-adapted steps $s_i^+=\abs{s_i-\alpha\bar s_H}$ and notes that
+commutation persists along the trajectory). The iterates
+are independent of $\Sigma$ for lengths fixed in advance; the nuclear-scaled length depends on $\Sigma$ through $p$. With
+the nuclear-scaled step the amplitudes follow $a\mapsto\abs{a-\E_p[a]}$, the mean being taken under the weights $p$,
+and the one-step factor is $1-(\E_pa)^2/\E_p[a^2]$ (Shulgin et al., Eq.~(49)--(53) and Remark~4; Wang et al.,
+Proposition~F.2), and the two-valued configurations $a=\delta((1-\pi)\ones_A+\pi\ones_{A^c})$, $\pi=p(A)$, are invariant
+with $F$ contracting by $(1-2\pi)^2$ per step (Shulgin et al., Corollary~5; Wang et al., Proposition~E.3).
+Rank-deficient invariant directions, on which the error is multiplied by $1-p(S)$ at each step ($F$ by $(1-p(S))^2$),
+are in Jawanpuria et al.\ (Proposition~8). Related exact recursions in neighbouring models: Du and Su
+(arXiv:2604.01472, Lemma~1 and Corollary~2) for a least-squares layer with a single-spike covariance (sign recursions
+on the commuting modes, a normalized-gradient recursion on the mixed mode); Kang, Yun, Shin, Cho and Yun
+(arXiv:2602.06385, Theorem~5.7 and Remark~6.8) for factorization models (equal-rate spectral dynamics, finite-time
+convergence of the exact spectral gradient flow).
+\item \emph{Slow regime and its remedy.} The line search subtracts a mean lying in the bulk, sends the amplitudes
+near it close to zero and so creates the tiny singular values that make $p(W)$ small: ``a slow [regime], caused by tiny
+singular values of the iterate, in which PolarGD is much slower than gradient descent'' (Shulgin et al., abstract and
+Section~4.1). A finite number of Newton--Schulz iterations acts like gradient descent on singular values below
+$1/\ell_5\approx2\cdot10^{-3}$ (their Section~4.2 and Appendix~G; Jawanpuria et al., Proposition~2, for the local rate of
+bounded-gain maps with a constant step).
+\end{enumerate}
+
+\subsection{Additions}\label{sec:ls-new}
+
+\begin{proposition}[first phase, for every schedule]\label{prop:phase1} \textbf{[P]; ingredients are (K2)}
+Let $G_0=E_0\Sigma$ have rank $d$, $G_0=O_0Y_0$, and
+\[
+\tau_\ast=\lmin\big(\Sigma^{-1/2}Y_0\Sigma^{-1/2}\big),\qquad \tau_{\mathrm{ls}}=\frac{\tr Y_0}{\tr\Sigma}=\frac{\nnuc{G_0}}{\Lop}.
+\]
+\begin{enumerate}[label=(\alph*)]
+\item For any polar steps $W_{t+1}=W_t-\eta_t\polar(G_t)$ with lengths $\eta_s\ge0$ and $\tau_t:=\sum_{s<t}\eta_s<\tau_\ast$,
+the polar factor is frozen: $\polar(G_t)=O_0$ and $W_t=W_0-\tau_tO_0$. The same holds for a momentum with non-negative
+weights, and the flow is the segment $W_0-tO_0$ on $[0,\tau_\ast]$: its full-rank phase lasts exactly $\tau_\ast$.
+\item $s_d(E_0)\le\tau_\ast\le\min\big\{\big(\prod_is_i(E_0)\big)^{1/d},\ \tau_{\mathrm{ls}}\big\}\le\nop{E_0}$, and
+$\tau_{\mathrm{ls}}=\tau_\ast$ iff $E_0^\top E_0$ is a multiple of $I_d$: the exact line search always leaves the first
+phase unless it is exact in one step.
+\item Afterwards $G_t=O_0M_t$ with $M_{t+1}=M_t-\eta_t\polar(M_t)\Sigma$, and after one line-search step
+$M_1=Y_0-\tau_{\mathrm{ls}}\Sigma$ is symmetric with trace zero. Consequently the \emph{second} nuclear-scaled step
+($L=\tr\Sigma$) from any full-rank start with $W_1\ne W_\ast$, commuting or not (also when $M_1$ is singular), satisfies
+\[
+\frac{F(W_2)-F_\ast}{F(W_1)-F_\ast}\ \le\ 1-\frac{4p_dp_{d-1}}{p_d+p_{d-1}}\ \le\ 1-\frac2{\kop}.
+\]
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) If $W=W_0-\tau O_0$ then $G=O_0(Y_0-\tau\Sigma)$ with $Y_0-\tau\Sigma\succ0$ iff $\tau<\tau_\ast$; a product of a matrix
+with orthonormal columns and a symmetric positive definite matrix is a polar decomposition, so $\polar(G)=O_0$ and the
+next iterate is on the same line. A combination with non-negative weights of gradients $O_0(Y_0-\tau_s\Sigma)$,
+$\tau_s<\tau_\ast$, has the same polar factor. For the flow, $\partial\psi(G)=\{O_0\}$ at these full-rank gradients, so
+the segment solves the inclusion, and the solution is unique.
+(b) $\tau_\ast=\min_x\frac{x^\top Y_0x}{x^\top\Sigma x}\le\frac{\tr Y_0}{\tr\Sigma}=\tau_{\mathrm{ls}}$, with
+equality iff $\Sigma^{-1/2}Y_0\Sigma^{-1/2}$ is a multiple of the identity, i.e.\ $\Sigma E_0^\top E_0\Sigma=c^2\Sigma^2$;
+and $\tau_{\mathrm{ls}}=\nnuc{E_0\Sigma}/\tr\Sigma\le\nop{E_0}$. The eigenvalues of $\Sigma^{-1/2}Y_0\Sigma^{-1/2}$ are
+positive with product $\det Y_0/\det\Sigma=\det\abs{E_0}$, so the smallest is at most the geometric mean
+$(\prod_is_i(E_0))^{1/d}$. Finally $\Sigma\abs{E_0}^2\Sigma\succeq s_d(E_0)^2\Sigma^2$ and the square root is operator
+monotone, so $Y_0\succeq s_d(E_0)\Sigma$.
+(c) $\polar(O_0M)=O_0\polar(M)$, and $\tr M_1=\tr Y_0-\tau_{\mathrm{ls}}\tr\Sigma=0$. Write $M_1=M_+-M_-$ (positive and
+negative parts, with orthogonal ranges) and $S=\tr M_+=\tr M_-$, so that $\nnuc{G_1}=\tr\abs{M_1}=2S$ and
+$2(F(W_1)-F_\ast)=\tr(\Sigma^{-1}M_1^2)=\tr(\Sigma^{-1}M_+^2)+\tr(\Sigma^{-1}M_-^2)$. The function
+$M\mapsto\tr(\Sigma^{-1}M^2)$ is convex, so on $\{M\succeq0,\ \tr M=S,\ \mathrm{range}(M)\subset\mathrm{range}(M_+)\}$ it is
+maximal at an extreme point $Sxx^\top$: $\tr(\Sigma^{-1}M_+^2)\le S^2x^\top\Sigma^{-1}x$, and similarly
+$\tr(\Sigma^{-1}M_-^2)\le S^2y^\top\Sigma^{-1}y$ with unit vectors $x\perp y$. By Ky Fan's inequality
+$x^\top\Sigma^{-1}x+y^\top\Sigma^{-1}y\le1/\lambda_d+1/\lambda_{d-1}$. Since $J\le\tr\Sigma$ at every iterate,
+$F(W_2)-F_\ast\le F(W_1)-F_\ast-\nnuc{G_1}^2/(2\tr\Sigma)$, and
+$\nnuc{G_1}^2/(2\tr\Sigma(F(W_1)-F_\ast))\ge4S^2/\big(\tr\Sigma\,S^2(1/\lambda_d+1/\lambda_{d-1})\big)
+=4p_dp_{d-1}/(p_d+p_{d-1})\ge2p_d$.
+\end{proof}
+
+The factorization, the value of $F$ along the line, $\tau_{\mathrm{ls}}$, the rank-drop times and the trace-zero
+identity are (K2). Added here: the frozen polar factor for every schedule, for momentum and for the flow, the
+inequality $\tau_{\mathrm{ls}}\ge\tau_\ast$ and the bounds on $\tau_\ast$ (the bounds are due to the mathematical referee
+of this section), and the second-step bound (c), also due to that referee: it extends
+Theorem~\ref{thm:mad}(b) at $t=1$ to non-commuting starts (for $d=2$ it is the exact rate of (K2), valid at every
+step). After the second step $M_t$ is no longer symmetric in general and no such bound is known. The bounds on
+$\tau_\ast$ and the second-step bound were added after the literature checks and have not been searched for.
+
+\begin{proposition}[rotation between the error and its gradient]\label{prop:Q} \textbf{[P]}
+Let $E$ have rank $d$. Then
+\[
+\polar(E\Sigma)=\polar(E)\,Q,\qquad Q=\polar(\abs E\Sigma)=\abs E\Sigma\,(\Sigma\abs E^2\Sigma)^{-1/2}\in SO(d),
+\]
+and $Q=I$ if and only if $\abs E$ commutes with $\Sigma$. Along the flow $\dot E=-\polar(E\Sigma)$, as long as $E$ has
+rank $d$ (and, for (c), simple singular values $s_i$ with right singular vectors $w_i$):
+\begin{enumerate}[label=(\alph*)]
+\item $\frac d{dt}F=-\nnuc G$ and $\frac d{dt}\nnuc G=-\tr\Sigma$ (Proposition~\ref{prop:flow} and \eqref{eq:Jconst});
+\item $\frac d{dt}\frac12\nF E^2=-\tr(\Sigma^{-1}\abs G)<0$ and $\frac d{dt}\nnuc E=-\tr Q$;
+\item $\frac d{dt}s_i=-w_i^\top Qw_i$. If $d=2$, $Q$ is the rotation of angle $\varphi$ with
+$\cos\varphi=\tr(\abs E\Sigma)/\nnuc{\abs E\Sigma}\in(0,1]$ and both singular values of the error decrease at speed
+$\cos\varphi$; explicitly $\varphi=\arg\big(1+\rho_E\rho_\Sigma e^{2i\theta}\big)$ with
+$\rho_E=\frac{s_1-s_2}{s_1+s_2}$, $\rho_\Sigma=\frac{\lambda_1-\lambda_2}{\lambda_1+\lambda_2}$ and $\theta$ the angle
+between the eigenbases of $\abs E$ and $\Sigma$, so that $\cos\varphi\ge\sqrt{1-\rho_E^2\rho_\Sigma^2}$;
+\item (conservation law, discrete time) if $K=d=2$, every polar step $E^+=E-\eta\,\polar(E\Sigma)$, of any length,
+conserves $s_1(E)-s_2(E)$ as long as $\det E$ keeps its sign;
+\item if $d\ge3$, $w^\top Qw$ can be negative for a top singular vector $w$ of $E$: \emph{the spectral norm of the error
+can increase along the flow}, while $F$ and $\nF E$ decrease. Example with integer entries
+(\texttt{counterexample\_opnorm\_integer.py}): $E_0=\diag(300,200,1)$,
+$\Sigma=\left(\begin{smallmatrix}2&4&12\\4&9&20\\12&20&89\end{smallmatrix}\right)$ ($\det\Sigma=2$): $w=e_1$ and
+$w^\top Qw=Q_{11}=-0.01433$; $\nop{E(t)}$ increases from $300$ to $300.86$ during the first phase
+($t\le\tau_\ast=14.34$) and reaches $303.27$ at $t=33.5$, while $\nF{E(t)}$ decreases, and the flow ends at
+$T=1.20\,\nop{E_0}$;
+\item (the increase needs an ill-conditioned error) if $d=3$, with $g=(s_1s_2s_3)^{1/3}$ and $\{i,j,k\}=\{1,2,3\}$,
+\[
+w_i^\top Qw_i\ \ge\ \frac{3g(s_i+g)-s_i(s_j+s_k)}{(s_i+s_j)(s_i+s_k)} ;
+\]
+in particular $\frac d{dt}\nop E<0$ for every $\Sigma$ as soon as $s_1^2<(2+\sqrt3)^3s_2s_3\approx52\,s_2s_3$, hence as
+soon as the condition number of $E$ is below $(2+\sqrt3)^{3/2}\approx7.2$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+$Q^\top Q=(\Sigma\abs E^2\Sigma)^{-1/2}\Sigma\abs E^2\Sigma(\Sigma\abs E^2\Sigma)^{-1/2}=I$, and
+$\polar(E)Q=E\abs E^{-1}\abs E\Sigma\abs G^{-1}=G\abs G^{-1}$ with $\abs G=(\Sigma\abs E^2\Sigma)^{1/2}$;
+$\det Q>0$ since $\det(\abs E\Sigma)>0$. $Q=I$ iff $\abs E\Sigma$ is symmetric positive definite iff $\abs E\Sigma=\Sigma\abs E$.
+(b) $\frac d{dt}\frac12\nF E^2=-\inner E{\polar(E)Q}=-\tr(\abs EQ)$
+and $\abs EQ=\abs E^2\Sigma\abs G^{-1}=\Sigma^{-1}\abs G^2\Sigma^{-1}\Sigma\abs G^{-1}=\Sigma^{-1}\abs G$, whose trace is
+$\tr(\Sigma^{-1/2}\abs G\Sigma^{-1/2})>0$; $\frac d{dt}\nnuc E=-\inner{\polar(E)}{\polar(E)Q}=-\tr Q$.
+(c) $\dot s_i=u_i^\top\dot Ew_i=-u_i^\top\polar(E)Qw_i=-w_i^\top Qw_i$. For $d=2$, $Q^\top\abs E\Sigma=\abs G$ is symmetric,
+and for a rotation $R_\varphi$ and a symmetric $Y$, $\tr(R_\varphi Y)=\cos\varphi\,\tr Y$; hence
+$\tr(\abs E\Sigma)=\cos\varphi\,\tr\abs G$, and $\tr(\abs E\Sigma)=\tr(\abs E^{1/2}\Sigma\abs E^{1/2})>0$. Writing
+$\abs E=\frac{s_1+s_2}2(I+\rho_ES_a)$ and $\Sigma=\frac{\lambda_1+\lambda_2}2(I+\rho_\Sigma S_b)$ with symmetric
+reflections $S_a,S_b$ of axes at angles $a,b$, the product $\abs E\Sigma$ is proportional to
+$I+\rho_E\rho_\Sigma S_aS_b+\rho_ES_a+\rho_\Sigma S_b$, where $S_aS_b$ is the rotation of angle $2(a-b)$; the polar factor
+of a $2\times2$ matrix of positive determinant is its normalized component in the plane of rotations (see (d)), here
+the rotation of angle $\arg(1+\rho_E\rho_\Sigma e^{2i(a-b)})$, and $\abs{\arg(1+xe^{i\alpha})}\le\arcsin x$ for $0\le x<1$.
+(d) Write a $2\times2$ matrix as $M=M_c+M_a$ with $M_c$ in the span of the rotations (multiples of rotations) and $M_a$
+in the span of the reflections; these planes are orthogonal, and with $m_c=\nF{M_c}/\sqrt2$, $m_a=\nF{M_a}/\sqrt2$ the
+singular values are $m_c+m_a$ and $\abs{m_c-m_a}$, and $\det M=m_c^2-m_a^2$. So $s_1-s_2=2\min(m_c,m_a)$. If
+$\det E>0$ then $\det(E\Sigma)>0$ and $\polar(E\Sigma)$ is a rotation: the step changes only $E_c$, and
+$s_1-s_2=2m_a$ before and after if the determinant is still positive. If $\det E<0$ the polar factor is a reflection
+and $m_c$ is conserved.
+(f) Let $B=Q^\top\abs E=\abs G\Sigma^{-1}$. It is similar to $\Sigma^{-1/2}\abs G\Sigma^{-1/2}$, so its eigenvalues
+$\mu_1,\mu_2,\mu_3$ are positive, with product $\det\abs E=g^3$; by the inequality between arithmetic and geometric
+means, $\tr B=\sum_i\mu_i\ge3g$ and the sum $e_2(B)$ of its principal $2\times2$ minors is $\sum_{i<j}\mu_i\mu_j\ge3g^2$. In
+the basis $(w_i)$, $B_{ij}=s_jQ_{ji}$ with $Q_{ji}=w_j^\top Qw_i$, so $\tr B=\sum_is_iq_i$ with $q_i=Q_{ii}$, and, a
+rotation of $\R^3$ being equal to its cofactor matrix, $e_2(B)=s_2s_3q_1+s_1s_3q_2+s_1s_2q_3$. A rotation of angle $t$
+about the unit axis $n$ has $q_i=\cos t+(1-\cos t)n_i^2$, hence $q_j+q_k\le1+q_i$. Therefore
+\[
+3g(s_i+g)\le s_i\tr B+e_2(B)=q_i(s_i^2+s_js_k)+(q_j+q_k)s_i(s_j+s_k)\le q_i(s_i+s_j)(s_i+s_k)+s_i(s_j+s_k).
+\]
+For $i=1$, with $a=s_2/s_1$, $b=s_3/s_1$ and $h=(ab)^{1/3}$: $a+b\le1+ab=1+h^3$ and
+$3h+3h^2-1-h^3=-(h+1)(h^2-4h+1)>0$ for $2-\sqrt3<h\le1$, i.e.\ for $s_1^2<(2+\sqrt3)^3s_2s_3$; and
+$s_1^2/(s_2s_3)\le(s_1/s_3)^2$.
+\end{proof}
+
+Item (d) was found by the literature referee of this section while checking (c); it explains the observation of Shulgin
+et al.\ (Figure~13) that in the $2\times2$ case the singular values move along a $45^\circ$ line. Item (e) has an
+$\ell_\infty$ analogue: for a ball-proximal method in the $\ell_\infty$ norm on a two-dimensional quadratic the distance
+to the solution in that norm can increase (Gruntkowska and Richt\'arik, arXiv:2510.00823, Figure~1). The ``if'' part of
+$Q=I$ is in Shulgin et al.\ (Corollary~4), and as the ``shared frames'' condition of Beneventano, Abdelmoneum and
+Poggio (arXiv:2606.08388, Definition~1), whose Theorem~1(i) gives a formula of the same type as (c) for singular values
+along a projected polar flow in underdetermined regression. The factor $Q$, items (b), (d), (e) and the formula
+$\dot s_i=-w_i^\top Qw_i$ of (c) were not found; the angle formula of (c) and item (f) were added during the revision by
+the mathematical referee of this section and have not been searched for. The example of (e) is also due to that
+referee, who certified the sign of $Q_{11}$ in exact rational
+arithmetic; the example replaces a numerical one of the first version (condition numbers $10^3$,
+$w^\top Qw=-0.0958$, \texttt{counterexample\_opnorm.py}) in which the top singular value of the error was double, so
+that (c) did not apply. By (f) no well-conditioned example exists in dimension three; in the referee's searches
+\textbf{[N]} a negative value also required a condition number of $\Sigma$ of several hundreds (the smallest value of
+$w_1^\top Qw_1$ found with both condition numbers below $c$ was $+0.39$, $+0.02$, $-0.09$ for $c=50,400,1000$).
+
+\begin{theorem}[nuclear-scaled step in the commuting case: contraction after the first step]\label{thm:mad}
+\textbf{[P]; the map is (K3)}
+In the commuting case let $a(t)\in(0,\infty)^d$ be the amplitudes along the nuclear-scaled step with $L=\tr\Sigma$, and
+let $\E_p$, $\Var_p$, $\MAD_p$ denote the mean, the variance and the mean absolute deviation around the mean under the
+weights $p$. As long as all amplitudes are positive, $a(t+1)=\abs{a(t)-\E_p[a(t)]}$ and:
+\begin{enumerate}[label=(\alph*)]
+\item $\displaystyle\frac{F(W_{t+1})-F_\ast}{F(W_t)-F_\ast}=\frac{\Var_p(a(t))}{\E_p[a(t)^2]}$, which equals
+$1-\MAD_p(a(t-1))^2/\Var_p(a(t-1))$ for $t\ge1$;
+\item for $t\ge1$ this factor is at most $1-\frac{4p_{(1)}p_{(2)}}{p_{(1)}+p_{(2)}}\le1-\frac2{\kop}$, where
+$p_{(1)}\le p_{(2)}$ are the two smallest weights: after the first step the exponent is at least twice the certified
+one. The constant is sharp: it is a supremum over positive amplitudes, attained iff $d=2$ (where the factor is
+$(p_1-p_2)^2$ for every $t\ge1$). At $t=0$ the supremum of the factor is the certified $1-1/\kop$ (error almost
+concentrated on the flattest direction, the other amplitudes small and positive); it is not attained, and for an error
+exactly of rank one on $v_d$ the factor is $(1-1/\kop)^2$;
+\item conversely, every invariant ray of the map (amplitudes $a\in(0,\infty)^d$ with $a(t+1)=\mu a(t)$, $\mu>0$) is
+two-valued, $a=\delta((1-\pi)\ones_A+\pi\ones_{A^c})$ with $\pi=p(A)<\frac12$ and $\mu=1-2\pi$; the only other
+positive configuration mapped to a multiple of itself is the constant one ($\mu=0$: convergence in one step). On such a
+ray with $A=\{k\}$ the gradient has nuclear rank in $[2,4(1-1/d)]$, equal to $2$ iff $d=2$. For $d\ge3$ these rays are
+linearly unstable: the linearized map has eigenvalues $1-2\pi$, $0$, $+1$ ($\abs A-1$ times) and $-1$
+($\abs{A^c}-1$ times), so perturbations grow like $(1-2\pi)^{-t}$ relative to the ray.
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+Every amplitude moves by $\eta=\nnuc G/\tr\Sigma=\E_p[a]$, and $F-F_\ast=\frac{\tr\Sigma}2\E_p[a^2]$. (a)
+$\E_p[a(t+1)^2]=\Var_p(a(t))$ and $\E_p[a(t)]=\E_p\abs{a(t-1)-\E_pa(t-1)}$. (b) Let $X$ be centred under $p$ and
+$S=\E_p[X_+]=\E_p[X_-]$, so $\E_p\abs X=2S$. On $\{X>0\}$, $\sum p_kx_k^2$ is a convex function of $x\ge0$ on
+$\{\sum p_kx_k=S\}$, maximal at a vertex: it is at most $S^2/\min_{X_k>0}p_k$; similarly on $\{X<0\}$. The two minima are
+attained at distinct indices, so $\E_pX^2\le S^2(1/p_{(1)}+1/p_{(2)})$ and
+$(\E_p\abs X)^2/\E_pX^2\ge4p_{(1)}p_{(2)}/(p_{(1)}+p_{(2)})\ge2p_{(1)}$, with equality only for
+$X=S(e_{(1)}/p_{(1)}-e_{(2)}/p_{(2)})$, which corresponds to amplitudes with zero entries when $d>2$ (there the true
+iteration keeps the zeros and contracts faster). At $t=0$, $\Var_p(a)/\E_p[a^2]=1-(\E_pa)^2/\E_p[a^2]\to1-p_d$ when
+$a\to e_d$, while at $a=e_d$ the step multiplies the only amplitude by $1-p_d$. (c) If $a(t+1)=\mu a(t)$ with signs
+$s_k=\sign(a_k-m)$, $m=\E_pa>0$, then $a_k(1-\mu s_k)=m$ when $\mu>0$ (no $s_k$ vanishes, and $\mu\ne1$), so $a$ takes two
+values; with $\pi$ the weight of $\{s_k=+1\}$, the constraint $m=\E_pa$ gives $\mu=1-2\pi$, and consistency of the signs
+requires $\pi<\frac12$; $\mu=0$ means $a_k=m$ for all $k$. On the ray with $A=\{k\}$,
+$\nnuc G=2\pi(1-\pi)\delta\tr\Sigma$ and
+$\nF G^2=\delta^2\big((1-\pi)^2\lambda_k^2+\pi^2\sum_{j\ne k}\lambda_j^2\big)$ with $\lambda_k=\pi\tr\Sigma$, so
+$\nr(G)=4(1-\pi)^2/\big((1-\pi)^2+\sum_{j\ne k}p_j^2\big)$ with
+$(1-\pi)^2/(d-1)\le\sum_{j\ne k}p_j^2\le(1-\pi)^2$, the upper bound being attained iff $d=2$. The map is differentiable
+at a point of the ray, with derivative $\diag(s)(I-\ones p^\top)$: it is $+1$ on vectors supported in $A$ with zero
+$p$-mean, $-1$ on those supported in $A^c$, and on the span of $\ones_A,\ones_{A^c}$ it has trace $1-2\pi$ and
+determinant $0$.
+\end{proof}
+
+For $d=2$ the bound of (b) is the exact rate of (K2), and the statement at $t=0$ is the tightness statement of Shulgin
+et al.\ (Theorem~3 and Appendix~E.2). By Proposition~\ref{prop:phase1}(c) the bound of (b) at $t=1$ holds for every
+full-rank start, commuting or not. The form $1-\MAD^2/\Var$, the bound in general dimension and the classification of
+(c) were not found; the instability, the range of the nuclear rank and the corrections of (b) are due to the
+mathematical referee of this section, were added after the literature checks and have not been searched for.
+
+\begin{proposition}[extinction time of the flow]\label{prop:ext} \textbf{[P]; (a) and the bounds of (b) are [K]}
+For the flow $\dot E\in-\partial\psi(E\Sigma)\,$:
+\begin{enumerate}[label=(\alph*)]
+\item in the commuting case $T=\nop{E_0}$ whatever $\Sigma$ (soft-thresholding path of (K3)): the lower bound of
+\eqref{eq:sandwich} is attained;
+\item if $E_0=ue_0^\top$ has rank one ($\norm u=1$), $E(t)=ue(t)^\top$ with $\dot e=-\Sigma e/\norm{\Sigma e}$, the
+gradient flow of $\frac12e^\top\Sigma e$ parametrized by arc length, and $T$ is the length of that curve:
+$\norm{e_0}_2\le T\le\min\{\sum_k\abs{v_k^\top e_0},\ (1+2.5\sqrt{\log\kappa(\Sigma)})\norm{e_0}_2\}$, and there are
+instances with $T\ge\min\{0.7\sqrt d,0.45\sqrt{\log\kappa(\Sigma)}\}\norm{e_0}_2$;
+\item in general $\nop{E_0}\le T\le\sqrt{2(F(W_0)-F_\ast)/\lambda_d}\le\sqrt{\tr\Sigma/\lambda_d}\,\nop{E_0}$;
+\item if $d=2$ and $E_0$ has singular values $s_1\ge s_2$, then
+$T\le\sqrt{s_1s_2}+\sqrt2\,(s_1-s_2)\le\frac{9\sqrt2}8\nop{E_0}\approx1.59\,\nop{E_0}$, whatever $\Sigma$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+(a) The curve $\sum_k(a_k-t)_+u_kv_k^\top$ is absolutely continuous with derivative
+$-\sum_{a_k>t}u_kv_k^\top=-\polar(G(t))$ for almost every $t$, so it is the solution, by uniqueness
+(Proposition~\ref{prop:flow}). (b) $G=u(\Sigma e)^\top$, $\polar(G)=u(\Sigma e)^\top/\norm{\Sigma e}$, so this curve
+satisfies the inclusion and is the solution, by uniqueness; up to its parametrization it is
+$s\mapsto e^{-s\Sigma}e_0$, each coordinate $v_k^\top e$ is monotone along it, so the length is at most
+$\sum_k\abs{v_k^\top e_0}$; the other bounds are those of Gupta, Balakrishnan and Ramdas for path lengths of gradient
+flows of quadratics (JMLR 2021, Theorems 10 and 18). (c) is \eqref{eq:sandwich}. (d) If $s_1=s_2$ the line search is
+exact and $T=s_1$. Otherwise, during the full-rank phase both singular values decrease at the same speed
+(Proposition~\ref{prop:Q}(c)), so $s_1-s_2$ is conserved and the phase ends when the smaller one vanishes, at
+$\tau_\ast\le\sqrt{s_1s_2}$ (Proposition~\ref{prop:phase1}(b)); the error then has rank one and norm $s_1-s_2$, and by
+(b) the remaining time is at most $\sqrt2(s_1-s_2)$. The maximum of $\sqrt x+\sqrt2(1-x)$ on $[0,1]$ is at $x=1/8$.
+\end{proof}
+
+Item (d), due to the mathematical referee of this section, answers in dimension two a question left open in the first
+version (is $T\le C\nop{E_0}$ with $C$ independent of $\Sigma$?); it was added after the literature checks and has not
+been searched for. By (b) such a constant must grow at least like
+$\min\{\sqrt d,\sqrt{\log\kappa(\Sigma)}\}$; for $d=2$ the computed supremum is $\sqrt2$, approached in the rank-one
+limit (largest value $1.4138$ over $3000$ instances with $\kappa(\Sigma)\le10^6$ in \texttt{check\_ls\_additions.py}),
+and for rank-one errors with widely spread spectra the referees found $T/\nop{E_0}=1.72$, $2.43$, $4.00$ for
+$d=3,6,16$, which suggests $C=\sqrt d$ \textbf{[N]}.
+
+\noindent\emph{Numerical support} (scripts of Appendix~\ref{app:checks}): in the commuting case the simulated flow follows the soft-thresholding path within
+the step for $\kappa(\Sigma)$ from $1$ to $10^4$; on generic instances ($6\times6$ and $10\times4$,
+$\kappa(\Sigma)\le400$) $T/\nop{E_0}$ is between $1.00$ and $1.24$ while $\sqrt{2D_0/\muop}/\nop{E_0}$ is between $1.6$
+and $16.6$ and $\sqrt{\kop}$ up to $23.9$ (the referees' runs: $0.99$ to $1.36$ over $48$ instances, and $1.00$ to
+$1.35$ for Gaussian starts with $d\in\{2,3,6\}$ and $\kappa(\Sigma)\le64$); for $d=5$ and
+$\kappa(\Sigma)=1,10^2,10^4$ from the same generic start, $T/\nop{E_0}=1.00,1.14,1.23$ (Figure~\ref{fig:ls}(b)).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figT1_ls_model}
+\caption{The least-squares model. (a) Polar flow from an error that commutes with $\Sigma$: the amplitudes follow the
+soft-thresholding path $(a_k-t)_+$ for both condition numbers (published; (K3)). (b) Generic start: the spectral norm
+of the error for three condition numbers; the extinction time stays within $25\%$ of $\nop{E_0}$. (c) Discrete steps on
+$K=d=100$, spectrum $1/k$ ($\kF=100$, $\kop=519$): the nuclear-scaled polar step is ahead of gradient descent for the
+first hundreds of iterations and behind afterwards. Script: \texttt{make\_paper\_figures.py}.}\label{fig:ls}
+\end{figure}
+
+\begin{remark}[head and tail; link with B2]\label{rem:headtail}
+The model separates two regimes, both described in the literature ((K3), (K4)). \emph{Head:} the polar step shrinks
+all singular values of the error at the same speed, independently of the curvature (exactly in the commuting case).
+\emph{Tail:} once small singular values of the error have come close to zero, every further polar step moves them by
+the full length of the step (the absolute value in the map $a\mapsto\abs{a-\E_pa}$). Three exact reference rates per
+step for $F-F_\ast$ are available: $(1-2p_d)^2$ on the invariant ray of the flattest direction (exponent
+$\approx4\lambda_d/\tr\Sigma$), $(1-p_d)^2$ for an error exactly of rank one on $v_d$ (exponent
+$\approx2\lambda_d/\tr\Sigma$; on a rank-one error $ue^\top$ the nuclear-scaled step is gradient descent with step
+$1/\tr\Sigma$ on the row, $e^+=e-\Sigma e/\tr\Sigma$), and the certified $1-p_d$. Gradient descent with step $1/\lambda_1$ has exponent $2\lambda_d/\lambda_1$ in its tail: \emph{compared with
+the flattest ray, the nuclear-scaled polar step is slower than gradient descent by the factor
+$\tr\Sigma/(2\lambda_1)$}, half the stable rank of the data matrix (Proposition~\ref{prop:struct}(b)), and faster when
+that stable rank is below $2$. The factor $(1-2w)^2$ is Corollary~5 of Shulgin et al., who compare the resulting rate
+with gradient descent for a spectrum with one small eigenvalue (text after their Theorem~3 and Appendix~E.2; comment
+(i) after the corollary).
+
+Which of these rates a run follows is a numerical matter \textbf{[N]}, because the rays are unstable
+(Theorem~\ref{thm:mad}(c)). From generic, non-commuting starts the tail is close to the flattest ray: in the
+referee's runs ($K=d=20$, five seeds) the exponent per step is $4.12\,\lambda_d/\tr\Sigma$ for the spectrum $1/k$ and
+$4.01$ to $4.02$ for $1/k^2$, the top right singular vector of the error is aligned with $v_d$ (cosines $0.996$ to
+$1.000$) and the nuclear rank of the gradient is $3.3$ and $2.5$ on average; the ratio of the exponents of gradient descent and of
+the polar step is $1.79$ and $0.80$, against $\tr\Sigma/(2\lambda_1)=1.80$ and $0.80$: the polar tail is slower for the
+first spectrum and faster for the second. In the commuting case there is no such alignment in exact arithmetic: within
+the first few iterations the dominant amplitude settles on an index $k^\ast$ determined by the initial amplitudes and
+the weights (over $40$ random starts with $d=20$, it is the index of the largest initial amplitude in $25$ runs for the
+spectrum $1/k$ and $23$ runs for $1/k^2$, and it no longer changes after the eighth step;
+\texttt{check\_ls\_additions.py}, block (9), $50$-digit arithmetic), and the exponent of $F$ is then close to
+$-2\log(1-2p_{k^\ast})\approx4\lambda_{k^\ast}/\tr\Sigma$ (between $1.00$ and $1.26$ times this value over steps $200$ to
+$400$), so the flattest ray is the worst case; in double precision the matrix iteration follows
+the scalar map for thousands of iterations, then leaves the commuting manifold and joins the generic regime
+(similarly, at a rank-deficient commuting iterate a perturbation $\epsilon u_iv_j^\top$, with $\sigma_i\ne0$ and
+$\sigma_j=0$, is multiplied to first order by $1-\eta\lambda_j/(\abs{\sigma_i}\lambda_i)$ at each step, of modulus larger
+than one as soon as $\eta\lambda_j>2\abs{\sigma_i}\lambda_i$: exact zeros are not robust in floating-point runs). For
+the run of Figure~\ref{fig:ls}(c) only the exponent can be compared: for $K=d=100$ and spectrum $1/k$
+($\tr\Sigma/\lambda_1=5.19$), the relative objective gap after $10$, $100$ and $1000$ iterations is
+$4.0\cdot10^{-3}$, $1.3\cdot10^{-4}$, $4.5\cdot10^{-8}$ for the nuclear-scaled polar step, $0.23$, $9.0\cdot10^{-3}$,
+$1.8\cdot10^{-11}$ for gradient descent with step $1/\lambda_1$ and $0.14$, $6.0\cdot10^{-4}$, $3.3\cdot10^{-21}$ with
+exact line search; over the last $500$ of $3000$ iterations the exponent per step of the polar run is $0.00809$
+($0.00833$ and $0.00817$ on the two preceding windows), close to that of the flattest invariant ray, $0.00773$ (the
+bound of Theorem~\ref{thm:mad}(b) is $0.00386$), against $0.0204$ for gradient descent ($2.5$ times larger, for
+$\tr\Sigma/(2\lambda_1)=2.6$). But the rays of the ten flattest directions have exponents between $0.0077$ and
+$0.0085$, and at iteration $3000$ the error, although essentially of rank one ($s_1^2$ carries $99.9\%$ of
+$\nF E^2$), is not aligned with $v_d$ (cosine $0.54$; nuclear rank of the gradient $3.6$): the bottom of this spectrum
+is nearly degenerate, and this run does not discriminate the flattest ray from its neighbours. The alignment of the
+error with the flattest eigenvector in the tail, where it is observed (the $K=d=20$ runs above), is the counterpart of
+the alignment proved for gradient descent in the note B2 (Proposition B2-gd); here it is not proved.
+\end{remark}
+
+\section{Stochastic polar steps: smoothing by the noise and the nuclear median}\label{sec:noise}
+
+Let $\tilde g=G+\xi$ be a stochastic gradient, $G$ deterministic and $\xi$ a random matrix. Define the
+\emph{noise-smoothed nuclear norm} and the mean polar field
+\[
+\psi_\xi(G)=\E\big[\nnuc{G+\xi}-\nnuc\xi\big],\qquad \Phi_\xi(G)=\E\,\polar(G+\xi).
+\]
+No moment is needed: the integrand of $\psi_\xi$ is bounded by $\nnuc G$, and $\polar$ is a bounded Borel map (the
+pointwise limit of $M(M^\top M+\epsilon I)^{-1/2}$). When $\E\nnuc\xi<\infty$, $\psi_\xi(G)=\E\nnuc{G+\xi}-\E\nnuc\xi$.
+
+\begin{theorem}[the expected polar step is a subgradient]\label{thm:smooth} \textbf{[K]}
+$\psi_\xi$ is convex, $\abs{\psi_\xi(G)-\psi_\xi(G')}\le\nnuc{G-G'}$, and
+\[
+\Phi_\xi(G)\in\partial\psi_\xi(G);\qquad \Phi_\xi(G)=\nabla\psi_\xi(G)\ \text{ if }\ \Prob(\operatorname{rank}(G+\xi)<r)=0 .
+\]
+In particular $\Phi_\xi$ is monotone, and $\inner{G-G'}{\Phi_\xi(G)}\ge\psi_\xi(G)-\psi_\xi(G')$. If $\E\nnuc\xi<\infty$, the
+same holds for the nuclear-scaled map with $h_\xi(G)=\frac12\E[\nnuc{G+\xi}^2-\nnuc\xi^2]$:
+$\E\,\sharpop(G+\xi)\in\partial h_\xi(G)$.
+\end{theorem}
+\begin{proof}
+For each realization $\polar(G+\xi)\in\partial\psi(G+\xi)$:
+$\nnuc{G'+\xi}\ge\nnuc{G+\xi}+\inner{\polar(G+\xi)}{G'-G}$; take expectations. If $G+\xi$ has full rank almost surely,
+$\psi$ is differentiable at $G+\xi$ almost surely and dominated convergence (difference quotients are bounded by
+$\nnuc{\Delta}$) shows that the directional derivatives of $\psi_\xi$ at $G$ are linear, so the convex function
+$\psi_\xi$ is differentiable at $G$. For $h_\xi$ use
+$\frac12\psi(M')^2\ge\frac12\psi(M)^2+\psi(M)\inner O{M'-M}$ for $O\in\partial\psi(M)$.
+\end{proof}
+
+This is the interchange of expectation and subdifferential for a convex integrand, i.e.\ the gradient formula of
+randomized smoothing (Duchi, Bartlett and Wainwright, arXiv:1103.4296; Abernethy et al., COLT 2014, quoting Bertsekas
+1973; for the support function of a set, Dubois-Taine et al., NeurIPS 2022, Proposition~2), here for the spectral unit
+ball. For Gaussian matrix perturbations injected by the algorithm it is written verbatim by Jiang, Mhammedi, Mohri and
+Mokhtari (arXiv:2602.08232, Eq.~(6)--(7)); that gradient noise smooths the polar map is stated by Xie (arXiv:2609.32861,
+Proposition~3.1), Jacobs and Burkholz (arXiv:2610.16868) and Chen, Li, Wang and Lu (arXiv:2610.31728). What is added below
+is the combination with Proposition~\ref{prop:dual} for the method's own noise.
+
+\begin{theorem}[stochastic polar steps are stochastic mirror descent]\label{thm:smd} \textbf{[P]}
+Assume \eqref{eq:consts} with $\muop>0$, let $\xi_t$ be i.i.d.\ copies of $\xi$, independent of the past (additive
+noise), and $W_{t+1}=W_t-\eta_t\,\polar(\nabla F(W_t)+\xi_t)$, $G_t=\nabla F(W_t)$. The set $\arg\min\psi_\xi$ is nonempty,
+convex and compact. For $G^\dagger\in\arg\min\psi_\xi$ and $W^\dagger=\nabla F^\ast(G^\dagger)$:
+\begin{enumerate}[label=(\alph*)]
+\item $\displaystyle\E\big[D_F(W_{t+1},W^\dagger)\,\big|\,W_t\big]\le D_F(W_t,W^\dagger)-\eta_t\big(\psi_\xi(G_t)-\min\psi_\xi\big)+\frac{\Lop}2\eta_t^2$;
+\item for any lengths, with $\bar G_T=\sum_{t<T}\eta_tG_t/\sum_{t<T}\eta_t$,
+\[
+\E\,\psi_\xi(\bar G_T)-\min\psi_\xi\ \le\ \frac{D_F(W_0,W^\dagger)+\frac{\Lop}2\sum_{t<T}\eta_t^2}{\sum_{t<T}\eta_t};
+\]
+\item if $\sum_t\eta_t=\infty$ and $\sum_t\eta_t^2<\infty$, then almost surely $G_t$ converges to a point of
+$\arg\min\psi_\xi$;
+\item consequently, for such lengths, $W_t\to W_\ast$ almost surely if $\arg\min\psi_\xi=\{0\}$, and if
+$0\notin\arg\min\psi_\xi$ then almost surely
+$\lim_t F(W_t)-F_\ast\ge\frac1{2\Lop}\min_{G\in\arg\min\psi_\xi}\nnuc G^2>0$, \emph{whatever the schedule in this
+class}.
+\end{enumerate}
+No variance assumption is needed: the steps are bounded.
+\end{theorem}
+\begin{proof}
+$\psi_\xi$ is continuous and coercive: with $R$ such that $\Prob(\nnuc\xi\le R)>\frac12$,
+$\psi_\xi(G)\ge\nnuc G(2\Prob(\nnuc\xi\le R)-1)-2R$. (a) With $O_t=\polar(G_t+\xi_t)$, the three-point identity of mirror
+descent with mirror map $F^\ast$ reads
+$D_{F^\ast}(G^\dagger,G_{t+1})=D_{F^\ast}(G^\dagger,G_t)-\eta_t\inner{O_t}{G_t-G^\dagger}+D_{F^\ast}(G_t,G_{t+1})$. By
+Proposition~\ref{prop:dual}(b), $D_{F^\ast}(G^\dagger,G_t)=D_F(W_t,W^\dagger)$ and
+$D_{F^\ast}(G_t,G_{t+1})=D_F(W_{t+1},W_t)\le\frac{\Lop}2\nop{W_{t+1}-W_t}^2\le\frac\Lop2\eta_t^2$. Conditionally on $W_t$,
+$\E\inner{O_t}{G_t-G^\dagger}=\inner{\Phi_\xi(G_t)}{G_t-G^\dagger}\ge\psi_\xi(G_t)-\psi_\xi(G^\dagger)$ by
+Theorem~\ref{thm:smooth}. (b) Sum, and use the convexity of $\psi_\xi$. (c) By the Robbins--Siegmund lemma,
+$D_F(W_t,W^\dagger)$ converges and $\sum_t\eta_t(\psi_\xi(G_t)-\min\psi_\xi)<\infty$ almost surely; $W_t$ is bounded
+($D_F(W_t,W^\dagger)\ge\frac{\muop}2\nop{W_t-W^\dagger}^2$), a cluster point of $G_t$ is a minimizer, and the convergence of
+$D_F(W_t,W')$ for that minimizer (simultaneously for a countable dense set of minimizers) gives the convergence of the
+whole sequence. (d) $F(W_t)-F_\ast\ge\nnuc{G_t}^2/(2\Lop)$ by Proposition~\ref{prop:dual}(c).
+\end{proof}
+
+\begin{theorem}[nuclear medians and zeros of the mean field]\label{thm:median} \textbf{[P]; scalar and sign versions are [K]}
+\begin{enumerate}[label=(\alph*)]
+\item $\arg\min\psi_\xi=-\Med(\xi)$, where $\Med(\xi)=\arg\min_C\E[\nnuc{\xi-C}-\nnuc\xi]$ is the set of \emph{nuclear
+medians} of $\xi$ (the median of a law in a normed space, for the nuclear norm). Every zero of the mean field is a
+nuclear median: $\Phi_\xi(G)=0\Rightarrow G\in-\Med(\xi)$. The converse holds if $\Prob(\operatorname{rank}(G+\xi)<r)=0$,
+and can fail otherwise: for $\xi=\pm\frac12\diag(1,-1)$ with probability $\frac12$, $G=\frac12I$ minimizes $\psi_\xi$ and
+$\Phi_\xi(G)=\frac12I$; for the scalar law $\Prob(\xi=1)=0.4$, $\Prob(\xi=-1)=0.6$, the minimizer is $g=1$ and
+$\abs{\Phi_\xi}\ge0.2$ everywhere.
+\item If $\xi$ and $-\xi$ have the same law, $\Phi_\xi(0)=0$ and $0\in\Med(\xi)$; $0$ is the only nuclear median if in
+addition $0$ belongs to the support of $\xi$. Without the last condition there may be others (for $\xi=\pm M_0$ of full
+rank, a set of dimension $K(K+1)/2$ when $K=d$).
+\item Every nuclear median $C$ of a centred $\xi$ satisfies $\nnuc C\le\E\nnuc{\xi-C}\le\E\nnuc\xi$ (constant $1$ sharp;
+without centring the sharp constant is $2$). Hence, in Theorem~\ref{thm:smd}, the limit $W^\dagger$ satisfies
+$\nnuc{G^\dagger}^2/(2\Lop)\le F(W^\dagger)-F_\ast\le\nnuc{G^\dagger}^2/(2\muop)\le(\E\nnuc\xi)^2/(2\muop)$.
+\item (State-dependent noise.) If the law of the stochastic gradient $\tilde g(W)$ depends on $W$, every zero of the mean
+field $W\mapsto\E\,\polar(\tilde g(W))$ is a point where $0$ is a nuclear median of $\tilde g(W)$:
+$0\in\E\,\partial\psi(\tilde g(W))$, instead of $\E\,\tilde g(W)=0$.
+\item (Finite-sum variance reduction.) For a SAGA or SVRG estimator, at $W_\ast$ with an exact table (or reference
+point $W_\ast$) the estimator equals $0$ for every index: the law of the stochastic gradient is a Dirac mass at $0$.
+$(W_\ast,\text{exact table})$ is a fixed point of every polar-type step, and the only one: such an estimator has a
+fixed point without offset. (No convergence is claimed here; with a fixed length the fixed point is not stable.)
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+(a) $\psi_\xi(G)=\E[\nnuc{\xi-(-G)}-\nnuc\xi]$; if $\Phi_\xi(G)=0$ then $0\in\partial\psi_\xi(G)$ by
+Theorem~\ref{thm:smooth}, and under the rank condition $\partial\psi_\xi(G)=\{\Phi_\xi(G)\}$. In the first example
+$\psi_\xi\ge\frac12\nnuc{\diag(1,-1)}=1=\psi_\xi(\frac12I)+\E\nnuc\xi$ by the triangle inequality, and $\frac12I+\xi$ is
+$e_1e_1^\top$ or $e_2e_2^\top$. (b) $\polar$ is odd; $\psi_\xi$ is even and convex, hence minimal at $0$; moreover
+$\psi_\xi(G)-\psi_\xi(0)=\frac12\E[\nnuc{\xi+G}+\nnuc{\xi-G}-2\nnuc\xi]$ with an integrand that is nonnegative, and at
+least $2\nnuc G-2\nnuc\xi>0$ on the event $\{\nnuc\xi<\nnuc G\}$. (c) $C=\E[C-\xi]$, so
+$\nnuc C\le\E\nnuc{\xi-C}\le\E\nnuc\xi$ (Jensen, then minimality of $C$ against $0$); two-point laws show sharpness; the
+last line is Proposition~\ref{prop:dual}(c). (d) is Theorem~\ref{thm:smooth} applied to the law of $\tilde g(W)$.
+(e) $\omega_j=g_j'(W_\ast)-z_j+\bar z+\lambda W_\ast=\nabla F(W_\ast)=0$ when $z_i=g_i'(W_\ast)$, and $\polar(0)=0$; a
+stationary table forces $z_i=g_i'(W)$, hence $\omega_j=\nabla F(W)$ for all $j$.
+\end{proof}
+
+\begin{proposition}[batch one on least squares: a least-distances estimator]\label{prop:lad} \textbf{[P]; $K=1$ is classical}
+Let $\tilde g(W)=g_j(W)=(Wx_j-y_j)x_j^\top$, $j$ uniform in $\{1,\dots,n\}$ (no ridge inside the polar factor), and
+\[
+\Lambda(W)=\frac1n\sum_{i=1}^n\frac{\norm{Wx_i-y_i}}{\norm{x_i}} .
+\]
+Then $\polar(g_j(W))$ is a subgradient at $W$ of $\norm{Wx_j-y_j}/\norm{x_j}$, of Frobenius norm at most $1$, so that
+$\E_j\polar(g_j(W))\in\partial\Lambda(W)$, with equality to $\nabla\Lambda(W)$ iff no residual vanishes at $W$. Hence the
+batch-one polar step \emph{is} the stochastic subgradient method on $\Lambda$ in the Frobenius geometry: with
+$\sum\eta_t=\infty$, $\sum\eta_t^2<\infty$ it converges almost surely to a minimizer of the weighted least-distances
+objective $\Lambda$ (least absolute deviations when $K=1$), which is not the least-squares solution in general. Every
+zero of the mean field minimizes $\Lambda$; a minimizer at which a residual vanishes need not be a zero of the mean
+field (for $K=1$ and generic data with $n>d\ge2$ the mean field has no zero).
+\end{proposition}
+\begin{proof}
+For $r=Wx-y\ne0$, $\polar(rx^\top)=rx^\top/(\norm r\norm x)=\nabla_W\norm{Wx-y}/\norm x$ (Li, Tang and Zou,
+arXiv:2602.11557, Lemma~H.1); for $r=0$, $\polar(0)=0\in\partial$. The rest is the standard analysis of the stochastic
+subgradient method for a convex Lipschitz function. For $K=1$, $\Lambda$ is polyhedral, its minimizer interpolates $d$
+samples for generic data, and the field takes finitely many values $\frac1n\sum_i\varepsilon_ix_i/\norm{x_i}$.
+\end{proof}
+
+\begin{proposition}[size of the offset]\label{prop:offset} \textbf{[K] for (a); [F]+[N] for (b)--(c)}
+\begin{enumerate}[label=(\alph*)]
+\item (Scalar case.) For $K=d=1$ the polar step is sign descent and the limit for batch size $b$ is where the median of
+the minibatch gradient vanishes. If the noise is the mean of $b$ i.i.d.\ centred variables with variance $\sigma^2$,
+third cumulant $\kappa_3$, finite third absolute moment and a \emph{non-lattice} law, its median is
+$-\kappa_3/(6\sigma^2b)+o(1/b)$ (Cornish--Fisher). For a lattice law the median is still $O(1/b)$ but oscillates (for
+$X\in\{-1,2\}$ with $\Prob(X=2)=\frac13$, $b$ times the median is $-1,1,0,-1,1,0,\dots$ instead of $-\frac16$). Example:
+$f_i(w)=\frac12(w-a_i)^2$, $a_i+1$ exponential: the limit is $\mathrm{median}(\mathrm{Gamma}(b))/b-1\approx-1/(3b)$ and
+its objective gap is $\approx1/(18b^2)$, for every schedule with $\sum_t\eta_t=\infty$, $\sum_t\eta_t^2<\infty$.
+\item (Matrix case, first order.) Let $\xi_b$ be the mean of $b$ i.i.d.\ centred matrices with covariance operator $C$
+and third cumulant tensor $\kappa_3$, and $Z\sim N(0,C)$. Since $\polar$ is homogeneous of degree $0$,
+$\Phi_{\xi_b}(0)=\E\polar(\sqrt b\,\xi_b)$, and a one-term Edgeworth expansion gives formally
+\[
+\Phi_{\xi_b}(0)=\frac{\mathcal T}{\sqrt b}+O(b^{-3/2}),\quad D\Phi_{\xi_b}(0)=\sqrt b\,\mathcal J+\dots,\quad
+G_b^\dagger=-\frac1b\,\mathcal J^{-1}\mathcal T+o\Big(\frac1b\Big),
+\]
+with $\mathcal T=\frac16\E[\polar(Z)\inner{\kappa_3}{\mathrm{He}_3(Z)}]$ and $\mathcal J=D\Phi_Z(0)$ (Proposition~\ref{prop:lowsnr}).
+For i.i.d.\ entries of variance $\sigma^2$ and third cumulant $\kappa_3$,
+\begin{equation}\label{eq:offset}
+G_b^\dagger=\frac{\kappa_3}{6\sigma^2b}\cdot\frac{a_{K,d}}{c_{K,d}}\ \ones\ones^\top+o\Big(\frac1b\Big),\qquad
+a_{K,d}=-\E\big[\polar(Z)_{11}(Z_{11}^3-3Z_{11})\big],\quad c_{K,d}=\frac{\E\nnuc Z}{Kd},
+\end{equation}
+$Z$ standard Gaussian: the scalar offset $\kappa_3/(6\sigma^2b)$ of (a) ($a_{1,1}=c_{1,1}=\sqrt{2/\pi}$) times the factor
+$a_{K,d}/c_{K,d}$, in every entry. The objective gap of the limit is of order $1/b^2$. By Gaussian integration by parts
+$a_{K,d}=-\E[\nnuc Z\,\mathrm{He}_4(Z_{11})]$, and for $K=1$ one finds $a_{1,d}=3\,\E\chi_d/(d(d+2))$ and
+$c_{1,d}=\E\chi_d/d$, so $a_{1,d}/c_{1,d}=3/(d+2)$ exactly. Numerically $a_{K,d}/c_{K,d}$ is of order $1/d$
+(Table~\ref{tab:ac}: $d\,a_{K,d}/c_{K,d}$ between $1$ and $2.8$, about $2$ for square matrices): the offset per entry
+is smaller than for sign descent by a factor of order $d$, and the nuclear norm of the offset stays between $1$ and
+$2.3$ times the scalar offset for the sizes of the table (it decreases for very wide matrices: $3\sqrt d/(d+2)$ for
+$K=1$), against $Kd$ times for the $\ell_1$ norm of the offset of sign descent.
+\item (Momentum.) For a plain exponential moving average $m_t=\beta m_{t-1}+(1-\beta)\xi_t$ of i.i.d.\ scalar noise and
+a frozen iterate, the cumulants of $m$ are $\kappa_n(m)=\kappa_n(1-\beta)^n/(1-\beta^n)$, and the first-order formula of
+(a) gives the median $-\frac{\kappa_3}{6\sigma^2}\cdot\frac{1-\beta^2}{1+\beta+\beta^2}$: averaging reduces the offset by
+the factor $\frac{1-\beta^2}{1+\beta+\beta^2}\approx\frac23(1-\beta)$, which is larger, by up to $4/3$, than the
+``effective batch'' factor $\frac{1-\beta}{1+\beta}$ that governs the variance. With the Nesterov look-ahead used by Muon
+(weights $(1-\beta)(1+\beta)$ on the current gradient and $(1-\beta)\beta^{k+1}$ on older ones) the factor is
+$(1-\beta)\big[(1+\beta)^3+\frac{\beta^6}{1-\beta^3}\big]\big/\big[(1+\beta)^2+\frac{\beta^4}{1-\beta^2}\big]$ ($0.125$ and
+$0.052$ at $\beta=0.9$ and $0.95$, against $0.070$ and $0.034$).
+\end{enumerate}
+\end{proposition}
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{@{}lccccccccccc@{}}
+\toprule
+$(K,d)$ & $(1,1)$ & $(2,2)$ & $(2,3)$ & $(3,5)$ & $(4,4)$ & $(8,8)$ & $(16,16)$ & $(32,32)$ & $(4,16)$ & $(8,32)$ & $(16,64)$\\
+\midrule
+$a_{K,d}$ & 0.798 & 0.391 & 0.286 & 0.161 & 0.176 & 0.0737 & 0.0285 & 0.0107 & 0.0389 & 0.0146 & 0.0053\\
+$c_{K,d}$ & 0.798 & 0.573 & 0.504 & 0.400 & 0.412 & 0.295 & 0.210 & 0.149 & 0.240 & 0.170 & 0.121\\
+$a/c$ & 1 & 0.683 & 0.568 & 0.402 & 0.428 & 0.250 & 0.136 & 0.072 & 0.162 & 0.086 & 0.044\\
+$d\cdot a/c$ & 1 & 1.37 & 1.70 & 2.01 & 1.71 & 2.00 & 2.17 & 2.29 & 2.59 & 2.75 & 2.80\\
+$\sqrt{Kd}\cdot a/c$ & 1 & 1.37 & 1.39 & 1.56 & 1.71 & 2.00 & 2.17 & 2.29 & 1.30 & 1.38 & 1.40\\
+\bottomrule
+\end{tabular}
+\caption{Constants of the first-order offset \eqref{eq:offset} (Monte Carlo, \texttt{check\_offset\_first\_order.py};
+standard errors of $a$ between $1.4\cdot10^{-4}$ and $7.5\cdot10^{-4}$, up to $3\%$ of $a$ for the largest sizes).
+Exceptions: the column $(1,1)$ is exact ($\sqrt{2/\pi}$), and the column $(2,3)$ gives the exact values obtained by
+quadrature by the referee of the final check ($a_{2,3}=0.28645$, $c_{2,3}=0.50430$; the script gives
+$a_{2,3}=0.2869\pm0.0006$); the same quadrature gives $a_{2,2}=0.39108$, $c_{2,2}=0.57290$, in agreement with the
+column $(2,2)$. For $K=1$ the script checks $a_{1,d}/c_{1,d}=3/(d+2)$ ($0.5997$ and $0.2982$ for $d=3,8$). Last row:
+nuclear norm of the offset in units of the scalar offset $\kappa_3/(6\sigma^2b)$.}\label{tab:ac}
+\end{table}
+
+\noindent\emph{Numerical support.} (a): the exact medians are $-0.3069$, $-0.1608$, $-0.0820$, $-0.0413$, $-0.0208$,
+$-0.0104$ for $b=1,2,4,8,16,32$. (b): for $2\times3$ matrices with entries $\mathrm{Exp}(1)-1$ ($\sigma=1$, $\kappa_3=2$), \eqref{eq:offset}
+predicts $\sqrt b\,\nF{\Phi_{\xi_b}(0)}\to0.234$ and $b\,\nnuc{G_b^\dagger}\to0.464$ ($0.2339$ and $0.4638$ with the exact
+constants); the zero of the mean field computed
+directly (\texttt{check\_minibatch\_offset\_exact.py}, $1.5\cdot10^6$ samples, exact Gamma batch means) gives
+$0.230$--$0.237$ and $0.450$--$0.498$ for $b=2,\dots,256$, and with symmetrized noise the mean field at $0$ vanishes
+up to the Monte-Carlo error ($10^{-3}$); the referee of Section~5 derived the same formula independently (predictions
+$0.2336$ and $0.4633$ with their Monte-Carlo constants) and
+measured $0.230$--$0.241$ and $0.449$--$0.483$ for $b$ up to $1024$ with $3\cdot10^6$ samples; the fixed point is
+proportional to the all-ones matrix (cosine above $0.999$ for $b\le64$; $0.998$ and $0.996$ at $b=128$ and $256$, where
+the Monte-Carlo error of the root is no longer negligible). \emph{What matters is the skewness of the gradient
+noise, not of the data}: in a regression with symmetric inputs independent of the residuals, the per-sample gradient
+$\varepsilon x^\top$ is symmetric in law whatever the skewness of $\varepsilon$, and the population offset is zero (an
+experiment of the first version, built on such a design, only measured sampling noise; the referee's replication with
+Gaussian residuals gives the same values; on the problem of Figure~\ref{fig:noise} without its intercept, the referee
+of the final check finds $\nF{W_{\mathrm{LAD}}-W_{\mathrm{LS}}}=0.024$ instead of $0.170$). With an intercept the
+gradient noise is skewed:
+on a finite-sum least-squares problem with an intercept ($n=2000$, $K=2$, $d=3$, residuals with independent $\frac12(\mathrm{Exp}(1)-1)$ entries; Figure~\ref{fig:noise}, \texttt{make\_paper\_figures.py}), $\nF{W_{\mathrm{LAD}}-W_{\mathrm{LS}}}=0.170$; batch-one polar steps with decreasing lengths end (iterates averaged over the last half of the run and over 32 runs) at distance $2.6\cdot10^{-3}$ from $W_{\mathrm{LAD}}$ and $0.169$ from $W_{\mathrm{LS}}$, and with the SAGA estimator and the same lengths at distance $2.1\cdot10^{-4}$ from $W_{\mathrm{LS}}$. For $b=1, 2, 4, 8, 16, 32$ the zero of the mean field (estimated from $2\times2\cdot10^5$ sampled batches for $b\ge2$, with a spread up to $8.4\cdot10^{-4}$) has $\nnuc{\nabla F}$ equal to $0.168$, $0.120$, $0.069$, $0.036$, $0.019$, $0.0096$ ($b$ times this: $0.168$, $0.240$, $0.276$, $0.285$, $0.303$, $0.308$), stochastic runs with decreasing lengths (same averaging, 64 runs) end at $0.166$, $0.118$, $0.068$, $0.035$, $0.018$, $0.0092$, and the SAGA estimator with the nuclear-scaled length ends below $2.4\cdot10^{-15}$ for every $b$. The referee's population version of such a design gives $b$ times the offset equal to $0.263$, $0.286$, $0.302$, $0.306$, $0.315$ for $b=4,\dots,64$. In this design the per-sample gradients have rank one and the entries of the noise are not independent, so \eqref{eq:offset} does not apply as such: what is observed is the $1/b$ regime, a plateau of $b$ times the offset, reached more slowly than for noise with independent entries. (c): exact medians of the stationary average of $\mathrm{Exp}(1)-1$ noise (referee's computation, hypoexponential
+series) are $-0.0466,-0.0227,-0.0112$ for $\beta=0.8,0.9,0.95$; the formula gives $-0.0492,-0.0234,-0.0114$ (ratio
+tending to $1$) and the effective-batch heuristic $-0.0370,-0.0175,-0.0085$ (ratio tending to $4/3$).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figT2_noise}
+\caption{Stochastic polar steps on a finite-sum least-squares problem ($n=2000$, $K=2$, $d=3$, intercept, skewed
+residuals). (a) Batch one, same decreasing lengths: with the minibatch gradient the averaged iterate goes to the
+least-distances solution $W_{\mathrm{LAD}}$ and stays at distance $\nF{W_{\mathrm{LAD}}-W_{\mathrm{LS}}}$ from the
+least-squares solution; with the SAGA estimator it goes to $W_{\mathrm{LS}}$. (b) Batch size times the nuclear norm of
+the gradient at the limit point: zeros of the mean field (line), stochastic runs with decreasing lengths (dots), SAGA
+estimator with the nuclear-scaled length (squares; the gradient norms are at rounding level, below $3\cdot10^{-15}$).
+(c) Scalar case with momentum: median of an exponential average of skewed noise against the two factors of
+Proposition~\ref{prop:offset}(c). Script: \texttt{make\_paper\_figures.py}.}\label{fig:noise}
+\end{figure}
+
+\begin{proposition}[low signal-to-noise regime]\label{prop:lowsnr} \textbf{[K]; the two trace identities are [P]}
+Let $\xi=\sigma Z$ with $Z$ a $K\times d$ standard Gaussian matrix, any $K,d\ge1$. Then $\Phi_\xi$ is smooth and odd,
+$D\Phi_\xi(G)[\Delta]=\sigma^{-2}\E[\polar(G+\xi)\inner\xi\Delta]$, and
+\[
+\Phi_\xi(G)=\frac{c_{K,d}}\sigma\,G+O\big(\nF G^3/\sigma^3\big),\qquad c_{K,d}=\frac{\E\nnuc Z}{Kd}\ \in\Big[\frac{\E\chi_{Kd}}{Kd},\ \frac1{\sqrt{\max(K,d)}}\Big].
+\]
+In the noise-dominated regime the mean polar step is the gradient step with step size $\eta\,c_{K,d}/\sigma$:
+\emph{inversely proportional to the noise level}. With $s_1\ge\dots\ge s_K$ the singular values of $Z$ ($K\le d$):
+\[
+\E\nnuc Z=\E\Big[\sum_{i<j}\frac2{s_i+s_j}+(d-K)\sum_i\frac1{s_i}\Big]\ (K<d),\qquad
+\E\nnuc Z=\E\Big[\sum_{i<j}\frac2{s_i+s_j}\Big]+\E\chi_K\ (K=d),
+\]
+where $\E\chi_K=\sqrt2\,\Gamma(\frac{K+1}2)/\Gamma(\frac K2)$ is the density at $0$ of the smallest singular value of a
+$K\times K$ standard Gaussian matrix.
+\end{proposition}
+\begin{proof}
+$\Phi_\xi(G)=\int\polar(y)\phi_\sigma(y-G)\,dy$ with $\polar$ bounded: differentiate the Gaussian density,
+$\nabla_G\phi_\sigma(y-G)=\sigma^{-2}(y-G)\phi_\sigma(y-G)$. At $G=0$ the derivative commutes with sign changes and
+permutations of rows and columns, so its commutant argument gives a multiple $c'\,\mathrm{Id}$ with
+$c'=\tr D\Phi_\xi(0)/(Kd)=\E\inner{\polar(\xi)}{\xi}/(Kd\sigma^2)=\E\nnuc Z/(Kd\sigma)$; $\Phi_\xi$ is odd, so the
+remainder is cubic. This is the proof of Xie (arXiv:2609.32861, Proposition~3.1 and Appendix~A) and of Chen et al.\
+(arXiv:2610.31728, Proposition~3.1), reproduced by the referee of Section~5. The identities: for $K<d$ the derivative can
+also be taken on $\polar$ (the singular set has codimension $d-K+1\ge2$ and $\E[1/s_K]<\infty$), and the trace of
+$D\polar(M)$ is $\sum_{i<j}2/(s_i+s_j)+(d-K)\sum_i1/s_i$; for $K=d$ the polar factor jumps by $2u_Kv_K^\top$ across
+$\{\det=0\}$ and the Gauss--Green formula adds the surface term $f_K(0)\,\Delta/K^2$, with $f_K(0)=\E\chi_K$ by Edelman's
+density of the smallest singular value (SIAM J.\ Matrix Anal.\ Appl.\ 1988).
+\end{proof}
+\noindent\emph{Numerical support} (\texttt{check\_smoothing\_median.py}, \texttt{\_2.py}, and the referee's quadratures):
+$c_{3,5}=0.4003$, $c_{2,8}=0.3369$, $c_{2,2}=0.5729$, $c_{3,3}=0.4727$, $c_{4,4}=0.4122$; for $K=d=2,3,4$ the regular part
+alone is $0.2596,0.2954,0.2947$, and measured responses agree with $c_{K,d}$ to three digits. The first version of these
+notes presented the singular-value expression as the definition of $c_{K,d}$, with the square case as a formal
+computation, and listed the constant as not found; the constant $\E\nnuc Z/(Kd)$, its proof for all shapes and the
+reading ``Muon at low signal-to-noise ratio is a gradient step of size $\eta c/\sigma$'' are in Xie and in Chen et al.
+The proportional limit ($c_{N,N}\sqrt N\to8/(3\pi)$) and the ``square-root preconditioning'' by a structured noise
+covariance are in Paquette et al.\ (arXiv:2605.09552, Theorems 4.1 and K.1). For Gaussian noise $\xi=ZC_R^{1/2}$ the
+exact response is $D\Phi_\xi(0)[\Delta]=\Delta A$ with $A=\frac1KC_R^{-1}\E[(\xi^\top\xi)^{1/2}]=(KC_R)^{-1/2}(1+O(d/K))$.
+
+\begin{remark}[three floors, and what acts on each]\label{rem:floors}
+For a polar step with stochastic gradients there are three distinct obstructions to precision.
+(1) \emph{Length floor}: with a constant spectral length $\eta$, $F-F_\ast\ge\muop\eta^2/8$ at one of any two consecutive
+iterates with nonzero gradient (Theorem~\ref{thm:steps}(c)); removed by a nuclear-scaled, clipped or decreasing length,
+not by variance reduction.
+(2) \emph{Median offset}: for lengths with $\sum_t\eta_t=\infty$, $\sum_t\eta_t^2<\infty$ the limit is a point where
+zero is a nuclear median of the stochastic gradient (Theorems~\ref{thm:smd} and~\ref{thm:median}); the set of possible
+limits does not depend on the lengths, so no schedule of this class removes the offset. When the law of the stochastic
+gradient at $W_\ast$ is symmetric, $W_\ast$ is a possible limit, and the only one if $0$ is in the support of the noise
+(for $\xi=\pm I_2$ and $F=\frac12\nF W^2$, $\psi_\xi(wI)=2\max(\abs w,1)-2$, so every $wI$ with $\abs w\le1$ minimizes
+$\psi_\xi$; in the simulations of the referee of the final check, runs started at $W_\ast=0$ end at points $wI$ spread
+over this segment); the offset is formally of order $1/b$ when the gradient noise
+has a nonzero third cumulant; a plain exponential average multiplies it, to first order and for a frozen iterate, by
+$(1-\beta^2)/(1+\beta+\beta^2)$; a finite-sum estimator whose noise vanishes at the optimum has a fixed point without
+offset. In dimension one, for the regularized Newton--Schulz map with momentum, the corresponding non-convergence for
+data with a nonzero third central moment is proved by Do, Dereich and Jentzen (arXiv:2608.04607, Theorem~1.3; their
+Proposition~6.2 characterizes limits as zeros of the mean field), with a bound $C(M^{-1}+\gamma_n)$ on the mean-square
+error (Theorem~1.2); in their regime the mean field at the minimizer is of order $M^{-3/2}$, not $b^{-1/2}$ as for the
+exact polar factor.
+(3) \emph{Fluctuations}: of the order of the step length, as for any stochastic method with a constant step.
+Experimentally (\texttt{findings.md}, Section~5.1), with constant parameters only the finite-sum estimators combined
+with a nuclear-scaled or clipped length reach rounding precision.
+\end{remark}
+
+\begin{remark}[attribution]\label{rem:noise}
+\emph{Medians.} That sign-based methods drive the median, not the mean, of the stochastic gradient to zero is known:
+Chen, Chen, Sun, Wu and Hong (NeurIPS 2020, arXiv:1906.01736); success-probability and symmetric-noise conditions in
+Bernstein et al.\ (arXiv:1802.04434, arXiv:1810.05291) and Safaryan and Richt\'arik (arXiv:1905.12938, Lemma~3, with the
+ratio third moment over variance); non-convergence of batch-one signSGD for every step-size sequence, when all data
+points share a sign pattern, in Karimireddy et al.\ (arXiv:1901.09847, Theorem~I). The normalized step on a location
+problem is the Robbins--Monro algorithm for the
+geometric median (Cardot, C\'enac and Zitt, arXiv:1101.4316); medians in Banach spaces: Minsker (Bernoulli 2015);
+medians of gradients: Schaipp et al.\ (arXiv:2402.12828). For steepest descent with minibatches on separable data, Li,
+Tang and Zou show that the limit direction depends on the batch size and that variance reduction removes this
+dependence (Theorems 4.7 and 4.10); SignSVRG (Chzhen and Schechtman, arXiv:2305.13187) is the sign analogue.
+\emph{Not found}: Theorem~\ref{thm:smd} (the combination ``the method's own noise smooths the nuclear norm, and the
+iteration is stochastic mirror descent on the smoothed function in gradient space''), the nuclear-median formulation
+for matrices with its rank caveat, Proposition~\ref{prop:lad} for $K\ge2$, the first-order offset \eqref{eq:offset} with
+its dimension dependence, and the momentum factor (the two cumulant ratios appear in Do--Dereich--Jentzen,
+Proposition~6.11, for another functional). \emph{Other.} $\E\sign(g+\sigma z)=\operatorname{erf}(g/(\sigma\sqrt2))$:
+Balles and Hennig (ICML 2018). Deterministic smoothings of the nuclear norm: Mustafi, Mukherjee and Sriperumbudur
+(arXiv:2605.23871), Jiang et al. Pethick et al.\ (arXiv:2502.07529) note that the lmo of an unbiased stochastic gradient
+is not unbiased. Bounds on the bias of the orthogonalized estimator: Jiang and Xiao (arXiv:2609.36600).
+\end{remark}
+
+\section{What this says about accelerating Muon or improving its precision}\label{sec:use}
+
+The statements above are about strongly convex problems with exact structure; their use for deep networks is a set of
+hypotheses to test, listed with the result that suggests each.
+\begin{enumerate}[label=(\roman*)]
+\item \emph{Where the speed is} (known; Section~\ref{sec:ls}). Polar steps are exactly curvature-free when
+$E_0^\top E_0$ commutes with $\Sigma$, and the extinction time of the flow is within $\sqrt{\kop}$ of $\nop{E_0}$ in
+general (within $1.4$ from generic full-rank starts in all instances tried; up to about $\sqrt d$ for nearly rank-one
+errors). The tail is slow: on the invariant ray of the flattest direction the
+rate is that of gradient descent with step $1/\lambda_1$ divided by $\tr\Sigma/(2\lambda_1)$, slower as soon as the
+stable rank of the data exceeds $2$. A map with bounded gain near zero does not re-excite the dead directions; the
+five-step Newton--Schulz map of Muon has such a threshold, about $2\cdot10^{-3}$ of the Frobenius norm (Shulgin et al.,
+Appendix~G; Paquette et al., Appendix~C).
+\item \emph{Which learning-rate rules are principled.} The nuclear-scaled step is the Polyak step of the dual problem,
+and a geometric schedule with ratio $\sqrt{1-1/\kop}$ certifies the same rate when $\muop$, $\Lop$ and a bound on the
+initial gap are known (Theorem~\ref{thm:steps}); with a constant length the floor is quadratic in the length.
+\item \emph{What limits the final accuracy.} Besides the length floor, the nuclear median: stochastic polar steps
+converge to a point where the smoothed nuclear norm of the gradient is minimal, which is $W_\ast$ only if $0$ is a
+nuclear median of the noise (Theorem~\ref{thm:smd}). The offset is formally of order $1/b$ when the gradient noise is
+skewed, and learning-rate decay does not change it; a plain exponential average reduces it by about
+$\frac23(1-\beta)$ to first order; a finite-sum variance-reduced estimator has a fixed point without offset. Without
+momentum and with the ridge outside the polar factor, batch-one steps with decreasing lengths converge to the minimizer
+of a weighted least-distances objective. For matrices the offset per entry is of order $1/(bd)$, against $1/b$ for sign
+descent: orthogonalization averages the skewness.
+\item \emph{What the noise does to the step} (known). In the noise-dominated regime the mean polar step is a gradient
+step of size $\eta c_{K,d}/\sigma\le\eta/(\sigma\sqrt{\max(K,d)})$: the learning rate that matters is $\eta$ divided by
+the noise level, so a batch-size increase by $4$ acts on the drift as a learning-rate increase by $2$.
+\item \emph{What cannot be expected.} No certified gain from the spectral geometry, or from any other norm, on
+ridge-regularized softmax (Proposition~\ref{prop:struct}(c)); $\kop\ge\min(K,d)$ always, with equality only for
+$\frac\mu2\nF\cdot^2$; for least squares with $K\ge d$ the certified full-batch rate is that of the mean per-sample
+constant.
+\end{enumerate}
+
+\section{Status of the statements and open questions}\label{sec:status}
+
+Table~\ref{tab:status} gives, for every statement, its status and the closest published statements found by the
+literature checks.
+
+\begin{table}[!t]
+\centering\footnotesize
+\begin{tabular}{@{}p{3.4cm}p{1.45cm}p{10.65cm}@{}}
+\toprule
+Statement & Status & Closest published statements (checks of 12 and 16 Nov.\ 2026); what is added\\
+\midrule
+Prop.~\ref{prop:var} & P & quantity $\Lop$: Balles et al., Shen et al., Jawanpuria et al., Islamov et al.; duality: Kakade et al.; added: reduction to extreme points for a general operator\\
+Prop.~\ref{prop:frame} & P / K & barrier: Sidford--Tian (Lemma A.1), John; added: frame bound; rigidity\textsuperscript{$\dagger$}\\
+Cor.~\ref{cor:compare}, Ex.~\ref{ex:sharp} & P & $\ell_\infty$/$\ell_1$ analogues of one side: Balles et al., Nutini et al.; added: two-sided comparison; nuclear-rank form and sharp example\textsuperscript{$\dagger$}\\
+Prop.~\ref{prop:struct}(a),(b) & P / K & Shen et al.\ (Kronecker upper bound); Davis--Drusvyatskiy, Jawanpuria et al.\ ($\tr\Sigma$, $K<d$); added: attainment, $\muop$, no averaging gain for $K\ge d$\\
+Prop.~\ref{prop:struct}(c),(d) & P & Euclidean metrics, $K=1$: note B1; added: the spectral and preconditioned spectral cases; every norm\textsuperscript{$\dagger$}\\
+Prop.~\ref{prop:dual}, \ref{prop:repr} & K & Maddison et al.\ (smooth $k$; Lemma 3.2), Kim et al.; Shulgin et al.\ Eq.~(17), Jawanpuria et al.\ Eq.~(8); added: nonsmooth instance\\
+Thm~\ref{thm:steps} & P / K & rate: Balles et al., Gluon; Polyak step: D'Orazio et al.; schedule: Goffin, Yang--He--Li; floors: Jawanpuria et al., Gonon et al., Vaswani et al.; added: identification (a), (b) for general $F$, $\limsup$ bound\\
+Prop.~\ref{prop:flow} & K & Leplat et al., Cort\'es, Ma--Wu--E, Bungert et al.\ / Br\'ezis; Kang et al.\ (finite-time convergence of the exact spectral flow in a factorization model); added: spectral instance, \eqref{eq:sandwich}\\
+Sec.~\ref{sec:ls}, published part & K & Shulgin et al.\ (Thms 1, 3, Props 9, 10, 12, 17, 18, Cors 3--6, Remarks 1, 4, 7, App.~E.2, G), Vasudeva et al., Wang et al., Gonon et al., Ma et al., Jawanpuria et al.\\
+Prop.~\ref{prop:phase1} & P & ingredients: Shulgin et al.\ Props 9, 10, 12, 17, 18; added: frozen factor for every schedule, momentum and the flow, $\tau_{\mathrm{ls}}\ge\tau_\ast$; bounds on $\tau_\ast$ and second-step bound\textsuperscript{$\dagger$}\\
+Prop.~\ref{prop:Q} & P & ``if'' part of $Q=I$: Shulgin et al.\ Cor.~4; $\ell_\infty$ analogue of (e): Gruntkowska--Richt\'arik; analogous singular-value formula: Beneventano et al.\ (Thm 1(i)); added: the factor $Q$, the conservation law for $d=2$, the integer counterexample; the angle for $d=2$ and the necessary condition (f)\textsuperscript{$\dagger$}\\
+Thm~\ref{thm:mad} & P / K & map, two-cluster rays, tightness at $t=0$: Shulgin et al.\ Cors 4--5, Thm 3, Wang et al.; added: bound for $t\ge1$, converse; instability of the rays\textsuperscript{$\dagger$}\\
+Prop.~\ref{prop:ext} & P / K & Vasudeva et al.\ (commuting flow), Gupta et al.\ (path lengths), Bungert et al., Du--Su (single-spike discrete recursion); added: the bound for $d=2$\textsuperscript{$\dagger$}\\
+Thm~\ref{thm:smooth} & K & Duchi et al., Abernethy et al., Dubois-Taine et al., Jiang et al.; Xie (noise smooths the polar map)\\
+Thm~\ref{thm:smd} & P & not found (combination of the two known facts)\\
+Thm~\ref{thm:median}, Prop.~\ref{prop:lad} & P & signs: Chen et al.\ 2020, Safaryan--Richt\'arik, Karimireddy et al.; geometric median: Cardot et al.; Do--Dereich--Jentzen (dimension one); added: matrix formulation, rank caveat, least-distances limit\\
+Prop.~\ref{prop:offset} & K / F+N & scalar: Cornish--Fisher, Safaryan--Richt\'arik; cumulant ratios of the momentum: Do--Dereich--Jentzen (Prop.~6.11); added: \eqref{eq:offset}, dimension dependence, momentum factors\\
+Prop.~\ref{prop:lowsnr} & K & Xie, Chen et al., Paquette et al.; added: the two trace identities\\
+\bottomrule
+\end{tabular}
+\caption{Status: P proved here, K known, F formal, N numerical. ``Added'' means not found by the literature checks, except the items marked $\dagger$, which were added during the revision (Appendix~\ref{app:review}) and were not searched separately.}\label{tab:status}
+\end{table}
+
+\paragraph{Open questions.}
+(1) \emph{Extinction time.} For (LS), $\nop{E_0}\le T\le\sqrt{\kop}\nop{E_0}$; from generic full-rank starts the observed
+values are between $1.0$ and $1.4$ times $\nop{E_0}$. No constant independent of both $d$ and $\Sigma$ exists, already for rank-one errors (path
+lengths of gradient flows, Gupta, Balakrishnan and Ramdas, JMLR 2021: of order $\min\{\sqrt d,\sqrt{\log\kappa}\}$).
+For $d=2$, $T\le1.59\,\nop{E_0}$ whatever $\Sigma$ (Proposition~\ref{prop:ext}(d)) and the computed supremum is
+$\sqrt2$. Is $T\le\sqrt d\,\nop{E_0}$ in general, or $T\le C\sqrt{\log\kappa(\Sigma)}\,\nop{E_0}$?
+(2) \emph{Long-run rate of the line-search polar iteration.} Shulgin et al.\ report its slow-down numerically and
+Jawanpuria et al.\ write that the rate is not known in closed form. From generic non-commuting starts the exponent per
+step is close to that of the flattest invariant ray, $4\lambda_d/\tr\Sigma$ (Remark~\ref{rem:headtail}), although
+these rays are linearly unstable for the commuting map (Theorem~\ref{thm:mad}(c)) and commuting runs do not approach
+them. Is the flattest ray attracting for the non-commuting iteration, and why?
+(3) The non-commuting iteration after the first phase: the root recursion $R\mapsto\abs{R-\gamma H}$ of Shulgin et al.,
+solved there for $d=2$; beyond it, the second-step bound of Proposition~\ref{prop:phase1}(c) is the only general
+statement we have.
+(4) A proof of the offset expansions of Proposition~\ref{prop:offset}(b)--(c) (Edgeworth expansion against a
+discontinuous map), and of the scaling of $a_{K,d}/c_{K,d}$ in $1/d$ beyond $K=1$ (is $d\,a_{K,d}/c_{K,d}$ bounded, with
+which limits for square and for wide matrices?).
+(5) \emph{State-dependent noise.} For a finite sum the law of the noise depends on $W$ and the mean field is not a
+gradient in general (it is a subgradient for batch one on least squares); a Lyapunov function for the joint dynamics of
+a SAGA table and a nuclear-scaled step remains open (facts F5 and F6 of \texttt{notes\_theory.md} describe the
+obstruction).
+(6) Whether the head/tail picture and the median offset are visible on a network: both predictions are quantitative
+(nuclear rank of the momentum against the stable rank of the activations; dependence of the final loss on the skewness
+of the minibatch gradient, on $b$ and on $\beta$).
+
+\appendix
+\section{Numerical checks}\label{app:checks}
+All scripts are in \texttt{muon/theory\_checks/} and run with \texttt{.venv/Scripts/python} in seconds to minutes,
+except the search \texttt{counterexample\_opnorm.py} and the data of the figures (tens of minutes on a loaded machine;
+the figures are redrawn from a cache).
+\begin{center}\small
+\begin{tabular}{@{}p{6.3cm}p{9.3cm}@{}}
+\toprule
+script & checks\\
+\midrule
+\texttt{check\_condition\_numbers.py} & Propositions~\ref{prop:var}--\ref{prop:struct} on random operators (ascent values, frame and rank bounds, Kronecker formulas, least-squares identity)\\
+\texttt{check\_dual\_mirror.py} & Proposition~\ref{prop:dual}(c), \eqref{eq:repr}, Theorem~\ref{thm:steps}, flow identities on ridge softmax\\
+\texttt{check\_quadratic\_dynamics.py} & Propositions~\ref{prop:phase1}, Theorem~\ref{thm:mad}, commuting dynamics, extinction times\\
+\texttt{explore\_rotation\_factor.py}, \texttt{explore\_q1\_sign.py}, \texttt{counterexample\_opnorm.py}, \texttt{counterexample\_opnorm\_integer.py} & Proposition~\ref{prop:Q}: searches, the numerical counterexample of the first version (superseded: its top singular value is double), the integer counterexample\\
+\texttt{check\_ls\_additions.py} & additions to Section~\ref{sec:ls} that come from the review: Proposition~\ref{prop:phase1}(a)--(c), Proposition~\ref{prop:Q}(c),(f), Theorem~\ref{thm:mad}(c), Proposition~\ref{prop:ext}(d), the selection identity of the convention paragraph, the tail of the scalar map in Remark~\ref{rem:headtail}\\
+\texttt{check\_smoothing\_median.py}, \texttt{check\_smoothing\_median\_2.py} & Theorems~\ref{thm:smooth}, \ref{thm:median}, Propositions~\ref{prop:lad}, \ref{prop:offset}(a),(c), \ref{prop:lowsnr}\\
+\texttt{check\_minibatch\_offset\_exact.py}, \texttt{check\_offset\_first\_order.py} & Proposition~\ref{prop:offset}(b): zero of the mean field for exact Gamma batch means; constants of Table~\ref{tab:ac} and the prediction \eqref{eq:offset}\\
+\texttt{check\_review\_additions.py} & statements added after the review: Example~\ref{ex:sharp}, Proposition~\ref{prop:struct}(c), the conservation law of Proposition~\ref{prop:Q}, \eqref{eq:sandwich}, Theorem~\ref{thm:smd}, the examples of Theorem~\ref{thm:median}, the lattice example\\
+\texttt{make\_paper\_figures.py} & Figures~\ref{fig:ls} and~\ref{fig:noise}, with the runs they show\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Record of the review of 16 November 2026}\label{app:review}
+The first version of these notes was submitted to six independent automated referee passes: three re-derived the
+mathematics of Sections~\ref{sec:kappa}--\ref{sec:dual}, of Section~\ref{sec:ls} and of
+Sections~\ref{sec:noise}--\ref{sec:use} and tried to break every statement numerically; three searched the literature
+for each claim and opened the closest sources (about sixty papers; downloaded copies and scripts are kept under
+\texttt{\_scratch/muon\_checks/referee/}). Outcome.
+
+\emph{Mathematics}: no fatal error; corrected here: the inequality
+of the former Proposition~2.4(d) (false for $\min(K,d)=1$; replaced by the norm-independent statement), the hidden
+hypotheses $K\ge d$ and $\lambda=0$ of the ``no averaging gain'' remark, the case $G_t=0$ and the limsup argument of
+Theorem~\ref{thm:steps}(c), the evidence for the sharpness of $\kF/r$, the characterization of stationary points as
+nuclear medians (true as an inclusion; equality needs a rank condition), the least-distances statement (same caveat),
+the constant of Theorem~\ref{thm:median}(c) ($1$ instead of $2$), the lattice caveat of Proposition~\ref{prop:offset}(a),
+several fourth decimals, and one numerical experiment that could not test its claim (symmetric gradient noise). In
+Section~\ref{sec:ls} (the last report received): the numerical example of non-monotonicity of the spectral norm had a
+double top singular value, so that the formula used to read it did not apply, and is replaced by the integer example;
+``the bound is attained'' in Theorem~\ref{thm:mad}(b) became a supremum; the proof of the flow in the commuting case
+confused a general cancellation with a consequence of commutation (now the convention paragraph of
+Section~\ref{sec:ls}); the thin polar factor is now a stated convention; Remark~\ref{rem:headtail} claimed an alignment
+with the flattest direction that is false for commuting starts in exact arithmetic, and compared tails with one
+spectrum only.
+
+\emph{Literature}: withdrawn novelty claims on the commuting dynamics, the soft-thresholding flow, the map
+$a\mapsto\abs{a-\E_pa}$ and its two-valued rays, the identity $J=\tr\Sigma$, the smoothing identity, the low-noise
+constant $c_{K,d}$, the dimension barrier, the dual-space reading for smooth preconditioners and the flow identities;
+about forty references added. The mathematical referee of Section~\ref{sec:ls} also found, by reading the appendices of
+Shulgin et al., that the factorization behind Proposition~\ref{prop:phase1}, the discrete commuting dynamics, the
+two-valued rays and the tightness at $t=0$ were published there, which three ``not found'' sentences of the first
+version denied.
+
+\emph{Added during the revision}: Proposition~\ref{prop:struct}(c), Example~\ref{ex:sharp}
+and the rigidity statement, \eqref{eq:sandwich}, the conservation law for $d=2$, Theorem~\ref{thm:smd}, the
+first-order offset \eqref{eq:offset}, and, from the referee of Section~\ref{sec:ls}, the bounds on $\tau_\ast$, the
+second-step bound, items (c) and (f) of Proposition~\ref{prop:Q}, the instability of the rays and
+Proposition~\ref{prop:ext}(d). Each of these was derived by one party (the author or a referee) and re-derived or
+checked numerically by the other (\texttt{check\_review\_additions.py}, \texttt{check\_ls\_additions.py}); items (c)
+of Proposition~\ref{prop:struct}, \eqref{eq:offset} and Theorem~\ref{thm:smd} were derived independently by both.
+
+\emph{Final pass.} The condensed paper (\texttt{paper\_spectral\_muon.tex}) and the statements added during the
+revision were then submitted to three further referees: two re-derived the mathematics and recomputed the numbers
+(conditioning and noise; dynamics), one checked every citation against the sources. They found no false theorem,
+proposition or lemma, and 45 points that are corrected in this version and in the paper: over-statements in the
+abstract and the discussion of the paper (the hypothesis of the no-free-lunch statement and the class of step lengths
+of the convergence theorem had been dropped in the summaries; ``no offset'' was written for ``a fixed point without
+offset''; ``the offset vanishes for symmetric noise'' for ``$W_\ast$ is a possible limit''), two range ends and one
+column of Table~\ref{tab:ac}, the generalization of three runs into a rule in Remark~\ref{rem:headtail} (tails of
+commuting runs) and the reading of the run of Figure~\ref{fig:ls}(c), the scope of ``all instances tried'' for
+extinction times, a uniqueness argument for the flow that was missing in the paper, several attributions (the rate at
+every step for $d=2$, the symmetric-noise condition, the effective-batch factor, the hypotheses of two cited theorems),
+and the distinction, now marked in Table~\ref{tab:status}, between statements that the literature checks searched and
+statements added afterwards. The identity $a_{K,d}=-\E[\nnuc Z\,\mathrm{He}_4(Z_{11})]$ and the exact value
+$a_{1,d}/c_{1,d}=3/(d+2)$ of Proposition~\ref{prop:offset}(b) come from that pass. The reports of all passes are kept
+under \texttt{\_scratch/muon\_checks/referee/reports/}.
+
+\end{document}
