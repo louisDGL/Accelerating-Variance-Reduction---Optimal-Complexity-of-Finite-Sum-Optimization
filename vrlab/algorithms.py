@@ -1,6 +1,15 @@
 """Optimization algorithms with gradient-evaluation accounting and (for SAGA) full instrumentation.
 
 All stochastic methods draw indices uniformly from {0..n-1} with a numpy Generator seeded by `seed`.
+Sampling order (SAGA only, hypothesis B4): saga(..., sampling=...) takes 'iid' (default: uniform with replacement, the
+setting of Prop. 5.9 and of every other method of this module), 'rr' (random reshuffling: a fresh uniform permutation
+of {0..n-1} at every pass), 'so' (shuffle once: one permutation drawn from `seed`, reused at every pass) or 'cyclic'
+(0, 1, .., n-1 at every pass; `seed` is not used). A pass is n consecutive iterations counted from the first one; a
+run whose length is not a multiple of n ends with a truncated pass. The three orders without replacement refresh every
+memory slot exactly once per pass. The update, the memory initialisation z_i = f'_i(theta_0) and the gradient
+accounting do not depend on the order. The exact instrumentation (`instrument_every`) computes conditional
+expectations over a uniform index and is refused for the other orders; Prop. 5.9 and the bounds of vrlab.bounds built
+on it are statements about i.i.d. sampling (vrlab.order_model gives the solvable model of the four orders).
 Gradient accounting: one component gradient f'_i costs 1; a full gradient F' costs n. SAGA: n initially, then 1 per
 iteration. L-SVRG, L-Katyusha and the naive Nesterov+SVRG scheme (count_reference_grad=True, used in all experiments):
 n initially, 2 per iteration (f'_i at the query point and f'_i(w), the latter charged as recomputed although the code
@@ -57,11 +66,36 @@ def _fgap(prob, theta):
     return float(prob.F(theta) - prob.F_star)
 
 
-def _index_stream(rng, n, n_iters, chunk=1_000_000):
+SAMPLINGS = ("iid", "rr", "so", "cyclic")
+
+
+def _check_sampling(sampling):
+    if sampling not in SAMPLINGS:
+        raise ValueError(f"unknown sampling {sampling!r}; expected one of {SAMPLINGS}")
+
+
+def _index_stream(rng, n, n_iters, chunk=1_000_000, sampling="iid"):
+    """Yield arrays of indices in {0..n-1}, n_iters indices in total.
+    'iid': uniform with replacement, in chunks of `chunk` draws (the stream of every method of this module; the
+    methods that also draw coins draw them chunk by chunk, after the indices of the chunk).
+    'rr' / 'so' / 'cyclic': one array per pass of n indices (the last one truncated), each a permutation of {0..n-1}:
+    a fresh one drawn by rng.permutation at every pass ('rr'), one drawn before the first pass and reused ('so'), or
+    the identity ('cyclic', which consumes no randomness). `chunk` only concerns 'iid'."""
+    _check_sampling(sampling)
+    if sampling == "iid":
+        done = 0
+        while done < n_iters:
+            k = min(chunk, n_iters - done)
+            yield rng.integers(0, n, size=k)
+            done += k
+        return
+    perm = rng.permutation(n) if sampling == "so" else np.arange(n)
     done = 0
     while done < n_iters:
-        k = min(chunk, n_iters - done)
-        yield rng.integers(0, n, size=k)
+        if sampling == "rr":
+            perm = rng.permutation(n)
+        k = min(n, n_iters - done)
+        yield perm[:k]
         done += k
 
 
@@ -70,7 +104,8 @@ def _index_stream(rng, n, n_iters, chunk=1_000_000):
 # ----------------------------------------------------------------------------------------------
 def saga(prob, theta0, gamma=None, n_iters=None, seed=0, P=None, Delta=None, R2=None, mu=None,
          record_every=None, instrument_every=None, instrument_max=None, record_F=True,
-         stop_D=None, max_time=None, resync_every=None, name="SAGA", passes=None, snapshot_theta=False):
+         stop_D=None, max_time=None, resync_every=None, name="SAGA", passes=None, snapshot_theta=False,
+         sampling="iid"):
     """SAGA: theta_t = theta_{t-1} - gamma P^{-1} [f'_{i}(theta_{t-1}) + zbar - z_i], z_i <- f'_i(theta_{t-1}).
 
     Parameters
@@ -79,10 +114,19 @@ def saga(prob, theta0, gamma=None, n_iters=None, seed=0, P=None, Delta=None, R2=
     R2, mu       : constants used in the ratios/bounds (defaults: prob.R2, prob.mu; for a metric P pass
                    the P-constants R2_P, mu_P)
     P            : None | diagonal (d,) | dense SPD (d,d) preconditioner
-    instrument_every : compute the exact conditional expectations (O(nd)) every k iterations
+    instrument_every : compute the exact conditional expectations (O(nd)) every k iterations (sampling='iid' only:
+                   the expectations are taken over a uniform index)
     passes       : alternative to n_iters (number of effective passes, n iterations each)
+    sampling     : order of the indices, 'iid' (default) | 'rr' | 'so' | 'cyclic' (see the module docstring)
+                   (for the three orders without replacement the traces M and V are updated incrementally and
+                   never re-summed, the instrumentation being refused: they are reliable down to about
+                   1e-13 of their initial value only; D and F are computed from theta at every record)
     Returns a dict with the trace arrays, the list of instrumentation records, and run metadata.
     """
+    _check_sampling(sampling)
+    if instrument_every and sampling != "iid":
+        raise ValueError("instrument_every computes exact conditional expectations over a uniform index: it is defined "
+                         f"for sampling='iid' only, not for sampling={sampling!r}")
     n, d = prob.n, prob.d
     metric = Metric(P, d)
     R2 = prob.R2 if R2 is None else R2
@@ -112,7 +156,7 @@ def saga(prob, theta0, gamma=None, n_iters=None, seed=0, P=None, Delta=None, R2=
     t = 0
     t0 = time.process_time()
     stopped = None
-    for idx in _index_stream(rng, n, n_iters):
+    for idx in _index_stream(rng, n, n_iters, sampling=sampling):
         for i in idx:
             # ---- instrumentation at the state before the step
             if instrument_every and t % instrument_every == 0 and (instrument_max is None or len(instr) < instrument_max):
@@ -150,7 +194,8 @@ def saga(prob, theta0, gamma=None, n_iters=None, seed=0, P=None, Delta=None, R2=
     out = tr.arrays()
     out.update({"instr": instr, "gamma": gamma, "Delta": Delta, "R2": R2, "mu": mu, "n": n, "d": d,
                 "r_init": r_init, "S0": S0, "D0": D0, "seed": seed, "stopped": stopped,
-                "elapsed": time.process_time() - t0, "theta": theta, "name": name, "metric": metric.kind})
+                "elapsed": time.process_time() - t0, "theta": theta, "name": name, "metric": metric.kind,
+                "sampling": sampling})
     return out
 
 

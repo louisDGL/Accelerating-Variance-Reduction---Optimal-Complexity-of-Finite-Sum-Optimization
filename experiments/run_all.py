@@ -8,7 +8,9 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 SCRIPTS = ["exp_validation_book.py", "exp_B3_tightness.py", "exp_B2_mu_eff.py", "check_B2_fp_heuristic.py",
            "exp_B1_preconditioning.py", "exp_gamma_delta.py", "exp_A3_lkatyusha_lyapunov.py",
-           "exp_A2_naive_acceleration.py", "exp_A4_hard_instance.py", "exp_A4b_instances.py"]
+           "exp_A2_naive_acceleration.py", "exp_A4_hard_instance.py", "exp_A4b_instances.py",
+           "exp_B4_sampling_order.py"]
+AFTER = ["exp_B4b_refinements.py"]  # reads results/B4_summary.json: always run after the scripts above, never in parallel with them
 FINAL = ["make_digest.py"]          # run last, after every summary exists
 
 
@@ -25,6 +27,10 @@ def main():
             subprocess.run(cmd, check=True)
     for p in procs:
         p.wait()
+    for s in AFTER:
+        cmd = [sys.executable, os.path.join(HERE, s)] + args
+        print("running", " ".join(cmd), flush=True)
+        subprocess.run(cmd, check=True)
     if "--quick" not in sys.argv:
         for s in FINAL:
             subprocess.run([sys.executable, os.path.join(HERE, s)], check=True)

@@ -169,7 +169,9 @@ def run_one(task):
 
     task = {'spec': problem specification, 'method': 'vr' | 'gd' | 'agd' | 'lbfgs' | 'muon_full' | 'muon_sgd' | 'sgd' |
             'mvr' | 'katyusha',
-            'cfg': keyword arguments of the method with unit-tagged steps (see `over`), 'passes': budget,
+            'cfg': keyword arguments of the method with unit-tagged steps (see `over`), 'passes': budget (a 'vr'
+            configuration with a learning-rate schedule is given the number of iterations that the budget allows,
+            extra table refreshes included; schedule 'geometric' does not depend on it),
             'seed': algorithm seed, optional 'stop_rel' (stop when the relative squared distance is below it,
             default 1e-26), optional 'instr' (vr only: instrument every that many passes), optional
             'start': 'near_opt' (W_0 = W_* + 1e-7 ||W_*||_F P with P a fixed unit direction in the gauge subspace,
@@ -268,11 +270,12 @@ def run_one(task):
 
 
 def _gauged(prob, orth):
-    """Orthogonalization by name applied after the gauge projection (softmax); the name itself for least squares."""
+    """Orthogonalization by name applied after the gauge projection (softmax); the name itself for least squares.
+    The control map 'sign' does not stay in the gauge subspace: its output is projected back (polar.sign_map)."""
     if prob.loss != "softmax" or callable(orth):
         return orth
     from lab import polar
-    fn = polar.get_orth(orth)
+    fn = polar.get_orth(orth, **({"center": True} if orth == "sign" else {}))
     return lambda M: fn(prob.remove_gauge(M))
 
 

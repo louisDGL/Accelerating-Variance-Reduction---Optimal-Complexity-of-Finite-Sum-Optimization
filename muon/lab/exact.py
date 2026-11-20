@@ -21,7 +21,8 @@ computed by the very functions used by the optimization loop (algo.pieces, algo.
   cos_sharp      <Sbar, sharp(G)> / (||Sbar||_F ||sharp(G)||_F)           alignment with the full-gradient sharp step
   cos_dist       <Sbar, E> / (||Sbar||_F ||E||_F)                         alignment with the error
   rel_dec_F      dec_F / (F(W) - F_*),  rel_dec_dist2 = dec_dist2 / ||E||_F^2     per-iteration contraction rates
-  cost           expected per-sample gradient evaluations of one iteration (refreshes included)
+  cost           expected per-sample gradient evaluations of one iteration (refreshes included: the refresh of the
+                 L-SVRG reference or of the PAGE estimate, and the `refresh_extra` entries of the SAGA table)
   eff_F, eff_dist2   rel_dec_F / cost, rel_dec_dist2 / cost                relative progress per gradient evaluation
                  (SAGA, SGD and L-SVRG: the step does not depend on the refresh coin, the expectations are complete.
                  PAGE: the expectations are conditional on the no-refresh branch while `cost` includes the refreshes,
@@ -53,6 +54,12 @@ the sharp step with 1/L_op, each also with its exact line search on the quadrati
 
 `collect_states(prob, W0, n_iters, at, seed, **config)` runs a configuration and returns copies of (t, W, state) at the
 requested iteration counts, to evaluate several configurations FROM THE SAME STATES (they must share the estimator).
+
+The expectations are over an index drawn UNIFORMLY and independently of the past (order 'iid'). Under a permutation
+order (vrmuon: 'reshuffle', 'shuffle_once') the next index is uniform among the entries not yet visited in the pass,
+or deterministic: `one_step_stats` refuses such configurations, as it refuses importance sampling. The extra
+refreshes of the SAGA table (`refresh_extra`) happen after the step and do not change it: they enter the statistics
+through `cost` only (and through the states, which `collect_states` advances with them).
 """
 from __future__ import annotations
 
@@ -62,7 +69,7 @@ import numpy as np
 
 from . import maps
 from .polar import singular_values, svd_thin
-from .vrmuon import VRMuon, _draws
+from .vrmuon import VRMuon, _draws, extra_rng
 
 
 def enumerate_steps(algo, W, st, t=0, idx=None, return_pieces=False):
@@ -74,7 +81,8 @@ def enumerate_steps(algo, W, st, t=0, idx=None, return_pieces=False):
     through something else than the memory are refused (anchor_step: the iterate jumps at a refresh) or documented
     (PAGE: the n steps are those of the no-refresh branch, which has probability 1 - p; the refresh branch takes a
     full-gradient step). With importance sampling the step of index j has probability algo.probs[j]: expectations
-    must be weighted accordingly (one_step_stats assumes uniform sampling and refuses such configurations)."""
+    must be weighted accordingly (one_step_stats assumes uniform sampling and refuses such configurations). The
+    steps themselves do not depend on the sampling order nor on refresh_extra (the extra refreshes follow the step)."""
     if algo.batch != 1:
         raise ValueError("exact enumeration is defined for batch = 1")
     if algo.beta_post or algo.beta:
@@ -136,10 +144,11 @@ def _cos(A, B):
 
 
 def expected_cost(algo):
-    """Expected per-sample gradient evaluations of one iteration (refreshes included)."""
+    """Expected per-sample gradient evaluations of one iteration (refreshes included; b + refresh_extra for SAGA
+    with extra refreshes of its table)."""
     b, n, est = algo.batch, algo.n, algo.estimator
     if est in ("saga", "sgd"):
-        return float(b)
+        return float(b + algo.refresh_extra)
     if est == "lsvrg":
         return 2.0 * b + algo.p * n
     return (1.0 - algo.p) * 2.0 * b + algo.p * n                        # page
@@ -147,8 +156,8 @@ def expected_cost(algo):
 
 def one_step_stats(prob, algo, W, st, t=0, with_state=True):
     """Exact one-step statistics of `algo` at the state (W, st) (see the module docstring). Returns a dict."""
-    if algo.probs is not None:
-        raise ValueError("one_step_stats assumes uniform sampling of the index")
+    if algo.probs is not None or algo.order != "iid":
+        raise ValueError("one_step_stats assumes uniform sampling of the index (no importance sampling, order 'iid')")
     S, m, C = enumerate_steps(algo, W, st, t, return_pieces=True)
     n = len(S)
     E = W - prob.W_star
@@ -252,6 +261,7 @@ def collect_states(prob, W0, n_iters, at, seed=0, **config):
     W = np.array(W0, dtype=np.float64, copy=True)
     st = algo.init_state(W)
     rng = np.random.default_rng(seed)
+    rng_x = extra_rng(seed) if algo.refresh_extra else None
     at = sorted(set(int(a) for a in at))
     out = []
     t = 0
@@ -259,12 +269,14 @@ def collect_states(prob, W0, n_iters, at, seed=0, **config):
         W = W - algo.anchor_displacement(st)
     if at and at[0] == 0:
         out.append((0, W.copy(), copy.deepcopy(st)))
-    for B, coin in _draws(rng, prob.n, algo.batch, n_iters, algo.needs_coin, algo.probs):
+    for B, coin in _draws(rng, prob.n, algo.batch, n_iters, algo.needs_coin, algo.probs, algo.order):
         m, c, aux = algo.pieces(W, st, B, coin)
         S, info = algo.step(W, m, c, st, t)
         algo.commit(W, st, B, coin, aux, info)
         W = algo.advance(W, S, st)
         t += 1
+        if rng_x is not None and np.isfinite(W).all():        # extra refreshes of the table, as vrmuon.vr_muon
+            algo.refresh(W, st, B, rng_x)
         if t in at:
             out.append((t, W.copy(), copy.deepcopy(st)))
         if not np.isfinite(W).all():

@@ -514,6 +514,340 @@ def m8_tables(m8, m1, out):
         out.append("")
 
 
+def _ratio(v, fmt="{:.2f}"):
+    """A ratio of medians of a summary: '-' when it is undefined (null in the JSON)."""
+    return fmt.format(v) if isinstance(v, (int, float)) and math.isfinite(v) else "-"
+
+
+def m5b_tables(m5b, out):
+    """M5 at resolved steps (exp_M5b_batch_fine.py). Keys of M5b_summary.json are given with every table."""
+    about, inst = m5b["about"], m5b["instances"]
+    out.append("## M5b. Batch size at resolved steps\n")
+    out.append("Experiment M5 again (same instances, budgets, target, batch sizes, families and protocol) on step "
+               "grids of ratio 2^(1/4) instead of 2: c(j) = c5 * 2^(j / 8), c5 the step constant selected by M5, "
+               f"j in {about['grids']['fine']['j'][0]}..{about['grids']['fine']['j'][-1]} even ('fine', "
+               f"{len(about['grids']['fine']['j'])} steps), odd ('shifted', {len(about['grids']['shifted']['j'])} "
+               "steps: the same grid moved by half a step) or a multiple of 8 ('factor-2 control': the powers of two, "
+               "i.e. M5's own tasks, recomputed). The ratios of this section supersede those of the M5 tables above "
+               "wherever the two differ. Source: `M5b_summary.json`, cell = instances/<instance>/<data seed>/"
+               "batches/<b>; protocol: " + about["protocol"] + ".\n")
+    out.append("Ratio = median passes of SAGA-Muon / smallest median of the Euclidean families (SAGA, B-SAGA) that "
+               "reach the target on every confirmation seed ('-' when SAGA-Muon or no Euclidean family does); in "
+               "brackets the 5%-95% quantiles of a paired bootstrap over the confirmation seeds (algorithm-seed noise "
+               "only: not the grid, not the data draw). 'conservative' = SAGA-Muon of the fine / shifted grid over the "
+               "best confirmed Euclidean point of the cell, whatever the grid or window offset it comes from. "
+               "'M5' = the ratio of `M5_summary.json`.\n")
+    for key, block in inst.items():
+        if "0" not in block:
+            continue
+        b0 = block["0"]
+        tk = f"{b0['tol']:g}"
+        out.append(f"### {key}: {TITLES.get(key, key)} (`{C.spec_tag(b0['spec'])}`, target {b0['tol']:g}, "
+                   f"budget {b0['passes']} passes)\n")
+        out.append("Fine grid, data seed 0 (keys fine/rows/<family>/{summary, best}; * = selected value on the edge "
+                   "of its grid).\n")
+        out.append("| b | SAGA | B-SAGA | SAGA-Muon | factorizations per pass |")
+        out.append("|---|---|---|---|---|")
+        cells = sorted(b0["batches"].items(), key=lambda kv: int(kv[0]))
+        for b, cell in cells:
+            row = []
+            for kind in ("SAGA", "B-SAGA", "SAGA-Muon"):
+                r = cell["fine"]["rows"][kind]
+                row.append(f"{_cell(r['summary'][tk])} ({C.fmt_point(r['best'])})" + ("*" if r["edge"] else ""))
+            out.append(f"| {b} | " + " | ".join(row) + f" | {cell['factorizations_per_pass']:.3g} |")
+        out.append("")
+        out.append("Ratios, data seed 0 (keys fine/ratio and fine/boot, shifted/ratio, factor2/ratio, m5/ratio, "
+                   "conservative/{fine, shifted}; 'same point' = number of families for which the factor-2 control "
+                   "selects M5's point, key factor2_vs_m5).\n")
+        out.append("| b | fine grid | shifted grid | factor-2 control | M5 | conservative: fine, shifted | control "
+                   "selects M5's point |")
+        out.append("|---|---|---|---|---|---|---|")
+        for b, cell in cells:
+            def with_boot(part):
+                bt = part.get("boot")
+                txt = _ratio(part.get("ratio"))
+                if bt and txt != "-":
+                    txt += f" [{bt[0]:.2f}, {bt[1]:.2f}]"
+                return txt
+            cons = cell.get("conservative", {})
+            same = cell.get("factor2_vs_m5", {})
+            out.append(f"| {b} | {with_boot(cell['fine'])} | {with_boot(cell['shifted'])} | "
+                       f"{_ratio(cell['factor2'].get('ratio'))} | {_ratio(cell.get('m5', {}).get('ratio'))} | "
+                       f"{_ratio(cons.get('fine'))}, {_ratio(cons.get('shifted'))} | "
+                       f"{sum(1 for v in same.values() if v.get('same_point'))}/{len(same)} |")
+        out.append("")
+        offs = ("-2", "-1", "0", "1", "2")
+        out.append("Step window, data seed 0: passes to the target at the step selected on the fine grid times "
+                   "2^(j / 8), median over the confirmation seeds ('(k/N)' when not all reach it; key "
+                   "window/<family>/<j>).\n")
+        out.append("| b | family | " + " | ".join(f"j = {j}" for j in offs) + " |")
+        out.append("|---|---|" + "---|" * len(offs))
+        for b, cell in cells:
+            for kind, w in cell.get("window", {}).items():
+                vals = []
+                for j in offs:
+                    e = w.get(j)
+                    if e is None:
+                        vals.append("")
+                    elif e["reached"] == 0:
+                        vals.append("not reached" + (f" ({e['diverged']} diverged)" if e.get("diverged") else ""))
+                    else:
+                        vals.append(_f(e["median"]) + ("" if e["reached"] == e["runs"]
+                                                       else f" ({e['reached']}/{e['runs']})"))
+                out.append(f"| {b} | {kind} | " + " | ".join(vals) + " |")
+        out.append("")
+    others = [(key, sd, blk) for key, block in inst.items() for sd, blk in sorted(block.items()) if sd != "0"]
+    if others:
+        out.append("### M5b on other draws of the data\n")
+        out.append("Grids centred on the steps of data seed 0; parts fine and factor-2 control only (keys as above, "
+                   "with the data seed in the path).\n")
+        out.append("| instance | data seed | b | SAGA | B-SAGA | SAGA-Muon | fine grid | factor-2 control | "
+                   "conservative (fine) |")
+        out.append("|---|---|---|---|---|---|---|---|---|")
+        for key, sd, blk in others:
+            tk = f"{blk['tol']:g}"
+            for b, cell in sorted(blk["batches"].items(), key=lambda kv: int(kv[0])):
+                rows = cell["fine"]["rows"]
+                row = [f"{_cell(rows[k]['summary'][tk])} ({C.fmt_point(rows[k]['best'])})"
+                       for k in ("SAGA", "B-SAGA", "SAGA-Muon")]
+                out.append(f"| {key} | {sd} | {b} | " + " | ".join(row) + f" | {_ratio(cell['fine'].get('ratio'))} | "
+                           f"{_ratio(cell['factor2'].get('ratio'))} | "
+                           f"{_ratio(cell.get('conservative', {}).get('fine'))} |")
+        out.append("")
+    codes = sorted({cell.get("code_runs", "?") for block in inst.values() for blk in block.values()
+                    for cell in blk["batches"].values()})
+    out.append("Code fingerprint(s) of the runs (muon/lab and common.py, key code_runs): "
+               + ", ".join(f"`{c[:12]}`" for c in codes) + ".\n")
+
+
+M9_VARIANTS = ["polar", "polar+N", "ns5", "ns5+N", "frob", "frob+N", "sign", "sign+N"]     # row order of part A
+
+
+def _recipe_point(pt):
+    """Selected point of a recipe family: 'q=0.8, lr0=0.1'; the constant-step references keep fmt_point."""
+    if "lr_decay" in pt:
+        return f"q={pt['lr_decay']:g}, lr0={pt['lr']:g}"
+    return C.fmt_point(pt)
+
+
+def _range(e, fmt="{:.1e}"):
+    return f"{fmt.format(e['median'])} [{fmt.format(e['min'])}, {fmt.format(e['max'])}]"
+
+
+def m9_tables(m9, out):
+    """Muon's own recipe with a SAGA table (exp_M9_schedule.py). Keys of M9_summary.json are given with every table."""
+    d, proto = m9["definitions"], m9["protocol"]
+    out.append("## M9. Muon's own recipe with a SAGA table\n")
+    out.append("Recipe: " + d["recipe"] + ". Maps: " + d["maps"] + ". Protocol of M1 (tuning seeds "
+               f"{proto['tune_seeds']} and {proto['refine_seeds']}, confirmation seeds {proto['confirm_seeds'][0]}.."
+               f"{proto['confirm_seeds'][-1]}); screening: " + proto["screening"] + ". Accounting: "
+               + proto["accounting"] + f". Source: `M9_summary.json` (code fingerprint `{m9['code'][:12]}`).\n")
+    if m9.get("A"):
+        out.append("### M9 part A: maps by batch size\n")
+        out.append("Passes to the target, median [min, max] over the confirmation seeds ('(k/N)' when not all reach "
+                   "it), selected (q, lr_0) or step in parentheses; * = selected value on the edge of its grid. "
+                   "'+ Nesterov' = Nesterov momentum 0.9. frob and sign are controls, not orthogonalizations. The "
+                   "three references use constant steps on 2^(1/4) grids at the same batch (not run at b = 1). Keys: "
+                   "A/<instance>/cells/<b>/rows/<family>/{summary, best, edge}.\n")
+        for key, block in m9["A"].items():
+            tk = f"{block['tol']:g}"
+            bs = sorted(block["cells"], key=int)
+            out.append(f"**{key}** (`{C.spec_tag(block['spec'])}`, target {block['tol']:g}, budget "
+                       f"{block['passes']} passes; q in {block['q_grid']}).\n")
+            names = []
+            for b in bs:
+                for r in block["cells"][b]["rows"].values():
+                    if (r["kind"], r["variant"]) not in names:
+                        names.append((r["kind"], r["variant"]))
+            names.sort(key=lambda kv: (kv[0] != "recipe", M9_VARIANTS.index(kv[1]) if kv[1] in M9_VARIANTS else 99))
+            out.append("| family | " + " | ".join(f"b = {b}" for b in bs) + " |")
+            out.append("|---|" + "---|" * len(bs))
+            for kind, variant in names:
+                cells = []
+                for b in bs:
+                    r = next((r_ for r_ in block["cells"][b]["rows"].values()
+                              if (r_["kind"], r_["variant"]) == (kind, variant)), None)
+                    cells.append("" if r is None else f"{_cell(r['summary'][tk])} ({_recipe_point(r['best'])})"
+                                 + ("*" if r["edge"] else ""))
+                label = f"fixed-length SAGA [{variant.replace('+N', ' + Nesterov')}]" if kind == "recipe" else variant
+                out.append(f"| {label} | " + " | ".join(cells) + " |")
+            out.append("")
+        out.append("Ratios of medians per cell (key A/<instance>/cells/<b>/compare): fastest variant among the "
+                   "spectral maps (polar, ns5; with or without Nesterov) over the fastest control (frob, sign; with "
+                   "or without Nesterov), over the fastest control without momentum, over the faster of SAGA and "
+                   "B-SAGA, and over the nuclear-scaled joint SAGA-Muon. The fastest variant is the smallest median, "
+                   "even when its row loses seeds ('(k/N)' next to its name); 0.00 = the denominator never reaches "
+                   "the target; '-' = not available.\n")
+        out.append("| instance | b | fastest spectral | fastest control | / control | / control without momentum | "
+                   "/ best of SAGA, B-SAGA | / nuclear-scaled SAGA-Muon |")
+        out.append("|---|---|---|---|---|---|---|---|")
+        for key, block in m9["A"].items():
+            for b in sorted(block["cells"], key=int):
+                cmp_ = block["cells"][b]["compare"]
+
+                def who(e):
+                    if not e:
+                        return "-"
+                    return e["variant"] + ("" if e["reached"] == e["runs"] else f" ({e['reached']}/{e['runs']})")
+                rt = cmp_["ratios"]
+                out.append(f"| {key} | {b} | {who(cmp_.get('spectral'))} | {who(cmp_.get('control'))} | "
+                           + " | ".join(_ratio(rt.get(k)) for k in ("spectral/control", "spectral/control_no_momentum",
+                                                                    "spectral/euclid", "spectral/nuclear_scaled"))
+                           + " |")
+        out.append("")
+    if m9.get("B"):
+        out.append("### M9 part B: batch one on the six instances\n")
+        out.append("Exact polar factor without momentum, and Muon's recipe (ns5, Nesterov 0.9), tuned on a finer grid "
+                   "of q; then both at the fixed point q = 0.8, lr_0 = 0.1 (no tuning) on the same confirmation "
+                   "seeds. 'on schedule' = confirmation runs that go on to the stop level. dist^2 / lr^2: "
+                   + d["dist2_over_lr2"] + ". M1: medians of `M1_summary.json` on the same instance (factor-2 step "
+                   "grids). Keys: B/<instance>/rows/<family>, B/<instance>/fixed_point/rows/<family>, "
+                   "B/<instance>/M1/rows.\n")
+        for key, block in m9["B"].items():
+            tk = f"{block['tol']:g}"
+            out.append(f"**{key}** (target {block['tol']:g}, budget {block['passes']} passes; q in {block['q_grid']}, "
+                       f"lr_0 in {block['lr_grid']}).\n")
+            out.append("| configuration | selected point | passes to the target | on schedule | dist^2 / lr^2: "
+                       "min, max (median width of a run) |")
+            out.append("|---|---|---|---|---|")
+
+            def line(label, pt, r, edge=()):
+                dl = r.get("dist2_over_lr2") or {}
+                band = (f"{dl['min']:.3g}, {dl['max']:.3g} ({dl['width_median']:.1f})" if dl.get("runs") else "-")
+                out.append(f"| {label} | {_recipe_point(pt)}" + ("*" if edge else "") + f" | "
+                           f"{_cell(r['summary'][tk])} | {_hit(r['stop_level'])} | {band} |")
+            for name, r in block["rows"].items():
+                line(name.replace(" b=1", ""), r["best"], r, r["edge"])
+            fp = block["fixed_point"]
+            for name, r in fp["rows"].items():
+                line(name.replace(" b=1", "") + ", fixed point", fp["point"], r)
+            out.append("")
+            m1r = block.get("M1", {}).get("rows", {})
+            if m1r:
+                out.append("M1, same instance: " + "; ".join(
+                    f"{n} {_f(v['median'])}" + ("" if v["reached"] == v["runs"] else f" ({v['reached']}/{v['runs']})")
+                    for n, v in m1r.items()) + ".\n")
+    if m9.get("C"):
+        out.append("### M9 part C: the schedule law and its controls\n")
+        out.append("Batch one. Definitions of the summary: " + d["law"] + ". Keys: C/<instance>/deep/<configuration>, "
+                   "C/<instance>/controls/<configuration>/final_rel.\n")
+        for key, block in m9["C"].items():
+            out.append(f"**{key}** ({block['passes']} passes, seeds {block['seeds'][0]}..{block['seeds'][-1]}).\n")
+            out.append("| configuration with a SAGA table | (q, lr_0) | on schedule | level of dist^2 / lr^2 | band | "
+                       "law holds down to (ratio in its on-schedule range) | within 3x of the level | lowest relative "
+                       "squared distance |")
+            out.append("|---|---|---|---|---|---|---|---|")
+            for label, e in block["deep"].items():
+                band = f"{e['band']['min']:.3g}, {e['band']['max']:.3g}"
+                out.append(f"| {label} | {_recipe_point(e['cfg'])} | {e['on_schedule']}/{len(e['runs'])} | "
+                           f"{e['level']['median']:.3g} | {band} | {_range(e['depth_rel_in_range'])} | "
+                           f"{_range(e['depth_rel_x3'])} | {_range(e['min_rel'])} |")
+            out.append("")
+            cs = block["controls_schedule"]
+            out.append(f"Without a table, on the schedule {_recipe_point(cs)}: final relative squared distance, "
+                       "median [min, max].\n")
+            out.append("| configuration without a table | final relative squared distance |")
+            out.append("|---|---|")
+            for label, e in block["controls"].items():
+                out.append(f"| {label} | {_range(e['final_rel'], '{:.3f}')} |")
+            out.append("")
+    if m9.get("D"):
+        out.append("### M9 part D: sampling order and memory of the table\n")
+        out.append("Exact polar factor, no momentum. Definitions of the summary: " + d["order"] + ". Memory factor: "
+                   + d["memory_factor"]
+                   + ". 'on schedule by rho' lists, from the largest rho of the grid to the smallest, the number of "
+                   "seeds on schedule. Keys: D/<instance>/cells/<b>/schemes/<scheme>.\n")
+        for key, block in m9["D"].items():
+            out.append(f"**{key}** ({block.get('role', '')}; target {block['tol']:g}; rho grid {block['rho_grid']}, "
+                       f"extended by {block.get('rho_grid_extension_m3b', [])} for m = 3b; reference rho "
+                       f"{block['rho_ref']}).\n")
+            out.append("| b | scheme | memory factor | exp(-(1 + m/b)) | rho_star | rho_star (monotone) | fastest rho: "
+                       "passes to the target | reference level C | on schedule by rho |")
+            out.append("|---|---|---|---|---|---|---|---|---|")
+            for b in sorted(block["cells"], key=int):
+                cell = block["cells"][b]
+                n_seeds = len(cell["seeds"])
+                for name, sc in cell["schemes"].items():
+                    f_ = sc.get("fastest") or {}
+                    fast = (f"{f_['rho']:g}: {_f(f_['median'])} [{_f(f_['min'])}, {_f(f_['max'])}]"
+                            if f_.get("rho") is not None else "-")
+                    ons = " ".join(str(e["on_schedule"]) for e in sc["by_rho"])
+                    out.append(f"| {b} | {name} | {_ratio(sc.get('memory_factor'), '{:.3f}')} | "
+                               f"{_ratio(sc.get('exp_minus_1_plus_m_over_b'), '{:.3f}')} | "
+                               f"{_ratio(sc.get('rho_star'), '{:g}')} | "
+                               f"{_ratio(sc.get('rho_star_monotone'), '{:g}')} | "
+                               f"{fast} | {sc['reference_C']:.3g} | {ons} (of {n_seeds}) |")
+            out.append("")
+
+
+def m9b_tables(m9b, out):
+    """Part D of M9 on a sum with identical Hessians (exp_M9b_order_model.py). Keys of M9b_summary.json are given
+    with every table."""
+    d = m9b["definitions"]
+    g = lambda v: "-" if v is None else format(v, "g")                                              # noqa: E731
+    out.append("## M9b. The sampling-order part of M9 on a sum with identical Hessians\n")
+    out.append("Model: " + d["model"] + f". Source: `M9b_summary.json` (code fingerprint `{m9b['code'][:12]}`).\n")
+    if m9b.get("D"):
+        blk = m9b["D"]
+        s = blk["spec"]
+        out.append("### M9b part D: the design of part D of M9 on the model instance\n")
+        out.append(f"Instance: n = {s['n']}, K = {s['K']}, lam = {s['lam']:g}. Definitions: " + d["D"] + "; "
+                   + d["D_vs_M9"] + f". Step scale {blk['step_scale']:.4g}; rho grid {blk['rho_grid']}, extended by "
+                   f"{blk['rho_grid_extension_m3b']} for m = 3b; reference rho {blk['rho_ref']}. 'on schedule by rho' "
+                   "lists, from the largest rho of the grid to the smallest, the number of seeds on schedule. A "
+                   "threshold equal to the smallest rho of its grid is an upper bound. Keys: "
+                   "D/cells/<b>/schemes/<scheme>, D_vs_M9/<b>/<scheme>.\n")
+        out.append("| b | scheme | memory factor | rho_star, model | rho_star (monotone), model | rho_star, soft-mem | "
+                   "rho_star, ls-mem | median passes to the target at the fastest rho: model / soft-mem / ls-mem | "
+                   "reference level C, model | on schedule by rho, model |")
+        out.append("|---|---|---|---|---|---|---|---|---|---|")
+        for b in sorted(blk["cells"], key=int):
+            cell = blk["cells"][b]
+            for name, sc in cell["schemes"].items():
+                cmp_ = m9b.get("D_vs_M9", {}).get(b, {}).get(name, {})
+                edge = " (edge)" if sc["rho_star"] == sc["by_rho"][-1]["rho"] else ""
+                ons = " ".join(str(e["on_schedule"]) for e in sc["by_rho"])
+                fast = cmp_.get("passes_at_fastest_rho") or {}
+                fp = " / ".join(_f(fast.get(k)) if fast.get(k) is not None else "-"
+                                for k in ("model", "soft-mem", "ls-mem"))
+                out.append(f"| {b} | {name} | {_ratio(sc.get('memory_factor'), '{:.3f}')} | {g(sc['rho_star'])}{edge} | "
+                           f"{g(sc['rho_star_monotone'])} | {g(cmp_.get('soft-mem'))} | {g(cmp_.get('ls-mem'))} | "
+                           f"{fp} | {sc['reference_C']:.3g} | {ons} (of {len(cell['seeds'])}) |")
+        out.append("")
+    if m9b.get("L"):
+        sec = m9b["L"]
+        out.append("### M9b part L: long horizons at batch one\n")
+        out.append("Definitions: " + d["L"] + ". Linear SAGA: " + d["linear_saga"] + ". Keys: "
+                   "L/cells/n=<n>/orders/<order>/{level_half, level_end}, L/cells/n=<n>/linear_saga.\n")
+        h, e = sec["passes"] // 2, sec["passes"]
+        out.append(f"| n | order | x_star at {h} passes | x_star at {e} passes | within 10 x the reference level, "
+                   f"{h} / {e} passes | linear SAGA on the model: typical run, independent sampling (expectation) | "
+                   "linear SAGA: reshuffling, mean square |")
+        out.append("|---|---|---|---|---|---|---|")
+        for key, cell in sec["cells"].items():
+            ls = cell.get("linear_saga")
+            for order, o in cell["orders"].items():
+                lin_i = (f"{ls['typical_iid']:.3f} at c = {ls['at_c']:g} ({ls['expectation_iid_at_that_c']:.3f})"
+                         if ls and order == "iid" else "")
+                lin_r = f"{ls['reshuffled_mean_square_best']:.3f}" if ls and order == "reshuffle" else ""
+                out.append(f"| {key[2:]} | {o['label']} | {g(o['level_half']['x_star'])} | {g(o['level_end']['x_star'])} "
+                           f"| {g(o['level_half']['x_star_clean'])} / {g(o['level_end']['x_star_clean'])} | {lin_i} | "
+                           f"{lin_r} |")
+        out.append("")
+        xs = sec["x_grid"]
+        for key, cell in sec["cells"].items():
+            out.append(f"n = {key[2:]}: runs on schedule (of {sec['runs']}) and median level over the reference "
+                       f"level at {e} passes, by x = log(1/rho).\n")
+            out.append("| x | " + " | ".join(f"{x:.2f}" for x in xs) + " |")
+            out.append("|---|" + "---|" * len(xs))
+            for order, o in cell["orders"].items():
+                out.append(f"| {o['label']}: on schedule | " + " | ".join(str(v) for v in o["level_end"]["on_schedule"])
+                           + " |")
+                out.append(f"| {o['label']}: level / reference | "
+                           + " | ".join(f"{v:.2g}" for v in o["level_end"]["level_over_reference"]) + " |")
+            out.append("")
+
+
 def audit_table(aud, out):
     out.append("## Cache audit\n")
     out.append(f"`audit_cache.py`: {aud['checked']} cached runs drawn at random (seed {aud['seed']}) from "
@@ -550,6 +884,9 @@ def main():
     m5 = C.load_json("M5_summary")
     if m5:
         m5_tables(m5, out)
+    m5b = C.load_json("M5b_summary")
+    if m5b:
+        m5b_tables(m5b, out)
     m6 = C.load_json("M6_summary")
     if m6:
         m6_tables(m6, out)
@@ -559,6 +896,12 @@ def main():
     m8 = C.load_json("M8_summary")
     if m8:
         m8_tables(m8, m1, out)
+    m9 = C.load_json("M9_summary")
+    if m9:
+        m9_tables(m9, out)
+    m9b = C.load_json("M9b_summary")
+    if m9b:
+        m9b_tables(m9b, out)
     aud = C.load_json("audit_summary")
     if aud:
         audit_table(aud, out)

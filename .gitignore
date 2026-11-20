@@ -1,6 +1,9 @@
 # Copyrighted material and local working files (not redistributable)
 Bach_optimization.pdf
 _scratch/
+# Local archive of scripts not needed to reproduce the report, the theory notes or the paper (tests, checks,
+# explorations, utilities); see _archive/README.md in a local copy
+_archive/
 
 # Local clones of companion repositories of the team (private; kept for study, never redistributed here)
 external/
@@ -14,6 +17,11 @@ results/*.pkl
 !results/GammaDelta.pkl
 !results/validation_book.pkl
 results/*_quick*
+# Muon result caches: the caches committed before 2026-11-20 stay versioned; the later ones (M5b, M9, M9b, about 290 MB)
+# are rebuilt by their scripts, except the small cache read by figure 4 of the paper
+muon/results/*.pkl
+!muon/results/M9_law.pkl
+muon/results/*_quick*
 results/log_*.txt
 figures/*_quick.*
 

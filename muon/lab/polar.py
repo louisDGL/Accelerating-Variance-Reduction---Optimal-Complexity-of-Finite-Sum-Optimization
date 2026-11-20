@@ -9,10 +9,42 @@ Notation: M = U diag(s) V^T is the thin SVD (s_1 >= s_2 >= ... >= 0), r = min(K,
                  (a, b, c) = (3.4445, -4.7750, 2.0315). These coefficients maximise the slope at 0 and do NOT converge
                  to 1: p(1) = 0.701, and after 5 steps every x >= 0.01 lands in about [0.68, 1.20] (see `ns_scalar_map`
                  and the tests). It therefore returns U diag(p^5(x)) V^T, not U V^T.
+                 The normalization constant eps (default 1e-7, the value of the public code; `orth_kw={'eps': ...}`
+                 in the loops) makes the map depend on the SCALE of M: ns5(c M) = ns5(M) only while ||M||_F >> eps.
+                 Every x carries the factor ||M||_F / (||M||_F + eps): when ||M||_F is no longer large compared with
+                 eps the output shrinks with M (to first order it is 3.4445^5 M / eps once ||M||_F << eps / 3.4445^5;
+                 tests/test_lab.py, test_ns5_scale_dependence). Two consequences for fixed-length steps
+                 W <- W - lr_t ns5(omega_t) fed by a variance-reduced estimator, whose omega_t vanishes at the
+                 minimizer: (i) once the estimator has come down to the size of eps the step no longer has the length
+                 lr_t: it tends to the linear map (3.4445^5 lr_t / eps) omega_t, whose gain decays with the schedule,
+                 and the run freezes. Under a geometric cooldown this sets a floor near 1e-18 relative squared
+                 distance on the benchmark instances of the study (experiment M9, part C: 8e-19 to 5e-18), where the
+                 exact polar factor goes on to the rounding level; the level depends on the instance (8e-27 to 2e-25
+                 against 1e-32 on the
+                 small well-conditioned instance of tests/test_vrmuon.py, test_ns5_floor), and a smaller eps (1e-30)
+                 removes it; (ii) the exact scale covariance of the iteration on least squares (fact F14 of
+                 notes_theory.md) holds for a scale-invariant orthogonalization only, not with the default eps.
+                 The default is kept: it is the published routine.
   ns_cubic       classical cubic Newton-Schulz X <- 1.5 X - 0.5 X X^T X after Frobenius scaling (all x in (0, 1]);
                  it converges to polar(M) on the singular values that are not zero, quadratically once x is near 1,
                  but only by a factor <= 1.5 per step while x is small, so values s_k / ||M||_F ~ 1e-16 (rounding noise
                  of an exactly rank-deficient M) reach O(1) after about 90 steps.
+CONTROL MAPS (`CONTROL_MAPS`; not orthogonalizations). Two other maps of fixed length are available under a name, so
+that an experiment can replace the polar factor by them in the same loop and keep its tasks JSON-serializable:
+  frob           M / ||M||_F (`frob_normalize`): the direction of normalized gradient descent, the LMO of the Frobenius
+                 ball. The singular vectors AND the relative singular values of M are kept (nothing is equalized);
+                 ||O||_F = 1, ||O||_op <= 1 with equality iff M has rank one, <M, O> = ||M||_F.
+  sign           coordinatewise sign (`sign_map`): the LMO of the entrywise sup-norm ball (signSGD), <M, O> = sum|M_kj|,
+                 ||O||_F = (number of nonzero entries)^(1/2), i.e. (K d)^(1/2) generically against r^(1/2) for the polar
+                 factor: learning rates are not comparable across maps and must be tuned per map. The columns of
+                 sign(M) do not sum to zero when those of M do: for softmax the output must be projected back on
+                 the gauge subspace (center=True: O - (1/K) 1 1^T O, which is SoftmaxProblem.remove_gauge); the
+                 projected map is no longer an LMO and its entries are not +-1.
+                 vrmuon.VRMuon and the gauge wrapper of experiments/common.py set center=True by themselves when the
+                 gauge is active; the other loops (algorithms.py, mvr.py) apply the map as given: pass
+                 orth_kw={'center': True} there for softmax.
+They are controls for the question "is the effect specific to the orthogonalization?", not Muon variants.
+
 bf16 emulation: every intermediate result is rounded to bfloat16 (8 significant bits) by rounding the float64 value to
 float32 and then the float32 mantissa to 8 bits with round-to-nearest-even (bit masking). Products are formed in float64
 and rounded once, which mimics bf16 tensor-core matmuls with fp32 accumulation. The double rounding
@@ -127,7 +159,11 @@ def ns5(M, steps=5, coeffs=NS5_COEFFS, eps=1e-7, bf16=False):
         X = M (bf16 cast); transpose if rows > cols; X = X / (||X||_F + eps);
         repeat `steps` times: A = X X^T; B = b A + (c A) A; X = a X + B X;  transpose back.
     (`c * A @ A` in the PyTorch code parses as (c A) A; the same order is used here.) In exact arithmetic the output
-    is U diag(p^steps(s / (||M||_F + eps))) V^T with p(x) = a x + b x^3 + c x^5 (see `ns_scalar_map`)."""
+    is U diag(p^steps(s / (||M||_F + eps))) V^T with p(x) = a x + b x^3 + c x^5 (see `ns_scalar_map`).
+    Because of eps the map is not scale invariant: ns5(c M) = ns5(M) only for ||M||_F >> eps, and the output shrinks
+    with M below that (M = 0 gives 0). For fixed-length steps on a vanishing estimator this sets a floor near 1e-18
+    relative squared distance on the benchmark instances and breaks the exact scale covariance of the iteration
+    (module docstring); eps = 1e-30 removes both, eps = 0 is exactly scale invariant but divides by zero at M = 0."""
     a, b, c = (float(v) for v in coeffs)
     M = np.asarray(M, dtype=np.float64)
     if bf16:
@@ -193,16 +229,54 @@ def ns_scalar_map(x, steps=5, coeffs=NS5_COEFFS):
 
 
 # ----------------------------------------------------------------------------------------------
+# control maps of fixed length (not orthogonalizations)
+# ----------------------------------------------------------------------------------------------
+def frob_normalize(M):
+    """M / ||M||_F: the unit-Frobenius-norm direction of M (normalized gradient descent). A CONTROL, not an
+    orthogonalization: the relative singular values of M are unchanged. M = 0 gives 0; a non-finite M, or a norm
+    that overflows, gives an all-NaN result (as polar_svd)."""
+    M = np.asarray(M, dtype=np.float64)
+    nrm = float(np.sqrt(np.vdot(M, M)))
+    if nrm == 0.0:
+        return np.zeros_like(M)
+    if not np.isfinite(nrm):
+        return np.full(M.shape, np.nan)
+    return M / nrm
+
+
+def sign_map(M, center=False):
+    """Coordinatewise sign of M (0 where M is 0, NaN where it is NaN): the direction of signSGD. A CONTROL, not an
+    orthogonalization. With center=True the result is centered over the rows, O - (1/K) 1 1^T O: the projection
+    on the softmax gauge subspace (SoftmaxProblem.remove_gauge), without which the iterates of a softmax problem
+    leave the subspace 1^T W = 0 (see the module docstring)."""
+    O = np.sign(np.asarray(M, dtype=np.float64))
+    if center:
+        O = O - O.mean(axis=0, keepdims=True)
+    return O
+
+
+# ----------------------------------------------------------------------------------------------
 # dispatcher
 # ----------------------------------------------------------------------------------------------
 ORTH_METHODS = ("svd", "ns5", "ns_cubic")
+CONTROL_MAPS = ("frob", "sign")          # fixed-length maps that are NOT orthogonalizations (controls)
 
 
 def get_orth(method="svd", **kw):
     """Return the map M -> O for method in {'svd', 'ns5', 'ns_cubic'} (keyword arguments forwarded: rtol for 'svd';
-    steps, coeffs, eps, bf16 for 'ns5'; steps, bf16 for 'ns_cubic'), or `method` itself if it is callable."""
+    steps, coeffs, eps, bf16 for 'ns5'; steps, bf16 for 'ns_cubic'), for one of the control maps {'frob', 'sign'}
+    (not orthogonalizations, see the module docstring; center for 'sign'), or `method` itself if it is callable."""
     if callable(method):
         return method if not kw else (lambda M: method(M, **kw))
+    if method == "frob":
+        if kw:
+            raise TypeError(f"unexpected arguments for 'frob': {sorted(kw)}")
+        return frob_normalize
+    if method == "sign":
+        center = bool(kw.pop("center", False))
+        if kw:
+            raise TypeError(f"unexpected arguments for 'sign': {sorted(kw)}")
+        return (lambda M: sign_map(M, center=True)) if center else sign_map
     if method == "svd":
         rtol = kw.pop("rtol", 1e-15)
         if kw:
@@ -212,11 +286,13 @@ def get_orth(method="svd", **kw):
         return lambda M: ns5(M, **kw)
     if method == "ns_cubic":
         return lambda M: ns_cubic(M, **kw)
-    raise ValueError(f"unknown orthogonalization method {method!r}; expected one of {ORTH_METHODS} or a callable")
+    raise ValueError(f"unknown orthogonalization method {method!r}; expected one of {ORTH_METHODS}, a control map "
+                     f"{CONTROL_MAPS} or a callable")
 
 
 def orth(M, method="svd", **kw):
-    """Orthogonalize M with method in {'svd', 'ns5', 'ns_cubic'} (or a callable)."""
+    """Orthogonalize M with method in {'svd', 'ns5', 'ns_cubic'} (or a callable; the control maps 'frob' and 'sign'
+    of `get_orth` are accepted too, although they do not orthogonalize)."""
     return get_orth(method, **kw)(M)
 
 

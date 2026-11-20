@@ -672,6 +672,128 @@ Passes to the target, median [min, max] over the 10 confirmation seeds ('(k/N)' 
 | 16 | not reached (gamma=8/R2) | 51.2 [50.1, 52.3] (theta=0.2, gamma=64/R2) | 89.0 [68.3, 117.8] (gamma=8/R2_op) | 1.74 | 12 |
 | 64 | not reached (gamma=16/R2) | 197.5 [194.9, 214.8] (theta=0.3, gamma=64/R2) | not reached (gamma=8/R2_op) | - | 3 |
 
+## M5b. Batch size at resolved steps
+
+Experiment M5 again (same instances, budgets, target, batch sizes, families and protocol) on step grids of ratio 2^(1/4) instead of 2: c(j) = c5 * 2^(j / 8), c5 the step constant selected by M5, j in -16..16 even ('fine', 17 steps), odd ('shifted', 16 steps: the same grid moved by half a step) or a multiple of 8 ('factor-2 control': the powers of two, i.e. M5's own tasks, recomputed). The ratios of this section supersede those of the M5 tables above wherever the two differ. Source: `M5b_summary.json`, cell = instances/<instance>/<data seed>/batches/<b>; protocol: common.tune_and_confirm: screening on 20% of the budget (tuning seed 0), tuning seeds 0-1, finalists on tuning seeds 2-4, selected point on confirmation seeds 10-19.
+
+Ratio = median passes of SAGA-Muon / smallest median of the Euclidean families (SAGA, B-SAGA) that reach the target on every confirmation seed ('-' when SAGA-Muon or no Euclidean family does); in brackets the 5%-95% quantiles of a paired bootstrap over the confirmation seeds (algorithm-seed noise only: not the grid, not the data draw). 'conservative' = SAGA-Muon of the fine / shifted grid over the best confirmed Euclidean point of the cell, whatever the grid or window offset it comes from. 'M5' = the ratio of `M5_summary.json`.
+
+### soft-cond: softmax, conditioning-limited (`softmax_n200_d40_K8_k10000_a2_s0`, target 1e-06, budget 300 passes)
+
+Fine grid, data seed 0 (keys fine/rows/<family>/{summary, best}; * = selected value on the edge of its grid).
+
+| b | SAGA | B-SAGA | SAGA-Muon | factorizations per pass |
+|---|---|---|---|---|
+| 1 | 49.8 [49.3, 50.6] (gamma=5.65685/R2) | 27.1 [26.0, 29.6] (theta=0.2, gamma=11.3137/R2) | 24.6 [23.3, 112.7] (gamma=0.420448/R2_op) | 200 |
+| 4 | 58.7 [58.5, 58.9] (gamma=19.0273/R2) | 28.6 [27.4, 30.6] (theta=0.1, gamma=45.2548/R2) | 21.2 [20.0, 22.2] (gamma=3.36359/R2_op) | 50 |
+| 16 | 82.2 [82.0, 82.3] (gamma=53.8174/R2) | 31.0 [27.3, 37.3] (theta=0.2, gamma=181.019/R2) | 23.2 [21.0, 33.1] (gamma=19.0273/R2_op) | 12.5 |
+| 64 | 163.2 [162.9, 284.5] (gamma=107.635/R2) | 57.6 [57.3, 58.6] (theta=0.35, gamma=304.437/R2) | 37.8 [34.0, 53.8] (gamma=53.8174/R2_op) | 3.12 |
+
+Ratios, data seed 0 (keys fine/ratio and fine/boot, shifted/ratio, factor2/ratio, m5/ratio, conservative/{fine, shifted}; 'same point' = number of families for which the factor-2 control selects M5's point, key factor2_vs_m5).
+
+| b | fine grid | shifted grid | factor-2 control | M5 | conservative: fine, shifted | control selects M5's point |
+|---|---|---|---|---|---|---|
+| 1 | 0.91 [0.88, 0.96] | 0.92 [0.90, 0.95] | 0.86 | 0.86 | 0.91, 0.97 | 3/3 |
+| 4 | 0.74 [0.73, 0.75] | 0.81 [0.79, 0.83] | 0.69 | 0.69 | 0.75, 0.81 | 3/3 |
+| 16 | 0.75 [0.68, 0.79] | 0.73 [0.70, 0.76] | 2.69 | 2.71 | 0.77, 0.73 | 3/3 |
+| 64 | 0.66 [0.61, 0.68] | 1.04 [0.94, 1.07] | 3.33 | 3.32 | 0.70, 1.04 | 3/3 |
+
+Step window, data seed 0: passes to the target at the step selected on the fine grid times 2^(j / 8), median over the confirmation seeds ('(k/N)' when not all reach it; key window/<family>/<j>).
+
+| b | family | j = -2 | j = -1 | j = 0 | j = 1 | j = 2 |
+|---|---|---|---|---|---|---|
+| 1 | SAGA-Muon | not reached | 185.7 | 24.6 | 26.4 | 29.0 |
+| 1 | B-SAGA | 30.2 | 28.3 | 27.1 | 27.1 | 27.6 |
+| 4 | SAGA-Muon | 121.8 | 22.0 | 21.2 | 22.8 | 24.1 |
+| 4 | B-SAGA | 30.6 | 29.1 | 28.6 | 29.2 | 31.4 |
+| 16 | SAGA-Muon | 94.0 | 67.4 | 23.2 | 22.0 | 24.2 |
+| 16 | B-SAGA | 30.6 | 30.2 | 31.0 | 34.2 | 38.6 |
+| 64 | SAGA-Muon | 87.7 | 56.5 | 37.8 | 220.8 (6/10) | not reached |
+| 64 | B-SAGA | 68.5 | 62.8 | 57.6 | 54.1 | 98.0 |
+
+### ls-cond: least squares, conditioning-limited (`ls_n200_d40_K8_k10000_a2_s0`, target 1e-06, budget 300 passes)
+
+Fine grid, data seed 0 (keys fine/rows/<family>/{summary, best}; * = selected value on the edge of its grid).
+
+| b | SAGA | B-SAGA | SAGA-Muon | factorizations per pass |
+|---|---|---|---|---|
+| 1 | 83.5 [82.8, 87.8] (gamma=2.37841/R2) | 31.9 [30.4, 36.7] (theta=0.1, gamma=8/R2) | 33.3 [31.9, 34.3] (gamma=0.148651/R2_op) | 200 |
+| 4 | 117.0 [100.4, 217.1] (gamma=8/R2) | 34.2 [32.1, 37.8] (theta=0.1, gamma=26.9087/R2) | 25.4 [24.4, 26.0] (gamma=1.18921/R2_op) | 50 |
+| 16 | 232.6 [232.0, 233.2] (gamma=13.4543/R2) | 51.2 [50.1, 52.3] (theta=0.2, gamma=64/R2) | 28.0 [26.3, 89.3] (gamma=5.65685/R2_op) | 12.5 |
+| 64 | not reached (gamma=19.0273/R2) | 181.8 [167.7, 259.2] (theta=0.35, gamma=76.1093/R2) | 50.6 [41.6, 76.2] (gamma=11.3137/R2_op) | 3.12 |
+
+Ratios, data seed 0 (keys fine/ratio and fine/boot, shifted/ratio, factor2/ratio, m5/ratio, conservative/{fine, shifted}; 'same point' = number of families for which the factor-2 control selects M5's point, key factor2_vs_m5).
+
+| b | fine grid | shifted grid | factor-2 control | M5 | conservative: fine, shifted | control selects M5's point |
+|---|---|---|---|---|---|---|
+| 1 | 1.04 [1.01, 1.08] | 0.96 [0.92, 1.00] | - | - | 1.04, 0.98 | 3/3 |
+| 4 | 0.74 [0.72, 0.76] | 0.72 [0.70, 0.74] | 2.04 | 2.04 | 0.75, 0.72 | 3/3 |
+| 16 | 0.55 [0.52, 0.61] | 0.48 [0.44, 0.52] | 1.78 | 1.74 | 0.56, 0.55 | 3/3 |
+| 64 | 0.28 [0.23, 0.34] | 0.42 [0.39, 0.47] | - | - | 0.28, 0.42 | 3/3 |
+
+Step window, data seed 0: passes to the target at the step selected on the fine grid times 2^(j / 8), median over the confirmation seeds ('(k/N)' when not all reach it; key window/<family>/<j>).
+
+| b | family | j = -2 | j = -1 | j = 0 | j = 1 | j = 2 |
+|---|---|---|---|---|---|---|
+| 1 | SAGA-Muon | 43.5 (9/10) | 31.2 | 33.3 | 36.2 | 42.0 |
+| 1 | B-SAGA | 33.5 | 32.2 | 31.9 | 32.5 | 34.4 |
+| 4 | SAGA-Muon | 68.8 | 24.1 | 25.4 | 27.2 | 30.3 |
+| 4 | B-SAGA | 38.5 | 36.0 | 34.2 | 33.8 | 34.0 |
+| 16 | SAGA-Muon | 175.3 | 104.6 | 28.0 | 27.5 | 32.7 |
+| 16 | B-SAGA | 58.9 | 54.8 | 51.2 | 50.0 | 69.9 |
+| 64 | SAGA-Muon | 254.8 | 155.6 | 50.6 | 76.5 | not reached (10 diverged) |
+| 64 | B-SAGA | 195.6 | 181.6 | 181.8 | not reached (10 diverged) | not reached (10 diverged) |
+
+### ls-orth: least squares, flat planted spectrum (K = d) (`ls_n500_d20_K20_k100000_a2_s0_noise0.1_plantedorthogonal`, target 1e-06, budget 100 passes)
+
+Fine grid, data seed 0 (keys fine/rows/<family>/{summary, best}; * = selected value on the edge of its grid).
+
+| b | SAGA | B-SAGA | SAGA-Muon | factorizations per pass |
+|---|---|---|---|---|
+| 1 | 27.1 [26.8, 27.6] (gamma=2/R2) | 17.7 [16.5, 18.7] (theta=0.2, gamma=2.82843/R2) | 22.9 [22.5, 23.8] (gamma=0.0441942/R2_op) | 500 |
+| 4 | 31.7 [31.0, 32.9] (gamma=6.72717/R2) | 18.2 [17.0, 20.0] (theta=0.2, gamma=11.3137/R2) | 20.2 [19.5, 34.4] (gamma=0.297302/R2_op) | 125 |
+| 16 | 51.4 [51.2, 53.0] (gamma=16/R2) | 18.8 [17.5, 21.1] (theta=0.2, gamma=45.2548/R2) | 16.5 [15.1, 52.3] (gamma=2.37841/R2_op) | 31.2 |
+| 64 | not reached (gamma=19.0273/R2) | 28.9 [26.5, 33.9] (theta=0.2, gamma=107.635/R2) | 20.6 [19.8, 21.0] (gamma=9.51366/R2_op) | 7.81 |
+
+Ratios, data seed 0 (keys fine/ratio and fine/boot, shifted/ratio, factor2/ratio, m5/ratio, conservative/{fine, shifted}; 'same point' = number of families for which the factor-2 control selects M5's point, key factor2_vs_m5).
+
+| b | fine grid | shifted grid | factor-2 control | M5 | conservative: fine, shifted | control selects M5's point |
+|---|---|---|---|---|---|---|
+| 1 | 1.30 [1.25, 1.32] | 1.48 [1.45, 1.52] | 1.53 | 1.53 | 1.30, 1.49 | 3/3 |
+| 4 | 1.11 [1.04, 1.15] | 1.12 [1.04, 1.28] | 1.37 | 1.37 | 1.11, 1.12 | 3/3 |
+| 16 | 0.87 [0.85, 0.89] | 0.89 [0.87, 0.89] | 0.94 | 0.94 | 0.88, 0.89 | 3/3 |
+| 64 | 0.71 [0.68, 0.75] | 0.64 [0.60, 0.66] | 0.52 | 0.52 | 0.73, 0.64 | 3/3 |
+
+Step window, data seed 0: passes to the target at the step selected on the fine grid times 2^(j / 8), median over the confirmation seeds ('(k/N)' when not all reach it; key window/<family>/<j>).
+
+| b | family | j = -2 | j = -1 | j = 0 | j = 1 | j = 2 |
+|---|---|---|---|---|---|---|
+| 1 | SAGA-Muon | 25.2 (7/10) | 22.2 (9/10) | 22.9 | 23.9 | 24.9 |
+| 1 | B-SAGA | 18.6 | 17.8 | 17.7 | 17.9 | 17.9 |
+| 4 | SAGA-Muon | 36.0 (6/10) | 20.4 | 20.2 | 20.8 | 21.2 |
+| 4 | B-SAGA | 19.0 | 18.4 | 18.2 | 18.2 | 18.4 |
+| 16 | SAGA-Muon | 90.3 (7/10) | 20.2 | 16.5 | 16.6 | 16.7 |
+| 16 | B-SAGA | 19.2 | 18.7 | 18.8 | 19.0 | 19.7 |
+| 64 | SAGA-Muon | 16.7 | 18.0 | 20.6 | 26.0 | 40.3 |
+| 64 | B-SAGA | 33.1 | 30.5 | 28.9 | 28.3 | 32.2 |
+
+### M5b on other draws of the data
+
+Grids centred on the steps of data seed 0; parts fine and factor-2 control only (keys as above, with the data seed in the path).
+
+| instance | data seed | b | SAGA | B-SAGA | SAGA-Muon | fine grid | factor-2 control | conservative (fine) |
+|---|---|---|---|---|---|---|---|---|
+| soft-cond | 1 | 16 | 113.0 [112.9, 113.1] (gamma=38.0546/R2) | 35.6 [34.4, 36.9] (theta=0.2, gamma=128/R2) | 25.9 [24.0, 28.1] (gamma=16/R2_op) | 0.73 | 0.73 | 0.73 |
+| soft-cond | 1 | 64 | 224.7 [224.4, 225.0] (gamma=76.1093/R2) | 79.2 [78.8, 79.4] (theta=0.35, gamma=215.269/R2) | 74.6 [45.8, 111.1] (gamma=45.2548/R2_op) | 0.94 | 1.26 | 0.94 |
+| soft-cond | 2 | 16 | 114.5 [114.4, 127.0] (gamma=38.0546/R2) | 41.3 [35.2, 53.2] (theta=0.2, gamma=128/R2) | 28.7 [27.5, 30.1] (gamma=16/R2_op) | 0.69 | 0.69 | 0.69 |
+| soft-cond | 2 | 64 | not reached (gamma=53.8174/R2) | 96.0 [95.4, 96.0] (theta=0.35, gamma=181.019/R2) | 70.3 [63.4, 141.8] (gamma=38.0546/R2_op) | 0.73 | 1.04 | 0.73 |
+| ls-cond | 1 | 16 | 194.4 [194.0, 206.2] (gamma=16/R2) | 48.4 [44.8, 53.5] (theta=0.2, gamma=76.1093/R2) | 30.0 [28.6, 30.8] (gamma=6.72717/R2_op) | 0.62 | 1.23 | 0.62 |
+| ls-cond | 1 | 64 | not reached (gamma=19.0273/R2) | 164.7 [162.0, 183.7] (theta=0.35, gamma=76.1093/R2) | 77.2 [42.6, 111.7] (gamma=11.3137/R2_op) | 0.47 | - | 0.47 |
+| ls-cond | 2 | 16 | 234.2 [233.3, inf] (9/10) (gamma=13.4543/R2) | 60.9 [49.7, 78.2] (theta=0.1, gamma=76.1093/R2) | 30.8 [29.8, 32.0] (gamma=5.65685/R2_op) | 0.50 | 4.94 | 0.56 |
+| ls-cond | 2 | 64 | not reached (gamma=16/R2) | 199.1 [193.6, 237.5] (theta=0.35, gamma=64/R2) | 94.4 [50.9, 111.4] (gamma=9.51366/R2_op) | 0.47 | - | 0.47 |
+
+Code fingerprint(s) of the runs (muon/lab and common.py, key code_runs): `29971fef4e78`.
+
 ## M6. The joint step as an implicit MISO iteration
 
 Fixed, untuned parameters; n = 1000, d = 50, K = 10, alpha = 1. Passes to 1e-06: median [min, max] over 3 seeds within 40 passes; final relative squared distance (median); 'base' = median over the run of ||m||_* / ||grad F||_* (size of the predictable part relative to the gradient; identically 0 for the MISO members).
@@ -887,4 +1009,349 @@ Same sizes, spectrum and regularization as the M1 instance, other data seeds; ev
 | *best orthogonalized / best Euclidean (IS included)* | 1.02 | 1.08 | 0.99 |
 | *best one-shot polar metric / best Euclidean (IS included)* | 0.88 | 0.95 | 0.81 |
 | *best one-shot polar metric / covariance metric* | 1.47 | 1.62 | 1.48 |
+
+## M9. Muon's own recipe with a SAGA table
+
+Recipe: W <- W - lr_t map(D_t), D_t the SAGA estimator (joint placement; through Nesterov momentum 0.9 when stated), lr_t = lr_0 q^(t b / n) (schedule 'geometric', lr_decay = q), W_0 = 0. Maps: polar = exact polar factor (orth 'svd'); ns5 = five Newton-Schulz steps with eps = 1e-7; frob = M / ||M||_F and sign = coordinatewise sign (gauge-projected for softmax) are controls, not orthogonalizations. lr_0 is a length in the norm of the map: not comparable across maps. Protocol of M1 (tuning seeds [0, 1] and [2, 3, 4], confirmation seeds 10..19); screening: the recipe families are screened like the constant-step references: the geometric cooldown does not depend on the length of the run, so the screening run is a prefix of the full run (the schedule is a one-valued grid parameter, see families.recipe_family). Accounting: passes = per-sample gradient evaluations / n, initial full gradient of the SAGA table included (1 pass); b + m per iteration with m extra refreshes. Source: `M9_summary.json` (code fingerprint `40df8a190653`).
+
+### M9 part A: maps by batch size
+
+Passes to the target, median [min, max] over the confirmation seeds ('(k/N)' when not all reach it), selected (q, lr_0) or step in parentheses; * = selected value on the edge of its grid. '+ Nesterov' = Nesterov momentum 0.9. frob and sign are controls, not orthogonalizations. The three references use constant steps on 2^(1/4) grids at the same batch (not run at b = 1). Keys: A/<instance>/cells/<b>/rows/<family>/{summary, best, edge}.
+
+**soft-cond** (`softmax_n200_d40_K8_k10000_a2_s0`, target 1e-06, budget 300 passes; q in [0.5, 0.6, 0.7, 0.8, 0.9, 0.95]).
+
+| family | b = 1 | b = 16 | b = 32 |
+|---|---|---|---|
+| fixed-length SAGA [polar] | 28.0 [26.7, 30.4] (q=0.8, lr0=0.1) | 22.4 [21.4, 23.5] (q=0.7, lr0=10) | 25.7 [24.8, 27.1] (q=0.8, lr0=3) |
+| fixed-length SAGA [polar + Nesterov] | 21.4 [19.6, inf] (7/10) (q=0.7, lr0=0.3) | 31.0 [30.1, 31.9] (q=0.8, lr0=3) | 29.3 [28.2, 31.1] (q=0.8, lr0=3) |
+| fixed-length SAGA [ns5] | 27.6 [26.4, 29.2] (q=0.8, lr0=0.1) | 22.9 [21.4, 24.6] (q=0.7, lr0=10) | 30.4 [29.8, 30.9] (q=0.8, lr0=10) |
+| fixed-length SAGA [ns5 + Nesterov] | 21.8 [19.8, inf] (7/10) (q=0.7, lr0=0.3) | 30.4 [29.3, 31.9] (q=0.8, lr0=3) | 28.8 [28.0, 30.6] (q=0.8, lr0=3) |
+| fixed-length SAGA [frob] | 22.9 [21.1, 28.1] (q=0.7, lr0=3) | 48.3 [47.2, 49.9] (q=0.9, lr0=3) | 75.0 [73.2, 76.4] (q=0.9, lr0=30) |
+| fixed-length SAGA [frob + Nesterov] | 32.0 [30.2, 32.5] (q=0.8, lr0=1) | 27.8 [25.1, 30.5] (q=0.8, lr0=3) | 30.5 [29.8, 32.7] (q=0.8, lr0=10) |
+| fixed-length SAGA [sign] | 31.1 [29.4, 33.2] (q=0.8, lr0=0.1) | 63.2 [60.8, 67.4] (q=0.9, lr0=0.3) | 134.9 [128.0, 144.7] (q=0.95, lr0=0.3)* |
+| fixed-length SAGA [sign + Nesterov] | 35.7 [33.4, 41.2] (q=0.8, lr0=0.1) | inf [32.4, inf] (5/10) (q=0.8, lr0=0.3) | 33.2 [32.5, 35.7] (q=0.8, lr0=1) |
+| SAGA |  | 82.2 [82.0, 82.3] (gamma=53.8174/R2) | 100.4 [97.3, 156.4] (gamma=90.5097/R2) |
+| B-SAGA |  | 31.0 [27.3, 37.3] (theta=0.2, gamma=181.019/R2) | 36.4 [34.8, 38.8] (theta=0.2, gamma=256/R2) |
+| SAGA-Muon (joint) |  | 23.2 [21.0, 33.1] (gamma=19.0273/R2_op) | 29.6 [26.9, 35.9] (gamma=38.0546/R2_op) |
+
+**ls-cond** (`ls_n200_d40_K8_k10000_a2_s0`, target 1e-06, budget 300 passes; q in [0.5, 0.6, 0.7, 0.8, 0.9, 0.95]).
+
+| family | b = 1 | b = 16 | b = 32 |
+|---|---|---|---|
+| fixed-length SAGA [polar] | 36.1 [35.4, 37.0] (q=0.8, lr0=0.3) | 27.7 [25.0, inf] (9/10) (q=0.8, lr0=1) | 30.8 [29.6, 32.2] (q=0.8, lr0=3) |
+| fixed-length SAGA [polar + Nesterov] | 26.8 [26.4, 27.3] (q=0.8, lr0=0.1) | 28.8 [28.6, 30.3] (q=0.8, lr0=1) | 32.7 [32.2, 33.3] (q=0.8, lr0=3) |
+| fixed-length SAGA [ns5] | 36.0 [35.3, 36.4] (q=0.8, lr0=0.3) | 29.7 [29.2, 29.9] (q=0.8, lr0=3) | 31.3 [30.0, 32.0] (q=0.8, lr0=3) |
+| fixed-length SAGA [ns5 + Nesterov] | 27.9 [24.9, inf] (8/10) (q=0.7, lr0=1) | 33.3 [32.8, 33.5] (q=0.8, lr0=3) | 32.2 [31.9, 33.6] (q=0.8, lr0=3) |
+| fixed-length SAGA [frob] | 29.0 [28.6, 30.3] (q=0.8, lr0=1) | 144.3 [141.2, 146.0] (q=0.95, lr0=3)* | not reached (q=0.95, lr0=100)* |
+| fixed-length SAGA [frob + Nesterov] | 50.5 [49.3, 51.7] (q=0.9, lr0=0.1) | 38.9 [36.7, 40.2] (q=0.8, lr0=10) | 53.2 [51.9, 54.6] (q=0.9, lr0=3) |
+| fixed-length SAGA [sign] | 31.4 [30.8, 32.2] (q=0.8, lr0=0.1) | not reached (q=0.95, lr0=0.3)* | not reached (q=0.95, lr0=0.3)* |
+| fixed-length SAGA [sign + Nesterov] | 59.3 [57.5, 60.4] (q=0.9, lr0=0.01) | 53.2 [52.4, 54.4] (q=0.9, lr0=0.1) | 71.7 [67.9, 73.5] (q=0.9, lr0=0.3) |
+| SAGA |  | 232.6 [232.0, 233.2] (gamma=13.4543/R2) | not reached (gamma=16/R2) |
+| B-SAGA |  | 51.2 [50.1, 52.3] (theta=0.2, gamma=64/R2) | 75.4 [70.0, 88.2] (theta=0.2, gamma=90.5097/R2) |
+| SAGA-Muon (joint) |  | 28.0 [26.3, 89.3] (gamma=5.65685/R2_op) | 37.9 [33.3, 39.1] (gamma=9.51366/R2_op) |
+
+**ls-orth** (`ls_n500_d20_K20_k100000_a2_s0_noise0.1_plantedorthogonal`, target 1e-06, budget 100 passes; q in [0.5, 0.6, 0.7, 0.8, 0.9, 0.95]).
+
+| family | b = 1 | b = 16 | b = 32 |
+|---|---|---|---|
+| fixed-length SAGA [polar] | 22.6 [22.5, 24.3] (q=0.7, lr0=0.1) | 16.9 [16.6, 17.3] (q=0.7, lr0=1) | 17.4 [17.1, 20.1] (q=0.8, lr0=0.3) |
+| fixed-length SAGA [polar + Nesterov] | 17.4 [17.0, 17.7] (q=0.7, lr0=0.1) | 18.5 [18.4, 18.8] (q=0.7, lr0=1) | 20.4 [20.1, 20.9] (q=0.8, lr0=0.3) |
+| fixed-length SAGA [ns5] | 22.1 [21.9, 23.8] (q=0.7, lr0=0.1) | 16.6 [16.5, 17.5] (q=0.7, lr0=1) | 17.9 [17.8, 18.1] (q=0.7, lr0=3) |
+| fixed-length SAGA [ns5 + Nesterov] | 17.2 [16.8, 17.5] (q=0.7, lr0=0.1) | 18.2 [18.1, 18.5] (q=0.7, lr0=1) | 20.2 [20.0, 20.4] (q=0.7, lr0=3) |
+| fixed-length SAGA [frob] | 16.3 [15.3, 16.9] (q=0.7, lr0=1) | 40.6 [40.2, 41.6] (q=0.8, lr0=10) | 68.6 [67.6, 70.1] (q=0.9, lr0=10) |
+| fixed-length SAGA [frob + Nesterov] | 19.8 [19.3, 20.3] (q=0.7, lr0=1) | 17.9 [16.9, 19.0] (q=0.7, lr0=3) | 19.4 [19.0, 20.3] (q=0.7, lr0=10) |
+| fixed-length SAGA [sign] | 19.6 [19.2, 19.9] (q=0.7, lr0=0.1) | 55.5 [54.3, 56.3] (q=0.9, lr0=0.1) | not reached (q=0.95, lr0=0.03)* |
+| fixed-length SAGA [sign + Nesterov] | 21.6 [21.4, 23.1] (q=0.7, lr0=0.1) | 22.8 [22.5, 23.2] (q=0.7, lr0=1) | 22.2 [22.1, 22.6] (q=0.7, lr0=1) |
+| SAGA |  | 51.4 [51.2, 53.0] (gamma=16/R2) | 85.2 [85.0, 86.3] (gamma=19.0273/R2) |
+| B-SAGA |  | 18.8 [17.5, 21.1] (theta=0.2, gamma=45.2548/R2) | 20.6 [19.6, 22.0] (theta=0.2, gamma=76.1093/R2) |
+| SAGA-Muon (joint) |  | 16.5 [15.1, 52.3] (gamma=2.37841/R2_op) | 16.7 [16.4, 17.6] (gamma=5.65685/R2_op) |
+
+**soft-sq** (`softmax_n500_d20_K20_k10000_a2_s0`, target 1e-06, budget 120 passes; q in [0.5, 0.6, 0.7, 0.8, 0.9, 0.95]).
+
+| family | b = 1 | b = 16 | b = 32 |
+|---|---|---|---|
+| fixed-length SAGA [polar] | 19.5 [18.2, 20.6] (q=0.8, lr0=0.03) | 13.6 [13.2, 14.7] (q=0.6, lr0=3) | 13.2 [12.6, 18.6] (q=0.6, lr0=3) |
+| fixed-length SAGA [polar + Nesterov] | 14.9 [14.5, 15.2] (q=0.7, lr0=0.1) | 16.4 [15.7, inf] (9/10) (q=0.6, lr0=3) | 16.5 [16.2, 16.7] (q=0.7, lr0=1) |
+| fixed-length SAGA [ns5] | 19.7 [19.0, 20.7] (q=0.8, lr0=0.03) | 13.6 [12.9, 15.8] (q=0.6, lr0=3) | 15.3 [14.6, 16.9] (q=0.6, lr0=10) |
+| fixed-length SAGA [ns5 + Nesterov] | 14.6 [14.4, 15.2] (q=0.7, lr0=0.1) | 16.1 [15.4, inf] (9/10) (q=0.6, lr0=3) | 19.0 [18.8, 19.2] (q=0.7, lr0=3) |
+| fixed-length SAGA [frob] | 14.8 [14.0, 16.0] (q=0.7, lr0=0.3) | 22.8 [22.3, 23.1] (q=0.8, lr0=3) | 32.3 [31.2, 33.1] (q=0.8, lr0=10) |
+| fixed-length SAGA [frob + Nesterov] | 18.8 [18.1, 19.6] (q=0.8, lr0=0.1) | 17.5 [17.1, 18.0] (q=0.7, lr0=3) | 16.0 [15.7, 17.6] (q=0.7, lr0=3) |
+| fixed-length SAGA [sign] | 18.1 [17.7, 19.1] (q=0.8, lr0=0.01) | 23.6 [21.6, inf] (9/10) (q=0.7, lr0=1) | 39.5 [37.7, 42.8] (q=0.9, lr0=0.1) |
+| fixed-length SAGA [sign + Nesterov] | 18.9 [18.4, 19.8] (q=0.8, lr0=0.01) | 19.0 [18.3, 20.2] (q=0.7, lr0=0.3) | 17.7 [17.0, inf] (8/10) (q=0.7, lr0=0.3) |
+| SAGA |  | 36.3 [36.1, 36.6] (gamma=45.2548/R2) | 50.6 [50.5, 51.3] (gamma=64/R2) |
+| B-SAGA |  | 16.8 [16.0, 18.5] (theta=0.2, gamma=128/R2) | 17.7 [17.0, 18.7] (theta=0.2, gamma=215.269/R2) |
+| SAGA-Muon (joint) |  | 13.4 [12.2, 37.1] (gamma=8/R2_op) | 13.4 [12.7, 15.8] (gamma=19.0273/R2_op) |
+
+Ratios of medians per cell (key A/<instance>/cells/<b>/compare): fastest variant among the spectral maps (polar, ns5; with or without Nesterov) over the fastest control (frob, sign; with or without Nesterov), over the fastest control without momentum, over the faster of SAGA and B-SAGA, and over the nuclear-scaled joint SAGA-Muon. The fastest variant is the smallest median, even when its row loses seeds ('(k/N)' next to its name); 0.00 = the denominator never reaches the target; '-' = not available.
+
+| instance | b | fastest spectral | fastest control | / control | / control without momentum | / best of SAGA, B-SAGA | / nuclear-scaled SAGA-Muon |
+|---|---|---|---|---|---|---|---|
+| soft-cond | 1 | polar+N (7/10) | frob | 0.94 | 0.94 | - | - |
+| soft-cond | 16 | polar | frob+N | 0.80 | 0.46 | 0.72 | 0.96 |
+| soft-cond | 32 | polar | frob+N | 0.84 | 0.34 | 0.71 | 0.87 |
+| ls-cond | 1 | polar+N | frob | 0.92 | 0.92 | - | - |
+| ls-cond | 16 | polar (9/10) | frob+N | 0.71 | 0.19 | 0.54 | 0.99 |
+| ls-cond | 32 | polar | frob+N | 0.58 | 0.00 | 0.41 | 0.81 |
+| ls-orth | 1 | ns5+N | frob | 1.06 | 1.06 | - | - |
+| ls-orth | 16 | ns5 | frob+N | 0.93 | 0.41 | 0.89 | 1.01 |
+| ls-orth | 32 | polar | frob+N | 0.89 | 0.25 | 0.84 | 1.04 |
+| soft-sq | 1 | ns5+N | frob | 0.99 | 0.99 | - | - |
+| soft-sq | 16 | ns5 | frob+N | 0.78 | 0.59 | 0.81 | 1.01 |
+| soft-sq | 32 | polar | frob+N | 0.83 | 0.41 | 0.75 | 0.99 |
+
+### M9 part B: batch one on the six instances
+
+Exact polar factor without momentum, and Muon's recipe (ns5, Nesterov 0.9), tuned on a finer grid of q; then both at the fixed point q = 0.8, lr_0 = 0.1 (no tuning) on the same confirmation seeds. 'on schedule' = confirmation runs that go on to the stop level. dist^2 / lr^2: ||W_t - W_*||_F^2 / lr_t^2 over the second half (in passes) of the confirmation runs that reached the stop level: min and max over these runs, median width max/min of a run. M1: medians of `M1_summary.json` on the same instance (factor-2 step grids). Keys: B/<instance>/rows/<family>, B/<instance>/fixed_point/rows/<family>, B/<instance>/M1/rows.
+
+**soft-cond** (target 1e-06, budget 300 passes; q in [0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9], lr_0 in [0.003, 0.01, 0.03, 0.1, 0.3, 1.0]).
+
+| configuration | selected point | passes to the target | on schedule | dist^2 / lr^2: min, max (median width of a run) |
+|---|---|---|---|---|
+| fixed-length SAGA [polar] | q=0.8, lr0=0.1 | 28.0 [26.7, 30.4] | 10/10 | 3.68e+04, 2.49e+05 (2.7) |
+| fixed-length SAGA [ns5 + Nesterov] | q=0.7, lr0=0.3 | 21.8 [19.8, inf] (7/10) | 4/10 | 3.28e+04, 1.77e+05 (3.6) |
+| fixed-length SAGA [polar], fixed point | q=0.8, lr0=0.1 | 28.0 [26.7, 30.4] | 10/10 | 3.68e+04, 2.49e+05 (2.7) |
+| fixed-length SAGA [ns5 + Nesterov], fixed point | q=0.8, lr0=0.1 | 23.4 [22.3, 24.8] | 10/10 | 5e+03, 3e+04 (2.4) |
+
+M1, same instance: SAGA 69.5; B-SAGA 33.8; cov-metric B-SAGA 15.1; SAGA-Muon (joint) 29.0; soft SAGA-Muon 23.9; one-shot polar-metric B-SAGA 22.1.
+
+**ls-cond** (target 1e-06, budget 300 passes; q in [0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9], lr_0 in [0.003, 0.01, 0.03, 0.1, 0.3, 1.0]).
+
+| configuration | selected point | passes to the target | on schedule | dist^2 / lr^2: min, max (median width of a run) |
+|---|---|---|---|---|
+| fixed-length SAGA [polar] | q=0.8, lr0=0.3 | 36.1 [35.4, 37.0] | 10/10 | 6.17e+04, 2.22e+05 (1.8) |
+| fixed-length SAGA [ns5 + Nesterov] | q=0.75, lr0=0.3 | 25.5 [24.7, inf] (9/10) | 9/10 | 1.15e+04, 4.53e+04 (2.1) |
+| fixed-length SAGA [polar], fixed point | q=0.8, lr0=0.1 | 31.3 [30.7, 33.1] | 10/10 | 6.3e+04, 2.39e+05 (1.9) |
+| fixed-length SAGA [ns5 + Nesterov], fixed point | q=0.8, lr0=0.1 | 26.4 [25.4, 26.7] | 10/10 | 7.34e+03, 1.88e+04 (1.8) |
+
+M1, same instance: SAGA 98.7; B-SAGA 31.9; cov-metric B-SAGA 16.1; SAGA-Muon (joint) 43.5 (9/10); soft SAGA-Muon 29.8; one-shot polar-metric B-SAGA 24.4.
+
+**ls-orth** (target 1e-06, budget 100 passes; q in [0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9], lr_0 in [0.003, 0.01, 0.03, 0.1, 0.3, 1.0]).
+
+| configuration | selected point | passes to the target | on schedule | dist^2 / lr^2: min, max (median width of a run) |
+|---|---|---|---|---|
+| fixed-length SAGA [polar] | q=0.75, lr0=0.03 | 22.2 [22.0, 22.5] | 10/10 | 4.36e+05, 9.64e+05 (1.6) |
+| fixed-length SAGA [ns5 + Nesterov] | q=0.75, lr0=0.03 | 16.6 [16.1, inf] (9/10) | 9/10 | 1.31e+04, 8.5e+04 (2.0) |
+| fixed-length SAGA [polar], fixed point | q=0.8, lr0=0.1 | 32.7 [32.2, 32.9] | 10/10 | 2.67e+05, 5.12e+05 (1.6) |
+| fixed-length SAGA [ns5 + Nesterov], fixed point | q=0.8, lr0=0.1 | 25.3 [24.7, 25.7] | 10/10 | 9.79e+03, 2.14e+04 (1.6) |
+
+M1, same instance: SAGA 27.1; B-SAGA 18.4; cov-metric B-SAGA 13.9; SAGA-Muon (joint) 28.1; soft SAGA-Muon 20.5; one-shot polar-metric B-SAGA 13.9.
+
+**soft-sq** (target 1e-06, budget 120 passes; q in [0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9], lr_0 in [0.003, 0.01, 0.03, 0.1, 0.3, 1.0]).
+
+| configuration | selected point | passes to the target | on schedule | dist^2 / lr^2: min, max (median width of a run) |
+|---|---|---|---|---|
+| fixed-length SAGA [polar] | q=0.75, lr0=0.03 | 17.1 [16.7, 17.4] | 10/10 | 2.21e+04, 1.12e+05 (2.5) |
+| fixed-length SAGA [ns5 + Nesterov] | q=0.65, lr0=0.1 | 13.4 [12.8, 13.9] | 10/10 | 1e+04, 7.76e+04 (3.0) |
+| fixed-length SAGA [polar], fixed point | q=0.8, lr0=0.1 | 25.0 [23.9, 25.7] | 10/10 | 1.1e+04, 5.74e+04 (2.9) |
+| fixed-length SAGA [ns5 + Nesterov], fixed point | q=0.8, lr0=0.1 | 21.3 [20.8, 21.8] | 10/10 | 3.58e+03, 7.76e+03 (1.9) |
+
+M1, same instance: SAGA 26.1; B-SAGA 15.9; cov-metric B-SAGA 13.5; SAGA-Muon (joint) 20.3; soft SAGA-Muon 14.9; one-shot polar-metric B-SAGA 12.9.
+
+**soft-mem** (target 1e-09, budget 40 passes; q in [0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9], lr_0 in [0.003, 0.01, 0.03, 0.1, 0.3, 1.0]).
+
+| configuration | selected point | passes to the target | on schedule | dist^2 / lr^2: min, max (median width of a run) |
+|---|---|---|---|---|
+| fixed-length SAGA [polar] | q=0.65, lr0=0.03 | 18.6 [17.3, 21.7] | 10/10 | 205, 3.62e+05 (36.1) |
+| fixed-length SAGA [ns5 + Nesterov] | q=0.6, lr0=0.03 | 16.9 [16.4, 19.9] | 10/10 | 3.72e+03, 2.78e+05 (7.4) |
+| fixed-length SAGA [polar], fixed point | q=0.8, lr0=0.1 | 25.2 [24.7, 25.4] | 0/10 | - |
+| fixed-length SAGA [ns5 + Nesterov], fixed point | q=0.8, lr0=0.1 | 38.6 [38.4, 38.8] | 0/10 | - |
+
+M1, same instance: SAGA 17.1; B-SAGA 17.0; cov-metric B-SAGA 15.8; SAGA-Muon (joint) 18.0; soft SAGA-Muon 16.6; one-shot polar-metric B-SAGA 16.4.
+
+**ls-mem** (target 1e-09, budget 40 passes; q in [0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9], lr_0 in [0.003, 0.01, 0.03, 0.1, 0.3, 1.0]).
+
+| configuration | selected point | passes to the target | on schedule | dist^2 / lr^2: min, max (median width of a run) |
+|---|---|---|---|---|
+| fixed-length SAGA [polar] | q=0.7, lr0=0.01 | 23.1 [22.2, inf] (9/10) | 9/10 | 6.04e+03, 7.03e+05 (29.8) |
+| fixed-length SAGA [ns5 + Nesterov] | q=0.6, lr0=0.03 | 19.0 [17.6, inf] (8/10) | 7/10 | 1.47e+04, 6.16e+05 (6.6) |
+| fixed-length SAGA [polar], fixed point | q=0.8, lr0=0.1 | 26.9 [26.5, 27.4] | 0/10 | - |
+| fixed-length SAGA [ns5 + Nesterov], fixed point | q=0.8, lr0=0.1 | inf [39.9, inf] (4/10) | 0/10 | - |
+
+M1, same instance: SAGA 18.9; B-SAGA 18.6; cov-metric B-SAGA 17.5; SAGA-Muon (joint) 23.1 (9/10); soft SAGA-Muon 18.5; one-shot polar-metric B-SAGA 18.4.
+
+### M9 part C: the schedule law and its controls
+
+Batch one. Definitions of the summary: part C, per run without stop rule: level = median of dist^2 / lr^2 over the records with relative squared distance in [1e-12, 1e-06]; depth_rel_x3 and depth_rel_x10 = relative squared distance of the last record whose ratio is at most 3 (resp. 10) times the level (after a floor or a freeze the ratio grows for good: the law holds down to that distance within that factor; a run that stalls on its floor is still within the factor for a few passes, so these two readings sit next to min_rel); depth_rel_in_range = the same with the largest ratio recorded in the window in place of 3 x level (the distance from which the ratio leaves the range it had on schedule: where the floor starts to show); band = min and max of the ratio over the second half (in passes) of the run up to the x3 record; on_schedule = the run goes below 1e-12; min_rel = lowest relative squared distance recorded (the floor of the run). Keys: C/<instance>/deep/<configuration>, C/<instance>/controls/<configuration>/final_rel.
+
+**soft-cond** (300 passes, seeds 10..14).
+
+| configuration with a SAGA table | (q, lr_0) | on schedule | level of dist^2 / lr^2 | band | law holds down to (ratio in its on-schedule range) | within 3x of the level | lowest relative squared distance |
+|---|---|---|---|---|---|---|---|
+| polar, no momentum | q=0.8, lr0=0.1 | 5/5 | 6.33e+04 | 3.8e+04, 1.79e+05 | 5.9e-29 [3.8e-29, 1.3e-28] | 3.3e-29 [2.5e-29, 6.4e-29] | 2.8e-29 [2.3e-29, 4.1e-29] |
+| ns5 + Nesterov (Muon's recipe) | q=0.7, lr0=0.3 | 1/5 | 1.13e+05 | 3.99e+04, 2.62e+05 | 1.2e-12 [1.2e-12, 1.2e-12] | 1.1e-11 [1.1e-11, 1.1e-11] | 1.3e-07 [5.2e-13, 3.0e-05] |
+| ns5 + Nesterov, eps = 1e-30 | q=0.7, lr0=0.3 | 1/5 | 1.09e+05 | 4.17e+04, 3.19e+05 | 1.4e-12 [1.4e-12, 1.4e-12] | 5.4e-12 [5.4e-12, 5.4e-12] | 1.3e-07 [4.7e-13, 3.0e-05] |
+| ns5 + Nesterov at q = 0.8, lr_0 = 0.1 | q=0.8, lr0=0.1 | 5/5 | 8.97e+03 | 3.09e+03, 3.36e+04 | 1.8e-18 [1.2e-18, 1.9e-17] | 1.4e-18 [1.1e-18, 6.7e-18] | 9.8e-19 [7.7e-19, 2.8e-18] |
+| ns5 + Nesterov, eps = 1e-30, at q = 0.8, lr_0 = 0.1 | q=0.8, lr0=0.1 | 5/5 | 8.78e+03 | 5.36e+03, 4.07e+04 | 5.1e-29 [2.0e-29, 1.2e-27] | 1.8e-29 [1.7e-29, 1.9e-29] | 1.5e-29 [1.1e-29, 1.6e-29] |
+
+Without a table, on the schedule q=0.7, lr0=0.3: final relative squared distance, median [min, max].
+
+| configuration without a table | final relative squared distance |
+|---|---|
+| no table (minibatch gradient), ns5 + Nesterov, b=1 | 0.256 [0.240, 0.279] |
+| MARS-M, b=1 | 0.340 [0.297, 0.355] |
+| STORM-Muon, b=1 | 0.341 [0.295, 0.354] |
+| no table (minibatch gradient), ns5 + Nesterov, b=32 | 0.823 [0.816, 0.830] |
+| MARS-M, b=32 | 0.931 [0.924, 0.937] |
+| STORM-Muon, b=32 | 0.931 [0.924, 0.934] |
+
+**ls-cond** (300 passes, seeds 10..14).
+
+| configuration with a SAGA table | (q, lr_0) | on schedule | level of dist^2 / lr^2 | band | law holds down to (ratio in its on-schedule range) | within 3x of the level | lowest relative squared distance |
+|---|---|---|---|---|---|---|---|
+| polar, no momentum | q=0.8, lr0=0.3 | 5/5 | 9.76e+04 | 6.32e+04, 2.75e+05 | 4.8e-29 [1.9e-29, 5.2e-28] | 2.6e-29 [1.5e-29, 4.7e-29] | 2.3e-29 [1.4e-29, 3.8e-29] |
+| ns5 + Nesterov (Muon's recipe) | q=0.75, lr0=0.3 | 4/5 | 2.17e+04 | 1.26e+04, 6.78e+04 | 1.5e-17 [8.2e-18, 2.1e-17] | 8.0e-18 [6.1e-18, 2.1e-17] | 4.6e-18 [3.6e-18, 2.6e-06] |
+| ns5 + Nesterov, eps = 1e-30 | q=0.75, lr0=0.3 | 4/5 | 2.16e+04 | 1.3e+04, 6.43e+04 | 1.2e-29 [1.0e-29, 1.4e-29] | 8.5e-30 [5.7e-30, 1.2e-29] | 7.6e-30 [5.2e-30, 2.6e-06] |
+| ns5 + Nesterov at q = 0.8, lr_0 = 0.1 | q=0.8, lr0=0.1 | 5/5 | 1.1e+04 | 7.21e+03, 2.97e+04 | 3.0e-18 [2.2e-18, 5.6e-18] | 1.9e-18 [1.8e-18, 3.0e-18] | 1.1e-18 [1.0e-18, 1.4e-18] |
+| ns5 + Nesterov, eps = 1e-30, at q = 0.8, lr_0 = 0.1 | q=0.8, lr0=0.1 | 5/5 | 1.08e+04 | 7.36e+03, 3.1e+04 | 1.0e-29 [7.1e-30, 2.0e-29] | 4.9e-30 [3.9e-30, 5.5e-30] | 4.1e-30 [3.2e-30, 4.6e-30] |
+
+Without a table, on the schedule q=0.75, lr0=0.3: final relative squared distance, median [min, max].
+
+| configuration without a table | final relative squared distance |
+|---|---|
+| no table (minibatch gradient), ns5 + Nesterov, b=1 | 0.083 [0.078, 0.091] |
+| MARS-M, b=1 | 0.129 [0.098, 0.149] |
+| STORM-Muon, b=1 | 0.143 [0.111, 0.158] |
+| no table (minibatch gradient), ns5 + Nesterov, b=32 | 0.629 [0.622, 0.629] |
+| MARS-M, b=32 | 0.816 [0.799, 0.834] |
+| STORM-Muon, b=32 | 0.813 [0.792, 0.827] |
+
+### M9 part D: sampling order and memory of the table
+
+Exact polar factor, no momentum. Definitions of the summary: part D: rho = factor of lr^2 per pass (q = rho^(1/2)); T = ceil(P n / b) iterations with q^P = 1e-05; lr_0 = 4 ||W_*||_op (1 - q^(b/n)) / (1 - 1e-05) (total step length 4 ||W_*||_op), rounded to 6 digits; C = final dist^2 / lr^2; a seed is on schedule if C <= 100 x the median C of the same cell and scheme at rho_ref; rho_star = smallest rho of the grid with at least 0.8 of the seeds on schedule; rho_star_monotone = the same with the condition at every larger rho of the grid too; fastest = the rho with the smallest median passes to 1e-09 among those where every seed reaches it (passes count the extra refreshes). Memory factor: (1 - (b + m) / n)^(n / b): probability that a table entry is not refreshed during one pass, with independent batches of size b and m extra refreshes per step. 'on schedule by rho' lists, from the largest rho of the grid to the smallest, the number of seeds on schedule. Keys: D/<instance>/cells/<b>/schemes/<scheme>.
+
+**soft-mem** (memory-limited; target 1e-09; rho grid [0.61, 0.5, 0.43, 0.368, 0.32, 0.27, 0.22, 0.18, 0.135, 0.1, 0.07, 0.05], extended by [0.035, 0.025, 0.018, 0.012, 0.008, 0.005] for m = 3b; reference rho 0.61).
+
+| b | scheme | memory factor | exp(-(1 + m/b)) | rho_star | rho_star (monotone) | fastest rho: passes to the target | reference level C | on schedule by rho |
+|---|---|---|---|---|---|---|---|---|
+| 1 | iid | 0.368 | 0.368 | 0.43 | 0.43 | 0.368: 18.2 [17.6, 19.6] | 4.24 | 5 5 4 0 0 0 0 0 0 0 0 0 (of 5) |
+| 1 | reshuffle | - | - | 0.32 | 0.61 | 0.368: 11.2 [11.1, 11.2] | 4.27 | 5 0 4 5 4 0 0 0 0 0 0 0 (of 5) |
+| 1 | shuffle_once | - | - | 0.18 | 0.18 | 0.18: 13.5 [13.5, 13.5] | 3.52e+05 | 5 5 5 5 5 5 5 5 2 0 0 0 (of 5) |
+| 1 | iid + 1 extra refreshes (m = b) | 0.135 | 0.135 | 0.22 | 0.22 | 0.135: 18.6 [17.0, 20.2] | 3.79 | 5 5 5 5 5 5 5 3 0 0 0 0 (of 5) |
+| 1 | iid + 3 extra refreshes (m = 3b) | 0.018 | 0.018 | 0.035 | 0.035 | 0.05: 18.2 [17.4, 19.8] | 4.15 | 5 5 5 5 5 5 5 5 5 5 5 5 5 3 0 0 0 0 (of 5) |
+| 5 | iid | 0.367 | 0.368 | 0.368 | 0.368 | 0.43: 17.7 [17.5, 17.9] | 8.25 | 5 5 5 5 0 0 0 0 0 0 0 0 (of 5) |
+| 5 | reshuffle | - | - | 0.22 | 0.22 | 0.22: 10.4 [10.3, 11.1] | 7.45 | 5 5 5 5 5 5 5 3 0 0 0 0 (of 5) |
+| 5 | shuffle_once | - | - | 0.18 | 0.18 | 0.22: 14.3 [14.2, 14.3] | 5.19e+03 | 5 5 5 5 5 5 5 5 1 0 0 0 (of 5) |
+| 5 | iid + 5 extra refreshes (m = b) | 0.134 | 0.135 | 0.135 | 0.135 | 0.135: 17.4 [16.8, 20.0] | 7.01 | 5 5 5 5 5 5 5 5 5 2 0 0 (of 5) |
+| 5 | iid + 15 extra refreshes (m = 3b) | 0.018 | 0.018 | 0.012 | 0.012 | 0.018: 17.4 [17.0, 18.2] | 7.76 | 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 0 0 (of 5) |
+| 20 | iid | 0.364 | 0.368 | 0.32 | 0.32 | 0.32: 17.9 [16.9, 19.0] | 9.56 | 5 5 5 5 4 0 0 0 0 0 0 0 (of 5) |
+| 20 | reshuffle | - | - | 0.1 | 0.1 | 0.1: 9.1 [9.1, 9.1] | 8.54 | 5 5 5 5 5 5 5 5 5 5 0 0 (of 5) |
+| 20 | shuffle_once | - | - | 0.18 | 0.18 | 0.22: 14.1 [14.0, 14.2] | 232 | 5 5 5 5 5 5 5 5 0 0 0 0 (of 5) |
+| 20 | iid + 20 extra refreshes (m = b) | 0.130 | 0.135 | 0.135 | 0.135 | 0.135: 18.6 [18.2, 19.6] | 7.48 | 5 5 5 5 5 5 5 5 5 2 1 0 (of 5) |
+| 20 | iid + 60 extra refreshes (m = 3b) | 0.015 | 0.018 | 0.012 | 0.012 | 0.012: 18.6 [18.6, 20.6] | 6.94 | 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 3 0 (of 5) |
+| 50 | iid | 0.358 | 0.368 | 0.27 | 0.27 | 0.27: 16.7 [16.0, 18.3] | 6.12 | 5 5 5 5 5 4 0 0 0 0 0 0 (of 5) |
+| 50 | reshuffle | - | - | 0.135 | 0.135 | 0.135: 10.4 [10.4, 10.5] | 5.8 | 5 5 5 5 5 5 5 5 5 1 0 0 (of 5) |
+| 50 | shuffle_once | - | - | 0.18 | 0.18 | 0.22: 14.6 [14.4, 15.0] | 64.9 | 5 5 5 5 5 5 5 4 0 0 0 0 (of 5) |
+| 50 | iid + 50 extra refreshes (m = b) | 0.122 | 0.135 | 0.1 | 0.1 | 0.1: 18.0 [17.6, 18.0] | 5.04 | 5 5 5 5 5 5 5 5 5 5 0 0 (of 5) |
+| 50 | iid + 150 extra refreshes (m = 3b) | 0.012 | 0.018 | 0.008 | 0.008 | 0.008: 18.6 [18.6, 20.2] | 4.54 | 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 2 (of 5) |
+
+**ls-mem** (memory-limited; target 1e-09; rho grid [0.61, 0.5, 0.43, 0.368, 0.32, 0.27, 0.22, 0.18, 0.135, 0.1, 0.07, 0.05], extended by [0.035, 0.025, 0.018, 0.012, 0.008, 0.005] for m = 3b; reference rho 0.61).
+
+| b | scheme | memory factor | exp(-(1 + m/b)) | rho_star | rho_star (monotone) | fastest rho: passes to the target | reference level C | on schedule by rho |
+|---|---|---|---|---|---|---|---|---|
+| 1 | iid | 0.368 | 0.368 | 0.61 | 0.61 | 0.43: 23.3 [22.6, 23.7] | 8.94 | 5 0 0 0 0 0 0 0 0 0 0 0 (of 5) |
+| 1 | reshuffle | - | - | 0.32 | 0.32 | 0.32: 19.8 [19.8, 19.8] | 1.1e+06 | 5 5 5 5 5 0 0 0 0 0 0 0 (of 5) |
+| 1 | shuffle_once | - | - | 0.27 | 0.27 | 0.27: 17.3 [17.1, 18.6] | 7.16e+05 | 5 5 5 5 5 5 0 0 0 0 0 0 (of 5) |
+| 1 | iid + 1 extra refreshes (m = b) | 0.135 | 0.135 | 0.27 | 0.27 | 0.22: 23.8 [22.8, 24.8] | 6.68 | 5 5 5 5 5 4 0 0 0 0 0 0 (of 5) |
+| 1 | iid + 3 extra refreshes (m = 3b) | 0.018 | 0.018 | 0.07 | 0.07 | 0.035: 23.0 [23.0, 23.8] | 6.82 | 5 5 5 5 5 5 5 5 5 5 4 2 0 0 0 0 0 0 (of 5) |
+| 5 | iid | 0.367 | 0.368 | 0.43 | 0.43 | 0.43: 20.7 [20.2, 22.1] | 15.8 | 5 5 5 0 0 0 0 0 0 0 0 0 (of 5) |
+| 5 | reshuffle | - | - | 0.43 | 0.43 | 0.27: 16.7 [16.6, 16.7] | 12.8 | 5 5 5 0 0 0 0 0 0 0 0 0 (of 5) |
+| 5 | shuffle_once | - | - | 0.368 | 0.368 | 0.368: 21.4 [21.2, 23.0] | 1.25e+04 | 5 5 5 5 2 0 0 0 0 0 0 0 (of 5) |
+| 5 | iid + 5 extra refreshes (m = b) | 0.134 | 0.135 | 0.18 | 0.18 | 0.18: 21.0 [20.8, 21.8] | 12.1 | 5 5 5 5 5 5 5 5 0 0 0 0 (of 5) |
+| 5 | iid + 15 extra refreshes (m = 3b) | 0.018 | 0.018 | 0.025 | 0.025 | 0.018: 21.0 [20.6, 23.0] | 12.5 | 5 5 5 5 5 5 5 5 5 5 5 5 5 5 1 0 0 0 (of 5) |
+| 20 | iid | 0.364 | 0.368 | 0.368 | 0.368 | 0.368: 20.0 [18.7, 22.6] | 17.9 | 5 5 5 4 1 0 0 0 0 0 0 0 (of 5) |
+| 20 | reshuffle | - | - | 0.18 | 0.18 | 0.18: 11.3 [11.3, 11.4] | 16 | 5 5 5 5 5 5 5 5 0 0 0 0 (of 5) |
+| 20 | shuffle_once | - | - | 0.32 | 0.32 | 0.368: 20.5 [20.4, 20.5] | 656 | 5 5 5 5 5 0 0 0 0 0 0 0 (of 5) |
+| 20 | iid + 20 extra refreshes (m = b) | 0.130 | 0.135 | 0.18 | 0.18 | 0.18: 21.4 [21.2, 22.2] | 14.8 | 5 5 5 5 5 5 5 5 2 1 0 0 (of 5) |
+| 20 | iid + 60 extra refreshes (m = 3b) | 0.015 | 0.018 | 0.018 | 0.018 | 0.025: 21.8 [21.4, 21.8] | 12.2 | 5 5 5 5 5 5 5 5 5 5 5 5 5 5 4 2 0 0 (of 5) |
+| 50 | iid | 0.358 | 0.368 | 0.32 | 0.32 | 0.368: 19.1 [19.0, 19.7] | 9.94 | 5 5 5 5 4 0 0 0 0 0 0 0 (of 5) |
+| 50 | reshuffle | - | - | 0.18 | 0.18 | 0.18: 12.2 [12.1, 12.2] | 8.98 | 5 5 5 5 5 5 5 5 0 0 0 0 (of 5) |
+| 50 | shuffle_once | - | - | 0.368 | 0.368 | 0.368: 21.5 [21.1, 23.2] | 142 | 5 5 5 5 0 0 0 0 0 0 0 0 (of 5) |
+| 50 | iid + 50 extra refreshes (m = b) | 0.122 | 0.135 | 0.135 | 0.135 | 0.135: 20.6 [20.4, 21.2] | 7.38 | 5 5 5 5 5 5 5 5 5 0 0 0 (of 5) |
+| 50 | iid + 150 extra refreshes (m = 3b) | 0.012 | 0.018 | 0.018 | 0.018 | 0.018: 21.8 [21.8, 22.6] | 6.31 | 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 3 0 0 (of 5) |
+
+**soft-cond** (control (conditioning-limited); target 1e-09; rho grid [0.9, 0.8, 0.7, 0.61, 0.5, 0.43, 0.368, 0.32, 0.27, 0.22, 0.18, 0.135, 0.1, 0.07, 0.05], extended by [0.035, 0.025, 0.018, 0.012, 0.008, 0.005] for m = 3b; reference rho 0.9).
+
+| b | scheme | memory factor | exp(-(1 + m/b)) | rho_star | rho_star (monotone) | fastest rho: passes to the target | reference level C | on schedule by rho |
+|---|---|---|---|---|---|---|---|---|
+| 20 | iid | 0.349 | 0.368 | 0.61 | 0.61 | 0.61: 38.7 [38.0, 38.8] | 17.8 | 5 5 5 5 1 0 0 0 0 0 0 0 0 0 0 (of 5) |
+| 20 | reshuffle | - | - | 0.5 | 0.5 | 0.5: 29.5 [28.8, 32.2] | 14.4 | 5 5 5 5 5 0 0 0 0 0 0 0 0 0 0 (of 5) |
+| 20 | shuffle_once | - | - | 0.7 | 0.7 | 0.7: 55.0 [50.4, 61.4] | 33.2 | 5 5 4 0 0 0 0 0 0 0 0 0 0 0 0 (of 5) |
+| 20 | iid + 20 extra refreshes (m = b) | 0.107 | 0.135 | 0.43 | 0.43 | 0.43: 46.6 [46.0, 47.0] | 13.3 | 5 5 5 5 5 5 1 0 0 0 0 0 0 0 0 (of 5) |
+| 20 | iid + 60 extra refreshes (m = 3b) | 0.006 | 0.018 | 0.27 | 0.27 | 0.27: 63.0 [62.2, 64.2] | 9.87 | 5 5 5 5 5 5 5 5 5 0 0 0 0 0 0 0 0 0 0 0 0 (of 5) |
+| 50 | iid | 0.316 | 0.368 | 0.61 | 0.61 | 0.7: 53.0 [53.0, 53.8] | 9.34 | 5 5 5 4 0 0 0 0 0 0 0 0 0 0 0 (of 5) |
+| 50 | reshuffle | - | - | 0.7 | 0.7 | 0.7: 52.5 [52.2, 53.2] | 9.64 | 5 5 5 3 0 0 0 0 0 0 0 0 0 0 0 (of 5) |
+| 50 | shuffle_once | - | - | 0.8 | 0.8 | 0.8: 79.5 [79.2, 83.0] | 10.2 | 5 5 0 0 0 0 0 0 0 0 0 0 0 0 0 (of 5) |
+| 50 | iid + 50 extra refreshes (m = b) | 0.062 | 0.135 | 0.61 | 0.61 | 0.61: 78.5 [77.5, 78.5] | 6.4 | 5 5 5 5 0 0 0 0 0 0 0 0 0 0 0 (of 5) |
+| 50 | iid + 150 extra refreshes (m = 3b) | 0.000 | 0.018 | 0.61 | 0.61 | 0.61: 158.0 [152.0, 173.0] | 3.95 | 5 5 5 5 2 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 (of 5) |
+
+## M9b. The sampling-order part of M9 on a sum with identical Hessians
+
+Model: f_i(W) = ||W - y_i||^2 / 2 + (lam/2)||W||^2 on K x 1 matrices (x_i = 1): identical Hessians; the polar factor of the estimator is the estimator divided by its norm. Source: `M9b_summary.json` (code fingerprint `40df8a190653`).
+
+### M9b part D: the design of part D of M9 on the model instance
+
+Instance: n = 1000, K = 10, lam = 1e-06. Definitions: the design of part D of M9 on the model instance (definitions/order of M9_summary.json), with lr_0 divided by step_scale = max(1, K/d)^(1/2) so that the total step length is path_factor x ||W_*||_op; level_over_reference = median C at each rho of the grid over the reference level; rho_star on the model next to rho_star on soft-mem and ls-mem (M9_summary.json, D/<instance>/cells/<b>/schemes/<scheme>/rho_star), by batch size and scheme; passes_at_fastest_rho = median passes to the target of part D (relative squared distance 1e-9, extra refreshes charged) at the rho with the smallest median among those where every seed reaches it (fastest/median of the same cells). Step scale 3.162; rho grid [0.61, 0.5, 0.43, 0.368, 0.32, 0.27, 0.22, 0.18, 0.135, 0.1, 0.07, 0.05], extended by [0.035, 0.025, 0.018, 0.012, 0.008, 0.005] for m = 3b; reference rho 0.61. 'on schedule by rho' lists, from the largest rho of the grid to the smallest, the number of seeds on schedule. A threshold equal to the smallest rho of its grid is an upper bound. Keys: D/cells/<b>/schemes/<scheme>, D_vs_M9/<b>/<scheme>.
+
+| b | scheme | memory factor | rho_star, model | rho_star (monotone), model | rho_star, soft-mem | rho_star, ls-mem | median passes to the target at the fastest rho: model / soft-mem / ls-mem | reference level C, model | on schedule by rho, model |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | iid | 0.368 | 0.32 | 0.32 | 0.43 | 0.61 | 10.5 / 18.2 / 23.3 | 0.482 | 5 5 5 5 4 1 0 0 0 0 0 0 (of 5) |
+| 1 | reshuffle | - | 0.18 | 0.18 | 0.32 | 0.32 | 7.1 / 11.2 / 19.8 | 0.708 | 5 5 5 5 5 5 5 5 2 0 0 0 (of 5) |
+| 1 | shuffle_once | - | 0.135 | 0.135 | 0.18 | 0.27 | 9.8 / 13.5 / 17.3 | 3.15e+04 | 5 5 5 5 5 5 5 5 5 0 0 0 (of 5) |
+| 1 | iid + 1 extra refreshes (m = b) | 0.135 | 0.135 | 0.135 | 0.22 | 0.27 | 10.8 / 18.6 / 23.8 | 1.12 | 5 5 5 5 5 5 5 5 5 3 2 0 (of 5) |
+| 1 | iid + 3 extra refreshes (m = 3b) | 0.018 | 0.008 | 0.008 | 0.035 | 0.07 | 11.4 / 18.2 / 23.0 | 0.468 | 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 4 1 (of 5) |
+| 5 | iid | 0.367 | 0.32 | 0.32 | 0.368 | 0.43 | 9.4 / 17.7 / 20.7 | 0.252 | 5 5 5 5 5 2 0 0 0 0 0 0 (of 5) |
+| 5 | reshuffle | - | 0.18 | 0.18 | 0.22 | 0.43 | 9.1 / 10.4 / 16.7 | 0.433 | 5 5 5 5 5 5 5 4 0 0 0 0 (of 5) |
+| 5 | shuffle_once | - | 0.27 | 0.27 | 0.18 | 0.368 | 12.5 / 14.3 / 21.4 | 25.3 | 5 5 5 5 5 5 0 0 0 0 0 0 (of 5) |
+| 5 | iid + 5 extra refreshes (m = b) | 0.134 | 0.07 | 0.07 | 0.135 | 0.18 | 8.6 / 17.4 / 21.0 | 0.446 | 5 5 5 5 5 5 5 5 5 5 5 2 (of 5) |
+| 5 | iid + 15 extra refreshes (m = 3b) | 0.018 | 0.005 (edge) | 0.005 | 0.012 | 0.025 | 10.2 / 17.4 / 21.0 | 0.453 | 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 (of 5) |
+| 20 | iid | 0.364 | 0.22 | 0.22 | 0.32 | 0.368 | 8.7 / 17.9 / 20.0 | 0.593 | 5 5 5 5 5 5 5 2 0 0 0 0 (of 5) |
+| 20 | reshuffle | - | 0.22 | 0.22 | 0.1 | 0.18 | 9.4 / 9.1 / 11.3 | 0.186 | 5 5 5 5 5 5 5 0 0 0 0 0 (of 5) |
+| 20 | shuffle_once | - | 0.18 | 0.18 | 0.18 | 0.32 | 9.7 / 14.1 / 20.5 | 17.8 | 5 5 5 5 5 5 5 5 0 0 0 0 (of 5) |
+| 20 | iid + 20 extra refreshes (m = b) | 0.130 | 0.05 (edge) | 0.05 | 0.135 | 0.18 | 11.6 / 18.6 / 21.4 | 0.583 | 5 5 5 5 5 5 5 5 5 5 5 4 (of 5) |
+| 20 | iid + 60 extra refreshes (m = 3b) | 0.015 | 0.005 (edge) | 0.005 | 0.012 | 0.018 | 11.0 / 18.6 / 21.8 | 0.604 | 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 (of 5) |
+| 50 | iid | 0.358 | 0.22 | 0.22 | 0.27 | 0.32 | 7.0 / 16.7 / 19.1 | 0.0703 | 5 5 5 5 5 5 5 3 0 0 0 0 (of 5) |
+| 50 | reshuffle | - | 0.22 | 0.22 | 0.135 | 0.18 | 9.1 / 10.4 / 12.2 | 0.834 | 5 5 5 5 5 5 5 3 0 0 0 0 (of 5) |
+| 50 | shuffle_once | - | 0.18 | 0.18 | 0.18 | 0.368 | 11.3 / 14.6 / 21.5 | 14.9 | 5 5 5 5 5 5 5 5 0 0 0 0 (of 5) |
+| 50 | iid + 50 extra refreshes (m = b) | 0.122 | 0.05 (edge) | 0.05 | 0.1 | 0.135 | 10.0 / 18.0 / 20.6 | 0.834 | 5 5 5 5 5 5 5 5 5 5 5 5 (of 5) |
+| 50 | iid + 150 extra refreshes (m = 3b) | 0.012 | 0.005 (edge) | 0.005 | 0.008 | 0.018 | 12.2 / 18.6 / 21.8 | 0.888 | 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 (of 5) |
+
+### M9b part L: long horizons at batch one
+
+Definitions: batch one, runs of 80 passes of `model_run` (20 runs per point, error coordinates, lam = 0, E_0 a unit vector, eta_0 = 4 ||E_0|| (1 - q^(1/n))); x = log(1/rho) = nats of lr^2 lost per pass; level = ||E||^2 / eta^2 at the end of a pass; a run is on schedule at a horizon if its level is at most 100 x the median level at x_ref = log(1/0.61) at that horizon (x_star_clean: 10 x); x_star = largest x of the grid with at least 0.8 of the runs on schedule (x_star_monotone: and at every smaller x of the grid); rate_second_half = slope per pass of the median log level over the second half of the run (0: on schedule; x: frozen iterate). Linear SAGA: exponents of linear SAGA on the same model with the same n, read from the experiment B4b of the main study (None when results/B4b_summary.json is absent): typical_iid = largest pooled exponent of single runs under independent sampling over the steps tried there (at_c: gamma n lambda of that step); expectation_iid_at_that_c = exact exponent of the expected squared error at that step; reshuffled_mean_square_best = largest exact mean-square exponent under reshuffling over the same steps. Keys: L/cells/n=<n>/orders/<order>/{level_half, level_end}, L/cells/n=<n>/linear_saga.
+
+| n | order | x_star at 40 passes | x_star at 80 passes | within 10 x the reference level, 40 / 80 passes | linear SAGA on the model: typical run, independent sampling (expectation) | linear SAGA: reshuffling, mean square |
+|---|---|---|---|---|---|---|
+| 100 | independent indices | 1.2 | 1.2 | 1.2 / 1.2 | 1.546 at c = 1 (0.995) |  |
+| 100 | fresh permutation per pass | 2 | 1.9 | 1.7 / 1.5 |  | 1.933 |
+| 1000 | independent indices | 1.2 | 1.3 | 1.1 / 1.2 | 1.634 at c = 2 (0.999) |  |
+| 1000 | fresh permutation per pass | 1.7 | 1.8 | 1.6 / 1.7 |  | 1.990 |
+| 10000 | independent indices | 1.2 | 1.3 | 1.1 / 1.2 | 1.675 at c = 2 (1.000) |  |
+| 10000 | fresh permutation per pass | 1.6 | 1.7 | 1.5 / 1.4 |  | 1.959 |
+
+n = 100: runs on schedule (of 20) and median level over the reference level at 80 passes, by x = log(1/rho).
+
+| x | 0.49 | 0.80 | 1.00 | 1.10 | 1.20 | 1.30 | 1.40 | 1.50 | 1.60 | 1.70 | 1.80 | 1.90 | 2.00 | 2.10 | 2.20 | 2.30 | 2.40 | 2.50 | 2.60 | 2.80 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| independent indices: on schedule | 20 | 20 | 20 | 20 | 19 | 10 | 2 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| independent indices: level / reference | 1 | 1.5 | 0.56 | 0.78 | 2.4 | 1.5e+02 | 1.5e+37 | 6.3e+41 | 1.1e+50 | 1.7e+56 | 5.2e+59 | 4.2e+63 | 2.9e+68 | 1.2e+72 | 1.1e+76 | 3.9e+79 | 1.5e+83 | 4.3e+86 | 1.2e+90 | 1.4e+97 |
+| fresh permutation per pass: on schedule | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 19 | 19 | 19 | 17 | 15 | 6 | 2 | 1 | 0 | 0 | 0 | 0 |
+| fresh permutation per pass: level / reference | 1 | 2.9 | 3.1 | 2.5 | 6.8 | 2.1 | 7.5 | 6.1 | 2.1 | 5.1 | 14 | 11 | 43 | 2.8e+02 | 7.6e+70 | 1.9e+76 | 8.9e+80 | 2.6e+85 | 1.8e+89 | 6.3e+96 |
+
+n = 1000: runs on schedule (of 20) and median level over the reference level at 80 passes, by x = log(1/rho).
+
+| x | 0.49 | 0.80 | 1.00 | 1.10 | 1.20 | 1.30 | 1.40 | 1.50 | 1.60 | 1.70 | 1.80 | 1.90 | 2.00 | 2.10 | 2.20 | 2.30 | 2.40 | 2.50 | 2.60 | 2.80 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| independent indices: on schedule | 20 | 20 | 20 | 20 | 20 | 17 | 8 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| independent indices: level / reference | 1 | 1.7 | 3.8 | 1.7 | 2.9 | 13 | 9.2e+11 | 1.9e+45 | 1.8e+52 | 1.2e+58 | 1.5e+61 | 4.9e+66 | 9.8e+70 | 6.4e+74 | 3e+78 | 1.2e+82 | 4.3e+85 | 1.3e+89 | 4.6e+92 | 4.9e+99 |
+| fresh permutation per pass: on schedule | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| fresh permutation per pass: level / reference | 1 | 1 | 0.6 | 0.23 | 0.33 | 1.1 | 0.45 | 0.5 | 0.59 | 1.2 | 6.2 | 4.8e+02 | 1e+03 | 1.7e+03 | 7.6e+69 | 8.5e+76 | 6.7e+81 | 1.6e+86 | 1.5e+90 | 7.9e+97 |
+
+n = 10000: runs on schedule (of 20) and median level over the reference level at 80 passes, by x = log(1/rho).
+
+| x | 0.49 | 0.80 | 1.00 | 1.10 | 1.20 | 1.30 | 1.40 | 1.50 | 1.60 | 1.70 | 1.80 | 1.90 | 2.00 | 2.10 | 2.20 | 2.30 | 2.40 | 2.50 | 2.60 | 2.80 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| independent indices: on schedule | 20 | 20 | 20 | 20 | 20 | 16 | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| independent indices: level / reference | 1 | 0.96 | 4.7 | 4.4 | 3.5 | 3.9 | 4.3e+03 | 1.9e+46 | 2.3e+53 | 6.8e+59 | 4.4e+62 | 7.4e+68 | 8.7e+72 | 5.1e+76 | 2.3e+80 | 9.6e+83 | 3.3e+87 | 1.1e+91 | 3.7e+94 | 4e+101 |
+| fresh permutation per pass: on schedule | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 19 | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| fresh permutation per pass: level / reference | 1 | 2.8 | 1.6 | 2.7 | 2.8 | 2.5 | 2.8 | 10 | 5.3 | 8.5 | 1.3e+03 | 2.4e+05 | 7.2e+05 | 1.1e+06 | 3.3e+71 | 3.8e+79 | 4e+84 | 8.8e+88 | 8.7e+92 | 4.6e+100 |
 

@@ -35,7 +35,8 @@ per refresh, and the innovation becomes c + lam (W - w): no factorization inside
 rate only: schedules are refused).
 Options that a placement does not use are refused rather than ignored: 'radial' always uses the exact polar factor
 of m and the signed pairing, 'metric' the step c_metric / R2P; `eps_innov` and the momentum before the map (`beta`,
-`nesterov`) exist for the joint placement only; `schedule` and `warmup` for the fixed-length rule only.
+`nesterov`) exist for the joint placement only; `schedule`, `lr_decay` and `warmup` for the fixed-length rule only;
+`order` for the estimators without a coin and without importance sampling; `refresh_extra` for the SAGA table.
 
 POLAR METRIC ('metric' placement). Let D be an anchor matrix (L-SVRG: the exact gradient at the reference point,
 refreshed with it; SAGA: the predictable part m, refreshed every `metric_every` iterations, default n) with thin SVD
@@ -68,7 +69,20 @@ least c_a (1 - c_a / 2) ||grad F(w)||_*^2 / L_op.
 STEP MAP T(M) = eta(M) O(M), O = orth(M):
     orth     'svd' exact polar factor; 'ns5', 'ns_cubic' (polar.py); 'soft': U diag(s / sqrt(s^2 + eps^2)) V^T with
              eps = `eps` (absolute) or eps = eps_innov * ||theta c||_F (relative to the innovation of the current step:
-             singular directions of the estimator below the innovation level are not inflated to one)
+             singular directions of the estimator below the innovation level are not inflated to one).
+             'ns5' is Keller Jordan's routine with its normalization constant (orth_kw={'eps': ...}, default 1e-7):
+             it is not scale invariant, so that a fixed-length step fed by a vanishing estimator freezes near 1e-18
+             relative squared distance on the benchmark instances (where 'svd' goes on to the rounding level) and
+             the exact scale covariance of the iteration on least squares is lost; orth_kw={'eps': 1e-30} removes
+             both (see polar.py; tests: test_ns5_floor).
+             CONTROLS, which are not orthogonalizations (polar.CONTROL_MAPS; joint and split placements): 'frob',
+             O = M / ||M||_F (normalized gradient step), and 'sign', the coordinatewise sign (for softmax projected
+             back on the gauge subspace, O - (1/K) 1 1^T O). They keep the loop, the table and the length rule and
+             change the map only: with length 'const' they are the fixed-length steps of normalized SGD and of
+             signSGD fed by the same estimator; with length 'sharp', 'frob' is the Euclidean step gamma omega
+             (pair = ||omega||_F) and 'sign' the dual map of the entrywise sup norm (pair = sum |omega_kj|). Their
+             lengths differ from the polar factor's (||O||_F = 1, resp. about (K d)^(1/2), against r^(1/2)): learning
+             rates are not comparable across maps.
     length   'sharp'  eta = gamma * pair                      (nuclear-norm scaling; pair = <M, O> = ||M||_* for 'svd')
              'const'  eta = lr_t * scale                      (fixed-length LMO step of Muon; lr_t follows `schedule`,
                                                                scale = max(1, K/d)^(1/2) as in muon_sgd)
@@ -80,6 +94,38 @@ STEP MAP T(M) = eta(M) O(M), O = orth(M):
              ||grad F||_*).
 Momentum: `beta` (before the map, joint placement only): buf <- beta buf + omega, D = omega + beta buf (nesterov) or
 buf; `beta_post` (after the map, any placement): the applied step is the EMA Sbar <- beta_post Sbar + (1 - beta_post) S.
+
+LEARNING-RATE SCHEDULE (fixed-length rule only). `schedule` in {'const', 'cosine', 'linear', 'wsd'}, or a callable,
+is a profile over the n_iters iterations of the run (algorithms.lr_factors), optionally with `warmup`: the run must
+know its length. `schedule='geometric'` with `lr_decay` = q in (0, 1] is the cooldown
+    lr_t = lr q^(t b / n):   the learning rate is multiplied by q per pass over the data (n / b iterations),
+computed from the iteration counter alone. It does not depend on n_iters, so that two runs with the same seed and
+different lengths are prefixes of one another (for the estimators whose index stream is, see `_draws`); `warmup`,
+which is a fraction of n_iters, is refused with it. The pass is counted in sampled gradients (t b / n), whatever
+the other costs of the iteration (`refresh_extra`).
+
+SAMPLING ORDER (`order`, estimators 'saga' and 'sgd', uniform sampling):
+    'iid'           (default) independent draws: an index uniform in {1..n} (b = 1) or a uniform subset of size b;
+    'reshuffle'     a fresh uniform permutation per pass, cut into consecutive batches of size b; when b does not
+                    divide n the incomplete last batch is dropped (the convention of algorithms._batch_stream): a
+                    permutation then gives floor(n / b) iterations and leaves n mod b entries unvisited;
+    'shuffle_once'  one permutation for the whole run, read cyclically: batch t holds its entries t b, ...,
+                    t b + b - 1 (mod n). Every entry is visited once every n / b iterations when b divides n, and
+                    at most ceil(n / b) iterations apart otherwise (no entry is dropped, which a fixed permutation
+                    would otherwise never visit).
+With a permutation order the SAGA estimator is no longer conditionally unbiased given the past (the batch is uniform
+among the entries not yet visited in the pass); in exchange every table entry is at most 2 n / b - 1 iterations old
+('reshuffle', b dividing n) or n / b ('shuffle_once'), which independent draws cannot guarantee. The exact one-step
+expectations of exact.py assume independent uniform draws and refuse the other orders. `order` is not the
+importance-sampling exponent `sampling` (below), with which it is refused.
+
+EXTRA REFRESHES (`refresh_extra` = m > 0, SAGA table with mem_relax = 1). After each step, m further entries of the
+table, drawn uniformly without replacement among the n - b entries outside the batch of the iteration, are
+recomputed at the NEW iterate (`refresh`), and m gradients are charged: n + (b + m) per iteration. An entry is then
+left untouched by an iteration with probability 1 - (b + m) / n, i.e. the memory factor of the table per pass is
+(1 - (b + m) / n)^(n / b), about exp(-(1 + m / b)), instead of (1 - b / n)^(n / b), about exp(-1): an intervention
+on the age of the table that leaves the batches unchanged (the extra entries have their own random stream, derived
+from the seed: `extra_rng`). The estimator of the next iteration is unbiased whatever the table.
 
 Defaults: gamma = 1/(4 R2_op) ('saga', 'sgd'), 1/(6 R2_op) ('lsvrg', 'page') for the mapped placements and the same
 with R2 for 'euclid'; gamma_c = 1/(4 R2) resp. 1/(6 R2); p = b/n (L-SVRG: one refresh per pass in expectation),
@@ -107,10 +153,12 @@ Softmax gauge: with gauge='auto' (default) every factorization is done in the su
 vector (maps.gauge_basis), which requires 1^T W_0 = 0 (checked by `init_state` for the mapped placements).
 
 Gradient accounting (as algorithms.py): initial full gradient n (0 for 'sgd'); per iteration b ('saga', 'sgd'),
-2b ('lsvrg', and 'page' without refresh), n per refresh of the L-SVRG reference or of the PAGE estimate.
+b + m for SAGA with m extra refreshes, 2b ('lsvrg', and 'page' without refresh), n per refresh of the L-SVRG
+reference or of the PAGE estimate.
 
 The class `VRMuon` exposes the three stages of one iteration, `pieces` (m, c), `step` (S; no side effect) and `commit`
-(memory update), so that the exact conditional expectations of exact.py enumerate the very steps taken by the loop.
+(memory update), so that the exact conditional expectations of exact.py enumerate the very steps taken by the loop;
+`refresh` (extra refreshes, after the step) is a fourth stage, used only with refresh_extra > 0.
 """
 from __future__ import annotations
 
@@ -119,13 +167,14 @@ import numpy as np
 from . import maps
 from .algorithms import _Monitor, _default_record_every, _index_chunks, lr_factors
 from .instrumentation import instrument
-from .polar import get_orth, svd_thin
+from .polar import CONTROL_MAPS, get_orth, svd_thin
 
 ESTIMATORS = ("saga", "lsvrg", "page", "sgd")
 PLACEMENTS = ("joint", "split", "tangent", "radial", "metric", "euclid")
 LENGTHS = ("sharp", "const", "clip")
-ORTHS = ("svd", "soft", "ns5", "ns_cubic")
-PAIRINGS = ("omega", "dir", "mean")
+ORTHS = ("svd", "soft", "ns5", "ns_cubic")       # orthogonalizations; polar.CONTROL_MAPS ('frob', 'sign') are accepted
+PAIRINGS = ("omega", "dir", "mean")              # under the same argument and are not orthogonalizations
+ORDERS = ("iid", "reshuffle", "shuffle_once")
 
 
 class _State:
@@ -154,7 +203,7 @@ class VRMuon:
                  pair_with="omega", beta=0.0, nesterov=False, beta_post=0.0, p=None, lazy=False, gauge="auto",
                  schedule="const", n_iters=None, warmup=0.0, decay_frac=0.2, resync_every=None, mem_relax=1.0,
                  anchor_step=0.0, c_metric=None, metric_floor=0.1, metric_every=None, sampling=None,
-                 metric_source="polar"):
+                 metric_source="polar", order="iid", lr_decay=None, refresh_extra=0):
         if estimator not in ESTIMATORS:
             raise ValueError(f"unknown estimator {estimator!r}")
         if placement not in PLACEMENTS:
@@ -163,8 +212,10 @@ class VRMuon:
             raise ValueError(f"unknown length rule {length!r}")
         if pair_with not in PAIRINGS:
             raise ValueError(f"unknown pair_with {pair_with!r}")
-        if not (isinstance(orth, str) and orth in ORTHS) and not callable(orth):
+        if not (isinstance(orth, str) and orth in ORTHS + CONTROL_MAPS) and not callable(orth):
             raise ValueError(f"unknown orth {orth!r}")
+        if not (isinstance(order, str) and order in ORDERS):
+            raise ValueError(f"unknown order {order!r}")
         mapped = placement != "euclid"
         # placements whose step goes through the configurable map T (orth, length rule, pairing)
         uses_map = placement in ("joint", "split", "tangent")
@@ -203,8 +254,22 @@ class VRMuon:
         if lazy and not (estimator == "lsvrg" and placement in ("split", "tangent")):
             raise ValueError("lazy=True is defined for estimator 'lsvrg' with placement 'split' or 'tangent'")
         scheduled = not (isinstance(schedule, str) and schedule == "const") or bool(warmup)
+        geometric = isinstance(schedule, str) and schedule == "geometric"
+        if lr_decay is not None and not geometric:
+            raise ValueError("lr_decay is the factor per pass of schedule 'geometric'")
         if scheduled and not (uses_map and length == "const"):
             raise ValueError("schedule and warmup apply to the fixed-length rule (length 'const') only")
+        if geometric:
+            try:
+                q_ok = 0.0 < float(lr_decay) <= 1.0
+            except (TypeError, ValueError):
+                q_ok = False
+            if not q_ok:
+                raise ValueError("schedule 'geometric' needs lr_decay in (0, 1], the factor of the learning rate per "
+                                 "pass")
+            if warmup:
+                raise ValueError("warmup spans a fraction of n_iters, on which the geometric schedule does not "
+                                 "depend: use one or the other")
         if scheduled and lazy:
             raise ValueError("lazy=True caches the map of the reference point: it needs a constant learning rate "
                              "(no schedule, no warmup)")
@@ -237,15 +302,19 @@ class VRMuon:
         else:
             self.basis = None if (gauge is None or gauge is False) else np.asarray(gauge, dtype=np.float64)
         self._orth_fn = None
-        if callable(orth) or orth in ("ns5", "ns_cubic"):
-            fn = get_orth(orth, **(orth_kw or {}))
+        if callable(orth) or orth in ("ns5", "ns_cubic") + CONTROL_MAPS:
+            kw = dict(orth_kw or {})
+            if orth == "sign" and self.basis is not None:             # the sign leaves the gauge subspace: project
+                kw.setdefault("center", True)
+            fn = get_orth(orth, **kw)
             self._orth_fn = (lambda M: fn(prob.remove_gauge(M))) if self.basis is not None else fn
         self.scale = max(1.0, prob.K / prob.d) ** 0.5
         self.schedule = schedule
         self.warmup, self.decay_frac, self.orth_kw = float(warmup), float(decay_frac), dict(orth_kw or {})
-        self.sched_iters = None                                       # span of the schedule (None: constant rate)
-        self._lrs = None
-        if scheduled:
+        self.sched_iters = None                                       # span of the schedule (None: constant rate,
+        self._lrs = None                                              # or the geometric schedule, which has no span)
+        self.lr_decay = float(lr_decay) if geometric else None        # lr_t = lr lr_decay^(t b / n)
+        if scheduled and not geometric:
             if n_iters is None or n_iters > 50_000_000:
                 raise ValueError("a learning-rate schedule needs the number of iterations n_iters it spans "
                                  "(at most 5e7)")
@@ -286,6 +355,29 @@ class VRMuon:
         self.needs_coin = estimator in ("lsvrg", "page")
         self.init_cost = 0 if estimator == "sgd" else n
         self.fallbacks = 0
+        # sampling order of the index (permutation orders: no coin, no importance sampling)
+        self.order = order
+        if order != "iid" and estimator not in ("saga", "sgd"):
+            raise ValueError("order 'reshuffle' / 'shuffle_once' is defined for the SAGA and SGD estimators (the "
+                             "refresh coin of L-SVRG and PAGE is drawn with independent indices)")
+        if order != "iid" and sampling not in (None, "uniform") and float(sampling):
+            raise ValueError("a permutation order visits every index equally often: it cannot be combined with "
+                             "importance sampling")
+        # extra refreshes of the SAGA table after the step (m entries outside the batch, at the new iterate)
+        try:
+            m_ok = not isinstance(refresh_extra, (bool, str)) and int(refresh_extra) == refresh_extra >= 0
+        except (TypeError, ValueError):
+            m_ok = False
+        if not m_ok:
+            raise ValueError("refresh_extra must be a nonnegative integer")
+        self.refresh_extra = int(refresh_extra)
+        if self.refresh_extra:
+            if estimator != "saga" or self.mem_relax != 1.0:
+                raise ValueError("refresh_extra is defined for the SAGA table with mem_relax = 1 (the entries are "
+                                 "replaced)")
+            if self.batch + self.refresh_extra > n:
+                raise ValueError("refresh_extra entries are drawn outside the batch: batch + refresh_extra <= n")
+            self._all = np.arange(n)
         # importance sampling of the index: p_i proportional to L_i^a, innovation weighted by 1 / (n p_i)
         self.sampling = 0.0 if sampling in (None, "uniform") else float(sampling)
         self.probs = self.iw = None
@@ -384,6 +476,8 @@ class VRMuon:
     # stage 2: the step (no side effect)
     # ------------------------------------------------------------------------------------------
     def _lr_t(self, t):
+        if self.lr_decay is not None:                                 # geometric: lr q^(t b / n), no table
+            return self.lr * self.lr_decay ** (t * self.batch / self.n)
         if self._lrs is None:
             return self.lr
         return float(self._lrs[min(t, len(self._lrs) - 1)])
@@ -696,14 +790,34 @@ class VRMuon:
         return b                                                # sgd
 
     # ------------------------------------------------------------------------------------------
+    # stage 4 (refresh_extra > 0 only): extra refreshes of the SAGA table, at the post-step point
+    # ------------------------------------------------------------------------------------------
+    def refresh(self, W, st, B, rng):
+        """Extra refreshes of the SAGA table (`refresh_extra` = m > 0), called AFTER the step with the NEW iterate
+        W and the batch B of the iteration: m entries, a uniform subset of the n - b entries outside B drawn from
+        `rng` (the generator of `extra_rng`, not the one of the batches), are replaced by their residuals at W, and
+        the table mean is updated. Returns the number m of per-sample gradient evaluations charged."""
+        m, n = self.refresh_extra, self.n
+        rest = np.delete(self._all, B)                                # the n - b entries outside the batch
+        E = rest[rng.choice(n - self.batch, size=m, replace=False, shuffle=False)]
+        Xe = self.X[E]
+        Re = self.prob._residual_rows(Xe @ W.T, E)
+        st.zbar += (Re - st.rtab[E]).T @ Xe / n
+        st.rtab[E] = Re
+        return m
+
+    # ------------------------------------------------------------------------------------------
     def memory_error(self, st):
         """Mean squared Frobenius error of the stored loss gradients with respect to their values at W_*:
         (1/n) sum_i ||z_i - g_i'(W_*)||_F^2 for the SAGA table, the same with g_i'(w) for the L-SVRG reference point
         (rank-one matrices: ||(r_i - r_i^*) x_i^T||_F^2 = ||r_i - r_i^*||^2 ||x_i||^2); NaN for the other estimators.
         Whatever the step rule, the SAGA memory (mem_relax = 1) obeys
         E[M_{t+1} | past] = (1 - b/n) M_t + (b/n) S_t >= (1 - b/n) M_t,
-        with S_t = (1/n) sum_i ||g_i'(W_t) - g_i'(W_*)||_F^2. With a relaxed table (mem_relax = delta < 1) convexity
-        gives E[M_{t+1} | past] <= (1 - delta b/n) M_t + delta (b/n) S_t, and the floor becomes
+        with S_t = (1/n) sum_i ||g_i'(W_t) - g_i'(W_*)||_F^2 (independent uniform batches, order 'iid', and no
+        extra refresh; with refresh_extra = m the m further entries are taken at W_{t+1} and the lower bound becomes
+        (1 - (b + m)/n) M_t; with a permutation order the batch is not uniform given the past and only the pathwise
+        statement "an entry not visited keeps its error" remains). With a relaxed table (mem_relax = delta < 1)
+        convexity gives E[M_{t+1} | past] <= (1 - delta b/n) M_t + delta (b/n) S_t, and the floor becomes
         E[M_{t+1} | past] >= (1 - (b/n) delta (2 - delta)) M_t - 2 (b/n) delta (1 - delta) (M_t S_t)^(1/2)."""
         prob = self.prob
         if self.estimator == "saga":
@@ -725,18 +839,53 @@ class VRMuon:
                  c_metric=self.c_metric, metric_floor=self.metric_floor, resync_every=self.resync_every,
                  metric_every=self.metric_every, warmup=self.warmup, decay_frac=self.decay_frac,
                  orth_kw=dict(self.orth_kw), sched_iters=self.sched_iters, sampling=self.sampling,
-                 metric_source=self.metric_source)
+                 metric_source=self.metric_source, order=self.order, lr_decay=self.lr_decay,
+                 refresh_extra=self.refresh_extra)
         return d
 
 
-def _draws(rng, n, b, n_iters, need_coin, probs=None):
+def extra_rng(seed):
+    """Generator of the extra table refreshes (`refresh_extra`): child 0 of the SeedSequence of `seed` (None, an
+    integer or a sequence of integers), a stream independent of np.random.default_rng(seed), which draws the
+    batches. The batches of a run therefore do not depend on refresh_extra."""
+    return np.random.default_rng(np.random.SeedSequence(seed).spawn(1)[0])
+
+
+def _draws(rng, n, b, n_iters, need_coin, probs=None, order="iid"):
     """Index (b = 1) or index array (b > 1, a uniform subset without replacement) and coin of every iteration. For
     b = 1 the streams are those of algorithms._vr_run (indices in chunks of min(n_iters, 10^6), then one coin per
     index of the chunk). Consequence for the estimators with a coin (L-SVRG, PAGE) at b = 1: the realization depends
     on n_iters through the chunk size, so two runs with the same seed and different n_iters are not prefixes of one
     another (SAGA, SGD and b > 1 are prefix-consistent). With `probs` (importance sampling, b = 1) the indices are
-    drawn from that distribution, in the same chunks."""
-    if b == 1 and probs is not None:
+    drawn from that distribution, in the same chunks.
+    order 'reshuffle': a fresh rng.permutation(n) per pass, cut into consecutive batches, the incomplete last batch
+    dropped when b does not divide n (as algorithms._batch_stream); 'shuffle_once': a single permutation, read
+    cyclically (batch t = its entries t b .. t b + b - 1 mod n). Both are prefix-consistent, have no coin (the coin
+    returned is 1) and no importance sampling."""
+    if order != "iid":
+        if order not in ORDERS:
+            raise ValueError(f"unknown order {order!r}")
+        if need_coin or probs is not None:
+            raise ValueError("permutation orders are defined without refresh coin and without importance sampling")
+        if not 1 <= b <= n:
+            raise ValueError("batch must be in [1, n]")
+        perm, pos = rng.permutation(n), 0
+        if order == "reshuffle":
+            for _ in range(n_iters):
+                if pos + b > n:
+                    perm, pos = rng.permutation(n), 0
+                yield (perm[pos] if b == 1 else perm[pos:pos + b]), 1.0
+                pos += b
+        else:
+            for _ in range(n_iters):
+                if b == 1:
+                    yield perm[pos], 1.0
+                elif pos + b <= n:
+                    yield perm[pos:pos + b], 1.0
+                else:                                             # wrap around the end of the permutation
+                    yield np.concatenate((perm[pos:], perm[:pos + b - n])), 1.0
+                pos = (pos + b) % n
+    elif b == 1 and probs is not None:
         done = 0
         while done < n_iters:
             k = min(1_000_000, n_iters - done)
@@ -776,7 +925,8 @@ def default_name(cfg):
     if cfg.get("anchor_step"):
         extra.append(f"anchor={cfg['anchor_step']:g}")
     for k, default in (("beta", 0.0), ("beta_post", 0.0), ("pair_with", "omega"), ("mem_relax", 1.0),
-                       ("eps", None), ("eps_innov", None), ("sampling", 0.0)):
+                       ("eps", None), ("eps_innov", None), ("sampling", 0.0), ("lr_decay", None), ("order", "iid"),
+                       ("refresh_extra", 0)):
         if cfg.get(k, default) != default:
             v = cfg[k]
             extra.append(f"{k}={v:g}" if isinstance(v, float) else f"{k}={v}")
@@ -796,12 +946,14 @@ def vr_muon(prob, W0, n_iters, seed=0, record_every=None, stop_Fgap=None, stop_d
     cost (at most one refresh, n + 2b), and one iteration is run even if the budget is below the initial cost. With
     `anchor_step` the record of iteration 0 is taken at W_0, before the (free) anchor step at W_0, whose effect is
     seen from the next record on. A run whose iterate or estimator becomes non-finite ends with
-    stopped = 'diverged' (the last record then holds NaN)."""
+    stopped = 'diverged' (the last record then holds NaN). With `refresh_extra` the extra refreshes of an
+    iteration are done and charged before its record and before the budget test."""
     algo = VRMuon(prob, n_iters=n_iters, **config)
     cfg = algo.describe()
     W = np.array(W0, dtype=np.float64, copy=True)
     st = algo.init_state(W)
     rng = np.random.default_rng(seed)
+    rng_x = extra_rng(seed) if algo.refresh_extra else None
     b = algo.batch
     record_every = _default_record_every(prob, b) if record_every is None else record_every
     mon = _Monitor(prob, name or default_name(cfg), record_every, stop_Fgap, stop_dist2, max_time)
@@ -813,7 +965,7 @@ def vr_muon(prob, W0, n_iters, seed=0, record_every=None, stop_Fgap=None, stop_d
     t = 0
     info = {"eta": float("nan"), "pair": float("nan")}
     rec = mon.record_every
-    for B, coin in _draws(rng, prob.n, b, n_iters, algo.needs_coin, algo.probs):
+    for B, coin in _draws(rng, prob.n, b, n_iters, algo.needs_coin, algo.probs, algo.order):
         m, c, aux = algo.pieces(W, st, B, coin)
         try:
             S, info = algo.step(W, m, c, st, t)
@@ -835,6 +987,8 @@ def vr_muon(prob, W0, n_iters, seed=0, record_every=None, stop_Fgap=None, stop_d
         if not np.isfinite(W).all():                  # caught here, before the next factorization
             mon.record(t, ge, W, eta=info["eta"], pair=info["pair"], mem=float("nan"))
             break
+        if rng_x is not None:                         # extra refreshes of the table at the new iterate
+            ge += algo.refresh(W, st, B, rng_x)
         if t % rec == 0 and mon.record(t, ge, W, eta=info["eta"], pair=info["pair"], mem=algo.memory_error(st)):
             break
         if max_grad_evals is not None and ge >= max_grad_evals:

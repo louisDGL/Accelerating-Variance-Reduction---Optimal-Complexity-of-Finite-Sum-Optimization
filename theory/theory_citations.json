@@ -192,6 +192,14 @@
     "url": "https://arxiv.org/abs/1806.03677"
   },
   {
+    "key": "huang2021improved",
+    "title": "Improved Analysis and Rates for Variance Reduction under Without-replacement Sampling Orders",
+    "authors": "Xinmeng Huang, Kun Yuan, Xianghui Mao, Wotao Yin",
+    "year": 2021,
+    "venue": "Advances in Neural Information Processing Systems 34 (NeurIPS 2021), pages 3232-3243; arXiv:2104.12112",
+    "url": "https://arxiv.org/abs/2104.12112"
+  },
+  {
     "key": "johnson2013accelerating",
     "title": "Accelerating Stochastic Gradient Descent using Predictive Variance Reduction",
     "authors": "Rie Johnson, Tong Zhang",
@@ -232,12 +240,28 @@
     "url": "https://arxiv.org/abs/1610.05708"
   },
   {
+    "key": "malinovsky2023random",
+    "title": "Random Reshuffling with Variance Reduction: New Analysis and Better Rates",
+    "authors": "Grigory Malinovsky, Alibek Sailanbayev, Peter Richtarik",
+    "year": 2023,
+    "venue": "Proceedings of UAI 2023, PMLR 216:1347-1357; arXiv:2104.09342 (rates quoted from the arXiv v1 abstract and Theorems 1-3)",
+    "url": "https://arxiv.org/abs/2104.09342"
+  },
+  {
     "key": "marshall2011inequalities",
     "title": "Inequalities: Theory of Majorization and Its Applications (2nd edition)",
     "authors": "Albert W. Marshall, Ingram Olkin, Barry C. Arnold",
     "year": 2011,
     "venue": "Springer Series in Statistics, Springer",
     "url": "https://doi.org/10.1007/978-0-387-68276-1"
+  },
+  {
+    "key": "mishchenko2020random",
+    "title": "Random Reshuffling: Simple Analysis with Vast Improvements",
+    "authors": "Konstantin Mishchenko, Ahmed Khaled, Peter Richtarik",
+    "year": 2020,
+    "venue": "Advances in Neural Information Processing Systems 33 (NeurIPS 2020), pages 17309-17320; arXiv:2006.05988",
+    "url": "https://arxiv.org/abs/2006.05988"
   },
   {
     "key": "moritz2016linearly",
@@ -272,6 +296,14 @@
     "url": "http://proceedings.mlr.press/v51/nitanda16.html"
   },
   {
+    "key": "park2020linear",
+    "title": "Linear Convergence of Cyclic SAGA",
+    "authors": "Youngsuk Park, Ernest K. Ryu",
+    "year": 2020,
+    "venue": "Optimization Letters 14(6):1583-1598, 2020, doi 10.1007/s11590-019-01520-y; arXiv:1810.11167 (statements quoted from v2)",
+    "url": "https://arxiv.org/abs/1810.11167"
+  },
+  {
     "key": "qian2019saga",
     "title": "SAGA with arbitrary sampling",
     "authors": "Xun Qian, Zheng Qu, Peter Richtarik",
@@ -302,5 +334,69 @@
     "year": 2016,
     "venue": "Advances in Neural Information Processing Systems 29 (NeurIPS 2016); arXiv:1605.08003",
     "url": "https://arxiv.org/abs/1605.08003"
+  },
+  {
+    "key": "ying2017variance",
+    "title": "Variance-Reduced Stochastic Learning under Random Reshuffling",
+    "authors": "Bicheng Ying, Kun Yuan, Ali H. Sayed",
+    "year": 2020,
+    "venue": "IEEE Transactions on Signal Processing 68:1390-1408, doi 10.1109/TSP.2020.2968280; arXiv:1708.01383 (Theorem 1 and its remark quoted from v3, February 2018)",
+    "url": "https://arxiv.org/abs/1708.01383"
+  },
+  {
+    "key": "mokhtari2018surpassing",
+    "title": "Surpassing Gradient Descent Provably: A Cyclic Incremental Method with Linear Convergence Rate",
+    "authors": "Aryan Mokhtari, Mert Gurbuzbalaban, Alejandro Ribeiro",
+    "year": 2018,
+    "venue": "SIAM Journal on Optimization 28(2):1420-1447, doi 10.1137/16M1101702; arXiv:1611.00347 (the DIAG method)",
+    "url": "https://arxiv.org/abs/1611.00347"
+  },
+  {
+    "key": "gurbuzbalaban2020randomness",
+    "title": "Randomness and Permutations in Coordinate Descent Methods",
+    "authors": "Mert Gurbuzbalaban, Asuman Ozdaglar, Nuri Denizcan Vanli, Stephen J. Wright",
+    "year": 2020,
+    "venue": "Mathematical Programming 181(2):349-376, doi 10.1007/s10107-019-01438-4; arXiv:1803.08200",
+    "url": "https://arxiv.org/abs/1803.08200"
+  },
+  {
+    "key": "lee2019random",
+    "title": "Random Permutations Fix a Worst Case for Cyclic Coordinate Descent",
+    "authors": "Ching-pei Lee, Stephen J. Wright",
+    "year": 2019,
+    "venue": "IMA Journal of Numerical Analysis 39(3):1246-1275, doi 10.1093/imanum/dry040; arXiv:1607.08320",
+    "url": "https://arxiv.org/abs/1607.08320"
+  },
+  {
+    "key": "matsunaga2011asymptotic",
+    "title": "Asymptotic Stability and Stability Switches in a Linear Integro-Differential System",
+    "authors": "Hideaki Matsunaga, Hiroki Hashimoto",
+    "year": 2011,
+    "venue": "Differential Equations & Applications 3(1):43-55 (Remark 1.1: stability of x' = -a int_{t-tau}^t x iff 0 < tau < pi/sqrt(2a))",
+    "url": "https://dea.ele-math.com/03-04/Asymptotic-stability-and-stability-switches-in-a-linear-integro-differential-system"
+  },
+  {
+    "key": "vanli2016stronger",
+    "title": "A Stronger Convergence Result on the Proximal Incremental Aggregated Gradient Method",
+    "authors": "Nuri Denizcan Vanli, Mert Gurbuzbalaban, Asuman Ozdaglar",
+    "year": 2016,
+    "venue": "arXiv:1611.08022",
+    "url": "https://arxiv.org/abs/1611.08022"
+  },
+  {
+    "key": "furstenberg1960products",
+    "title": "Products of Random Matrices",
+    "authors": "Harry Furstenberg, Harry Kesten",
+    "year": 1960,
+    "venue": "The Annals of Mathematical Statistics 31(2):457-469",
+    "url": "https://doi.org/10.1214/aoms/1177705909"
+  },
+  {
+    "key": "kato1995perturbation",
+    "title": "Perturbation Theory for Linear Operators",
+    "authors": "Tosio Kato",
+    "year": 1995,
+    "venue": "Springer, Classics in Mathematics (reprint of the 1980 edition)",
+    "url": ""
   }
 ]

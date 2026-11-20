@@ -1,4 +1,6 @@
-"""Figures of the condensed paper (muon/paper_spectral_muon.tex), with the data they show.
+"""Figures of the theory notes (muon/notes_spectral_theory.tex) and of the condensed paper (archived:
+archive/muon/paper_spectral_muon.tex), with the data they show. Panels of figT2s_noise are reused by figure 3 of the
+paper (muon/paper/scripts/make_figP3_noise.py reads the cache below).
 
   figT1_ls_model   the least-squares model F(W) = (1/2) tr((W - W*) Sigma (W - W*)^T):
                    (a) polar flow, commuting start: amplitudes of the error along the eigenvectors of Sigma for two
@@ -12,7 +14,8 @@
                        stochastic runs, SAGA estimator);
                    (c) scalar case with momentum: median of an exponential moving average of skewed noise.
   figT2s_noise     panels (a) and (b) of figT2_noise only; built only when "T2s" is requested.
-  figR3_theory     figure of the short report (muon/report_spectral_muon.tex): panels (a), (b) of figT2_noise and
+  figR3_theory     figure drawn for the short report (archived: archive/muon/report_spectral_muon.tex), which does
+                   not include it: panels (a), (b) of figT2_noise and
                    panel (c) of figT1_ls_model; built only when "R3" is requested.
 
 The data are computed once and cached in muon/theory_checks/paper_figures_data.json (delete it to recompute).
@@ -524,7 +527,7 @@ def fig_noise(data, ps):
 
 
 def fig_noise_short(data, ps):
-    """Panels (a) and (b) of figT2_noise only: the figure of the short report (muon/report_spectral_muon.tex)."""
+    """Panels (a) and (b) of figT2_noise only: the figure of the short report (archived: archive/muon/report_spectral_muon.tex)."""
     tr, rows = data["noise_trace"], data["noise_offsets"]["rows"]
     fig = ps.figure(width=ps.FIG_W, height=2.0)
     gs = fig.add_gridspec(1, 2)
@@ -534,7 +537,7 @@ def fig_noise_short(data, ps):
 
 
 def fig_theory_short(data, ps):
-    """Figure of the short report (muon/report_spectral_muon.tex): panels (a), (b) of figT2_noise and the discrete
+    """Figure drawn for the short report (archived: archive/muon/report_spectral_muon.tex): panels (a), (b) of figT2_noise and the discrete
     steps of figT1_ls_model."""
     tr, rows = data["noise_trace"], data["noise_offsets"]["rows"]
     fig = ps.figure(width=ps.FIG_W, height=2.3)

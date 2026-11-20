@@ -574,3 +574,74 @@ def make_diag_quadratic(n, m, kappa, seed=0):
     prob = BlockQuadraticProblem(np.array(A_blocks), np.array(b_blocks), name=f"diagquad(n={n},m={m},kappa={kappa:g})")
     prob.meta = dict(n=n, m=m, kappa=kappa, seed=seed)
     return prob
+
+
+# ----------------------------------------------------------------------------------------------
+# identical Hessians (solvable model of the sampling order, hypothesis B4)
+# ----------------------------------------------------------------------------------------------
+class IdenticalHessianProblem(FiniteSumProblem):
+    """f_i(theta) = 1/2 theta^T H theta - b_i^T theta with ONE symmetric positive definite H for all i.
+
+    Then f'_i(theta) = H theta - b_i, F'(theta) = H theta - bbar, eta_* = H^{-1} bbar, R^2 = L_F = lambda_max(H) and
+    mu = lambda_min(H). SAGA does not see the b_i on such a sum: with e = theta - eta_* and psi_j = phi_j - eta_*
+    (phi_j the point where the memory z_j was computed) its step is e+ = e - gamma H (e - psi_i + mean_j psi_j),
+    psi_i <- e, the model solved in vrlab.order_model. Only H (d x d) and b (n x d) are stored: grad_i costs O(d^2)
+    and all_grads O(d^2 + n d) (SharedQuadraticProblem with n copies of H stores n d^2 numbers).
+    H must be symmetric up to rounding (relative 1e-12); its symmetric part is stored."""
+
+    def __init__(self, H, b, name="identicalhessian"):
+        H = np.asarray(H, dtype=np.float64)
+        b = np.asarray(b, dtype=np.float64)
+        if H.ndim != 2 or H.shape[0] != H.shape[1]:
+            raise ValueError("H must be a square matrix")
+        if not np.allclose(H, H.T, rtol=1e-12, atol=1e-12 * np.abs(H).max()):
+            raise ValueError("H must be symmetric")
+        if b.ndim != 2 or b.shape[1] != H.shape[0]:
+            raise ValueError("b must be an n x d array, one row per component")
+        self.H = np.ascontiguousarray(0.5 * (H + H.T))
+        self.b = np.ascontiguousarray(b)
+        self.n, self.d = self.b.shape
+        self.bbar = self.b.mean(0)
+        self.eigvals, self.eigvecs = np.linalg.eigh(self.H)        # ascending eigenvalues, orthonormal columns
+        if not self.eigvals[0] > 0:
+            raise ValueError("H must be positive definite")
+        self.R2 = float(self.eigvals[-1])
+        self.mu = float(self.eigvals[0])
+        self.L_F = self.R2
+        self.L_i = np.full(self.n, self.R2)
+        self.name = name
+        self.theta_star = None
+        self.F_star = None
+        self.grads_star = None
+
+    def F(self, theta):
+        return float(0.5 * theta @ (self.H @ theta) - self.bbar @ theta)
+
+    def F_batch(self, Theta):
+        Theta = np.atleast_2d(Theta)
+        return 0.5 * np.einsum("kj,kj->k", Theta, Theta @ self.H) - Theta @ self.bbar
+
+    def grad(self, theta):
+        return self.H @ theta - self.bbar
+
+    def grad_i(self, theta, i):
+        return self.H @ theta - self.b[i]
+
+    def all_grads(self, theta):
+        return (self.H @ theta)[None, :] - self.b
+
+    def hessian(self, theta=None):
+        return self.H.copy()
+
+    def exact_minimizer(self):
+        return np.linalg.solve(self.H, self.bbar)
+
+    def modes(self, theta):
+        """Coordinates of theta - eta_* in the eigenbasis of H (ascending eigenvalues self.eigvals)."""
+        if self.theta_star is None:
+            raise ValueError("set the optimum first (prob.set_optimum(prob.exact_minimizer()))")
+        return self.eigvecs.T @ (np.asarray(theta, dtype=np.float64) - self.theta_star)
+
+    def summary(self):
+        return {"n": self.n, "d": self.d, "R2": self.R2, "mu": self.mu, "kappa": self.kappa, "L_F": self.L_F,
+                "kappa_F": self.L_F / self.mu}

@@ -1,9 +1,13 @@
 # Structural facts used in the Muon study
 
-Short, self-contained statements with proofs. They are referred to as F1-F11 in [`findings.md`](findings.md).
-Several of them are known in some form; the attribution is given with each statement. The main identities and
-inequalities are checked numerically by the unit tests named with them (`muon/tests/`); F8 is a reading of a
-published proof and has no test.
+Short, self-contained statements with proofs, numbered F1-F16; [`findings.md`](findings.md) and the code refer to
+them by these numbers. F12-F16 (added on 2026-11-19) concern polar steps fed by a SAGA table:
+the fixed-length step on a cooldown schedule, which is the recipe of experiment M9, and the nuclear-scaled step.
+Several of the facts are known in some form; the attribution is given with each statement. The main identities and
+inequalities are checked numerically by the unit tests named with them (`muon/tests/`, archived on 2026-11-20 in the
+local, unversioned `_archive/muon/tests/`); F8 is a reading of a
+published proof and has no test, and of the almost-sure statement F13 (e) only the expectation used in its proof is
+tested.
 
 ## Notation
 
@@ -111,8 +115,10 @@ Hence E[M_t] >= (1 - b/n)^t M_0: per pass (n/b iterations, n gradient evaluation
 at most by the factor (1 - b/n)^(n/b), which is at most e^{-1} and close to it when b << n (0.30 for b/n = 0.32). No
 choice of geometry, map or step length changes this. The bound is a statement on the mean, and the mean is carried by
 the entries that have not been refreshed yet (probability (1 - b/n)^t each): once every entry has been refreshed
-(about ln n passes), a single run can fall below M_0 (1 - b/n)^t. With Euclidean SAGA on the two memory-limited
-instances of the study (n = 1000, steps 0.25 / R^2 and 0.5 / R^2, three seeds each), the per-pass factor of M_t
+(about ln n passes), a single run can fall below M_0 (1 - b/n)^t. (Experiment M9b, Section 5.13 of the findings,
+measures what single runs of the fixed-length recipe follow on a sum with identical Hessians: cooldowns of lr^2 of
+1.2 to 1.3 nats per pass with independent indices, where the mean memory error loses at most 1.) With Euclidean SAGA
+on the two memory-limited instances of the study (n = 1000, steps 0.25 / R^2 and 0.5 / R^2, three seeds each), the per-pass factor of M_t
 between passes 6 and 16 lies between 0.30 and 0.46 depending on the seed, around e^{-1} = 0.37, and the squared
 distance follows the same factors. The statement concerns the SAGA table only: an L-SVRG reference point obeys no
 such recursion (after a refresh its error is S at the reference point), and Hannah, Liu, O'Connor and Yin (2018) show
@@ -473,3 +479,361 @@ one.
 method is limited by its memory when kappa_P is of the order of n or smaller; it does not explain the observed speed
 (about e^{-1} per pass, the ceiling of F3).
 (Tests: `test_F11_one_shot_equivalence`, `test_F11_lyapunov`.)
+
+## Setting and notation of F12-F16: a polar step fed by a table
+
+F12-F16 are statements on the iteration of experiment M9, "Muon's own recipe with a SAGA table", and on its
+nuclear-scaled counterpart. Status: all five are proved below; the proofs were written by a referee pass on
+2026-11-18 and re-derived for this note. They certify a mechanism and not the speed measured in M9: each fact ends
+with what it does not say. The numbers quoted are printed by the tests named with them (`-s`); they are numerical
+observations on the instances of the tests, not part of the statements.
+
+| Fact | Status | Relation to published work (prior-art search of 2026-11-18, verdict "close") |
+|---|---|---|
+| F12 | proved | path-length bounds of this type are known with dimension factors and for SVRG anchors; the rank-free form for a table was not found |
+| F13 | proved; the convergence (e) itself has no test | the induction is the classical one for steps of fixed length (exact gradients); the version with a SAGA table and a linear rate was not found |
+| F14 | proved | not found |
+| F15 | proved | Euclidean analogue known (incremental aggregated gradient); not found for the nuclear-scaled polar step |
+| F16 | proved | extends the full-batch statement, Proposition 4.1 (a) of `notes_spectral_theory`, to the SAG direction |
+
+*Constants.* L_i = c_l ||x_i||^2 is the constant of the loss part g_i of sample i (c_l = 1/2 for softmax, 1 for least
+squares): ||rho_i(W) - rho_i(W')|| <= c_l ||(W - W') x_i||. L_max = max_i L_i = R^2 - lam and L_mean = (1/n) sum_i L_i.
+(In the code `prob.L_i` is L_i + lam: the table does not hold the regularizer.) L_op is the smoothness constant of F
+for the spectral norm (top of this note). mu_op is a constant of the dual Polyak-Lojasiewicz inequality
+
+    ||grad F(W)||_*^2 >= 2 mu_op D(W),        D(W) = F(W) - F(W_*),
+
+which holds when F is mu_op-strongly convex for the spectral norm (minimize both sides of
+F(V) >= F(W) + <grad F(W), V - W> + (mu_op/2) ||V - W||_op^2 over V); then also D(W) >= (mu_op/2) ||W - W_*||_op^2.
+Globally mu_op = lam + lambda_min(Sigma_hat) for least squares (exact) and mu_op = lam for softmax.
+
+*Table.* z_i = g_i'(phi_i), where phi_i is the iterate at which entry i was last refreshed (phi_i = W_0 before its
+first refresh: the table is initialised by a full gradient at W_0); entries are replaced, not relaxed
+(`mem_relax = 1`). At iteration t a batch B_t of b distinct indices is given by any rule (independent draws, a fixed
+cyclic order, a fresh permutation per pass), and
+
+    omega_t = zbar + lam W_t + (theta/b) sum_{j in B_t} (g_j'(W_t) - z_j),        theta in [0, 1]
+
+(theta = 1: SAGA; theta = b/n: the table mean after the refresh, i.e. the SAG direction). Then the entries of B_t are
+replaced by the gradients at W_t, and W_{t+1} = W_t - S_t. The age of entry i at iteration t is a_i(t) = t - t_i, with
+phi_i = W_{t_i}. D_t = D(W_t). The regularizer gradient lam W_t is exact and inside the map, as everywhere in the lab.
+In the code the fixed-length rule (`length='const'`) takes S_t = eta_t orth(omega_t) with
+eta_t = lr_t max(1, K/d)^(1/2), and `schedule='geometric'` is lr_t = lr_0 q^(t b / n). For softmax the polar factor is
+computed in the gauge subspace, which contains the columns of omega_t and of grad F(W_t): the statements hold there
+unchanged.
+
+## F12. Staleness lemma: the nuclear-norm error of the table estimator, without rank factor
+
+*Let c_i = g_i'(W) - z_i and l_i >= ||W - phi_i||_op. For every W, every batch B of b distinct indices and every
+theta >= 0,*
+
+    ||omega - grad F(W)||_*  <=  sum_i |theta 1[i in B] / b - 1/n| ||c_i||_*
+                             <=  (theta/b) sum_{j in B} L_j l_j + (1/n) sum_i L_i l_i
+                             <=  (theta L_max + L_mean) max_i l_i.
+
+*If the iterates move by steps of spectral length ||S_s||_op <= eta_s, then l_i = sum_{s = t_i}^{t-1} eta_s is
+admissible at iteration t, and l_i <= sum_{s = max(t-A, 0)}^{t-1} eta_s when entry i is at most A iterations old.*
+
+Proof. grad F(W) = zbar + lam W + (1/n) sum_i c_i, hence omega - grad F(W) = sum_i w_i c_i with
+w_i = theta 1[i in B] / b - 1/n: the first line is the triangle inequality. c_i = (rho_i(W) - rho_i(phi_i)) x_i^T has
+rank at most one, so by F1 ||c_i||_* = ||rho_i(W) - rho_i(phi_i)|| ||x_i|| <= c_l ||(W - phi_i) x_i|| ||x_i||
+<= L_i ||W - phi_i||_op; and |w_i| <= theta/b + 1/n on B, |w_i| = 1/n outside. The last sentence is the triangle
+inequality along the path W_{t_i}, ..., W_t. []
+
+Remarks. (i) *No rank factor, no expectation.* The bound is pathwise and uses only the rank-one structure: the
+constants are the Euclidean per-sample constants, and the staleness is measured in the spectral norm, in which a
+polar step has length exactly eta. The Euclidean route (||c_i||_F <= L_i ||W - phi_i||_F, then
+||.||_* <= rank^(1/2) ||.||_F) loses a factor r^(1/2) twice, a polar step having Frobenius length r^(1/2) eta.
+(ii) For theta = b/n the weight of the sampled entries vanishes: the SAG direction only sees the entries outside the
+batch. (iii) The same bound holds for the L-SVRG estimator with every phi_i equal to the reference point.
+(iv) Full replacement of the entries is assumed (it is what makes z_i a gradient at one point).
+
+Attribution (prior-art search of 2026-11-18, verdict "close"). Bounding the error of a finite-sum estimator inside an
+LMO step by the path travelled since the last refresh is published with dimension factors, for SVRG anchors: Qin, Liu
+and Xu (arXiv:2310.15976, proof of Theorem 4.1: sign steps, constant 4 d L times the sum of the step sizes) and Li,
+Tang and Zou (arXiv:2602.11557, Lemmas C.13 and F.1: general norms including the spectral one, entrywise path,
+factor n/b); Huang, Pu and Johansson (arXiv:2611.18124, Muon with momentum under shuffling) carry a factor r. The
+Euclidean version for the SAG and SAGA tables is Lemma 3.3 of Zhu, Heath and Mitra (arXiv:2602.05304). The rank-free
+form for a table, in the pair (nuclear norm of the error, spectral length of the path), was not found.
+
+What F12 does not say. It is a worst-case upper bound that grows with the staleness; it does not say that the error
+of the estimator is small compared with the gradient (along a fast run of the M9 recipe it is larger, F13), and it uses
+neither the unbiasedness of the estimator nor the average over the sampled index. On the states of the test the ratio
+of the two sides, with the true distances ||W - phi_i||_op, has mean 0.37 and maximum 0.87.
+(Test: `test_F12_staleness_lemma`: 10152 pairs (state, batch); every batch for b = 1 and for b = 2, n = 18.)
+
+## F13. Fixed-length polar steps fed by a table: recursion, floor, certified cooldown
+
+Setting: the table of F12, theta in [0, 1], any batch size, and S_t = eta_t polar(omega_t) with the exact polar
+factor (polar(0) = 0).
+
+*(a) One step. For any matrices omega != 0 and O, with a = <omega, O> / ||omega||_* >= 0 and beta = ||O||_op,*
+
+    F(W - eta O) <= F(W) - eta [ a ||grad F(W)||_* - (a + beta) ||omega - grad F(W)||_* ] + (L_op/2) beta^2 eta^2,
+
+*and a = beta = 1 for O = polar(omega). Consequently, if every entry of the table is at most A iterations old at
+iteration t,*
+
+    D_{t+1} <= D_t - eta_t (2 mu_op D_t)^(1/2) + (L_eff,t / 2) eta_t^2,
+    L_eff,t = L_op + 4 (theta L_max + L_mean) sigma_t,        sigma_t = (1/eta_t) sum_{s = max(t-A, 0)}^{t-1} eta_s.
+
+*(b) Constant length. If eta_t = eta and the age bound holds at every iteration, let
+L_eff = L_op + 4 (theta L_max + L_mean) A and kappa_eff = L_eff / mu_op. The set {D <= C eta^2} is invariant for every
+C >= max(kappa_eff / 8, 1/2) L_eff, and limsup_t D_t <= max(kappa_eff / 8, 1/2) L_eff eta^2; in the other direction
+max(D_t, D_{t+1}) >= mu_op eta^2 / 8 whenever omega_t != 0 (F2).*
+
+*(c) Geometric schedule. Let eta_t = eta_0 rho^(t/2) and let L_eff satisfy*
+
+    L_eff >= L_op + 4 (theta L_max + L_mean) sum_{k=1}^{A} rho^(-k/2),  L_eff >= 2 mu_op,  1 - mu_op / L_eff <= rho < 1.
+
+*Let x_+- = [ (2 mu_op)^(1/2) +- (2 mu_op - 2 (1 - rho) L_eff)^(1/2) ] / (2 (1 - rho)),
+C_- = max(x_-^2, L_eff / (2 rho)) and C_+ = x_+^2. Then C_- <= C_+, and if the age bound holds at every iteration and
+D_0 <= C eta_0^2 for some C in [C_-, C_+], then D_t <= C eta_t^2 = C eta_0^2 rho^t for all t. At the fastest certified
+ratio rho = 1 - mu_op / L_eff the interval is the point C = L_eff^2 / (2 mu_op): eta_0 = (2 mu_op Dbar_0)^(1/2) / L_eff
+with Dbar_0 >= D_0, and D_t <= Dbar_0 rho^t. If mu_op <= L_max, the closed form L_eff = L_op + 10 A L_max satisfies the
+three conditions for every rho in [1 - mu_op / L_eff, 1).*
+
+*(d) Sampling orders. Let b divide n. With a fixed cyclic order of the n/b batches (`order='shuffle_once'`),
+a_i(t) <= n/b; with a fresh permutation per pass (`order='reshuffle'`), a_i(t) <= 2n/b - 1: (a)-(c) then hold for
+every realization, with A = n/b or A = 2n/b - 1. With independent uniform batches, for every horizon T and
+delta in (0, 1) all ages up to T are at most A = ceil((n/b) log(n T / delta)) with probability at least 1 - delta.*
+
+*(e) Almost-sure convergence under independent uniform batches. If the lengths are deterministic with
+sum_t eta_t = infinity and sum_t eta_t^2 < infinity, then D_t -> 0 almost surely.*
+
+Proof. (a) <grad F, O> = <omega, O> - <omega - grad F, O> >= a ||omega||_* - beta ||omega - grad F||_*
+>= a ||grad F||_* - (a + beta) ||omega - grad F||_*, and smoothness in the spectral norm with ||eta O||_op = beta eta.
+For the polar factor, a = beta = 1 if omega != 0, and the inequality is trivial if omega = 0. Then use the dual
+Polyak-Lojasiewicz inequality and F12 with l_i <= sum_{s = max(t-A, 0)}^{t-1} eta_s = sigma_t eta_t: the error enters
+with the factor a + beta = 2, which is the 4 of L_eff,t once the term is written as (L_eff,t / 2) eta_t^2.
+(b) and (c) Write phi_eta(x) = x - eta (2 mu_op x)^(1/2) + (L_eff / 2) eta^2, a convex function of x >= 0, so that
+D_{t+1} <= max{phi(0), phi(X)} whenever D_t <= X. For (b), sigma_t <= A; phi_eta(x) <= x iff
+x >= L_eff^2 eta^2 / (8 mu_op), and phi_eta(0) = L_eff eta^2 / 2: this is the proof of Theorem 3.3 (c) of
+`notes_spectral_theory` with L_op replaced by L_eff. The lower bound is
+eta = ||W_{t+1} - W_t||_op <= ||W_t - W_*||_op + ||W_{t+1} - W_*||_op with D >= (mu_op/2) ||W - W_*||_op^2. For (c),
+sigma_t <= sum_{k=1}^{A} rho^(-k/2), so the recursion holds with L_eff. Induction on D_t <= C eta_t^2:
+phi(0) = (L_eff / 2) eta_t^2 <= C rho eta_t^2 because C >= L_eff / (2 rho), and
+phi(C eta_t^2) = (C - (2 mu_op C)^(1/2) + L_eff / 2) eta_t^2 <= C rho eta_t^2 iff
+(1 - rho) x^2 - (2 mu_op)^(1/2) x + L_eff / 2 <= 0 at x = C^(1/2), i.e. iff x lies between the roots x_-, x_+, which are
+real iff 1 - rho <= mu_op / L_eff. The interval is not empty:
+x_+ >= (2 mu_op)^(1/2) / (2 (1 - rho)) >= L_eff / (2 mu_op)^(1/2),
+so C_+ >= kappa_eff L_eff / 2 >= L_eff / (2 rho) since rho >= 1 - 1/kappa_eff >= 1/kappa_eff. Closed form: if
+mu_op <= L_max then rho >= 1 - 1/(10 A), rho^(-A/2) <= (1 - 1/(10 A))^(-A/2) <= 0.9^(-1/2) < 1.055 (decreasing in A),
+and 4 (theta L_max + L_mean) A rho^(-A/2) <= 8.44 A L_max <= 10 A L_max; also L_eff >= 10 mu_op.
+(d) Cyclic: every window of n/b consecutive iterations contains the batch of i once, and before its first refresh
+the age of i is t <= n/b - 1. Reshuffled: at an iteration t of pass p, entry i was refreshed during pass p or during
+pass p - 1, at an iteration >= (p - 1) n/b, so a_i(t) <= (p + 1) n/b - 1 - (p - 1) n/b = 2n/b - 1 (in the first
+pass the age is at most t <= n/b - 1). Independent batches:
+a_i(t) > A iff i is missed by the A batches before t, an event of probability (1 - b/n)^A <= exp(-A b/n); union
+bound over n entries and T iterations.
+(e) Let F_t be the past before the draw of B_t, l_i(t) = sum_{s = t_i}^{t-1} eta_s and
+Gam_t = (1/n) sum_i L_i l_i(t), which is F_t-measurable. By (a) and F12,
+D_{t+1} <= D_t - eta_t (2 mu_op D_t)^(1/2) + (L_op/2) eta_t^2 + 2 eta_t [(theta/b) sum_{j in B_t} L_j l_j(t) + Gam_t],
+and P(j in B_t | F_t) = b/n gives E[D_{t+1} | F_t] <= D_t - eta_t (2 mu_op D_t)^(1/2) + b_t with
+b_t = (L_op/2) eta_t^2 + 2 (1 + theta) eta_t Gam_t. Step s belongs to the path of entry i at time t iff i is in none
+of B_{s+1}, ..., B_{t-1}, an event of probability (1 - b/n)^(t-1-s); with eta_t eta_s <= (eta_t^2 + eta_s^2) / 2,
+E sum_t eta_t Gam_t <= L_mean (n/b) sum_t eta_t^2 < infinity. Hence sum_t b_t < infinity almost surely, and the
+Robbins-Siegmund lemma gives that D_t converges and sum_t eta_t D_t^(1/2) < infinity almost surely; since
+sum_t eta_t = infinity the limit is 0. []
+
+Reading. In passes (n/b iterations) the fastest certified cooldown multiplies the length by
+(1 - mu_op / L_eff)^(n/(2b)) and D by its square, which with the closed form of (c) is at least 1 - mu_op / (10 L_max)
+for the cyclic order and 1 - mu_op / (10 (2 - b/n) L_max) for the reshuffled one: about 10 L_max / mu_op (resp. up to
+20 L_max / mu_op) passes per factor e of D, whatever b and n. The exact-gradient schedule (Theorem 3.3 (b) of
+`notes_spectral_theory`) certifies 1 - mu_op / L_op per pass: the table version is certified 10 L_max / L_op to
+20 L_max / L_op times slower.
+
+Attribution (same search). The induction of (b)-(c), "a floor of order eta^2 at constant length, a linear rate at the
+rate of a geometric schedule that is slow enough", is the classical one for steps of fixed length: Goffin (Math.
+Programming 1977; not read by the search), Davis, Drusvyatskiy, MacPhee and Paquette (arXiv:1803.02461, Theorem 5.1),
+Li, Zhu, So and Lee (arXiv:1907.11687) for incremental methods on sharp problems, and for Muon with exact gradients
+Ma et al. (arXiv:2601.13474), Rhee et al. (arXiv:2606.30509) and Yang, He and Li (arXiv:2605.26977). Finite-sum
+variance reduction inside sign or spectral LMO steps is published with SVRG anchors under reshuffling, without a
+linear rate (Qin, Liu and Xu; Li, Tang and Zou; Huang, Pu and Johansson, cited in F12), and the view of SAGA as a
+method with bounded ages is Lemma 3.1 of Zhu, Heath and Mitra (arXiv:2602.05304). What was not found is the
+statement for a SAGA table with a linear rate.
+
+What F13 does not say.
+(1) *Not the speed.* On the two conditioning-limited instances of the study the certified cooldown multiplies the
+length by 1 - 2.5e-6 per pass (soft-cond) and 1 - 3.4e-6 (ls-cond) for the reshuffled order, against q = 0.8 in the
+recipe of M9: the rates log(1/q) differ by factors 8.9e4 and 6.5e4 (4.5e4 and 3.3e4 for the cyclic order; 1.5e4 to
+4.1e4 with the smaller constant L_op + 4 (L_max + L_mean) A in place of L_op + 10 A L_max). Against the exact-gradient
+schedule the certificate is 67 to 133 times slower per pass (L_max / L_op = 6.66 on both instances).
+(2) *Not the mechanism of the fast runs.* Along a run of the recipe at q = 0.8 (exact polar factor, batch one,
+lr_0 = 0.1, independent sampling, seed 10; 7 states between passes 2 and 26, exact enumeration of the 200 indices),
+every inequality above holds, but E_j ||omega_j - grad F||_* / ||grad F||_* lies in [2.69, 3.45] (soft-cond) and
+[2.32, 3.42] (ls-cond). Inequality (a) evaluated with the measured error then bounds E_j D_+ by 1.05 to 1.24 times D
+at every state, while the measured E_j D_+ / D lies in [0.990, 1.005] and the run reaches a relative squared
+distance of 6.9e-7 and 3.0e-6 after 28 passes. The decrease comes from the average over the sampled index, which a
+pathwise inequality of the type of F5 cannot use. At the ages met on these runs the recursion would need
+L_eff = 1.6e4 to 2.4e5 times L_op.
+(3) *No critical cooldown.* (c) is a sufficient condition. It identifies no threshold in q, it is not related to the
+memory factor (1 - b/n)^(n/b) of F3, and it says nothing on the runs that leave the schedule.
+(4) *Nothing on which order is better.* The statement is sure for the permutation orders and holds only with high
+probability over a finite horizon for independent draws (no finite A bounds the ages for all t, and no rate in
+expectation follows from (a): the term - eta (2 mu_op D)^(1/2) is concave in D). This is a property of the proof, not
+a prediction of which order tolerates the faster cooldown: that is measured in M9.
+(5) *Momentum and Newton-Schulz.* Not covered. For a map with <M, orth(M)> >= alpha ||M||_* and ||orth(M)||_op <= beta,
+(a) and F12 (paths of length beta eta_s) give the same statements with mu_op replaced by alpha^2 mu_op and L_eff,t by
+beta^2 L_op + 2 (alpha + beta) beta (theta L_max + L_mean) sigma_t. For the five-step Newton-Schulz map the two
+constants are numerical, alpha is not uniform (the map has a finite slope at zero), and with its default
+normalization constant the map is not even scale invariant (F14): the test checks (a) with the pair (a, beta)
+measured at each index and claims nothing more. No acceleration by momentum is certified.
+(6) *"Distance of the order of the length"* holds in a two-sided sense only: under (c),
+||W_t - W_*||_op <= (2 C / mu_op)^(1/2) eta_t at every t (kappa_eff eta_t at the certified ratio), and
+max(||W_t - W_*||_op, ||W_{t+1} - W_*||_op) >= eta_t / 2 when omega_t != 0 (F2); the two constants are 2 kappa_eff
+apart.
+(7) (e) gives no rate, and (b)-(c) use the global mu_op, which is lam for softmax.
+(Tests: `test_F13_one_step_recursion`, 2880 pairs (state, index), exact polar factor and Newton-Schulz;
+`test_F13_certified_schedule`: the induction step of (c) for random constants (it fails just outside [C_-, C_+]),
+then the sure version on instances with n = 12: at the certified ratio, reshuffled and cyclic orders,
+max_t D_t / (C eta_t^2) between 0.991 and 0.999 (bound 1; median 2e-6 to 5e-5), largest ages 23 and 6 as in (d);
+`test_F13_expected_path_length`, the two probabilistic steps of (d)-(e), E[l_i(t)] and P(a_i(t) > A), by enumeration
+of all sequences of batches for n = 4; `test_F13_limits_on_the_benchmark` for (1)-(2). The almost-sure convergence
+itself has no test.)
+
+## F14. Exact scale covariance on least squares
+
+*Least squares, l_i(z) = ||z - y_i||^2 / 2, with minimizer W_*; a map with orth(s M) = orth(M) for every s > 0 (the
+exact polar factor; Newton-Schulz without its normalization constant; also the control maps M / ||M||_F and sign(M)).
+Let the state be u = (E, e_1, ..., e_n), plus the momentum buffer if there is one, with E = W - W_* and
+e_i = (residual stored for entry i) - rho_i(W_*). For a batch B let Phi_eta(u; B) be the state after one iteration
+of the fixed-length rule, W_+ = W - eta orth(omega) (or orth of the momentum buffer), followed by the refresh of the
+entries of B. Then, for every s > 0, every theta and every batch size,*
+
+    Phi_{s eta}(s u; B) = s Phi_eta(u; B).
+
+*Consequently, along a geometric schedule eta_t = eta_0 r^t the normalized state v_t = u_t / eta_t follows
+v_{t+1} = Phi_1(v_t; B_t) / r, a recursion that does not depend on t: a time-homogeneous Markov chain when the
+batches are independent and identically distributed.*
+
+Proof. rho_i(W) - rho_i(W_*) = E x_i is linear in E. zbar + lam W = (1/n) sum_i e_i x_i^T + lam E + grad F(W_*) and
+grad F(W_*) = 0; c_j = (E x_j - e_j) x_j^T. So omega is linear in u, and so is a momentum buffer (a linear recursion
+on omega); orth(.) is therefore unchanged when u is replaced by s u, and E_+ = E - eta orth(.) and e_j <- E x_j are
+homogeneous of degree one in (u, eta). Then u_{t+1} = Phi_{eta_t}(u_t; B_t) = eta_t Phi_1(u_t / eta_t; B_t). []
+
+Reading. On least squares the iteration has no intrinsic scale: whether D_t <= C eta_t^2 holds along a run depends
+on (r, v_0) and on the batches, not on the size of the error. A run that follows the schedule can do so down to the
+rounding level, and the only scale that can stop it is one introduced by the map: the constant eps = 1e-7 of the
+lab's `ns5` (the published routine), which is why that map has a floor where the exact polar factor has none
+(`polar.py`, `test_ns5_floor`).
+
+What F14 does not say.
+(1) It is a symmetry, not a stability result: it does not show that the chain v_t stays bounded (that a run stays on
+its schedule), nor that a sharp critical ratio exists.
+(2) It fails when anything in the iteration carries a scale. With the default `ns5`, once the estimator comes down
+to the size of eps, the one-step identity is off by 0.50 (relative difference, s = 1e-6) and two scaled runs with
+Nesterov momentum differ by 0.49 after 120 iterations (s = 1e-7); with eps = 1e-30 the same checks give 4.1e-11 and
+2.0e-12 (s = 1e-3). It fails for softmax (rho_i is not linear: 1.1 in one step, 0.24 after 120 iterations) and
+for the memoryless estimator (the term lam W_* + rho_j(W_*) x_j^T does not vanish: 1.1 in one step). It also fails
+with decoupled weight decay, where neither the argument of the map nor the decay term is homogeneous (not tested).
+(3) It is a statement in exact arithmetic. Two computed copies differ by rounding errors (W = W_* + E is not a scaled
+copy in floating point), which the exact polar factor amplifies along the run, as in experiment M4: on the instance
+of the test (n = 60) the copies s = 1 and s = 1e-3 agree to 2.6e-12 after 2 passes, 3.9e-8 after 5 passes and not
+at all after 10 (0.85); two runs at the same scale whose starting points differ by 1e-13 separate in the same way
+(1.4e-12, 3.6e-8, 0.73). Long runs can be compared in law, not path by path.
+Not found in the literature (same search): this covariance in the joint state (W - W_*, table errors).
+(Test: `test_F14_scale_covariance`, at batch one: one step for every index at two states, s = 1e-3, relative
+differences 1.5e-16 to 1.0e-10 for the five scale-invariant configurations; runs of 120 iterations with and without
+momentum; the failures above as negative tests.)
+
+## F15. A Lyapunov function for the nuclear-scaled joint SAGA polar step
+
+*Batch one, an index uniform on {1..n} and independent of the past, n >= 2, theta in [0, 1], the exact polar factor
+and the nuclear-scaled step S_j = gamma ||omega_j||_* polar(omega_j). Let*
+
+    Theta = (1/n) sum_i ||W - phi_i||_op^2,        Psi = D(W) + Theta / (8 n gamma).
+
+*If gamma <= 1 / (14 n L_max) and gamma L_op <= 1, then*
+
+    E[Psi_+ | past] <= (1 - min{ (1 - gamma L_op) gamma mu_op / 2,  1/(4n) }) Psi,
+
+*and the minimum is its first term as soon as mu_op <= 7 L_max.*
+
+Proof. Write s = ||omega_j||_*, x = ||omega_j - grad F(W)||_*, G = grad F(W), a = 1 - gamma L_op >= 0.
+(I1, for every index.) F5 reads D_+ - D <= - gamma s^2 (1/2 + a/2) + gamma s x. With s x <= s^2 / 4 + x^2 and
+s^2 >= ||G||_*^2 / 2 - x^2 (from s >= ||G||_* - x when ||G||_* >= x; trivial otherwise),
+
+    D_+ - D <= - ||S_j||_op^2 / (4 gamma) - (gamma a / 4) ||G||_*^2 + (3 gamma / 2) x^2,        ||S_j||_op = gamma s.
+
+(I2.) By F12 with b = 1 and theta <= 1, x <= L_j l_j + (1/n) sum_i L_i l_i with l_i = ||W - phi_i||_op, hence
+E_j x^2 <= 2 E_j L_j^2 l_j^2 + 2 ((1/n) sum_i L_i l_i)^2 <= 4 L_max^2 Theta.
+(I3.) After the iteration phi_j = W, so ||W_+ - phi_j||_op = ||S_j||_op, and for i != j
+||W_+ - phi_i||_op^2 <= (1 + e) ||W - phi_i||_op^2 + (1 + 1/e) ||S_j||_op^2. Averaging over j with e = 1 / (2 (n - 1)),
+E_j Theta_+ <= (1 - 1/(2n)) Theta + (2n - 3 + 2/n) E_j ||S_j||_op^2 <= (1 - 1/(2n)) Theta + 2n E_j ||S_j||_op^2.
+(Sum.) In E_j Psi_+ the two terms in E_j ||S_j||_op^2 cancel exactly (2n / (8 n gamma) = 1 / (4 gamma)), and
+
+    E_j Psi_+ <= D - (gamma a / 4) ||G||_*^2 + [1 - 1/(2n) + 48 n gamma^2 L_max^2] Theta / (8 n gamma).
+
+With n gamma L_max <= 1/14, 48 n gamma^2 L_max^2 <= 0.245 / n, so the bracket is at most 1 - 1/(4n); and
+||G||_*^2 >= 2 mu_op D. Finally (1 - gamma L_op) gamma mu_op / 2 <= mu_op / (28 n L_max), which is at most 1/(4n)
+iff mu_op <= 7 L_max. []
+
+The hypothesis gamma L_op <= 1 follows from gamma <= 1 / (14 n L_max) when lam r <= (14 n - 1) L_max (because
+L_op <= L_mean + lam r). The argument is that of incremental aggregated gradient methods, in the spectral geometry:
+the Euclidean analogue, a function gap plus a window of stale steps with a step of order 1 / (n L), is Lemma 3.7 of
+Zhu, Heath and Mitra (arXiv:2602.05304), after Gurbuzbalaban, Ozdaglar and Parrilo (arXiv:1506.02081); a table-based
+Lyapunov function for SAGA with mirror steps in an arbitrary norm is in Xie et al. (arXiv:2205.02273). The pair
+"function gap + spectral staleness of the table" for the nuclear-scaled polar step was not found.
+
+What F15 does not say.
+(1) *Not the speed.* At gamma = 1 / (14 n L_max) the certified factor per pass is about exp(-mu_op / (28 L_max)):
+28 L_max / L_op times slower than the full-gradient nuclear-scaled step (1 - mu_op / L_op per pass, Theorem 3.3 (a)
+of `notes_spectral_theory`).
+(2) *Not the steps that are used.* On soft-cond and ls-cond, 1 / (14 n L_max) = 3.57e-4 / R2_op. The tuned steps of
+this family in experiment M1 (`results/M1_summary.json`, row "SAGA-Muon (joint)") are gamma = 0.5 / R2_op on
+soft-cond and 0.125 / R2_op on ls-cond, i.e. 1400 and 350 times larger: the theorem does not cover the steps that
+are used, and no claim is made that Psi decreases in expectation there.
+(3) The proof uses no unbiasedness and no average over the index beyond (I2)-(I3); like F13 it cannot explain the
+observed rates. On the 32 states of the test the exact one-step decrease of Psi is 17 to 813 times the certified one.
+(4) Batch one, exact polar factor, no momentum. The batch-b version (n replaced by n/b in (I3) and in the weight of
+Theta) is not written out and not tested.
+(Test: `test_F15_lyapunov`: the final inequality and (I1)-(I3) at states of the run, at states of a run with the
+lab's default step, and at arbitrary iterates with a table of gradients at scattered points; theta = 1 and 1/n.)
+
+## F16. The SAG direction keeps the full-batch polar factor in the first phase (least squares, K >= d)
+
+*Least squares with K >= d, Sigma = Sigma_hat + lam I, table initialised at W_0, grad F(W_0) = O_0 Y_0 with
+O_0^T O_0 = I_d and Y_0 symmetric positive definite (the polar decomposition of a gradient of rank d), and
+tau_* = lambda_min(Sigma^(-1/2) Y_0 Sigma^(-1/2)). Consider S_t = eta_t polar(omega_t) with the exact polar factor,
+lengths eta_t >= 0, any batches of distinct indices (any order, any sizes b_t) and theta_t in [0, b_t / n]
+(theta = b/n: the SAG direction). As long as tau_t := sum_{s<t} eta_s < tau_*,*
+
+    omega_t = O_0 P_t with P_t symmetric positive definite,     polar(omega_t) = O_0,     W_t = W_0 - tau_t O_0.
+
+*The same holds when the map is applied to a momentum buffer with nonnegative weights.*
+
+Proof. Induction: suppose W_s = W_0 - tau_s O_0 for s <= t. Then phi_i = W_0 - tau^(i) O_0 with tau^(i) <= tau_t, and,
+g_i'(W) = (W x_i - y_i) x_i^T being affine, z_i = g_i'(W_0) - tau^(i) O_0 x_i x_i^T and
+c_j = - (tau_t - tau^(j)) O_0 x_j x_j^T. Hence omega_t = O_0 P_t with
+
+    P_t = Y_0 - (1/n) sum_i tau^(i) x_i x_i^T - lam tau_t I - (theta/b) sum_{j in B_t} (tau_t - tau^(j)) x_j x_j^T,
+
+a symmetric matrix. For theta <= b/n the last term is at most (1/n) sum_{j in B_t} (tau_t - tau^(j)) x_j x_j^T, so the
+subtracted matrix is at most tau_t Sigma_hat + lam tau_t I = tau_t Sigma, and P_t >= Y_0 - tau_t Sigma, which is
+positive definite iff tau_t < tau_*. A matrix with orthonormal columns times a symmetric positive definite matrix is
+a polar decomposition: polar(omega_t) = O_0 and W_{t+1} = W_0 - tau_{t+1} O_0. Nonnegative combinations of matrices
+O_0 P with P positive definite have the same form. []
+
+Reading. tau_* is the length of the first phase of the full-batch polar step:
+grad F(W_0 - tau O_0) = O_0 (Y_0 - tau Sigma), so the exact-gradient method also follows the segment W_0 - tau O_0, with
+the frozen factor O_0, exactly until tau_* (Proposition 4.1 (a) of `notes_spectral_theory`). F16 says that with the SAG
+direction the stochastic iteration is on the same segment, whatever the batches and the ages of the table: in the
+first phase the polar factor does not see the staleness at all, only the length schedule matters.
+
+What F16 does not say.
+(1) *Not for the SAGA direction.* For theta = 1 the innovation subtracts up to
+((1 - b/n) / b) sum_{j in B_t} (tau_t - tau^(j)) x_j x_j^T more than tau_t Sigma, and the statement is false at the
+threshold tau_*: after a single step of length tau the polar factor of omega_j has left O_0 for some index j as
+soon as tau exceeds 0.25 tau_* and 0.28 tau_* on the two instances of the test, and along runs at batch one without
+momentum the first departure occurs at 0.37 to 0.55 tau_*. For batch one the statement holds below the smaller
+threshold min_j lambda_min(M_j^(-1/2) Y_0 M_j^(-1/2)), M_j = Sigma + (theta - 1/n) x_j x_j^T (same proof; 0.23 tau_* and
+0.26 tau_* on these instances).
+(2) It needs the exact polar factor: with Newton-Schulz the direction is O_0 p(P_t), the iterate leaves the segment
+and the induction breaks.
+(3) It concerns the first phase only: tau_* <= ||W_0 - W_*||_op (Proposition 4.1 (b) of `notes_spectral_theory`), and
+nothing is said after it (on the runs of the test the SAG direction leaves O_0 between 1.03 tau_* and 1.43 tau_*).
+(4) Least squares and K >= d only; a statement about a direction, not about speed.
+(Test: `test_F16_frozen_polar_factor`: every index after a first step of length up to 0.99 tau_*, and runs with
+independent or reshuffled indices, batch 1 and 5, with and without Nesterov momentum, on two instances (K, d) = (6, 4)
+and (5, 5); theta = 1 as the negative test.)

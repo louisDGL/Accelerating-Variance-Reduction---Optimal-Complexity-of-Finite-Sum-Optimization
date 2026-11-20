@@ -422,3 +422,386 @@ SAGA/L-Katyusha stays between 0.51 and 0.55 times √(κ/n)).
   c_share_frac_negative_given_q_ge_1): only on these states could the cancelled term not have been absorbed into the
   certified decrease. Prediction (P4) of the A3 note (q(t) of order one or larger) is confirmed in this sign-aware
   reading.
+
+## 9. Hypothesis B4 — sampling order and the memory term (Figures B4, B4b)
+
+Sources: every number of this section is read in `results/B4_summary.json` (written by
+`experiments/exp_B4_sampling_order.py`) or in `results/B4b_summary.json` (`experiments/exp_B4b_refinements.py`, run
+after it), under the key given in brackets (keys starting with `B4b:` are in the second file); their entries
+`definitions` define each quantity; the values flagged "(derived)" are ratios or ranges of entries of these files. The
+caches `results/B4.pkl` and `results/B4b.pkl` are not versioned. Exponents are per pass (n iterations), for squared
+errors, in nats; c = γnλ is the step in units of passes and g = γλ = c/n the step per iteration. Theory:
+`theory/B4_sampling_order.tex` (the "B4 note"; statements quoted with their numbers in `theory/main.pdf`). This section
+was revised on 2026-11-19 after an adversarial review of the first version; (f) lists what the review changed.
+
+**(a) What was predicted, and what the note proves.** Sections 3 and 4 end on the same ceiling: under i.i.d. sampling a
+memory slot that is never refreshed keeps E[V_t] from decreasing faster than (1 − 1/n)^t, one nat per pass. Hypothesis
+(B4) says that this ceiling belongs to sampling *with replacement*, not to the table. The B4 note makes it exact on
+sums with identical Hessians, where SAGA reduces to one scalar recursion per eigenvalue λ of the Hessian (Lemma B4.2):
+* (R1) i.i.d. indices: E e_t² follows an exact 4×4 recursion; as n → ∞ it decays at min{2c, 1} at fixed c
+  (Propositions B4.3–B4.4) and at 2(1 − g)/(2 − g) at fixed g, with divergence for g > 1 (Proposition B4.6): the
+  ceiling is attained by the expected error itself, and it is 6/7, not 1, at the textbook value g = 1/4 (all proved);
+* (R2) a fixed order (cyclic, or one permutation reused at every pass): a linear recurrence of order n + 1, stable in the
+  limit n → ∞ if and only if c < c_* = 17.702 (Propositions B4.9–B4.10, proved in the limit; the best rate, 1.526 at
+  c = 2.148, is numerical) [`model.c_star`, `model.cyclic_best`];
+* (R3) a fresh permutation at every pass (random reshuffling): the mean follows an exact 2×2 pass map and the second
+  moments an exact 4×4 pass map at every n (Propositions B4.12–B4.14, proved); at fixed c the expected squared error
+  decays at the rate r_rr(c) of the squared mean, which tends to 2 as c → ∞ (Proposition B4.15(i), proved); at fixed g
+  it decays at min{2, log((2 − g)/g)} and diverges for g > 1 although the mean converges (Proposition B4.15(ii),
+  proved on 2026-11-19 after this section was first written: the weights of the fluctuation have a closed form; checked
+  on the exact matrix for n up to 10⁵).
+Two sections of the note leave the model: what a *typical* i.i.d. run does (its exponent exists and is at least that
+of the expectation, proved; its value is measured, with a heuristic law), and what replaces λ when the Hessians differ
+(an effective curvature L̃, Proposition B4.18; used as a heuristic "two-term law"), with the opposite extreme of
+components on orthogonal directions solved exactly (Proposition B4.19).
+Predictions tested: the laws of the model on simulated runs (M); the laws on logistic regression, where the Hessians
+differ (L); and, on the instance (S) of the A1 note, an error below the floor proved for span methods with i.i.d.
+indices (S).
+
+**(b) Model (M).** n ∈ {100, 10³, 10⁴}, 9 seeds, 150 passes, exponents fitted on passes 30–150 [`model.by_c.<c>`; table
+for n = 10³, entries `n=1000.iid_expectation`, `n=1000.iid_typical.median`, `n=1000.rr_simulated.median`,
+`n=1000.rr_mean_square`, `rr_limit`, `n=1000.rr_over_iid_typical`, `n=1000.cyclic_companion`, `cyclic_limit`]:
+
+| c = γnλ | 1/4 | 1/2 | 1 | 2 | 4 | 8 | 16 | 32 |
+|---|---|---|---|---|---|---|---|---|
+| i.i.d., expectation (exact) | 0.500 | 0.985 | 1.000 | 0.999 | 0.998 | 0.996 | 0.992 | 0.984 |
+| i.i.d., typical run (median of 9 seeds) | 0.501 | 1.006 | 1.611 | 1.579 | 1.516 | 1.473 | 1.424 | 1.344 |
+| reshuffled, simulated (median) | 0.4447 | 0.7775 | 1.1881 | 1.5380 | 1.7534 | 1.8637 | 1.9243 | 1.9599 |
+| reshuffled, E e² exact (second moments) | 0.4446 | 0.7775 | 1.1880 | 1.5380 | 1.7534 | 1.8636 | 1.9240 | 1.9596 |
+| reshuffled, law r_rr(c) (n → ∞) | 0.4445 | 0.7772 | 1.1874 | 1.5370 | 1.7523 | 1.8625 | 1.9230 | 1.9586 |
+| reshuffled / i.i.d. typical | 0.888 | 0.773 | 0.737 | 0.974 | 1.156 | 1.265 | 1.351 | 1.458 |
+| fixed order, companion matrix | 0.4369 | 0.7562 | 1.1500 | 1.4978 | 0.6985 | 0.1908 | 0.0088 | −0.0262 |
+| fixed order, limit n → ∞ | 0.4368 | 0.7559 | 1.1494 | 1.4970 | 0.7017 | 0.1937 | 0.0107 | −0.0251 |
+
+* (R3) is confirmed, and exactly: the largest deviation of the simulated reshuffled exponents from the exact
+  mean-square exponent over the eight values of c is 0.016 at n = 100, 3.1e-04 at n = 10³ and 6.9e-05 at
+  n = 10⁴ [`model.n=<n>.rr_max_abs_dev_from_mean_square`], with a spread over the seeds of at most 1.3e-03 and
+  8e-04 at n = 10³ and 10⁴ [`rr_max_seed_spread`]: typical reshuffled runs decay at the rate of E e². Against the
+  fluid law r_rr(c) the deviation is 1.3e-03 (n = 10³) and 1.5e-04 (n = 10⁴), but 0.34 at n = 100
+  [`rr_max_abs_dev_from_limit`], in one cell: c = 32, i.e. g = 0.32, where the simulated exponent is 1.619, the
+  exact mean-square exponent 1.603, and the squared mean and the fluid law 1.969 and 1.959
+  [`by_c.32.n=100.*`]. This is the second branch of Proposition B4.15(ii): beyond g = 2/(1 + e²) = 0.238 the dispersion
+  of the memory, multiplied by g/(2 − g) per pass, decays more slowly than the squared mean.
+* (R1) is confirmed for the expectation and does not describe single runs. The exact exponent of E e_t² is within
+  1.6 % of 1 for 1 ≤ c ≤ 32 at n = 10³, but the median exponent of single runs is 1.34–1.61 there and varies by up to
+  0.16–0.18 between seeds [`n=<n>.iid_max_seed_spread`]. At n = 10³, c = 2, after 20 passes the exact E e_t² is
+  3.72·10⁻¹², the median of the 9 runs 7.34·10⁻¹⁷ and their mean 8.02·10⁻¹⁶; after 40 passes 7.79·10⁻²¹ against a
+  median of 8.02·10⁻³¹ [`model.expectation_vs_runs`]. The last initial slot is refreshed after 7.72 passes in median
+  (5.72–9.12 over the seeds): beyond that the expectation is carried by runs that are not in a sample of 9. The plateau
+  constant of the expectation is confirmed: n times the amplitude of the slow mode is 1.774 at n = 10³, against the
+  limit 2c³/(2c − 1)² = 1.778 [`slow_amplitude_times_n`, `plateau_limit`].
+* (R2): the companion matrix puts the critical step at c_*(100) = 14.784 and c_*(1000) = 17.36, below c_* = 17.702
+  [`model.cyclic_threshold`]; up to c = 2 a fixed order is within 4 % of reshuffling, beyond it is much slower (0.70
+  against 1.75 at c = 4) and at c = 32 its error grows.
+
+*A mode at a fixed step* [`B4b: fixed_g.by_g.<g>`: `iid_exact`, `iid_limit`, `rr_exact`, `rr_limit`; exact second-moment
+matrices at n = 10⁴ against the limits]:
+
+| g = γλ | 0.05 | 0.1 | 0.2 | 0.25 | 0.32 | 0.5 | 0.9 | 1.1 |
+|---|---|---|---|---|---|---|---|---|
+| i.i.d., E e² exact, n = 10⁴ | 0.9744 | 0.9474 | 0.8889 | 0.8572 | 0.8095 | 0.6667 | 0.1818 | −0.2222 |
+| i.i.d., limit 2(1 − g)/(2 − g) | 0.9744 | 0.9474 | 0.8889 | 0.8571 | 0.8095 | 0.6667 | 0.1818 | −0.2222 |
+| reshuffled, E e² exact, n = 10⁴ | 1.9972 | 1.9987 | 1.9994 | 1.9448 | 1.6576 | 1.0984 | 0.2007 | −0.2007 |
+| reshuffled, limit min{2, log((2 − g)/g)} | 2.0000 | 2.0000 | 2.0000 | 1.9459 | 1.6582 | 1.0986 | 0.2007 | −0.2007 |
+
+* At the textbook value g = 1/4 (the stiffest mode at γ = 1/(4R²), whatever n) the expectation under i.i.d. sampling
+  decays at 6/7 = 0.857 nat per pass and the reshuffled mean square at log 7 = 1.946, a ratio 2.27; both orders diverge
+  in mean square for g > 1, the reshuffled one while its mean still contracts. The largest exact reshuffled exponent
+  over c is 1.952 at c = 22.3 (n = 100), 1.995 at c = 237 (n = 10³) and 1.9995 at c = 2382 (n = 10⁴), i.e. always near
+  g = 0.22–0.24 [`B4b: fixed_g.rr_best`]: two nats per pass are approached only for large n, at a step close to the
+  textbook one on the stiffest mode.
+
+*Typical runs under i.i.d. sampling* (12 seeds, 260 passes, exponents fitted on passes 60–260; median, and in
+parentheses the heuristic of the note, δ log(n/c) = 2 log(2/δ) with exponent 2 − δ) [`B4b: typical.n=<n>.<c>`: `median`,
+`heuristic`, `expectation`, `rr`, `rr_over_typical`]:
+
+| c | n = 10² | n = 10³ | n = 10⁴ | n = 10⁵ |
+|---|---|---|---|---|
+| 1 | 1.555 (1.444) | 1.614 (1.561) | 1.673 (1.632) | 1.727 (1.681) |
+| 2 | 1.487 (1.392) | 1.635 (1.532) | 1.674 (1.614) | 1.765 (1.668) |
+| 4 | 1.378 (1.325) | 1.556 (1.499) | 1.650 (1.593) | 1.707 (1.654) |
+| 8 | 1.269 (1.237) | 1.484 (1.459) | 1.612 (1.569) | 1.671 (1.638) |
+| 16 | 1.120 (1.113) | 1.395 (1.410) | 1.529 (1.542) | 1.631 (1.620) |
+| 32 | 0.919 (0.919) | 1.352 (1.348) | 1.498 (1.510) | 1.605 (1.600) |
+| reshuffled, E e² exact, c = 32 | 1.603 | 1.960 | 1.959 | 1.959 |
+| i.i.d., expectation exact, c = 32 | 0.810 | 0.984 | 0.998 | 1.000 |
+
+* A typical run is faster than the expectation in every cell and its exponent increases with n at every c (at c = 1:
+  1.555, 1.614, 1.673, 1.727), slowly. The heuristic is within 0.043 of the measured median (median deviation
+  0.013) on the 9 cells with c ≥ 8 and c/n ≤ 0.05, and up to 0.11 too low for c ≤ 4 [`B4b: typical.heuristic_error`]; it is
+  an argument on the oldest slots a run still holds, not a proof, and its limit (2 nats per pass as n → ∞ at fixed
+  c ≥ 1, approached like log log n / log n) is a conjecture of the note.
+* At a fixed step the typical exponent decreases with g: at n = 10³ it is 1.235, 1.128 and 0.956 at c = 64, 125 and
+  250, the last being g = 1/4, where the expectation decays at 0.857 and the reshuffled order at 1.935
+  [`B4b: typical.n=1000.<c>`].
+* Consequence for the claim. "Two nats per pass against one" compares the reshuffled order with the *expectation* under
+  i.i.d. sampling. Against typical i.i.d. runs the answer depends on the step. At equal c the reshuffled exponent is
+  0.74 times the typical i.i.d. one at c = 1 and 1.45 times at c = 32 (n = 10³), a ratio that shrinks as n grows
+  (1.74, 1.45, 1.31, 1.22 at c = 32 for n = 10², …, 10⁵); at the textbook step on the stiffest mode it is 2.02
+  (n = 10³, g = 1/4); and best step against best step over the grid of c of the first table, 1.960 (c = 32) against
+  1.611 (c = 1) at n = 10³, a factor 1.22 (derived). The i.i.d. order prefers small steps (c of order one), the
+  reshuffled order steps as large as g ≈ 0.24.
+
+**(c) Logistic regression (L).** n = 1000, d = 50, κ ∈ {10, 10², 10³, 10⁴}, α ∈ {0, 1, 2} (the problems of Section 1,
+one data draw each), θ₀ = 0, 5 sampling seeds, steps γR² ∈ {1/128, 1/64, …, 2}, at most 300 passes; exponent of
+‖θ_t−η*‖² fitted on the second half of each trajectory above the 10⁻¹⁸ floor; medians over the seeds, ranges over α;
+"best step" = best step of the grid for that order [`logistic.headline.<problem>`: `iid_textbook`, `iid_best`,
+`rr_best`, `gain`]:
+
+| κ/n | i.i.d., γR² = 1/4 | i.i.d., best step | reshuffled, best step | ratio of the bests |
+|---|---|---|---|---|
+| 0.01 | 1.26–1.30 | 1.50–1.61 | 1.99–2.01 | 1.23–1.33 |
+| 0.1 | 1.13–1.30 | 1.34–1.39 | 1.88–1.93 | 1.35–1.41 |
+| 1 | 0.53–1.06 | 1.06–1.07 | 1.44–1.54 | 1.36–1.46 |
+| 10 | 0.065–0.49 | 0.48–0.93 | 0.43–1.01 | 1.08 / 0.94 / 0.90 (α = 0 / 1 / 2) |
+
+Passes to 10⁻¹⁰ at the fastest step of each order, i.i.d. → reshuffled, counted in two ways because under reshuffling
+the error is not monotone within a pass (it dips shortly after each pass boundary and rises until the next one):
+the first record below the target, and the pass from which the error stays below it [`gain.passes_iid_fastest`,
+`passes_rr_fastest`, `saving_first`; `passes_iid_stay`, `passes_rr_stay`, `saving_stay`]:
+
+| κ/n | first passage below 10⁻¹⁰ | saving | stays below 10⁻¹⁰ from | saving |
+|---|---|---|---|---|
+| 0.01 | 11.6–12.7 → 10.1 | 13–20 % | 12.5–13.4 → 12.0 | 4–11 % |
+| 0.1 | 13.9–16.3 → 11.1–12.1 | 20–26 % | 13.9–16.3 → 12.0–12.1 | 13–26 % |
+| 1 | 18.9–19.7 → 14.2–16.2 | 18–26 % | 19.3–19.7 → 14.2–16.2 | 18–26 % |
+| 10 | 23.1–40.6 → 21.3–45.3 | −12–8 % | 23.1–40.6 → 21.3–45.3 | −12–8 % |
+
+* For κ ≤ n, reshuffled SAGA at its best step has an exponent 1.23–1.46 times that of i.i.d. SAGA at its own best step.
+  In passes the saving is 13–26 % to the first passage below 10⁻¹⁰ and 4–26 % to the pass from which the error stays
+  below it; the two differ at κ/n = 0.01, where the reshuffled runs first touch 10⁻¹⁰ in a dip at 10.1 passes and stay
+  below it from 12.0 passes on. The exponent approaches the value 2 of the model only at κ/n = 0.01. Without any tuning,
+  at the textbook step, changing the order alone gives 1.95–1.96 instead of 1.26–1.30 at κ/n = 0.01 and 1.70–1.77
+  instead of 1.13–1.30 at κ/n = 0.1, and no gain at κ/n ≥ 1 [`logistic.configs.<problem>|rr|gammaR2=0.25.exponent.median`].
+* The i.i.d. runs exceed one nat per pass whenever κ ≤ n/10, as noted in Section 4 and as the typical runs of the
+  model do: the ceiling of Sections 3 and 4 concerns E[V_t], not the measured slopes.
+* The best steps differ, as in the model: for i.i.d. sampling γR² = 1/128–1/64 at κ/n = 0.01, 1/16–1/8 at 0.1, 1/4–1
+  at 1 and 1/2–2 at 10; for reshuffling 1/2–1 for κ/n ≤ 0.1 and 1/2–2 beyond (`iid_best.gammaR2`, `rr_best.gammaR2`).
+* The law (R3), used as a heuristic at c = γnλ_min(F″(η*)): on the 65 (problem, step) pairs with γR² ≤ 1/2 at which all
+  reshuffled runs converged, measured/law − 1 has median +2.2 % and largest absolute value 8.6 % (κ = 10³, α = 1,
+  γR² = 1/32) [`logistic.law_R3.gammaR2_le_half`]. For γR² ≥ 1 it fails: 11 of 24 pairs within 10 %, median -13 %,
+  worst -91 % (κ = 10⁴, α = 0, γR² = 2) [`logistic.law_R3.gammaR2_ge_1`].
+* The two-term law explains most of these failures. With the effective curvature L̃ of each problem at its optimum
+  (L̃/R² = 0.16–0.43 over the twelve problems [`B4b: logistic.<problem>.L_eff_over_R2`]) and g = γL̃, the prediction
+  min{r_rr(c_min), log((2 − g)/g)} is within 10 % of the measured exponent on 19 of the 24 pairs with γR² ≥ 1 (median
+  error 3.8 % instead of 13 %), and on all 8 of them with κ ≤ 100 (largest error 6.6 %, against 54 % for the law
+  (R3) alone). For κ ≥ 10³ the two terms are close and the measured exponent is below both, by up to 56 %
+  (κ = 10⁴, α = 0, γR² = 2): there the law is an upper envelope, not a prediction. Over the 89 pairs of the grid,
+  84 are within 10 % of the two-term law against 76 for the law (R3) alone [`B4b: logistic.summary`]. The second term is
+  the fixed-step branch of the model (the dispersion of the memory is multiplied by g/(2 − g) per pass) carried to
+  unequal Hessians by Proposition B4.18; that it predicts a rate there is a heuristic.
+* Fixed orders are not a substitute. Shuffled-once and cyclic SAGA fail on the same 43 of the 108 (problem, step) pairs,
+  "fail" meaning divergence, or 10⁻¹⁰ not reached within the 300 passes with an exponent below half that of the i.i.d.
+  runs at the same step [`logistic.fixed_orders.so`, `.cyclic`]. The smallest γnλ_max(F″(η*)) with a failure is 8.01 and
+  the largest without one 10.93; no pair above c_* is free of failure, and 8 failing pairs lie below it
+  (c_*(1000) = 17.36). Counting also the pairs that reach 10⁻¹⁰ within the budget with an exponent below half the
+  i.i.d. one, 55 pairs are slow or failing, from γnλ_max = 4.30 on, 20 of them below c_*
+  [`n_slow_or_failing`, `smallest_c_max_slow`, `n_slow_below_c_star`]: these are the slow-downs that the model predicts
+  before the instability (fixed-order exponent 0.19 at c = 8 and 0.057 at c = 12, n = 10³ [`model.cyclic_companion.n=1000`]).
+  Run statuses (converged / stalled / diverged): i.i.d. 449 / 91 / 0, reshuffled 445 / 95 / 0, shuffled once 230 / 219 / 91,
+  cyclic 46 / 43 / 19 [`logistic.status_counts`]. No run exploded: the 91 + 19 "diverged" fixed-order runs ended above
+  their initial error after 300 passes without reaching 10¹² times it, and 92 + 17 of the stalled ones were still growing
+  [`status_counts.<order>.detail`]; no i.i.d. or reshuffled run grew. This is the weak instability of the model (at
+  most about 0.026 nats per pass in the limit, 0.035 at n = 100 for g = 1/4 [`B4b: note.R2_fastest_growth_on_17.8_400`,
+  `note.R2_textbook_step_g_quarter`]): a stall, not an explosion.
+  At their best steps the fixed orders are slower than i.i.d. sampling on every problem (e.g. 15.5–15.8 passes to
+  10⁻¹⁰ against 11.6–12.7 at κ/n = 0.01, and 22–80 against 18.9–19.7 at κ/n = 1 [`so_fastest`, `iid_fastest`]; at κ = 10⁴, α = 2 no step of the grid
+  makes them converge within the budget).
+  Evaluated at the worse end of the spectrum of F″(η*), the law (R2) differs from the measured fixed-order exponents by
+  0.008 nats per pass in median, at most 0.21 (shuffled once, 91 pairs) and 0.22 (cyclic, 89 pairs)
+  [`logistic.fixed_orders.law_R2`]: a heuristic, like (R3), since the Hessians are not identical.
+* Check of the implementation: the batched loop of the script and `vrlab.algorithms.saga` agree within 1.1e-06
+  (relative, records above the 10⁻¹⁸ floor of the first 30 passes, four orders, all 12 problems) [`logistic.check_max_rel_dev`].
+
+**(d) Instance (S) of the A1 note.** n = 256, block length m = 12, θ₀ = 0, 32 seeds, steps γR² ∈ {1/8, …, 4}, budgets of
+60 / 80 / 140 / 200 passes for κ/n = 0.1 / 1/3 / 1 / 4. Count = gradient evaluations (n for the initial full gradient,
+then 1 per iteration), in units of n, at the best step of the grid, for the mean over the seeds of
+‖θ_t−η*‖²/‖η*‖². The reshuffled mean is a sawtooth within each pass, so three counts are given for it: first passage
+below ε / count from which the mean stays below ε / first pass end below ε. "i.i.d. bound" is Corollary "initial full
+gradient" of the A1 note (label cor:sweep), a lower bound for every span method that queries i.i.d. indices after one
+full gradient, on the *expected* error; "any-sequence bound" is Proposition "any index sequence" (prop:anyseq), pathwise.
+In brackets, the 2.5 %–97.5 % range of the first-passage count over 500 bootstrap resamples of the seeds
+[`hard_instance.kappa/n=<r>.by_eps.<eps>`: `bound_iid`, `bound_any`, `iid.best`, `rr.best` (`count`, `stay_count`,
+`pass_end_count`, `boot`), `rr_best_over_iid_best`]:
+
+| κ/n | ε | i.i.d. bound | any-sequence bound | i.i.d. SAGA | reshuffled SAGA: first / stays / pass end | reshuffled / i.i.d. bound | i.i.d. SAGA / i.i.d. bound |
+|---|---|---|---|---|---|---|---|
+| 0.1 | 10⁻⁸ | 11.14 | 2.35 | 13.33 [12.25, 13.76] | 10.06 [10.05, 10.07] / 11.00 / 12 | 0.90 / 0.99 / 1.08 | 1.20 |
+| 0.1 | 10⁻¹⁶ | 29.50 | 4.79 | 26.40 [24.18, 27.05] | 19.08 [19.07, 19.09] / 20.02 / 21 | 0.65 / 0.68 / 0.71 | 0.89 |
+| 0.1 | 10⁻²⁴ | 47.86 | 7.23 | 39.47 [37.01, 39.85] | 29.05 [29.04, 29.05] / 30.00 / 31 | 0.61 / 0.63 / 0.65 | 0.82 |
+| 1/3 | 10⁻⁸ | 13.45 | 3.35 | 14.95 [14.37, 15.76] | 12.08 [11.41, 12.10] / 12.08 / 13 | 0.90 / 0.90 / 0.97 | 1.11 |
+| 1/3 | 10⁻¹⁶ | 31.90 | 6.84 | 30.40 [28.74, 31.97] | 23.51 [23.29, 24.15] / 24.09 / 25 | 0.74 / 0.76 / 0.78 | 0.95 |
+| 1/3 | 10⁻²⁴ | 50.34 | 10.32 | 43.96 [41.93, 44.28] | 36.38 [36.08, 39.13] / 38.19 / 37 | 0.72 / 0.76 / 0.74 | 0.87 |
+| 1 | 10⁻⁸ | 15.57 | 5.02 | 23.32 [22.08, 23.34] | 21.27 [21.26, 21.27] / 21.27 / 22 | 1.37 / 1.37 / 1.41 | 1.50 |
+| 1 | 10⁻¹⁶ | 34.47 | 10.24 | 48.30 [46.83, 50.41] | 43.38 [43.37, 43.38] / 43.38 / 44 | 1.26 / 1.26 / 1.28 | 1.40 |
+| 4 | 10⁻⁸ | 19.44 | 9.21 | 58.88 [58.85, 58.91] | 62.57 [62.56, 62.57] / 62.57 / 63 | 3.22 / 3.22 / 3.24 | 3.03 |
+
+(The bounds are not defined, and the rows omitted, where m = 12 violates the dimension condition q^{2m} ≤ ε: κ/n = 1 at
+10⁻²⁴, κ/n = 4 at 10⁻¹⁶ and 10⁻²⁴.)
+* The statement that does not depend on a convention is a comparison at equal counts. For κ/n = 0.1, from 10.03 n
+  gradients on, and for κ/n = 1/3 from 9.06 n on, the seed mean of reshuffled SAGA is below the floor of inequality
+  (expected-sweep) of the A1 note, which the *expected* error of every span method with i.i.d. indices must exceed at the
+  same count, at every later record down to a floor of 10⁻²⁵ [`hard_instance.kappa/n=<r>.below_iid_floor`]. This
+  contradicts nothing (a reshuffled method leaves the i.i.d. hypothesis; Proposition B4.17 compares the two floors),
+  and it shows that the constant in front of n·log(1/ε) depends on the sampling order. For κ ≥ n the reshuffled mean is
+  not below that floor at the end of the range.
+* In counts, for κ ≤ n/3 reshuffled SAGA needs 0.61–0.78 of the i.i.d. bound at ε = 10⁻¹⁶ and 10⁻²⁴, whatever the
+  convention. At ε = 10⁻⁸ the figure depends on it: for κ/n = 0.1 the mean first passes below ε at 10.06 n, 0.90 of
+  the bound, in a dip; it stays below ε only from 11.00 n (0.99), and the first pass end below ε is at 12 n
+  (1.08); for κ/n = 1/3 the three figures are 0.90, 0.90 and 0.97. The best reshuffled step is interior to the
+  grid (γR² = 2 for κ/n = 0.1: counts 10.11 / 10.06 / 11.03 n at γR² = 1 / 2 / 4; γR² = 1 for κ/n = 1/3)
+  [`rr.count_by_step`, `rr.best.at_grid_edge`]. The gain is bounded: the counts stay 3.4–4.3 times above the
+  any-sequence bound (`rr.best.count_over_bound_any`, κ ≤ n/3). In the model the ratio to the i.i.d. bound would tend
+  to (1 − q²)/2 ≈ 0.50 at best (q = 0.023 and 0.071, [`hard_instance.kappa/n=<r>.q`]); the instance is not an
+  identical-Hessian sum, so this is an analogy, not a prediction, and what is proved on the instance for an order
+  without replacement is only the pathwise floor, which leaves room for much more.
+* For κ ≥ n reshuffling does not go below the i.i.d. bound (1.37 and 1.26 times at κ = n, 3.22 at κ = 4n); against
+  i.i.d. SAGA itself it saves 9–10 % of the gradients at κ = n and costs 6 % more at κ = 4n.
+* Seed variability. Over the bootstrap resamples the reshuffled counts move by at most 0.02 n for κ/n = 0.1, whereas the
+  i.i.d. count at 10⁻⁸ ranges over 12.25–13.76 n, i.e. 1.10–1.24 times the bound: reshuffled SAGA needs
+  0.73–0.82 times the gradients of i.i.d. SAGA there [`rr_best_over_iid_best_boot_range`].
+* Expectation against seed means (the caveat). At 10⁻¹⁶ and 10⁻²⁴ the seed mean of *i.i.d.* SAGA is itself below the
+  i.i.d. bound (0.82–0.95). This is not a violation: at the count where the 32-seed mean reaches ε, the expectation of
+  the pathwise tail bound of the A1 note, a certified lower bound on the expected error, is 47 times (10⁻¹⁶) and 9741
+  times (10⁻²⁴) the seed mean for κ/n = 0.1, and 9.4 and 1270 times for κ/n = 1/3; one seed carries 0.91 and 0.92 of the
+  mean (0.50 and 0.72 for κ/n = 1/3); no (seed, component) pair was left unqueried in the runs, against 7.2e-08 and
+  1.5e-13 expected for κ/n = 0.1 [`caveat_iid`: `expectation_floor_over_eps`, `worst_seed_share`,
+  `realized_unsampled`, `expected_unsampled`]. A mean over 32 seeds describes typical runs; the expectation is carried
+  by events that 32 seeds do not contain. At ε = 10⁻⁸ the certified floor is 0.23 and 0.46 times the seed mean: the
+  i.i.d. column is not below it there, but its count still moves by more than one pass between resamples. For the
+  reshuffled runs the floor is pathwise and the largest share of one seed in the mean is 0.07–0.16, except 0.52 at
+  κ/n = 1/3, ε = 10⁻²⁴ [`rr.best.worst_seed_share`].
+
+**(e) The other extreme: components on orthogonal directions.** When each f_i acts on its own coordinate (d = n,
+κ ≥ n always), every coordinate evolves alone with its own memory slot, and one pass is a 2×2 map (Proposition B4.19).
+Exponents per pass against c = γnλ = γR² (fixed order: exact, n → ∞; reshuffled and i.i.d.: typical runs, n = 1000,
+4·10⁴ passes, median of three seeds) [`B4b: orthogonal.by_c.<c>`: `cyclic_limit`, `rr.median`, `iid.median`]:
+
+| c = γR² | 0.05 | 0.1 | 0.25 | 0.4 | 0.5 | 0.6 | 0.7 |
+|---|---|---|---|---|---|---|---|
+| fixed order | 0.097 | 0.189 | 0.424 | 0.601 | 0.693 | 0.253 | −0.117 |
+| reshuffled | 0.098 | 0.191 | 0.436 | 0.632 | 0.694 | 0.308 | −0.065 |
+| i.i.d. | 0.100 | 0.201 | 0.496 | 0.652 | 0.585 | 0.355 | 0.023 |
+
+* The three orders have exponents of the same order, close to the gradient rate 2c at small steps, never above 0.7 nats
+  per pass, and all lose stability between γR² = 2/3 (fixed order, exact) and about 0.7. In this extreme the order
+  hardly matters: the binding constraint is the per-sample curvature.
+* The two solvable extremes bracket the experiments: the order matters when the components are aligned (κ ≪ n, the
+  memory regime, (b)–(d)) and not when they are orthogonal (κ ≥ n), which is what (c) and (d) show at κ ≥ n. The
+  stability threshold of a fixed order is γnλ_max(F″) < 17.70 in the first model and γR² < 2/3 in the second: the value
+  c_* belongs to the model, the existence of a threshold does not.
+
+**(f) What the review of 2026-11-19 changed, and the departures from the numbers announced before the experiment.**
+The first version of this section and of the note was reviewed by four independent readers (code, proofs,
+experiment, literature); no error was found in a proved statement or in the code, and the summary was reproduced
+byte for byte from an empty cache. The following was corrected.
+* *A false sentence of the note.* It said that no second-moment recursion closes at finite n under reshuffling; one
+  does (Proposition B4.14). The mean-square rate of (R3) is now exact at every n and proved in the limit of fixed c,
+  and the cell n = 100, c = 32, reported as a failure of the law, is its second branch ((b)).
+* *The regime of a fixed step.* The laws were limits at fixed c, applied to stiff modes that have a fixed g. The
+  fixed-g laws (6/7 and log 7 at the textbook value, divergence of the mean square beyond g = 1) are new in this
+  version, and with them the explanation of the failures of the law (R3) at γR² ≥ 1 on logistic regression ((c)).
+* *First passages.* "Reshuffled SAGA reaches ε = 10⁻⁸ with 0.90 of the i.i.d. bound" and "13–26 % fewer passes to
+  10⁻¹⁰" were first passages of an error that oscillates within each pass: 0.90 / 0.99 / 1.08 and 13–26 % / 4–26 %
+  with the conventions of (c) and (d). The comparison at equal counts and the figures at 10⁻¹⁶ and 10⁻²⁴ do not depend
+  on the convention. The step grid on (S) now contains γR² = 4, so that the best reshuffled step is interior.
+* *Counts of fixed-order failures.* The definition in the text was wider than the one in the code: both notions are
+  now reported (43 failing, 55 slow or failing), and the runs classified "diverged" or "stalled" are split by cause.
+* *Seed variability* of the counts on (S) is now reported (bootstrap); the i.i.d. count at 10⁻⁸ is known to about one
+  pass only.
+* *Literature.* For κ < 4.08, published rates for cyclic and reshuffled Finito already go below the i.i.d. lower bound;
+  the comparison of the three orders is a theorem for coordinate descent on quadratics; the failure of fixed orders
+  unless the step is n times smaller and a gain of reshuffling of up to two were reported with the methods themselves
+  in 2014; the threshold π²/2 of the incremental aggregated gradient method is the classical stability boundary of a
+  delay equation. The verdicts "not found" were narrowed accordingly (`bibliography/literature_review.md`, Section 10).
+* *Sources.* Every number printed in the note is now regenerated by `experiments/exp_B4b_refinements.py`
+  [`B4b: note.*`]; none comes from a scratch computation.
+
+Departures from the numbers announced before the experiment (brief of the study and prototype scripts):
+* "Reshuffling doubles the memory rate (2 nats per pass against 1)" is true against the expectation under i.i.d.
+  sampling, which no seed average shows. Against measured i.i.d. runs the gain in exponent is 1.23–1.46 on logistic
+  regression with κ ≤ n ((c)); in the model it runs from below 1 at small steps to 2.0 at the textbook step on the
+  stiffest mode ((b)).
+* "The fluid law matches simulations to 4 digits": 1.3·10⁻³ at n = 10³, 1.5·10⁻⁴ at n = 10⁴ against the fluid law;
+  the exact finite-n matrix matches to 3·10⁻⁴ and 7·10⁻⁵ ((b)).
+* The logistic exponents of the prototype (κ/n = 0.01: 1.19–1.22 / 1.51–1.52 / 1.93–1.94 for i.i.d. textbook / i.i.d.
+  best / reshuffled best) become 1.26–1.30 / 1.50–1.61 / 1.99–2.01 with the fitting window used here (second half of
+  the trajectory above the floor) and the finer step grid; the first-passage passes to 10⁻¹⁰ are unchanged.
+* "Fixed orders stall beyond γnλ_max of 10 to 20": failures start at 8.0 and are systematic beyond 10.9, slow-downs
+  start at 4.3 ((c)).
+* "The best fixed-order rate is about 1.50 near c = 2": 1.497 is the value at c = 2; the best is 1.526 at c = 2.148
+  [`model.cyclic_best`].
+* The plateau of (R1) announced as c²/((2c − 1)n) is 2c³/((2c − 1)²n) (B4 note, Proposition B4.4; checked in (b)).
+
+**(g) Limits.**
+* *Regime.* The gain exists for κ ≲ n only: none at κ = 10n on logistic regression (ratios 1.08, 0.94, 0.90), none at
+  κ ≥ n against the bound on (S), none in the orthogonal extreme. It is a gain on the memory term n·log(1/ε), a
+  constant factor of at most 2 in the model; it does not touch the κ-dependent term, which is the object of hypotheses A.
+* *Theory.* Everything proved concerns identical Hessians (and the orthogonal extreme) and, for the rates, the limit
+  n → ∞ at fixed c or at fixed g. The typical exponent under i.i.d. sampling is measured; its heuristic is not a
+  proof and its limit is a conjecture. On logistic regression (R3), (R2) and the two-term law are heuristics; the two-term law is an upper
+  envelope, not a prediction, when its two terms are close (κ ≥ 10³ at large steps). Under identical Hessians
+  reference-point methods (SVRG, L-SVRG) have no memory ceiling at all: the model compares the orders of a *table*
+  method only.
+* *Experiments.* Synthetic data, one data draw per logistic problem (the seeds are sampling seeds), one n for each part
+  of (L) and (S), one block length m = 12 on (S), which is deterministic. On logistic regression the best steps sit at
+  an edge of the grid for i.i.d. sampling at κ = 10, α = 2 (1/128) and κ = 10⁴, α = 2 (2), for reshuffling at κ = 10³,
+  α = 2 and κ = 10⁴, α = 1, 2 (2) [`at_grid_edge`]; on (S) the best i.i.d. step is the smallest of the grid (1/8) at
+  10⁻¹⁶ and 10⁻²⁴ for κ/n = 0.1: reported counts are achievable values, the optima may be slightly better. The ratio of
+  the best exponents is a ratio of medians of 5 runs, the i.i.d. exponent varying by 0.3–0.5 between seeds at its best
+  step: each ratio is known to about ±0.1 (the review reran the comparison with 25 seeds, two other data draws and
+  other fitting windows and found ratios of fitted exponents between 1.2 and 1.5 in every case, and 1.1–1.3 for the
+  mean rate down to 10⁻¹⁶ in place of a fitted exponent; these reruns are not in the repository). "Stalled" (budget of 300
+  passes exhausted above 10⁻¹⁰) includes runs that converge slowly.
+* *Reproducibility.* The two summaries were produced by one run each from an empty cache (about 12 and 8 minutes with
+  4 workers and single-threaded BLAS, run times that the summaries do not record; the caches are not versioned). The tests and the results were produced with numpy
+  1.22.4 and scipy 1.9.3, older than the versions of `requirements.txt`; the golden values of the regression test of
+  the default path are exact for the index streams and compared at a relative 10⁻⁹ for the floats.
+* *Literature.* The verdicts rest on searches of November 2026; reading depth and verdicts by item are in
+  `bibliography/literature_review.md`, Section 10. No dedicated search was made for the fixed-step laws, the effective
+  curvature or the heuristic for typical runs.
+
+**(h) Bearing on the report.** The report (`report/`, archived unchanged on 2026-11-20 in `archive/report/`) was not modified. Sentences that this result bears on, with a
+proposed wording (numbers as above):
+1. `report/sections/discussion.tex`, paragraph "A1: lower bounds": "whether randomly reshuffled span-based methods, or
+   deterministic ones when κ ≤ 73, can beat n log(1/ε) is not settled." The same sentence closes the A1 paragraphs of
+   `sections/introduction.tex`, `sections/related.tex` and `sections/overview/A1.tex` ("is not settled by these
+   results/sources"). Two things bear on it. (i) A point of literature: for κ < 4.08 it *is* settled by published rates,
+   since cyclic Finito (DIAG, Mokhtari, Gürbüzbalaban and Ribeiro, 2018) and reshuffled damped Finito (Huang et al.,
+   2021) contract the squared error by ((κ − 1)/(κ + 1))² per pass, more than one nat, with one gradient per iteration,
+   a comparison that these papers do not make. (ii) Proposed addition: "… is not settled in order of magnitude beyond
+   κ ≈ 4. Its constant, however, depends on the sampling order: on (S) with n = 256 and κ ≤ n/3, from about 10 n
+   gradients on the error of SAGA with reshuffled indices is below the floor that Corollary [cor:sweep] imposes on the
+   expected error of span methods with i.i.d. indices at the same count, and it reaches ε = 10⁻¹⁶ and 10⁻²⁴ with
+   0.61–0.78 of the corresponding gradient count, while staying 3.4–4.3 times above the bound for arbitrary index
+   sequences; on sums with identical Hessians the gain is at most a factor 2 (Appendix B4)."
+2. Same paragraph, last sentence: "the regime κ ≪ n of the second clause was not explored numerically." Proposed: "the
+   regime κ ≪ n was explored only for SAGA and its sampling order (n = 256, κ/n ∈ {0.1, 1/3}; Appendix B4), not for the
+   full-gradient schemes of the second clause."
+3. Paragraph "B1: preconditioned SAGA": "no bound on E V_t^P can gain more than a factor 3 over 1/3, since the memory
+   slots that are never refreshed keep E V_t^P from decreasing faster than (1 − 1/n)^n ≈ e⁻¹ per pass: a factor
+   1.1–1.26 separates the typical trajectories, whose slopes are measured, from the expectation that the bound
+   controls." Proposed addition: "This ceiling belongs to sampling with replacement. On sums with identical Hessians the
+   expected squared error under i.i.d. indices decays at exactly min{2γnλ, 1} nats per pass as n → ∞ (and at 6/7 on a
+   mode with γλ = 1/4), while single runs decay faster (median 1.3–1.6 at n = 10³ for 1 ≤ γnλ ≤ 32); with a fresh
+   permutation at every pass the expected squared error contracts at a rate that tends to 2 nats per pass, and on
+   logistic regression with κ ≤ n reshuffled SAGA reaches 1.44–2.01 nats per pass at its best step against 1.06–1.61 for
+   i.i.d. sampling."
+4. Paragraph "Open questions", item (iii): "no bound on E[V_t] certifies more than 1/n per iteration: the open question
+   is whether another Lyapunov function certifies more at the textbook step." Proposed: "… for i.i.d. indices this is
+   not a defect of the Lyapunov function: on sums with identical Hessians E‖θ_t−η*‖² itself decays at one nat per pass,
+   up to O(1/n), as soon as γnμ > 1/2 (Appendix B4), so that no function dominating ‖θ_t−η*‖² certifies more in
+   expectation. The open questions are a statement on typical runs (high probability, or E log) under i.i.d. sampling,
+   for which Appendix B4 has measurements and a heuristic only, and a proof that reshuffled SAGA contracts by more
+   than e⁻¹ per pass beyond identical Hessians, where the known rates under reshuffling are of order 1/κ² per pass."
+5. Paragraph "Limitations", item "Hard instances": "One n (16), one accuracy (ε = 10⁻⁸) and a finite window of κ; the
+   dependence on n and the regime κ ≪ n were not explored". Proposed: "… the regime κ ≪ n was explored only for the
+   sampling order of SAGA (n = 256, m = 12, three accuracies), and the dependence on n was not."
+6. Paragraph "Limitations", item "Seeds and intervals" (or "Exactness"). Proposed addition: "Under i.i.d. sampling a
+   seed average is not an expectation at high accuracy: on (S) with n = 256 and κ/n = 0.1 the mean over 32 seeds lies
+   47 times (ε = 10⁻¹⁶) and 9.7·10³ times (10⁻²⁴) below a certified lower bound on the expected error, the expectation
+   being carried by runs in which a component is queried too rarely."
+7. `report/sections/related.tex`: the works on variance reduction without replacement and on permutation orders in
+   coordinate descent (Section 10 of the literature review) are not cited in the report; a sentence there would be
+   needed if B4 enters it. The report restates the notes through `report/make_restated.py` and includes five
+   appendices: adding B4 requires registering the note there (not done).

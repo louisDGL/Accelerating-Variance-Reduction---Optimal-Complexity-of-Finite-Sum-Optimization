@@ -10,22 +10,29 @@ The project asks two questions.
 κ¹ vs κ^½ on the hard instance.)
 **Hypothesis B** — can the variance-reduced algorithm itself be optimised, and which steps of the proof of
 Proposition 5.9 are loose? (B1 quadratic-metric / preconditioned SAGA, B2 trajectory-dependent constants
-μ_eff, L_eff, B3 experimental diagnosis of every inequality of the proof.)
+μ_eff, L_eff, B3 experimental diagnosis of every inequality of the proof, B4 sampling order: the ceiling of one nat per
+pass set by the memory term belongs to the expectation under sampling with replacement — exact second moments of
+i.i.d. and reshuffled SAGA and the exact recurrence of fixed-order SAGA on sums with identical Hessians, in the two
+regimes of a fixed step per pass and of a fixed step per iteration; what typical i.i.d. runs do; an effective
+curvature for unequal Hessians and the orthogonal extreme; tested on logistic regression and against the lower bounds
+on the instance of the A1 note; analysis in `results/findings.md`, Section 9.)
 
 ## Layout
 
 | Path | Content |
 |---|---|
-| `vrlab/` | Python package: problems (logistic regression with controlled n, κ, anisotropy; Nesterov-chain hard instance), high-precision optimum, algorithms (GD, AGD, SGD, SAGA, preconditioned SAGA, L-SVRG, L-Katyusha, naive Nesterov+SVRG), exact instrumentation of the proofs, bounds, gap attribution |
-| `tests/test_vrlab.py` | unit tests: derivatives, optimum, exact one-step identities (checked by enumerating all indices), tightness ratios in (0,1], P-metric, Lemma 10 of the L-Katyusha paper (Kovalev, Horváth and Richtárik, ALT 2020; Lemma 4.5 and Theorem 4.6 in the arXiv version 1901.08689 are its Lemma 10 and Theorem 11), convergence of every method (preconditioned SAGA, L-Katyusha without negative momentum and the naive Nesterov+SVRG scheme included), no stall of the Newton solver near η* |
-| `experiments/` | one script per hypothesis (`exp_B3_tightness.py` produces the three key figures of the proposal; `exp_A4_hard_instance.py` the κ sweep on the Lan–Zhou-normalised chains; `exp_A4b_instances.py` the shared-regularizer instance of the A1 note and the aligned instance; `exp_validation_book.py` reproduces the book's Figure 5.4; `check_B2_fp_heuristic.py` the floating-point sanity check of the B2 note); `run_all.py` runs all of them and then `make_digest.py`; `--quick` for a smoke test (quick figures get a `_quick` suffix); `make_digest.py` builds `results/digest.md` |
+| `vrlab/` | Python package: problems (logistic regression with controlled n, κ, anisotropy; Nesterov-chain hard instance), high-precision optimum, algorithms (GD, AGD, SGD, SAGA, preconditioned SAGA, L-SVRG, L-Katyusha, naive Nesterov+SVRG; `saga(..., sampling=)` takes the index order `"iid"` (default, unchanged), `"rr"` (fresh permutation every pass), `"so"` (one permutation reused) or `"cyclic"`), exact instrumentation of the proofs, bounds (including the lower bounds of the A1 note on its instance for i.i.d. and for arbitrary index sequences), gap attribution, and `order_model.py` (the solvable model of hypothesis B4: exact second-moment recursion for i.i.d. indices, fixed-order recurrence and its critical step, exact first- and second-moment pass maps of the reshuffled order and their limits at fixed γnλ and at fixed γλ, the effective curvature of a sum with unequal Hessians, the orthogonal-components extreme, the incremental-aggregated-gradient threshold, a heuristic for typical i.i.d. runs, simulator, identical-Hessian problems) |
+| `experiments/` | one script per hypothesis (`exp_B3_tightness.py` produces the three key figures of the proposal; `exp_A4_hard_instance.py` the κ sweep on the Lan–Zhou-normalised chains; `exp_A4b_instances.py` the shared-regularizer instance of the A1 note and the aligned instance; `exp_validation_book.py` reproduces the book's Figure 5.4; `check_B2_fp_heuristic.py` the floating-point sanity check of the B2 note; `exp_B4_sampling_order.py` the sampling orders: model, logistic regression, instance of the A1 note, Figure B4; `exp_B4b_refinements.py`, run after it, the two regimes of the model, typical i.i.d. runs for n up to 10⁵, the two-term law on the logistic problems of B4, the orthogonal extreme and every number printed in the B4 note, Figure B4b; both take `VRLAB_WORKERS=k` for k worker processes and need a few minutes with 4); `run_all.py` runs all of them and then `make_digest.py`; `--quick` for a smoke test (quick figures get a `_quick` suffix); `make_digest.py` builds `results/digest.md` |
 | `results/` | machine-readable summaries (`*_summary.json`), `digest.md` (all numbers), `findings.md` (analysis), cached runs (`*.pkl`: only the small, costly ones are versioned, i.e. A3, A4, A4b, B2, GammaDelta, validation_book; the others are rebuilt by their script) |
 | `figures/` | all figures (PNG + PDF) |
-| `theory/` | LaTeX notes with full proofs: `B3_prop59_tightness.tex`, `B2_effective_curvature.tex`, `B1_preconditioned_saga.tex`, `A1_lower_bound.tex`, `A3_lkatyusha_lyapunov.tex`; `main.tex` compiles them |
+| `theory/` | LaTeX notes with full proofs: `B3_prop59_tightness.tex`, `B2_effective_curvature.tex`, `B1_preconditioned_saga.tex`, `A1_lower_bound.tex`, `A3_lkatyusha_lyapunov.tex`, `B4_sampling_order.tex`; `main.tex` compiles them |
 | `bibliography/` | `literature_review.md` (annotated state of the art organised by hypothesis), `references.bib`, `refs.json` |
-| `report/` | the final report: `main.tex` → `main.pdf` (main body in `sections/`, with Section 4 in `sections/overview/` and Section 5 in `sections/exp/`; the five notes as appendices) and `synthesis.tex` → `synthesis.pdf` (Section 4 alone). Section 4 states the main results of the appendices verbatim under their appendix numbers: `make_restated.py` copies the statements of the notes into `restated/` (never edit these files: edit the note), and `restate_defs.tex` defines `\restate{label}` and `\resref{label}` (reference by number and name). `build.py` runs everything in order |
+| `archive/` | earlier deliverables, superseded by the paper and kept as they were (sources and PDFs): `archive/report/`, the final report of the course (`main.pdf`, with the five theory notes as appendices, and `synthesis.pdf`; built by `build.py`, which restates the results of the notes through `make_restated.py`), and `archive/muon/`, the write-ups of the Muon side study (theory notes, condensed paper, short and extended reports); rebuild instructions in `archive/README.md` |
+| `paper/` | **the research paper of the project**, `paper_saga_to_muon.tex` / `.bib` / `.pdf` (12 pages): from SAGA to Muon-type steps, built on the main study and on the side study in `muon/`; `paper/figures/` holds its four figures and `paper/scripts/` the scripts that draw them (see `paper/README.md`) |
+| `muon/` | side study: finite-sum variance reduction inside Muon-type (orthogonalized) steps; code in `muon/lab/`, experiments in `muon/experiments/`, results and analysis in `muon/results/` and `muon/findings.md`, earlier write-ups in `muon/archive/` (see `muon/README.md`) |
 | `external/` | local clones of companion repositories of the team, kept for study (not versioned here; see `external/README.md` in a local copy) |
 | `_scratch/` | local working files, not versioned (extracted book text, downloaded papers, transcription of the proof of Prop. 5.9) |
+| `_archive/` | local archive, not versioned: unit tests, numerical checks of the archived theory notes, exploratory scripts and maintenance utilities that are not needed to reproduce the report or the paper |
 
 ## Conventions
 
@@ -60,14 +67,27 @@ Proposition 5.9 are loose? (B1 quadratic-metric / preconditioned SAGA, B2 trajec
 
 ```bash
 pip install -r requirements.txt
-python tests/test_vrlab.py                 # or: python -m pytest tests -q
 python experiments/run_all.py --quick      # smoke test (a few minutes)
 python experiments/run_all.py              # full experiments (many CPU hours, dominated by the κ sweeps A4/A4b)
 cd theory && pdflatex main.tex && bibtex main && pdflatex main.tex && pdflatex main.tex   # theory notes
-python report/build.py                     # report: restated statements, then main.pdf, then synthesis.pdf
+cd paper && pdflatex paper_saga_to_muon && bibtex paper_saga_to_muon && pdflatex paper_saga_to_muon && pdflatex paper_saga_to_muon   # paper
 ```
 
 Cached results are reused: delete `results/<TAG>.pkl` to recompute an experiment.
+
+The two B4 experiments run on `VRLAB_WORKERS` worker processes (default 1; the results do not depend on it) and refuse
+a cache computed with another configuration. Their caches `results/B4.pkl` and `results/B4b.pkl` are not versioned and are
+rebuilt by the scripts (about 12 and 8 minutes with 4 workers and single-threaded BLAS; the run times are not recorded in
+the summaries). `exp_B4b_refinements.py` reads `results/B4_summary.json`: run it after `exp_B4_sampling_order.py`
+(`run_all.py` does):
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 VRLAB_WORKERS=4 python experiments/exp_B4_sampling_order.py --quick   # smoke test
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 VRLAB_WORKERS=4 python experiments/exp_B4_sampling_order.py           # results/B4_summary.json, figures/figB4_sampling_order.*
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 VRLAB_WORKERS=4 python experiments/exp_B4b_refinements.py             # results/B4b_summary.json, figures/figB4b_refinements.*
+```
+
+The B4 results were produced with numpy 1.22.4 and scipy 1.9.3 (older than the versions of `requirements.txt`).
 
 Each solver run of the κ sweeps is capped by `VRLAB_MAX_TIME` seconds of **CPU time** (`time.process_time`, so a
 suspended machine consumes no budget; default 600). The reported sweeps were run with single-threaded BLAS and a

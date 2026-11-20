@@ -2,7 +2,9 @@
 % "Accelerating Variance Reduction: Optimal Complexity of Finite-Sum Optimization"
 % (Statistical Learning Theory, UC Berkeley, November 2026; B. Yuan, P. Ruiz Alliata, L. Darrigol).
 % 162 entries generated from refs.json (164 list items; the keys nesterov2018lectures and
-% pedregosa2020acceleration appear twice in the list and are merged here).
+% pedregosa2020acceleration appear twice in the list and are merged here), followed by the entries marked
+% "ADDED-FROM-THEORY-NOTES", which are cited by the theory notes only and are NOT in refs.json (their metadata are in
+% theory/theory_citations.json): 4 older ones and the 12 entries of the section on the sampling order (note B4).
 % Entries with verified = false in refs.json would be preceded by "% UNVERIFIED"; all entries
 % of the list are marked verified = true, so no such comment appears.
 % Keys follow <lastname><year><firstword>; the ordering follows the themes of the search agents:
@@ -68,7 +70,7 @@
 }
 
 @inproceedings{defazio2014finito,
-  author        = {Aaron J. Defazio and Tiberio S. Caetano and Justin Domke},
+  author        = {Aaron J. Defazio and Tib{\'e}rio S. Caetano and Justin Domke},
   title         = {Finito: A Faster, Permutable Incremental Gradient Method for Big Data Problems},
   booktitle     = {Proceedings of the 31st International Conference on Machine Learning (ICML 2014)},
   series        = {Proceedings of Machine Learning Research},
@@ -2081,4 +2083,168 @@
   year          = {2011},
   doi           = {10.1007/978-0-387-68276-1},
   url           = {https://doi.org/10.1007/978-0-387-68276-1}
+}
+
+%% ---------------------------------------------------------------------------
+%% Sampling order in variance-reduced methods (hypothesis B4): reshuffling, fixed orders
+%% (entries added with the note theory/B4_sampling_order.tex; metadata read on the arXiv, publisher and
+%% proceedings pages in November 2026; the reading depth of each work is stated in Section 10 of
+%% bibliography/literature_review.md)
+%% ---------------------------------------------------------------------------
+
+% ADDED-FROM-THEORY-NOTES
+@article{ying2017variance,
+  author        = {Bicheng Ying and Kun Yuan and Ali H. Sayed},
+  title         = {Variance-Reduced Stochastic Learning under Random Reshuffling},
+  journal       = {IEEE Transactions on Signal Processing},
+  volume        = {68},
+  pages         = {1390--1408},
+  year          = {2020},
+  doi           = {10.1109/TSP.2020.2968280},
+  url           = {https://arxiv.org/abs/1708.01383},
+  eprint        = {1708.01383},
+  archivePrefix = {arXiv}
+}
+
+% ADDED-FROM-THEORY-NOTES
+@article{park2020linear,
+  author        = {Youngsuk Park and Ernest K. Ryu},
+  title         = {Linear Convergence of Cyclic {SAGA}},
+  journal       = {Optimization Letters},
+  year          = {2020},
+  doi           = {10.1007/s11590-019-01520-y},
+  url           = {https://doi.org/10.1007/s11590-019-01520-y},
+  volume        = {14},
+  number        = {6},
+  pages         = {1583--1598},
+  eprint        = {1810.11167},
+  archivePrefix = {arXiv}
+}
+
+% ADDED-FROM-THEORY-NOTES
+@inproceedings{malinovsky2023random,
+  author        = {Grigory Malinovsky and Alibek Sailanbayev and Peter Richt{\'a}rik},
+  title         = {Random Reshuffling with Variance Reduction: New Analysis and Better Rates},
+  booktitle     = {Proceedings of the 39th Conference on Uncertainty in Artificial Intelligence (UAI 2023)},
+  series        = {Proceedings of Machine Learning Research},
+  volume        = {216},
+  pages         = {1347--1357},
+  year          = {2023},
+  url           = {https://proceedings.mlr.press/v216/malinovsky23a.html},
+  eprint        = {2104.09342},
+  archivePrefix = {arXiv}
+}
+
+% ADDED-FROM-THEORY-NOTES
+@inproceedings{huang2021improved,
+  author        = {Xinmeng Huang and Kun Yuan and Xianghui Mao and Wotao Yin},
+  title         = {Improved Analysis and Rates for Variance Reduction under Without-replacement Sampling Orders},
+  booktitle     = {Advances in Neural Information Processing Systems 34 (NeurIPS 2021)},
+  pages         = {3232--3243},
+  year          = {2021},
+  url           = {https://arxiv.org/abs/2104.12112},
+  eprint        = {2104.12112},
+  archivePrefix = {arXiv}
+}
+
+% ADDED-FROM-THEORY-NOTES
+@inproceedings{mishchenko2020random,
+  author        = {Konstantin Mishchenko and Ahmed Khaled and Peter Richt{\'a}rik},
+  title         = {Random Reshuffling: Simple Analysis with Vast Improvements},
+  booktitle     = {Advances in Neural Information Processing Systems 33 (NeurIPS 2020)},
+  pages         = {17309--17320},
+  year          = {2020},
+  url           = {https://arxiv.org/abs/2006.05988},
+  eprint        = {2006.05988},
+  archivePrefix = {arXiv}
+}
+
+% ADDED-FROM-THEORY-NOTES
+@article{mokhtari2018surpassing,
+  author        = {Aryan Mokhtari and Mert G{\"u}rb{\"u}zbalaban and Alejandro Ribeiro},
+  title         = {Surpassing Gradient Descent Provably: A Cyclic Incremental Method with Linear Convergence Rate},
+  journal       = {SIAM Journal on Optimization},
+  volume        = {28},
+  number        = {2},
+  pages         = {1420--1447},
+  year          = {2018},
+  doi           = {10.1137/16M1101702},
+  url           = {https://arxiv.org/abs/1611.00347},
+  eprint        = {1611.00347},
+  archivePrefix = {arXiv}
+}
+
+% ADDED-FROM-THEORY-NOTES
+@article{gurbuzbalaban2020randomness,
+  author        = {Mert G{\"u}rb{\"u}zbalaban and Asuman Ozdaglar and Nuri Denizcan Vanli and Stephen J. Wright},
+  title         = {Randomness and Permutations in Coordinate Descent Methods},
+  journal       = {Mathematical Programming},
+  volume        = {181},
+  number        = {2},
+  pages         = {349--376},
+  year          = {2020},
+  doi           = {10.1007/s10107-019-01438-4},
+  url           = {https://arxiv.org/abs/1803.08200},
+  eprint        = {1803.08200},
+  archivePrefix = {arXiv}
+}
+
+% ADDED-FROM-THEORY-NOTES
+@article{lee2019random,
+  author        = {Ching-pei Lee and Stephen J. Wright},
+  title         = {Random Permutations Fix a Worst Case for Cyclic Coordinate Descent},
+  journal       = {IMA Journal of Numerical Analysis},
+  volume        = {39},
+  number        = {3},
+  pages         = {1246--1275},
+  year          = {2019},
+  doi           = {10.1093/imanum/dry040},
+  url           = {https://arxiv.org/abs/1607.08320},
+  eprint        = {1607.08320},
+  archivePrefix = {arXiv}
+}
+
+% ADDED-FROM-THEORY-NOTES
+@article{matsunaga2011asymptotic,
+  author        = {Hideaki Matsunaga and Hiroki Hashimoto},
+  title         = {Asymptotic Stability and Stability Switches in a Linear Integro-Differential System},
+  journal       = {Differential Equations \& Applications},
+  volume        = {3},
+  number        = {1},
+  pages         = {43--55},
+  year          = {2011},
+  url           = {https://dea.ele-math.com/03-04/Asymptotic-stability-and-stability-switches-in-a-linear-integro-differential-system}
+}
+
+% ADDED-FROM-THEORY-NOTES
+@misc{vanli2016stronger,
+  author        = {Nuri Denizcan Vanli and Mert G{\"u}rb{\"u}zbalaban and Asuman Ozdaglar},
+  title         = {A Stronger Convergence Result on the Proximal Incremental Aggregated Gradient Method},
+  year          = {2016},
+  howpublished  = {arXiv preprint arXiv:1611.08022},
+  url           = {https://arxiv.org/abs/1611.08022},
+  eprint        = {1611.08022},
+  archivePrefix = {arXiv}
+}
+
+% ADDED-FROM-THEORY-NOTES
+@article{furstenberg1960products,
+  author        = {Harry Furstenberg and Harry Kesten},
+  title         = {Products of Random Matrices},
+  journal       = {The Annals of Mathematical Statistics},
+  volume        = {31},
+  number        = {2},
+  pages         = {457--469},
+  year          = {1960},
+  doi           = {10.1214/aoms/1177705909}
+}
+
+% ADDED-FROM-THEORY-NOTES
+@book{kato1995perturbation,
+  author        = {Tosio Kato},
+  title         = {Perturbation Theory for Linear Operators},
+  publisher     = {Springer},
+  series        = {Classics in Mathematics},
+  year          = {1995},
+  note          = {Reprint of the second edition (1980)}
 }

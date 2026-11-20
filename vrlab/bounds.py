@@ -110,6 +110,106 @@ def lkatyusha_rate(n, L, mu, p=None, theta2=0.5, theta1=None):
     return max(1.0 / (1.0 + es), 1.0 - theta1 * (1.0 - theta2), 1.0 - prm["p"] * theta1 / (1.0 + theta1))
 
 
+# ----------------------------------------------------------------------------------------------
+# lower bounds of the A1 note on the shared-regularizer hard instance (S) (problems.make_hard_instance_shared)
+# ----------------------------------------------------------------------------------------------
+def hard_instance_constants(n, kappa):
+    """(Q, q) of the instance (S) of the A1 note (zeta = zeta_Q, theta_0 = 0): per-block condition number
+    Q = 1 + (kappa - 1)/n and ratio q = (sqrt(Q) - 1)/(sqrt(Q) + 1) of the geometric minimizer x*_j = q^j
+    (Proposition "closed-form minimizer"). Requires kappa > 1."""
+    if int(n) != n or n < 1:
+        raise ValueError("n must be a positive integer")
+    if not kappa > 1:
+        raise ValueError("kappa must be > 1")
+    Q = 1.0 + (kappa - 1.0) / n
+    sq = np.sqrt(Q)
+    return float(Q), float((sq - 1.0) / (sq + 1.0))
+
+
+def hard_instance_min_block(n, kappa, eps):
+    """Smallest block length m allowed by the dimension condition of the A1 note at accuracy eps,
+    q^{2m} <= eps, i.e. m >= log(1/eps) / (2 log(1/q)) (inequality ineq:dim of Corollary cor:count, also the
+    hypothesis of Proposition prop:anyseq). Returned as an integer."""
+    if not 0.0 < eps < 0.5:
+        raise ValueError("the bounds of the A1 note are stated for 0 < eps < 1/2")
+    _, q = hard_instance_constants(n, kappa)
+    return int(np.ceil(np.log(1.0 / eps) / (2.0 * np.log(1.0 / q)) - 1e-12))
+
+
+def _check_block(n, kappa, eps, m):
+    if m is not None and m < hard_instance_min_block(n, kappa, eps):
+        raise ValueError(f"block length m = {m} violates the dimension condition q^(2m) <= eps of the A1 note "
+                         f"(needs m >= {hard_instance_min_block(n, kappa, eps)}): the bound is not certified")
+
+
+def lower_bound_iid_span(n, kappa, eps, m=None, initial_full_gradient=False):
+    """Lower bound for span-based methods with i.i.d. sampling (class (S1) of the A1 note) on the instance (S),
+    for the accuracy E||theta_t - eta_*||^2 <= eps ||eta_*||^2 with theta_0 = 0 (so ||eta_*|| = ||theta_0 - eta_*||).
+
+    initial_full_gradient=False (Corollary cor:count; 0 < eps < 1/2): number of gradient evaluations
+        t >= (n (sqrt(Q) + 1)^2 / (4 sqrt(Q)) - 1) log(1/(2 eps))        (always >= (n - 1) log(1/(2 eps))).
+    initial_full_gradient=True (Corollary cor:sweep, the case of SAGA with z_i = f'_i(theta_0); 0 < eps < q^2/2):
+    the method is preceded by one full gradient at theta_0 and needs
+        t >= (n (sqrt(Q) + 1)^2 / (4 sqrt(Q)) - 1) log(q^2/(2 eps))
+    i.i.d. queries after it; the function then returns the TOTAL count G = n + t.
+    Both need the dimension condition q^{2m} <= eps; it is checked when the block length m is given (ValueError if
+    violated), otherwise the value holds for every m >= hard_instance_min_block(n, kappa, eps). The bound concerns
+    i.i.d. indices only: reshuffled or cyclic orders are outside class (S1) (use lower_bound_any_sequence)."""
+    Q, q = hard_instance_constants(n, kappa)
+    if not 0.0 < eps < 0.5:
+        raise ValueError("Corollary cor:count is stated for 0 < eps < 1/2")
+    if initial_full_gradient and not eps < 0.5 * q * q:
+        raise ValueError("Corollary cor:sweep (initial full gradient) is stated for eps < q^2 / 2")
+    _check_block(n, kappa, eps, m)
+    sq = np.sqrt(Q)
+    per_log = n * (sq + 1.0) ** 2 / (4.0 * sq) - 1.0
+    if initial_full_gradient:
+        return float(n + per_log * np.log(q * q / (2.0 * eps)))
+    return float(per_log * np.log(1.0 / (2.0 * eps)))
+
+
+def lower_bound_any_sequence(n, kappa, eps, m=None):
+    """Lower bound for span-based methods with ANY index sequence (class (S2): cyclic, reshuffled, adaptive, full
+    gradients counted as n) on the instance (S), Proposition prop:anyseq of the A1 note: if q^{2m} <= eps < 1/2,
+    reaching ||theta - eta_*||^2 <= eps ||eta_*||^2 from theta_0 = 0 requires a total of
+        G >= n log(1/(2 eps)) / (2 log(1/q))
+    gradient evaluations. The bound is pathwise; when the count is random it holds for its expectation and the
+    criterion in expectation. The dimension condition is checked when m is given (see lower_bound_iid_span)."""
+    _, q = hard_instance_constants(n, kappa)
+    if not 0.0 < eps < 0.5:
+        raise ValueError("Proposition prop:anyseq is stated for 0 < eps < 1/2")
+    _check_block(n, kappa, eps, m)
+    return float(n * np.log(1.0 / (2.0 * eps)) / (2.0 * np.log(1.0 / q)))
+
+
+def hard_instance_error_floor(count, n, kappa, m, sampling="iid", initial_full_gradient=False):
+    """Lower bounds of the A1 note on the relative error ||theta - eta_*||^2 / ||eta_*||^2 on the instance (S) with
+    block length m, theta_0 = 0, as functions of the gradient count (array ok), clipped at 0:
+      sampling='iid', initial_full_gradient=False: count = number t of i.i.d. queries of a method of class (S1),
+          E[...] >= ((1 - (1 - q^2)/n)^t - q^{2m}) / (1 - q^{2m})                (Theorem thm:instance);
+      sampling='iid', initial_full_gradient=True: count = number t of i.i.d. queries made AFTER one full gradient,
+          E[...] >= (q^2 (1 - (1 - q^2)/n)^t - q^{2m}) / (1 - q^{2m})            (Corollary cor:sweep);
+      sampling='any': count = total number G of gradient evaluations of a method of class (S2), pathwise,
+          ... >= (q^{2G/n} - q^{2m}) / (1 - q^{2m})                              (Proposition prop:anyseq)."""
+    _, q = hard_instance_constants(n, kappa)
+    if int(m) != m or m < 1:
+        raise ValueError("m must be a positive integer")
+    x = np.asarray(count, dtype=np.float64)
+    if np.any(x < 0):
+        raise ValueError("gradient counts must be nonnegative")
+    tail = q ** (2 * m)
+    if sampling == "iid":
+        lead = (q * q if initial_full_gradient else 1.0) * (1.0 - (1.0 - q * q) / n) ** x
+    elif sampling == "any":
+        if initial_full_gradient:
+            raise ValueError("initial_full_gradient concerns sampling='iid': for sampling='any' the full gradient is "
+                             "part of the total count")
+        lead = q ** (2.0 * x / n)
+    else:
+        raise ValueError(f"unknown sampling {sampling!r}; expected 'iid' or 'any'")
+    return np.maximum((lead - tail) / (1.0 - tail), 0.0)
+
+
 def complexity_table(n, kappa, eps=1e-6):
     """Order-of-magnitude gradient-evaluation counts to reach accuracy eps (constants dropped)."""
     log = np.log(1.0 / eps)

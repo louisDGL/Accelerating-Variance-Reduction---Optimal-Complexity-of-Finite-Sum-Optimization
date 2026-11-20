@@ -9,7 +9,8 @@
 \maketitle
 \tableofcontents
 % Each note is numbered by its hypothesis (B3, B2, B1, A1, A3), as in the appendices of the report, so that a
-% result has the same number (e.g. Proposition B3.12, equation (A1.7)) in both documents.
+% result has the same number (e.g. Proposition B3.12, equation (A1.7)) in both documents. The note B4 (sampling
+% order; added after the report) comes last: it uses results of the notes B3 and A1.
 \counterwithin{equation}{section}
 \renewcommand{\thesection}{B3}\input{B3_prop59_tightness}
 \clearpage
@@ -20,6 +21,8 @@
 \renewcommand{\thesection}{A1}\input{A1_lower_bound}
 \clearpage
 \renewcommand{\thesection}{A3}\input{A3_lkatyusha_lyapunov}
+\clearpage
+\renewcommand{\thesection}{B4}\input{B4_sampling_order}
 \clearpage
 \bibliographystyle{plain}
 \bibliography{../bibliography/references}

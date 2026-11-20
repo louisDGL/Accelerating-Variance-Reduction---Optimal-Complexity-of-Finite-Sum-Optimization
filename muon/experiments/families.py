@@ -263,3 +263,91 @@ def streaming_families(b=32, quick=False):
              base=dict(batch=b, beta=0.95, g=1.0, same_batch=True, orth="svd", length="sharp"),
              grid=dict(gamma=[over("L_op", c) for c in (0.01, 0.03, 0.1, 0.3, 1.0, 3.0)])),
     ]
+
+
+# ----------------------------------------------------------------------------------------------
+# experiment M9: Muon's own recipe (fixed-length step, learning rate cooled geometrically) fed by a SAGA table
+# ----------------------------------------------------------------------------------------------
+COOLDOWNS = [0.5, 0.6, 0.7, 0.8, 0.9, 0.95]                       # factor q of the learning rate per pass (maps by batch)
+COOLDOWNS_FINE = [0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]     # finer grid of the batch-one study
+RECIPE_MAPS = ("svd", "ns5", "frob", "sign")                      # 'frob' and 'sign' are controls (polar.CONTROL_MAPS)
+RECIPE_LABEL = {"svd": "polar", "ns5": "ns5", "frob": "frob", "sign": "sign"}
+
+
+def half_decades(lo, hi):
+    """The values 1, 3, 10, 30, ... (alternately x 3 and x 10/3) between lo and hi, both included."""
+    vals = [float(f"{m * 10.0 ** e:g}") for e in range(-6, 7) for m in (1.0, 3.0)]
+    return [v for v in vals if lo * (1.0 - 1e-9) <= v <= hi * (1.0 + 1e-9)]
+
+
+def recipe_lr_grid(orth, b):
+    """Half-decade grid of the initial learning rate lr_0 of the recipe. lr_0 is the length of the first step in the
+    norm of the map (operator norm for the polar factor and ns5, Frobenius norm for 'frob', entrywise sup norm for
+    'sign'), so the grids are not comparable across maps; they grow with b because a pass has n / b steps. The ranges
+    contain every point selected by the prototype runs with a margin of at least one value on each side, except where
+    stated in the summary of M9 (tune_and_confirm flags the selections on an edge)."""
+    if orth == "sign":
+        return half_decades(0.003, 3.0) if b == 1 else half_decades(0.003, 10.0)
+    if orth == "frob":
+        return half_decades(0.03, 30.0) if b == 1 else half_decades(0.03, 100.0)
+    return half_decades(0.003, 3.0) if b == 1 else half_decades(0.03, 100.0)
+
+
+def recipe_family(orth, nesterov, b, qs, lrs):
+    """Muon's recipe with a SAGA table: W <- W - lr_t orth(D), D the SAGA estimator (through Nesterov momentum 0.9
+    when `nesterov`), lr_t = lr_0 q^(t b / n). The cooldown is carried by the grid as a one-valued parameter and not
+    by the base configuration: it has no span (a short run is a prefix of the long one, see vrmuon.py), so the
+    screening stage of the protocol applies to these families as it does to the constant-step references, whereas
+    common._screenable reads the base configuration and treats every schedule found there as spanning the budget."""
+    if orth not in RECIPE_MAPS:
+        raise ValueError(f"unknown map {orth!r} for the recipe")
+    control = orth in ("frob", "sign")
+    what = {"svd": "exact polar factor", "ns5": "five Newton-Schulz steps (Keller Jordan's routine, eps = 1e-7)",
+            "frob": "CONTROL, not an orthogonalization: Frobenius normalization (normalized-gradient step)",
+            "sign": "CONTROL, not an orthogonalization: coordinatewise sign (signSGD-type step; gauge-projected "
+                    "for softmax)"}[orth]
+    return dict(name=f"fixed-length SAGA [{RECIPE_LABEL[orth]}{' + Nesterov' if nesterov else ''}] b={b}",
+                method="vr", group="control" if control else "spectral", status="new",
+                what=f"fixed-length step of the SAGA estimator, geometric cooldown lr_0 q^passes; map: {what}"
+                     + ("; Nesterov momentum 0.9 before the map" if nesterov else "; no momentum")
+                     + ("" if control or not (orth == "ns5" and nesterov) else " (Muon's recipe)"),
+                base=dict(estimator="saga", batch=int(b), length="const", orth=orth,
+                          **(dict(beta=0.9, nesterov=True) if nesterov else {})),
+                grid=dict(schedule=["geometric"], lr_decay=list(qs), lr=list(lrs)))
+
+
+def recipe_families(b, quick=False):
+    """The eight maps-by-momentum variants of the recipe at batch size b (experiment M9, part A)."""
+    qs = [0.6, 0.8, 0.9] if quick else COOLDOWNS
+    return [recipe_family(orth, mom, b, qs, recipe_lr_grid(orth, b)[1:-1:2] if quick else recipe_lr_grid(orth, b))
+            for orth in RECIPE_MAPS for mom in (False, True)]
+
+
+def batch_one_recipes(quick=False):
+    """The two batch-one recipes of experiment M9, part B: the exact polar factor without momentum, and Muon's
+    recipe (five Newton-Schulz steps, Nesterov momentum 0.9), on the finer cooldown grid. lr_0 goes down to 0.003
+    (the prototype grid stopped at 0.03, which was selected on six of twelve cells)."""
+    qs = [0.6, 0.7, 0.8, 0.9] if quick else COOLDOWNS_FINE
+    lrs = [0.03, 0.1, 0.3] if quick else half_decades(0.003, 1.0)
+    return [recipe_family("svd", False, 1, qs, lrs), recipe_family("ns5", True, 1, qs, lrs)]
+
+
+def resolved_references(b, quick=False):
+    """Same-batch references of experiment M9 with constant steps on 2^(1/4) grids (the fast window of the
+    nuclear-scaled polar step is about +-10% wide: a factor-2 grid steps over it, see experiment M5b): Euclidean
+    minibatch SAGA, its damped version (theta as in exp_M5_batch.py) and the joint nuclear-scaled SAGA-Muon. The
+    ranges are centred on the selections of M1 and M5 at the nearest batch sizes."""
+    st = 4 if quick else 1
+    k_saga, k_bsaga, k_muon = ((-4, 12), (0, 20), (-24, 4)) if b == 1 else ((8, 32), (16, 38), (0, 28))
+    return [
+        dict(name=f"SAGA b={b}", method="vr", group="euclid", status="sota", what="minibatch SAGA, 2^(1/4) step grid",
+             base=dict(estimator="saga", placement="euclid", batch=int(b)), grid=dict(gamma=_g("R2", *k_saga, st, 4))),
+        dict(name=f"B-SAGA b={b}", method="vr", group="euclid", status="sota",
+             what="damped minibatch SAGA, 2^(1/4) step grid",
+             base=dict(estimator="saga", placement="euclid", batch=int(b)),
+             grid=dict(theta=[0.6, 0.3, 0.2, 0.1, 0.05] if not quick else [0.3, 0.1],
+                       gamma=_g("R2", *k_bsaga, st, 4))),
+        dict(name=f"SAGA-Muon (joint) b={b}", method="vr", group="spectral", status="lab",
+             what="minibatch SAGA estimator, nuclear-scaled polar step, 2^(1/4) step grid",
+             base=dict(estimator="saga", batch=int(b)), grid=dict(gamma=_g("R2_op", *k_muon, st, 4))),
+    ]

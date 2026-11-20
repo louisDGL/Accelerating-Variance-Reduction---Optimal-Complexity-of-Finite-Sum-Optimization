@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from .problems import BlockQuadraticProblem, SharedQuadraticProblem, AlignedChainProblem
+from .problems import BlockQuadraticProblem, SharedQuadraticProblem, AlignedChainProblem, IdenticalHessianProblem
 
 # Below this relative size of the Newton decrement the Armijo test on F is no longer meaningful: the predicted decrease
 # dec/2 is within a few orders of magnitude of the rounding error of F (about 1e-16 |F|, more for long sums).
@@ -75,7 +75,7 @@ def newton_solve(prob, theta0=None, tol=1e-15, max_iter=200, verbose=False, armi
 
 def solve_optimum(prob, **kw):
     """Compute eta_* (exactly for block quadratics, Newton otherwise) and store it in `prob`."""
-    if isinstance(prob, (BlockQuadraticProblem, SharedQuadraticProblem, AlignedChainProblem)):
+    if isinstance(prob, (BlockQuadraticProblem, SharedQuadraticProblem, AlignedChainProblem, IdenticalHessianProblem)):
         theta = prob.exact_minimizer()
         info = {"grad_norm": float(np.linalg.norm(prob.grad(theta))), "iters": 0}
         info["err_bound"] = info["grad_norm"] / prob.mu

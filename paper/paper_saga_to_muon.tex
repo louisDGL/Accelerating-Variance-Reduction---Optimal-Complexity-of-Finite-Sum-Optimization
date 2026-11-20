@@ -1,0 +1,700 @@
+% Research paper of the project "Accelerating Variance Reduction" and its side study on Muon (Introduction,
+% Methodology, Results, Discussion): (1) certified rates lose at the global constants and no fixed geometry repairs the
+% worst case, for SAGA as for Muon-type (polar) steps; (2) through the polar map, variance reduction acts on the fixed
+% point of the method; Section 3.3: Muon's own recipe (fixed lengths on a geometric cooldown) fed by a SAGA table.
+% Sources: archive/report/main.pdf (main report); muon/findings.md and muon/results/digest.md (Muon experiments);
+% muon/notes_theory.md (facts F1-F16) and the archived theory notes archive/muon/notes_spectral_theory.pdf (proofs);
+% theory/B4_sampling_order.tex and results/findings.md, Section 9 (sampling order of SAGA, main study).
+% Revised on 2026-11-20 (Section 3.3, Proposition 5, Figure 4, and the sentences they correct) and condensed to 12 pages.
+% Build (from paper/):  pdflatex paper_saga_to_muon && bibtex paper_saga_to_muon && pdflatex paper_saga_to_muon && pdflatex paper_saga_to_muon
+% Figures (paper/figures/): paper/scripts/make_figR1_classical.py, make_figP2_geometry.py, make_figP3_noise.py,
+%   make_figP4_recipe.py, run from the project root.
+% Bibliography: paper_saga_to_muon.bib (only the cited entries).
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{multicol}
+\usepackage{etoolbox}
+\usepackage[margin=1in]{geometry}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black]{hyperref}
+\usepackage{xcolor}
+\graphicspath{{figures/}}
+\setlength{\emergencystretch}{2em}
+\clubpenalty=10000 \widowpenalty=10000
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{4pt}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.6}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.8}
+\setcounter{topnumber}{2}
+\setcounter{totalnumber}{3}
+% compact headings
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{\z@}{-2.4ex \@plus -0.6ex \@minus -.2ex}{1.2ex \@plus .2ex}{\normalfont\large\bfseries}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}{-1.8ex\@plus -0.5ex \@minus -.2ex}{0.8ex \@plus .2ex}{\normalfont\normalsize\bfseries}}
+\makeatother
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\norm}[1]{\left\|#1\right\|}
+\newcommand{\nop}[1]{\left\|#1\right\|_{\mathrm{op}}}
+\newcommand{\nnuc}[1]{\left\|#1\right\|_{*}}
+\newcommand{\nF}[1]{\left\|#1\right\|_{F}}
+\newcommand{\inner}[2]{\left\langle #1, #2 \right\rangle}
+\newcommand{\abs}[1]{\left|#1\right|}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\polar}{\operatorname{polar}}
+\newcommand{\Med}{\operatorname{Med}_\ast}
+\newcommand{\Lop}{L_{\mathrm{op}}}
+\newcommand{\muop}{\mu_{\mathrm{op}}}
+\newcommand{\kop}{\kappa_{\mathrm{op}}}
+\newcommand{\kF}{\kappa_{F}}
+\newcommand{\lmin}{\lambda_{\min}}
+\newcommand{\lmax}{\lambda_{\max}}
+\newcommand{\ones}{\mathbf{1}}
+\newcommand{\etas}{\eta_\ast}
+\newcommand{\muEff}{\mu_{\mathrm{eff}}}
+\newcommand{\LEff}{L_{\mathrm{eff}}}
+\newcommand{\muPL}{\mu_{\mathrm{PL}}}
+\newcommand{\finding}[1]{\textbf{(#1)}}
+\newcommand{\nat}[1]{\textsc{[#1]}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+% compact two-column bibliography (the heading is set by the multicols environment)
+\patchcmd{\thebibliography}{\section*{\refname}}{}{}{\typeout{PATCH OF THEBIBLIOGRAPHY FAILED}}
+\let\oldthebibliography\thebibliography
+\renewcommand{\thebibliography}[1]{\oldthebibliography{#1}\setlength{\itemsep}{0.5pt}\setlength{\parskip}{0pt}}
+
+\title{\vspace{-2.2em}From SAGA to Muon-type steps:\\ no norm repairs the logistic worst case, and variance reduction
+acts on the fixed point}
+\author{Project ``Accelerating Variance Reduction'' and its side study on Muon\\ Statistical Learning Theory, UC Berkeley}
+\date{\vspace{-0.4em}17 November 2026, revised 20 November 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The linear rate of SAGA rests on a geometry, global constants that certify the decrease of a Lyapunov function, and on
+an estimator, unbiased and with an error that vanishes at the minimizer. Muon-type steps, along the polar factor of a
+matrix gradient, change both; we follow each property from SAGA to such steps. \emph{Finding 1: certified rates lose at
+the global constants, and no norm repairs the logistic worst case.} Along runs of SAGA on ridge logistic regression the
+exact contraction exponent is $3.2$ to $220$ times the certified one, and for $\kappa\ge10^4$, $77$--$96\%$ of the gap
+comes from the two inequalities that replace the curvature met along the run by global constants; the nuclear-scaled
+polar step has the same anatomy. Yet when the loss curvature of a ridge-regularized model vanishes along a sequence, no
+norm, the spectral one included, improves the worst-case condition number. \emph{Finding 2: through the polar map,
+variance reduction acts on the fixed point.} With additive noise and decreasing deterministic lengths, stochastic polar
+steps are stochastic mirror descent on a noise-smoothed nuclear norm and converge to a point where the gradient is minus
+a \emph{nuclear median} of the noise, an offset formally of order $1/b$; a finite-sum estimator makes the minimizer the
+only fixed point. \emph{Muon's own recipe.} Steps of fixed length on a geometric cooldown of the learning rate, fed by a
+SAGA table, follow the schedule down to rounding error with the exact polar factor (near $10^{-18}$ with Muon's
+Newton--Schulz map, whose normalization constant sets that floor), where minibatch and momentum-based estimators freeze;
+we prove this law for tables of bounded age, at slower cooldowns. With minibatches of $16$ or $32$ samples the spectral
+map needs $0.58$--$0.93$ of the passes of a normalized step, and a fresh permutation per pass saves $36$--$49\%$ of the
+passes where memory limits (batches of $20$ and $50$). We propose no method that beats the state of the art.
+\end{abstract}
+
+\section{Introduction}\label{sec:intro}
+
+\paragraph{Context.} For a finite sum $F=\frac1n\sum_if_i$, variance-reduced methods such as SVRG
+\cite{johnson2013accelerating} and SAGA \cite{defazio2014saga} converge linearly with a constant step; Proposition~5.9 of
+\cite{bach2024learning} proves it for SAGA with a Lyapunov function and global constants, and accelerated variants reach
+$(n+\sqrt{n\kappa})\log(1/\varepsilon)$ \cite{allenzhu2018katyusha,kovalev2020dont,lan2018optimal}. Muon
+\cite{jordan2024muon} steps along an approximation (Newton--Schulz iterations) of the polar factor of the momentum of the
+gradient of each weight matrix; without momentum this is steepest descent for the spectral norm
+\cite{carlson2015stochastic,bernstein2024old}. Its theory is recent (least squares
+\cite{shulgin2026quadratic,vasudeva2025muon}, gradient noise \cite{xie2026muon,chen2026when,paquette2026phases}), and its
+published variance-reduced versions are mostly momentum-based \cite{liu2025marsm}.
+
+\paragraph{Question and findings.} The guarantee of SAGA rests on a \emph{geometry}, in which global constants $R^2$ and
+$\mu$ certify that a Lyapunov function contracts, and on an \emph{estimator}, unbiased and with an error that vanishes at
+the minimizer. A Muon-type step changes both: it measures steps in the spectral norm and applies a nonlinear map, the
+polar factor, to the estimator. We follow each property, treating proofs as measurable objects (conditional
+expectations along runs are computed exactly). \emph{(1) Geometry:} certified rates lose where global constants replace
+the curvature met along the run, but for ridge models with vanishing loss curvature no norm improves the worst case
+(Theorem~\ref{thm:nfl}); at batch one, Euclidean devices reproduce the gain of orthogonalization. \emph{(2) Estimator:}
+through the polar map unbiasedness is lost, and polar steps converge to a point where the gradient is minus a nuclear
+median of the noise (Theorem~\ref{thm:smd}); the vanishing error survives, and a finite-sum estimator makes the
+minimizer the only fixed point (Proposition~\ref{prop:comp}(c)). \emph{(3) Muon's own recipe}
+(Section~\ref{sec:recipe}): fixed lengths on a geometric cooldown, fed by a SAGA table, converge to rounding error where
+other estimators freeze (Proposition~\ref{prop:schedule}); with minibatches the spectral map then pays, and a fresh
+permutation per pass helps where memory limits. Table~\ref{tab:sota} sets each result against the published state of
+the art and Table~\ref{tab:link} sums up the link; sources are listed at the end.
+
+\begin{table}[t]
+\caption{Published state of the art and what this study adds. Tags (Section~\ref{sec:status}): \nat{p} proved, \nat{m}
+measured exactly along runs, \nat{e} experiment, \nat{f} formal expansion checked by simulation.}\label{tab:sota}
+\centering\footnotesize
+\renewcommand{\arraystretch}{1.05}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.16\textwidth}YY@{}}
+\toprule
+Question & Published & Added here \\
+\midrule
+Where does the proof of SAGA lose? \finding{C1}--\finding{C3} &
+Lyapunov proof \cite{defazio2014saga,bach2024learning}; worst cases by performance estimation
+\cite{taylor2017smooth,hu2017unified}; one-point curvature conditions \cite{zhang2013gradient}; exact one-step formula
+of the nuclear-scaled step on least squares \cite{shulgin2026quadratic,jawanpuria2026constant}. &
+Each inequality evaluated along runs \nat{m}: exact exponent $3.2$--$220$ times the certified one, $77$--$96\%$ of the
+gap at the two global constants ($\kappa\ge10^4$); the same anatomy for the polar step \nat{p}. \\
+Can a change of geometry improve the worst case? \finding{C5}, Thm.~\ref{thm:nfl}, \finding{M3}, \finding{M4} &
+SAGA in a fixed metric \cite{dragomir2021fast}; preconditioning where the loss curvature is
+bounded below \cite{yang2014data,gonen2016solving}; functions that no linear preconditioner helps
+\cite{hird2025quantifying}; Muon as spectral steepest descent \cite{bernstein2024old}. &
+If the loss curvature vanishes along a sequence (logistic, softmax), no norm improves the global or per-sample condition
+numbers \nat{p}; on least squares a polar metric frozen at $W_0$ does \nat{e}; at batch one, tuned Euclidean devices
+match orthogonalization \nat{e}. \\
+What does gradient noise do to a polar step? Thm.~\ref{thm:smd}, Props.~\ref{prop:comp}--\ref{prop:offset} &
+Noise smooths the polar map \cite{xie2026muon,chen2026when}; sign methods follow a median
+\cite{chen2020distributed,bernstein2019majority}; normalized steps and the geometric median
+\cite{cardot2013efficient}; in dimension one Muon need not converge under skewed noise
+\cite{do2026muon}. &
+Polar steps are stochastic mirror descent on a smoothed nuclear norm and converge to minus a nuclear median of the
+noise \nat{p}; at batch one on least squares, to a least-distances estimator \nat{p}; a limit gradient of order $1/b$
+\nat{f}. \\
+What does a finite-sum estimator change? Prop.~\ref{prop:comp}(c), \finding{M1}, \finding{M2} &
+Momentum-based variance reduction for Muon \cite{liu2025marsm}; SVRG in polar \cite{li2026implicit} and sign steps
+\cite{chzhen2023signsvrg}; floors of fixed lengths \cite{lau2025polargrad,jawanpuria2026constant}; MISO
+\cite{mairal2015incremental}. &
+The minimizer is the only fixed point \nat{p}; rounding precision with a length that goes to zero, with the estimator or
+on a cooldown \nat{e}; at batch one the nuclear-scaled polar step of SAGA behaves as MISO \nat{e}. \\
+Can Muon's own recipe use a finite-sum estimator? Prop.~\ref{prop:schedule}, \finding{M5}--\finding{M7} &
+Geometric schedules of fixed lengths with exact gradients \cite{goffin1977convergence,davis2018subgradient}, for Muon
+\cite{ma2026preconditioning}; SVRG anchors under reshuffling, without linear rate \cite{qin2023convergence,li2026implicit};
+Muon under shuffling without a table \cite{huang2026muon}; reshuffled SAGA-type methods
+\cite{ying2017variance,mokhtari2018surpassing}. &
+With a table the cooldown converges, without one it freezes \nat{e}; certified for tables of bounded age, at slower
+cooldowns \nat{p}; with minibatches the spectral map pays \nat{e}; a fresh permutation per pass helps where memory
+limits \nat{e}. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Methodology}\label{sec:method}
+
+\subsection{Setting}\label{sec:setting}
+
+\paragraph{SAGA.} $F=\frac1n\sum_{i=1}^nf_i$ on $\R^d$, each $f_i$ convex and $R^2$-smooth, $F$ $\mu$-strongly convex with
+minimizer $\etas$, $\kappa=R^2/\mu$; costs are counted in component gradients. SAGA keeps a table $z_i$ of past component
+gradients, draws $i$ uniformly, steps along $\omega=f_i'(\theta)-z_i+\frac1n\sum_jz_j$ with step $\gamma$ and sets
+$z_i\leftarrow f_i'(\theta)$. Proposition~5.9 of \cite{bach2024learning}: with $\gamma=1/(4R^2)$ and
+$z_i^{(0)}=f_i'(\theta_0)$, the function $V=D+\delta M$, $D=\norm{\theta-\etas}^2$, $M=\sum_i\norm{z_i-f_i'(\etas)}^2$,
+$\delta=3\gamma^2$, contracts in expectation by $1-\min\{1/(3n),3\mu/(16R^2)\}$ per iteration.
+
+\paragraph{Matrix problems.} For $W\in\R^{K\times d}$, $\nF\cdot$, $\nop\cdot$, $\nnuc\cdot$ are the Frobenius, spectral
+and nuclear norms, and $\polar(\omega)=UV^\top$ for a singular value decomposition $\omega=U\diag(s)V^\top$ with $s>0$
+($\polar(0)=0$). For a norm $N$, $\mu_N$ and $L_N$ are the best constants in
+$\mu_NN(\Delta)^2\le D^2F(W)[\Delta,\Delta]\le L_NN(\Delta)^2$ for all $W,\Delta$, and $\kappa_N=L_N/\mu_N$ (subscripts
+``op'' and $F$ for the spectral and Frobenius norms); variance-reduced methods are governed by the per-sample ratios
+$L_N(f_i)/\mu_N(F)$. The models are ridge-regularized generalized linear models, (GLM):
+$F(W)=\frac1n\sum_i\ell_i(Wx_i)+\frac\lambda2\nF W^2$ with convex $C^2$ losses, $c_i=\sup_z\lmax(\nabla^2\ell_i(z))<\infty$
+and $f_i(W)=\ell_i(Wx_i)+\frac\lambda2\nF W^2$ (softmax regression and multi-output least squares). A \emph{polar step}
+is $W^+=W-\eta\,\polar(\omega)$, $\omega$ an estimate of $\nabla F(W)$; its length $\eta$ is fixed, as in Muon, or
+\emph{nuclear-scaled}, $\eta=\gamma\nnuc\omega$ (with exact gradients and $\gamma=1/\Lop$, stochastic spectral descent
+\cite{carlson2015stochastic} or PolarGrad \cite{lau2025polargrad}).
+
+\subsection{Measuring a proof along trajectories}\label{sec:measure}
+
+The proof of Proposition~5.9 is an exact identity for $\E_t[V_{t+1}]$ followed by six inequalities: square norm (I1),
+cocoercivity with $R^2$ (I2), variance bounded by the second moment (I3), strong convexity with $\mu$ (I4), minimum of two
+rates (I5) and initialization (I6). With the curvature met by the iterate,
+$\muEff(\theta)=\inner{\theta-\etas}{F'(\theta)}/\norm{\theta-\etas}^2$ (the restricted-secant constant of
+\cite{zhang2013gradient}), its cocoercivity counterpart
+$\LEff(\theta)=\frac1n\sum_i\norm{f_i'(\theta)-f_i'(\etas)}^2/\inner{\theta-\etas}{F'(\theta)}$, which turn I4 and I2 into
+identities, and the tightness ratios $r_{\mathrm{sq}},r_{\mathrm{var}}\in[0,1]$ of I1 and I3, the main report proves
+\begin{equation}\label{eq:saga-repr}
+\E_t[V_{t+1}]=c_DD+c_M\delta M,\quad
+c_D=1-\frac{\muEff}{2R^2}\Big(1-\frac{\LEff}{R^2}\Big(\frac{r_{\mathrm{sq}}}4+\frac38\Big)\Big),\quad
+c_M=1-\frac1n\Big(1-\frac23r_{\mathrm{sq}}r_{\mathrm{var}}\Big);
+\end{equation}
+the worst-case values $r_{\mathrm{sq}}=r_{\mathrm{var}}=1$, $\LEff=R^2$, $\muEff=\mu$ give the certified rate. Enumerating
+the $n$ indices gives every conditional expectation along a run exactly, hence the exact contraction and, undoing I1--I5
+one at a time (in the order I5, I4, I2, I3, I1), an additive attribution of the logarithmic gap. Data: ridge logistic
+regression, $n=1000$, $d=50$, $\kappa$ from $10$ to $10^5$, covariance spectra $j^{-\alpha}$, $\alpha\in\{0,1,2\}$, five
+seeds, passes 2--20. For a quadratic with Hessian $H$, $G=\nabla F(W)\ne0$, $O=\polar(G)$, $J=\inner{O}{HO}\in[\muop,\Lop]$
+and $\muPL=\nnuc G^2/(2(F(W)-F_\ast))\in[\muop,J]$, the nuclear-scaled step $W^+=W-\nnuc G\,O/L$ satisfies exactly
+\begin{equation}\label{eq:polar-repr}
+\frac{F(W^+)-F_\ast}{F(W)-F_\ast}=1-\frac{\muPL}{L}\Big(2-\frac{J}{L}\Big)
+\end{equation}
+(Eq.~(17) of \cite{shulgin2026quadratic}, Eq.~(8) of \cite{jawanpuria2026constant}); with $L=\Lop$, the values $J=\Lop$,
+$\muPL=\muop$ give the certified factor $1-1/\kop$ \cite[Theorem~3]{jawanpuria2026constant}.
+
+\subsection{Geometries, noise and experiments}\label{sec:geometry}
+
+\paragraph{Geometries.} A fixed geometry is judged by the constants its proof can use: for SAGA in a quadratic metric
+$P\succ0$, $R_P^2=\max_i(c_ix_i^\top P^{-1}x_i)+\lambda\nop{P^{-1}}$ and $\mu_P=\mu_P(F)$ for the norm $\nF{\cdot\,P^{1/2}}$,
+$\kappa_P=R_P^2/\mu_P$. These are \emph{global} constants; \emph{local} ones, at the minimizer (on $\ones^\top W=0$ for
+softmax), describe the end of a run but certify nothing. Both are computed on the six instances below for the identity,
+the feature-covariance metric $\omega\mapsto\omega(\bar c\hat\Sigma+\lambda I)^{-1}$ \cite{yang2014data} and the one-shot
+polar metric read off one full gradient $G_0=U\diag(s)V^\top$ of rank $r$, $\omega\mapsto\omega(V\diag(g)V^\top+r(I-VV^\top))$
+with $g_k=\nnuc{G_0}/\max(s_k,fs_1)$ (best floor $f\in[0,1]$; eigenvalues floored likewise for the covariance metric).
+
+\paragraph{Stochastic polar steps.}\label{sec:noisemethod} For a random $K\times d$ matrix $\xi$ (the gradient noise),
+$\psi_\xi(G)=\E[\nnuc{G+\xi}-\nnuc\xi]$ is the noise-smoothed nuclear norm and $\Phi_\xi(G)=\E\,\polar(G+\xi)$ the
+\emph{mean field} of a stochastic polar step. No moment is required: $\psi_\xi$ is convex and $1$-Lipschitz for
+$\nnuc\cdot$, and $\Phi_\xi(G)\in\partial\psi_\xi(G)$ \cite{duchi2012randomized,jiang2026adaptive}, with equality to
+$\nabla\psi_\xi(G)$ when $G+\xi$ has full rank almost surely. $\Med(\xi)=\arg\min_C\E[\nnuc{\xi-C}-\nnuc\xi]$ is the set of
+\emph{nuclear medians} of $\xi$ \cite{minsker2015geometric}. Predictions are checked with zeros of the mean field from
+exactly sampled batch means, quadrature or Monte Carlo, and runs on a finite-sum least-squares problem with an intercept
+and skewed residuals.
+
+\paragraph{Experiments.}\label{sec:experiments} The estimators of SAGA and loopless SVRG \cite{kovalev2020dont} are
+$\omega=m+\vartheta c$: a predictable part $m$ (memory mean and regularizer gradient) and an innovation $c$, of rank one at
+batch one; $\vartheta=1$ for SAGA, $\vartheta<1$ damps the innovation, and $\gamma(m+\vartheta c)$ with $\vartheta=1/n$,
+$\gamma=1/\lambda$ is MISO \cite{mairal2015incremental}. Orthogonalized methods: the polar step of the SAGA estimator
+(``joint'' SAGA-Muon) with a fixed, nuclear-scaled or clipped ($\min\{\rho,\gamma\nnuc\omega\}$) length, with the exact
+polar factor or the ``soft'' map $U\diag(s/\sqrt{s^2+\epsilon^2})V^\top$, or SAGA in a polar metric frozen at $W_0$;
+Euclidean ones: SAGA, damped SAGA (B-SAGA) \cite{driggs2019biased}, importance sampling \cite{xiao2014proximal}, the
+covariance metric. Six instances ($n\in\{200,500,1000\}$, $K\times d\in\{8\times40,10\times50,20\times20\}$, exact
+minimizers and constants): two memory-limited ($R^2/\mu$ of the order of $n$) and four conditioning-limited ($R^2/\mu$ from
+$9n$ to $50n$; two square). Costs are passes over the data (factorizations not counted); the target is a relative
+squared distance $10^{-6}$ ($10^{-9}$ where memory limits). Each family is tuned on five seeds and run on ten fresh ones,
+ten families also on two further draws of the data; differences below about $10\%$ are not resolved.
+Section~\ref{sec:recipe} uses the same protocol, with step grids of ratio $2^{1/4}$.
+
+\subsection{Status of the claims}\label{sec:status}
+
+Proofs of \nat{p} claims are in the main report or the theory notes. The labels \finding{C1}--\finding{C5} and
+\finding{M1}--\finding{M4} are those of the extended report; \finding{M5}--\finding{M7} are new. ``Not found'' refers to
+the literature review of the main project and to automated checks of 12--18 November 2026 that opened the closest
+sources (about sixty papers). Searched only in an earlier form: Theorem~\ref{thm:smd}, the constant of
+\eqref{eq:offset}, Proposition~\ref{prop:comp}(c); for right-preconditioned spectral norms only: Theorem~\ref{thm:nfl};
+the version of Proposition~\ref{prop:schedule} with a SAGA table, and its parts (a) and (c), were not found.
+
+\section{Results}\label{sec:results}
+
+\subsection{Finding 1: certified rates lose at global constants; no norm repairs the logistic worst case}\label{sec:f1}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.97\textwidth]{figR1_classical}
+\caption{SAGA with the textbook step on ridge logistic regression ($n=1000$, $d=50$). (a) $\kappa=10^4$, spectrum
+$j^{-1}$: certified bound, a-posteriori bound with $\muEff,\LEff$ along one run, and squared distance (mean of five
+runs). (b) Exact over certified contraction exponent (passes 2--20, five seeds) against $\kappa$. (c) Share of the
+logarithmic gap carried by each inequality ($\alpha=1$; mean and range over five seeds).}\label{fig:classical}
+\end{figure}
+
+\begin{description}[leftmargin=2.3em,labelwidth=2.0em,labelsep=0.3em,itemsep=1pt,topsep=3pt,parsep=0pt,font=\normalfont\bfseries]
+\item[(C1)] \emph{The gap.} The exact contraction exponent is $3.2$--$3.7$ times the certified one for $\kappa\le10^2$
+and $19$--$220$ times at $\kappa=10^5$ (Figure~\ref{fig:classical}(b)).
+\item[(C2)] \emph{Its anatomy.} For $\kappa\ge10^4$, I2 and I4, which replace a quantity depending on the iterate by a
+global constant, carry $77$--$96\%$ of the logarithmic gap; for $\kappa\le10^2$, where the memory term is active, I1
+($39$--$44\%$) and I2 ($32$--$37\%$) do; I3 is nearly tight (at most $0.6\%$; Figure~\ref{fig:classical}(c)). In
+\eqref{eq:saga-repr} I1 and I2 together contribute at most a factor $8/3$ (cocoercivity gives $\LEff\le R^2$), whereas
+$\muEff/\mu$ is bounded only by a condition number: for $\kappa\ge10^4$ the first factor is $2.45$--$2.62$ along the runs,
+the second reaches $81$, and their product reproduces $91$--$96\%$ of the speed-ups. On eight data sets of the designs
+of \cite{na2023hessian}, I2 and I4 carry $64$--$98\%$ of the gap, whose size depends on the design ($13$ to $198$ at
+$\kappa=10^5$).
+\item[(C3)] \emph{Effective constants explain, they do not certify.} The global strong-convexity constant of ridge
+logistic regression is exactly $\lambda$; near the optimum $\muEff$ is at least about the smallest eigenvalue of the
+Hessian at $\etas$, which SAGA reaches when its error aligns with the flattest direction, as it does at $\kappa=10n$ for
+$\alpha\in\{0,1\}$. Rewritten with $\muEff$ and $\LEff$, Proposition~5.9 recovers $59$--$96\%$ of the logarithmic gap for
+$\kappa\ge10^4$ (Figure~\ref{fig:classical}(a)): an a-posteriori reading, not a guarantee. Applied to loopless Katyusha
+\cite{kovalev2020dont}, the same instrument finds a smaller gap ($2.8$ and $4.1$ at $\kappa=10^3$, $10^4$, against $5.2$
+and $15.7$ for Proposition~5.9).
+\end{description}
+
+\paragraph{The same anatomy for polar steps.} In \eqref{eq:polar-repr} with $L=\Lop$ the exact exponent is, to first
+order, $(\muPL/\muop)(2-J/\Lop)$ times the certified one: the smoothness slack $2-J/\Lop\in[1,2)$ gains at most a factor
+$2$, as I1--I2 at most $8/3$, and only the sharpness slack $\muPL/\muop\in[1,\kop]$ is unbounded, as $\muEff/\mu$. In
+both, the certified rate is the exact formula at worst-case values of state-dependent ratios, and beyond a bounded factor
+a run gains only through the curvature it meets. On least squares the curvature is constant and the gap is about a
+factor $4$ on the ray that attracts generic runs \cite{shulgin2026quadratic}; a large gap needs a global constant far
+below the curvature met, as for logistic and softmax losses (not measured for the polar step).
+
+\begin{description}[leftmargin=2.3em,labelwidth=2.0em,labelsep=0.3em,itemsep=1pt,topsep=3pt,parsep=0pt,font=\normalfont\bfseries]
+\item[(C4)] \emph{The analysis cannot repair the worst case.} Within the proof, the best step and Lyapunov weight gain at
+most a factor $3$ ($4/3$ when $\kappa\ge9n/16$, the step of \cite{hofmann2015variance}); at $\kappa=10^3$ they gain $17\%$,
+whereas the observed exponent is $4.5$ times the best certificate and SAGA still converges at $\gamma R^2=4$, eight times
+the largest step the proof admits. On $n$ identical components $\frac12(\mu\theta_1^2+R^2\theta_2^2)$ SAGA with any
+constant step needs at least $\frac{\kappa-1}4\log\frac1{2\varepsilon}$ iterations to bring $\E\norm{\theta_t}^2$ below
+$\varepsilon\norm{\theta_0}^2$, its mean iterate being that of gradient descent (the order of one-step stationary
+methods \cite[Theorem~8]{arjevani2016lower}).
+\item[(C5)] \emph{No free lunch for preconditioning.} Proposition~5.9 holds in any fixed metric $P$ with $R_P^2,\mu_P$
+\cite{dragomir2021fast}, which a covariance metric improves where the loss curvature is bounded below
+\cite{yang2014data,gonen2016solving}; for ridge logistic regression every $P$ has $\kappa_P\ge\kappa$. Yet at
+$\kappa=10^3$ the metric $P=\hat\Sigma+\lambda I$ raises the observed exponent per pass from $1.00$ to $1.11$ ($\alpha=1$)
+and from $0.61$ to $1.26$ ($\alpha=2$), while the certified bound ranks it below the identity: along the runs it moves the
+slack of the proof from cocoercivity to strong convexity (tightness of I2 from $0.13$ to $0.33$, of I4 from $0.42$ to
+$0.017$), the trade that Theorem~\ref{thm:nfl} makes general. The gain is a property of the trajectory.
+\end{description}
+
+\begin{theorem}[no free lunch, for every norm]\label{thm:nfl}
+Consider (GLM) and assume that there is a sequence $W_t$ with $\max_i\nop{\nabla^2\ell_i(W_tx_i)}\to0$ (logistic and
+softmax losses with nonzero $x_i$: $W_t=tW_1$ for almost every $W_1$). Let $N$ be any norm on $\R^{K\times d}$ and
+$c_N=\max_{\nF\Delta=1}N(\Delta)$. Then $\mu_N(F)=\lambda/c_N^2$ and $L_N(g)\ge L_F(g)/c_N^2$ for every convex $C^2$
+function $g$. Consequently $\kappa_N(F)\ge\kF(F)$ and $L_N(f_i)/\mu_N(F)\ge L_F(f_i)/\mu_F(F)=(c_i\norm{x_i}^2+\lambda)/\lambda$
+for every $i$.
+\end{theorem}
+\begin{proof}
+$D^2F(W)[\Delta,\Delta]\ge\lambda\nF\Delta^2\ge(\lambda/c_N^2)N(\Delta)^2$. At a maximizer $\Delta_0$ of $N/\nF\cdot$,
+$D^2F(W_t)[\Delta_0,\Delta_0]\le\max_i\nop{\nabla^2\ell_i(W_tx_i)}\frac1n\sum_i\norm{\Delta_0x_i}^2+\lambda\nF{\Delta_0}^2
+\to(\lambda/c_N^2)N(\Delta_0)^2$, so $\mu_N(F)=\lambda/c_N^2$ (and $\mu_F(F)=\lambda$). For convex $g$,
+$D^2g[\Delta,\Delta]/N(\Delta)^2\ge D^2g[\Delta,\Delta]/(c_N^2\nF\Delta^2)$; take suprema. Finally $L_F(f_i)=c_i\norm{x_i}^2+\lambda$,
+approached along $ex_i^\top/\norm{x_i}$, $e$ a top eigenvector of $\nabla^2\ell_i(Wx_i)$, as $\lmax(\nabla^2\ell_i(Wx_i))\to c_i$.
+\end{proof}
+
+It covers the spectral norm and its preconditioned versions, the $\ell_\infty$ norm of sign descent and
+Kronecker-factored metrics; functions that no linear preconditioner improves exist in every dimension
+\cite[Proposition~7]{hird2025quantifying}. The curvature floor of a ridge model is isotropic and attained in the limit: a
+norm can only trade smoothness against strong convexity, and any advantage of another norm is a property of the
+trajectory. The hypothesis is needed (for ridge least squares $\nF{\Delta\Sigma^{1/2}}$, $\Sigma$ the Hessian, has
+condition number one), and the spectral geometry has its own cost, $\kop\ge\min(K,d)$ \cite{sidford2018coordinate}.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.97\textwidth]{figP2_geometry}
+\caption{Geometry on the six instances of Section~\ref{sec:experiments}. (a) Per-sample condition number $R_P^2/\mu_P$ of
+SAGA in three fixed metrics. Filled: global constants (certified); open: $\mu_P$ at the optimum (each at its best $f$); one
+marker when they coincide (least squares). (b) Passes to $10^{-6}$ at tuned steps on the two non-square
+conditioning-limited instances (median and range over ten seeds; arrow: a seed misses the target). B-SAGA: damped
+innovation; IS: importance sampling.}\label{fig:geometry}
+\end{figure}
+
+\begin{description}[leftmargin=2.3em,labelwidth=2.0em,labelsep=0.3em,itemsep=1pt,topsep=3pt,parsep=0pt,font=\normalfont\bfseries]
+\item[(M4)] \emph{A frozen polar metric certifies a gain only where Theorem~\ref{thm:nfl} does not apply.} Computed once,
+the polar metric makes the method SAGA in a fixed metric, certified with $R_P^2,\mu_P$. On softmax no metric tested
+improves the global constant (Figure~\ref{fig:geometry}(a): best ratio to the Euclidean one exactly $1$), while local
+constants are up to $17.5$ times smaller (covariance metric: $551$ against $9659$). On least squares the certified constant
+improves by $1.6$ to $103$ in the polar metric ($7.6$ to $163$ in the covariance metric); on the square instance
+$R_P^2/\mu_P=42$ against $R^2/\mu=4364$, and this one-shot polar-metric SAGA needs $13.3$ passes (SAGA $27.1$, covariance
+metric $13.1$).
+\item[(M3)] \emph{At batch one, orthogonalization buys a trajectory effect that Euclidean devices reproduce.} On the two
+non-square conditioning-limited instances (softmax / least squares) SAGA needs $69.5$ / $98.7$ passes, the
+orthogonalized methods $22.1$--$29.0$ / $24.4$--$43.5$ (joint SAGA-Muon, its soft version, damped SAGA in a frozen polar
+metric; one seed of the joint method misses the target on least squares), the Euclidean devices $15.1$--$33.8$ /
+$16.1$--$31.9$ (Figure~\ref{fig:geometry}(b); step grids of factor $2$; on grids of ratio $2^{1/4}$ B-SAGA needs $27.1$ /
+$31.9$). Over three draws of the data the best method recomputing the polar factor needs $0.20$--$0.37$ of the passes of
+SAGA and $0.78$--$1.08$ of those of the best Euclidean method without preconditioner; the covariance metric is the best
+method on least squares for every draw, and on softmax for one draw of three. Where memory limits, the best family of
+every class needs $16$--$18$ (softmax) and $17$--$21$ passes (least squares) to $10^{-9}$, near the ceiling of SAGA under
+independent sampling, $e^{-1}$ per pass in expectation, since stale entries keep their error. With minibatches the polar
+step pulls ahead \finding{M6}, and a fresh permutation per pass lifts the ceiling \finding{M7}.
+\end{description}
+
+\subsection{Finding 2: through the polar map, variance reduction acts on the fixed point}\label{sec:f2}
+
+The polar map breaks unbiasedness ($\E\,\polar(G+\xi)\ne\polar(G)$ in general) and noise can move the limit
+(Theorem~\ref{thm:smd}); it keeps the vanishing error, and the minimizer is again the only fixed point
+(Proposition~\ref{prop:comp}(c)). $\arg\min\psi_\xi=-\Med(\xi)$ is nonempty, convex and compact; it contains every zero of
+$\Phi_\xi$, and consists of zeros of $\Phi_\xi$ where $G+\xi$ has full rank almost surely (otherwise the mean field may
+have no zero: for $\Prob(\xi=1)=0.4$, $\Prob(\xi=-1)=0.6$, $\psi_\xi$ is minimal at $g=1$ and $\abs{\Phi_\xi}\ge0.2$).
+
+\begin{theorem}[stochastic polar steps are stochastic mirror descent]\label{thm:smd}
+Let $F$ satisfy $0<\muop\le\Lop<\infty$, let $\xi_t$ be i.i.d.\ copies of $\xi$ independent of the past, $\eta_t\ge0$
+deterministic lengths, and $W_{t+1}=W_t-\eta_t\,\polar(\nabla F(W_t)+\xi_t)$, $G_t=\nabla F(W_t)$. For every
+$G^\dagger\in\arg\min\psi_\xi$, with $W^\dagger=\nabla F^\ast(G^\dagger)$ and $D_F$ the Bregman divergence of $F$:
+\begin{enumerate}[label=(\alph*),itemsep=0pt,topsep=2pt]
+\item $\E[D_F(W_{t+1},W^\dagger)\mid W_t]\le D_F(W_t,W^\dagger)-\eta_t(\psi_\xi(G_t)-\min\psi_\xi)+\frac{\Lop}2\eta_t^2$,
+hence $\E\,\psi_\xi(\bar G_T)-\min\psi_\xi\le\big(D_F(W_0,W^\dagger)+\frac{\Lop}2\sum_{t<T}\eta_t^2\big)/\sum_{t<T}\eta_t$
+with $\bar G_T=\sum_{t<T}\eta_tG_t/\sum_{t<T}\eta_t$, whatever the lengths;
+\item if $\sum_t\eta_t=\infty$ and $\sum_t\eta_t^2<\infty$, $G_t$ converges almost surely to a point of $-\Med(\xi)$;
+\item hence, for such lengths, almost surely: $W_t\to W_\ast$ if $\Med(\xi)=\{0\}$, and if $0\notin\Med(\xi)$ then
+$\lim_tF(W_t)-F_\ast\ge\min_{C\in\Med(\xi)}\nnuc C^2/(2\Lop)>0$.
+\end{enumerate}
+\end{theorem}
+\begin{proof}[Proof sketch]
+$\nabla F$ is a bijection with inverse $\nabla F^\ast$, and $W^+=W-\eta O$ reads $\nabla F^\ast(G^+)=\nabla F^\ast(G)-\eta O$:
+mirror descent in the space of gradients with mirror map $F^\ast$ (as in \cite{maddison2021dual}). The three-point identity
+gives $D_{F^\ast}(G^\dagger,G_{t+1})=D_{F^\ast}(G^\dagger,G_t)-\eta_t\inner{O_t}{G_t-G^\dagger}+D_{F^\ast}(G_t,G_{t+1})$ with
+$O_t=\polar(G_t+\xi_t)$, $D_{F^\ast}(G',G)=D_F(W,W')$ and $D_F(W_{t+1},W_t)\le\frac{\Lop}2\eta_t^2$; conditionally on $W_t$,
+$\E\inner{O_t}{G_t-G^\dagger}=\inner{\Phi_\xi(G_t)}{G_t-G^\dagger}\ge\psi_\xi(G_t)-\psi_\xi(G^\dagger)$. This is (a). (b): the
+Robbins--Siegmund lemma, the coercivity of $\psi_\xi$ and the convergence of $D_F(W_t,W')$ for a countable dense set of
+minimizers. (c): $2\muop(F(W)-F_\ast)\le\nnuc{\nabla F(W)}^2\le2\Lop(F(W)-F_\ast)$ \cite{balles2020geometry}.
+\end{proof}
+
+The theorem replaces $\E\xi=0$ by $\Med(\xi)=\{0\}$; otherwise the limit gradient is an \emph{offset} that no schedule of
+this class removes. Its scalar and coordinatewise analogues are published (sign methods \cite{chen2020distributed},
+normalized steps and the geometric median \cite{cardot2013efficient}); the statement for polar steps was not found.
+
+\begin{proposition}[when is there an offset?]\label{prop:comp}
+(a) If $\xi$ and $-\xi$ have the same law, $0\in\Med(\xi)$, and $\Med(\xi)=\{0\}$ if moreover $0$ is in the support of
+$\xi$. (b) If $\E\xi=0$, every $C\in\Med(\xi)$ has $\nnuc C\le\E\nnuc\xi$, so the limit of Theorem~\ref{thm:smd} has
+$F(W^\dagger)-F_\ast\le(\E\nnuc\xi)^2/(2\muop)$. (c) For a SAGA or SVRG estimator, the stochastic gradient at $W_\ast$, with
+its memory (table or reference point) also at $W_\ast$, is $0$ for every index: such estimators have a fixed point without
+offset (iterate and memory that no index moves), and it is the only one. (d) (Batch one on least squares.) Let
+$g_j(W)=(Wx_j-y_j)x_j^\top$, $x_j\ne0$, $j$ uniform. The batch-one polar step is the stochastic subgradient method on
+$\Lambda(W)=\frac1n\sum_i\norm{Wx_i-y_i}/\norm{x_i}$; with deterministic lengths, $\sum_t\eta_t=\infty$,
+$\sum_t\eta_t^2<\infty$, it converges almost surely to a minimizer of this weighted least-distances objective, in
+general not the least-squares solution.
+\end{proposition}
+\begin{proof}
+(a) $\psi_\xi$ is even and convex, and $\psi_\xi(G)-\psi_\xi(0)=\frac12\E[\nnuc{\xi+G}+\nnuc{\xi-G}-2\nnuc\xi]$ has a
+nonnegative integrand, at least $2\nnuc G-2\nnuc\xi>0$ on $\{\nnuc\xi<\nnuc G\}$. (b) $\nnuc C\le\E\nnuc{\xi-C}\le\E\nnuc\xi$
+(Jensen, then minimality of $C$ against $0$). (c) With $z_i=f_i'(W_\ast)$, $\omega_j=\nabla F(W_\ast)=0$ and
+$\polar(0)=0$; conversely a table that no index changes has $z_i=f_i'(W)$, hence $\omega_j=\nabla F(W)$, which vanishes
+only at $W_\ast$. (d) For $r=Wx-y\ne0$, $\polar(rx^\top)=rx^\top/(\norm r\norm x)=\nabla_W\norm{Wx-y}/\norm x$
+\cite[Lemma~H.1]{li2026implicit}; the rest is the stochastic subgradient method.
+\end{proof}
+
+Item (a) parallels the noise condition of \cite{bernstein2019majority} and (b) is the mean--median inequality in a normed
+space; (c) identifies a fixed point, not its attraction. For $d=1$ the limit in (d) is the geometric median of the
+$y_i/x_i$ \cite{cardot2013efficient}; batch-one sign descent need not converge \cite{karimireddy2019error}, and batch-one
+spectral descent with reshuffling has another limit direction on separable data \cite[Theorem~4.10]{li2026implicit};
+for $K,d\ge2$ (d) was not found. With lengths proportional to the sampled gradient the step is plain stochastic
+gradient descent, which converges to the least-squares solution: deterministic lengths are needed.
+
+\begin{proposition}[size of the offset for minibatches; formal]\label{prop:offset}
+Let $\xi_b$ be the mean of $b$ i.i.d.\ centred matrices with i.i.d.\ entries of variance $\sigma^2$ and third cumulant
+$\kappa_3$, with a non-lattice law. A one-term Edgeworth expansion gives, for the minimizer $G_b^\dagger$ of $\psi_{\xi_b}$,
+\begin{equation}\label{eq:offset}
+G_b^\dagger=\frac{\kappa_3}{6\sigma^2b}\cdot\frac{a_{K,d}}{c_{K,d}}\;\ones\ones^\top+o\Big(\frac1b\Big),\qquad
+a_{K,d}=-\E\big[\polar(Z)_{11}(Z_{11}^3-3Z_{11})\big],\quad c_{K,d}=\frac{\E\nnuc Z}{Kd},
+\end{equation}
+with $Z$ a standard Gaussian $K\times d$ matrix: in every entry, the scalar offset $\kappa_3/(6\sigma^2b)$ of the median of
+a mean \cite{cornish1938moments} times $a_{K,d}/c_{K,d}$.
+\end{proposition}
+
+$\Phi_{\xi_b}(0)=\E\polar(\sqrt b\,\xi_b)$ by homogeneity, whose Edgeworth correction is of order $1/\sqrt b$, while the
+derivative of the mean field at $0$ is $\sqrt b\,c_{K,d}/\sigma$ to first order \cite{xie2026muon,chen2026when}; solving
+$\Phi_{\xi_b}(G)=0$ to first order gives \eqref{eq:offset}. The expansion is formal (against a discontinuous map) but
+parameter-free. What matters is the skewness of the gradient noise; an intercept suffices to create one. $a_{K,d}/c_{K,d}$
+equals $3/(d+2)$ for $K=1$, and $\max(K,d)\,a_{K,d}/c_{K,d}$ lies between $1.4$ and $2.8$ for ten sizes from $2\times2$ to
+$32\times32$ and $16\times64$: per entry the offset is a factor of order $\max(K,d)$ below that of sign descent. For Muon
+in dimension one, \cite{do2026muon} prove non-convergence under skewed bounded data and show that every limit is a zero
+of the mean field.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.97\textwidth]{figP3_noise}
+\caption{What a finite-sum estimator changes inside polar steps. (a) Softmax, memory-limited instance, constant
+parameters: SAGA estimator with the fixed length $10^{-2}$ or nuclear-scaled; Muon ($\mathrm{lr}=10^{-2}$) and the
+nuclear-scaled minibatch gradient, $b=32$. (b) Unregularized finite-sum least squares with an intercept and skewed
+residuals ($n=2000$, $K=2$, $d=3$), batch one, $\eta_t=0.3\,(1+t/200)^{-3/4}$: the minibatch iterate, averaged over
+$(t/2,t]$ and $32$ runs, goes to the least-distances solution $W_{\mathrm{LAD}}$ of Proposition~\ref{prop:comp}(d), the SAGA
+estimator to the least-squares solution $W_{\mathrm{LS}}$. (c) Batch size times the nuclear norm of the limit gradient:
+zeros of the mean field (line), runs ($64$, dots) and the SAGA estimator with the nuclear-scaled length
+(squares).}\label{fig:noise}
+\end{figure}
+
+\paragraph{Numerical checks.} For $2\times3$ matrices with entries $\mathrm{Exp}(1)-1$, \eqref{eq:offset} predicts
+$b\,\nnuc{G_b^\dagger}\to0.464$; the zero of the mean field computed from $1.5\cdot10^6$ exactly sampled batch means gives
+$0.450$--$0.498$ for $b=2,\dots,256$. On the finite sum of Figure~\ref{fig:noise}(b)--(c)
+($\nF{W_{\mathrm{LAD}}-W_{\mathrm{LS}}}=0.170$), averaged batch-one polar steps end $2.6\cdot10^{-3}$ from $W_{\mathrm{LAD}}$ and
+the SAGA estimator $2.1\cdot10^{-4}$ from $W_{\mathrm{LS}}$; for $b\le32$ the runs end within $5\%$ of the zero of the mean
+field, $b$ times the offset rising from $0.17$ to a plateau near $0.3$, and the SAGA estimator with the nuclear-scaled
+length ends at rounding level.
+
+\begin{description}[leftmargin=2.3em,labelwidth=2.0em,labelsep=0.3em,itemsep=1pt,topsep=3pt,parsep=0pt,font=\normalfont\bfseries]
+\item[(M1)] \emph{Length floor and noise floor} (Figure~\ref{fig:noise}(a)). With a constant spectral length $\eta$,
+$\max(F(W_t),F(W_{t+1}))-F_\ast\ge\muop\eta^2/8$ whenever the step is nonzero \cite[Lemma~4]{jawanpuria2026constant}, and
+at a constant length variance reduction does not remove the floor: with the SAGA estimator the iterates settle at a
+squared distance $3.8\,\eta^2$ (softmax) or $6.0\,\eta^2$ (least squares), whereas the floor of minibatch Muon is linear in
+its learning rate. A nuclear-scaled length removes the length floor but not the noise ($1.2\cdot10^{-1}$ and
+$4.8\cdot10^{-2}$ with the minibatch gradient, $b=32$; a momentum buffer as in MARS-M \cite{liu2025marsm} keeps a floor).
+Only a finite-sum estimator reaches rounding precision, with a length that vanishes with it (nuclear-scaled or clipped;
+on least squares also the soft map) or with fixed lengths cooled geometrically \finding{M5}.
+\item[(M2)] \emph{At batch one the nuclear-scaled polar step of SAGA is MISO in disguise.} The predictable part $m$ is the
+gradient of an isotropic quadratic, the polar factor is dominated by the rank-one innovation (nuclear rank
+$\nnuc\omega^2/\nF\omega^2$ of $1.07$, median over the recorded states) and the step drives $m$ to zero, which MISO does
+exactly. With the same indices the joint SAGA-Muon needs the passes of MISO where MISO converges ($11.8$ against $11.9$,
+softmax with $\kappa=n$; SAGA: $20.2$) and fails where MISO fails ($\kappa\gg n$): it is not a spectral method.
+\end{description}
+
+\subsection{Muon's own recipe with a SAGA table}\label{sec:recipe}
+
+Muon does not shrink its steps with the estimator: it keeps steps of fixed length and cools the learning rate down. We
+feed that recipe with the SAGA estimator,
+\begin{equation}\label{eq:recipe}
+W_{t+1}=W_t-\mathrm{lr}_t\,o(\omega_t),\qquad \mathrm{lr}_t=\mathrm{lr}_0\,q^{tb/n},
+\end{equation}
+where $o$ is the exact polar factor or Muon's five Newton--Schulz steps (ns5, normalization constant $\epsilon=10^{-7}$),
+with or without Nesterov momentum $0.9$ (\emph{Muon's recipe}: ns5 with momentum), or one of two controls that are not
+orthogonalizations, $\omega/\nF\omega$ and the coordinatewise sign; $q$ and $\mathrm{lr}_0$ are tuned.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.97\textwidth]{figP4_recipe}
+\caption{Muon's own recipe \eqref{eq:recipe} with a SAGA table. (a) Least squares, conditioning-limited instance, batch
+one (median of five seeds): the exact polar factor with the table ($q=0.8$, $\mathrm{lr}_0=0.3$); Muon's recipe with the
+table ($q=0.8$, $\mathrm{lr}_0=0.1$), with the default $\epsilon=10^{-7}$ of ns5 and with $\epsilon=10^{-30}$; without a
+table, the schedule selected for Muon's recipe ($q=0.75$, $\mathrm{lr}_0=0.3$) on the minibatch gradient and on MARS-M. (b)
+Passes to $10^{-6}$ (median of ten seeds; $k/10$: seeds that reach it) on the two non-square conditioning-limited
+instances: fastest spectral variant (polar or ns5, with or without momentum), fastest control map on the same cooldown,
+faster of SAGA and B-SAGA with constant steps. (c) Memory-limited instances and a sum with identical Hessians
+(``model'', $n=1000$): passes to $10^{-9}$ at the fastest cooldown that every seed follows to the target (median of five
+seeds), with independent batches and with a fresh permutation per pass.}\label{fig:recipe}
+\end{figure}
+
+\begin{description}[leftmargin=2.3em,labelwidth=2.0em,labelsep=0.3em,itemsep=1pt,topsep=3pt,parsep=0pt,font=\normalfont\bfseries]
+\item[(M5)] \emph{With a table the cooldown converges; without one it freezes the iterate} (Figure~\ref{fig:recipe}(a);
+batch one, $300$ passes, five seeds, the two non-square conditioning-limited instances). With the table the squared
+distance follows $C\,\mathrm{lr}_t^2$ (the ratio varies by a factor $3.2$ to $5.7$ along a run) until it meets a floor:
+$2.8\cdot10^{-29}$ (softmax) and $2.3\cdot10^{-29}$ (least squares) for the exact polar factor, the rounding floor; near
+$10^{-18}$ for Muon's recipe at $q=0.8$, $\mathrm{lr}_0=0.1$, a floor of ns5, whose constant $\epsilon$ breaks the scale
+invariance of Proposition~\ref{prop:schedule}(c) (with $\epsilon=10^{-30}$: $1.5\cdot10^{-29}$ and $4.1\cdot10^{-30}$).
+Without a table the same schedule freezes the iterate at $8\%$ to $93\%$ of the initial squared distance, for the
+minibatch gradient ($b=1$, $32$) as for MARS-M \cite{liu2025marsm} and STORM-Muon \cite{cutkosky2019momentum}: the cooldown outruns an
+estimator that does not vanish at $W_\ast$. At batch one the recipe needs $13.4$--$25.5$ passes to $10^{-6}$ on the four
+conditioning-limited instances, about as many as damped SAGA in a frozen polar metric ($12.9$--$24.4$) and more than in the
+covariance metric ($13.5$--$16.1$) but for a tie; its tuned points sit next to a cliff in $q$ and lose confirmation seeds
+on three instances ($7/10$, $9/10$, $9/10$), which the fixed point $q=0.8$, $\mathrm{lr}_0=0.1$ avoids ($21.3$--$26.4$
+passes).
+\end{description}
+
+\begin{proposition}[fixed lengths fed by a table]\label{prop:schedule}
+Consider (GLM) with losses whose gradient in $z$ is $c_\ell$-Lipschitz, $L_i=c_\ell\norm{x_i}^2$, $L_{\max}=\max_iL_i$,
+$\bar L=\frac1n\sum_iL_i$, and $F$ $\muop$-strongly convex and $\Lop$-smooth for the spectral norm; $f_i=g_i+\frac\lambda2\nF\cdot^2$.
+A SAGA table stores $z_i=\nabla g_i(\phi_i)$, $\phi_i$ the iterate at which entry $i$ was last replaced; at iteration $t$ a
+batch $B_t$ of $b$ distinct indices is chosen by any rule, $\omega_t=\bar z+\lambda W_t+\frac\vartheta b\sum_{j\in
+B_t}(\nabla g_j(W_t)-z_j)$ with $\vartheta\in[0,1]$, the entries of $B_t$ are replaced by their gradients at $W_t$, and
+$W_{t+1}=W_t-\eta_t\polar(\omega_t)$. Let $D_t=F(W_t)-F_\ast$.
+\begin{enumerate}[label=(\alph*),itemsep=0pt,topsep=2pt]
+\item For every $W$ and every batch, $\nnuc{\omega-\nabla F(W)}\le(\vartheta L_{\max}+\bar L)\max_i\nop{W-\phi_i}$.
+\item If every entry is at most $A$ iterations old and $\muop\le L_{\max}$, let $\LEff=\Lop+10AL_{\max}$,
+$\rho=1-\muop/\LEff$ and $\eta_t=\eta_0\rho^{t/2}$ with $\eta_0=(2\muop D_0)^{1/2}/\LEff$: then $D_t\le D_0\rho^t$ for all
+$t$. The ages are at most $n/b$ for a fixed cyclic order of the $n/b$ batches and $2n/b-1$ for a fresh permutation per
+pass ($b$ dividing $n$), surely, and at most $\lceil(n/b)\log(nT/\delta)\rceil$ up to iteration $T$ with probability
+$1-\delta$ for independent batches.
+\item For least squares and a map $o$ with $o(sM)=o(M)$ for $s>0$ (the polar factor; ns5 without $\epsilon$) in the
+place of $\polar$, the state $u_t$ made of $W_t-W_\ast$ and the errors $z_i-\nabla g_i(W_\ast)$ satisfies
+$u_{t+1}=\eta_t\Phi(u_t/\eta_t;B_t)$ for a map $\Phi$ independent of $t$: along $\eta_t=\eta_0r^t$, $u_t/\eta_t$ is a
+time-homogeneous Markov chain for i.i.d.\ batches.
+\end{enumerate}
+\end{proposition}
+\begin{proof}[Proof sketch]
+(a) $\omega-\nabla F(W)=\sum_iw_ic_i$ with $\abs{w_i}\le\vartheta/b+1/n$, and
+$c_i=(\nabla\ell_i(Wx_i)-\nabla\ell_i(\phi_ix_i))x_i^\top$ has rank one, so $\nnuc{c_i}\le L_i\nop{W-\phi_i}$. (b)
+$\inner{\nabla F}{\polar(\omega)}\ge\nnuc{\nabla F}-2\nnuc{\omega-\nabla F}$, spectral smoothness, the dual
+Polyak--\L{}ojasiewicz inequality and (a), with $\nop{W_t-\phi_i}$ bounded by the last $A$ lengths, give
+$D_{t+1}\le D_t-\eta_t(2\muop D_t)^{1/2}+\frac{\LEff}2\eta_t^2$; the convex map $x\mapsto x-\eta(2\muop x)^{1/2}+\frac{\LEff}2\eta^2$
+sends $[0,C\eta^2]$ into $[0,C\rho\eta^2]$ for $C=\LEff^2/(2\muop)$. The age bounds are counting arguments and a union
+bound. (c) $\omega$ is linear in $u$ and $o(s\omega)=o(\omega)$. Details: theory notes of the Muon study, F12--F14.
+\end{proof}
+
+Part (a) has no rank factor: the staleness is measured in the spectral norm, in which a polar step has length exactly
+$\eta_t$. The proposition certifies the mechanism, not the speed: on the two non-square conditioning-limited instances its
+cooldown is $3.3\cdot10^4$ to $8.9\cdot10^4$ times slower, in $\log(1/q)$, than $q=0.8$, and along the fast runs the error
+of the estimator is $2.3$ to $3.5$ times the gradient in nuclear norm, a decrease that only the average over the index
+explains. It gives no critical $q$ and does not cover momentum.
+
+\begin{description}[leftmargin=2.3em,labelwidth=2.0em,labelsep=0.3em,itemsep=1pt,topsep=3pt,parsep=0pt,font=\normalfont\bfseries]
+\item[(M6)] \emph{Minibatches: where the spectral map pays} (Figure~\ref{fig:recipe}(b)). At batch one nothing above is
+specific to Muon: the fastest spectral variant needs $0.92$--$1.06$ of the passes of the fastest control on the same
+cooldown, and without momentum the exact polar factor needs $1.16$--$1.36$ times the passes of the Frobenius
+normalization, the estimator being close to rank one \finding{M2}. With $16$ or $32$ samples per batch the spectral maps
+need no momentum while the controls do, and the fastest spectral variant needs $0.58$--$0.93$ of the passes of the
+fastest control on the four conditioning-limited instances, $0.41$--$0.89$ of those of the faster of SAGA and B-SAGA at
+the same batch, and $0.81$--$1.04$ of those of the nuclear-scaled SAGA-Muon. That step is itself ahead of the Euclidean
+methods once its step is resolved: $0.74$ and $0.75$ of their passes at $b=4$ and $16$ on softmax, $0.74$ and $0.55$ on
+least squares, against $0.91$ and $1.04$ at batch one, but $1.30$ and $1.11$ at $b=1$, $4$ on the square least-squares
+instance; on grids of factor $2$ it had appeared $1.7$ to $2.7$ times slower at $b=16$, its fast steps ending at a cliff.
+Passes do not count the factorization of each step.
+\item[(M7)] \emph{Sampling order: a fresh permutation per pass lifts the memory ceiling} (Figure~\ref{fig:recipe}(c)). On
+the memory-limited instances ($n=1000$, exact polar factor) the fastest cooldown of $\mathrm{lr}^2$ that four of five seeds
+follow is a factor $\rho_\star=0.27$--$0.43$ per pass for $b=5$ to $50$ with independent batches, next to the memory factor
+$(1-b/n)^{n/b}\approx e^{-1}$ of the table; a fresh permutation per pass refreshes every entry once per pass and, at $b=20$
+and $50$, moves $\rho_\star$ to $0.10$--$0.18$ and the passes to $10^{-9}$ from $16.7$--$20.0$ to $9.1$--$12.2$. Linear
+SAGA explains part of it (note B4 of the main study; $n$ quadratics with a common Hessian, $c=\gamma n\lambda$): as
+$n\to\infty$ its expected squared error loses $\min\{2c,1\}$ nats per pass under independent sampling, the ceiling of
+\finding{M3}, and up to two under a fresh permutation, $\min\{2,\log\frac{2-g}g\}$ at a fixed step $g=\gamma\lambda$
+(proved); single runs under independent sampling lose about $1.6$ (measured, $n=1000$). On such a sum the recipe follows
+$1.2$--$1.3$ nats of $\mathrm{lr}^2$ per pass with independent indices and $1.7$--$1.9$ with a permutation: the memory factor
+bounds the mean error, not a single run. The instances need $1.7$ to $2.7$ times the passes of this model with independent
+batches but $1.0$ to $1.3$ times with a permutation at $b=20$ and $50$; why they lose more is not established. A permutation
+order was seen to help SAGA-type methods with Finito \cite{defazio2014finito}, and linear rates are proved for reshuffled
+and cyclic orders \cite{ying2017variance,park2020linear}, some beating $e^{-1}$ per pass for
+$\kappa<4.08$ \cite{mokhtari2018surpassing}.
+\end{description}
+
+\section{Discussion}\label{sec:discussion}
+
+\subsection{From SAGA to Muon: the link, property by property}\label{sec:link}
+
+\begin{table}[t]
+\caption{The properties behind the rate of SAGA, and what becomes of them in Muon-type steps.}\label{tab:link}
+\centering\footnotesize
+\renewcommand{\arraystretch}{1.05}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.17\textwidth}YYY@{}}
+\toprule
+Ingredient of SAGA & In the SAGA study & In Muon-type steps & Consequence \\
+\midrule
+\emph{Geometry}: global constants $\mu,R^2$ certify the rate. &
+The proof loses at I2 and I4 \finding{C2}, \finding{C3}; no fixed metric improves $\kappa$ on logistic losses \finding{C5}. &
+The same exact anatomy \eqref{eq:polar-repr}; no norm improves the worst case (Theorem~\ref{thm:nfl}). &
+A change of norm buys trajectory properties, reproduced by Euclidean devices at batch one \finding{M3} but not with
+minibatches \finding{M6}. \\
+\emph{Estimator, first}: unbiased. &
+Exact in a linear step. &
+Lost: the mean step is a mirror step on the smoothed nuclear norm (Theorem~\ref{thm:smd}). &
+The limit gradient is minus a nuclear median of the noise (Proposition~\ref{prop:offset}). \\
+\emph{Estimator, second}: error vanishing at the minimizer. &
+Removes the variance term. &
+Kept: the minimizer is the only fixed point (Proposition~\ref{prop:comp}(c)). &
+Rounding precision with a vanishing length \finding{M1} or a cooldown \finding{M5}; at batch one, MISO \finding{M2}. \\
+\emph{Memory}: an entry keeps its error until refreshed. &
+At most one nat per pass under independent sampling \finding{M3}, two under a permutation (note B4). &
+The fastest cooldown sits next to the memory factor; a permutation lifts it \finding{M7}. &
+$36$--$49\%$ fewer passes where memory limits ($b=20$, $50$). \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Table~\ref{tab:link} sums up the link: negative for changes of norm where the loss curvature vanishes, positive, but not
+Euclidean, for the estimator, and, with minibatches, positive for the spectral map too. It is a link of tools,
+questions and mechanisms, not a reduction: when the polar factor is recomputed at every step the proof of SAGA does not
+apply, and our convergence proofs hold far from the steps that are used (Proposition~\ref{prop:schedule} at cooldowns
+$10^4$ to $10^5$ times slower than in \finding{M5}; for the nuclear-scaled step at batch one, a Lyapunov function for
+$\gamma\le1/(14nL_{\max})$, $350$ to $1400$ times below the tuned steps, theory notes, F15).
+
+\subsection{Relation to prior work}\label{sec:prior}
+
+Beyond Table~\ref{tab:sota}: finite-sum estimators in fixed-length polar steps \cite{li2026implicit}, in general norms
+\cite{allenzhu2018katyusha} and with a preconditioner computed once \cite{yang2014data} are published; a SAGA table in the
+nuclear-scaled polar step, the reading \finding{M2} and a metric frozen from one polar decomposition were not found. For
+Section~\ref{sec:recipe} the geometric-schedule law of fixed lengths is published for exact gradients, also for Muon and
+spectral descent \cite{ma2026preconditioning}; descent inequalities with SVRG anchors in
+sign or spectral steps under reshuffling \cite{qin2023convergence,li2026implicit} and a Euclidean staleness lemma for SAG
+and SAGA tables \cite{zhu2026short} are close to Proposition~\ref{prop:schedule}(a); without a table, Muon with momentum under shuffling
+reaches stationarity when the momentum coefficient tends to one with $n$ and the horizon, and fails for every fixed
+coefficient on some finite sum \cite[Corollary~3.1, Theorem~3.2]{huang2026muon}. The SAGA-table version with a linear
+rate was not found.
+
+\subsection{Limitations and conclusion}
+
+Everything is for strongly convex objectives and synthetic data of moderate size: the shares of \finding{C2} depend on
+the order in which the inequalities are undone, \finding{M3}--\finding{M7} rest on two to four instances and one to three
+draws of the data, and counts are in gradients, not factorizations. Theorem~\ref{thm:nfl} concerns global constants, not
+the local ones where the gains are; Theorem~\ref{thm:smd} assumes additive noise, deterministic lengths and no momentum;
+Proposition~\ref{prop:offset} is formal; the fastest cooldowns sit next to a cliff, nothing explains the critical $q$, and
+the model of \finding{M7} has a single curvature.
+
+The textbook proof of SAGA has the right worst-case order but loses where it replaces the curvature met along the run by
+global constants, as does the exact formula of the nuclear-scaled polar step, and no fixed change of geometry repairs the
+worst case on ridge logistic and softmax models. Inside polar steps, finite-sum variance reduction acts first on
+precision: with decreasing lengths, polar steps converge to minus a nuclear median of the noise, whereas a finite-sum
+estimator makes the minimizer the only fixed point, and with a SAGA table Muon's own recipe, fixed lengths on a
+geometric cooldown, converges to rounding error where the same schedule freezes without one. At batch one Euclidean and
+normalized steps do as well; with minibatches the spectral map pays, and a fresh permutation per pass, which lifts the
+memory rate of SAGA from $e^{-1}$ to nearly $e^{-2}$, pays where memory limits.
+
+\paragraph{Reproducibility and use of AI tools.} Main report \nolinkurl{archive/report/main.pdf}; theory notes
+\nolinkurl{muon/notes_theory.md} (F12--F16) and, archived, \nolinkurl{archive/muon/notes_spectral_theory.pdf} and the
+extended report \nolinkurl{archive/muon/report_spectral_muon_new.pdf}; note B4 in \nolinkurl{theory/main.pdf}; logs
+\nolinkurl{muon/findings.md}, \nolinkurl{muon/results/digest.md}, \nolinkurl{results/findings.md}. Numbers come from
+\nolinkurl{experiments/} and \nolinkurl{muon/experiments/} (\texttt{exp\_M1}--\texttt{exp\_M3}, \texttt{exp\_M5b},
+\texttt{exp\_M6}--\texttt{exp\_M9b}, \texttt{exp\_B3}, \texttt{exp\_B4}), figures from \nolinkurl{paper/scripts/}. A large
+language model (Claude, Anthropic) was used under the authors' supervision to derive and check the statements, write the
+scripts and review the mathematics and the literature.
+
+{\footnotesize\setlength{\columnsep}{1.6em}
+\begin{multicols}{2}[\section*{References}]
+\sloppy
+\bibliographystyle{abbrv}
+\bibliography{paper_saga_to_muon}
+\end{multicols}
+}
+
+\end{document}

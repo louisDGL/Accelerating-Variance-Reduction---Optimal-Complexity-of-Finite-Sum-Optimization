@@ -1,6 +1,11 @@
 """Muon-type (orthogonalized) and Euclidean first-order methods on matrix finite sums, with gradient accounting.
 
-Methods (W in R^{K x d}; orth in {'svd', 'ns5', 'ns_cubic'} or a callable, see polar.py):
+Methods (W in R^{K x d}; orth in {'svd', 'ns5', 'ns_cubic'} or a callable, see polar.py; the names 'frob' and
+'sign' select the control maps of polar.py, which are fixed-length maps but not orthogonalizations. This module has no
+gauge handling: for softmax the callers pass a map composed with prob.remove_gauge, and orth_kw={'center': True} with
+'sign'. 'ns5' carries the normalization constant eps = 1e-7 of the public code (orth_kw={'eps': ...}): it is not
+scale invariant, which sets a floor near 1e-18 relative squared distance for fixed-length steps on a vanishing
+estimator and breaks exact scale covariance, see polar.py):
   gd          W <- W - step grad F(W)                                    Euclidean baseline, default step 1/L_F
   muon_full   W <- W - eta_t O_t, O_t = orth(M_t), M_t = full gradient (or its momentum); rules const / sharp /
               linesearch / bb
@@ -135,12 +140,26 @@ def lr_factors(schedule, T, warmup=0.0, decay_frac=0.2):
     """Multipliers f_t (t = 0..T-1) of the base learning rate, with s = t / T:
         'const' 1;  'cosine' (1 + cos(pi s)) / 2;  'linear' 1 - s;
         'wsd' (warmup-stable-decay) min(1, (1 - s) / decay_frac): constant, then linear decay to 0 over the last
-        decay_frac of the run;  a callable schedule(t, T) -> factor.
+        decay_frac of the run;  a callable schedule(t, T) -> factor;
+        ('geometric', q, period), a tuple or a list (JSON-serializable): q^(t / period), the factor q in (0, 1] per
+        `period` iterations, whatever T (period = n / b iterations for one pass of a method that costs b gradients
+        per iteration, n / (2 b) for 2 b). vrmuon.VRMuon has the same cooldown per pass under schedule='geometric'
+        with lr_decay=q, computed without a table.
     warmup > 0 multiplies by min(1, (t + 1) / (warmup T)) (linear warmup over the first `warmup` fraction)."""
     t = np.arange(T, dtype=np.float64)
     s = t / max(T, 1)
     if callable(schedule):
         f = np.array([float(schedule(int(k), T)) for k in range(T)])
+    elif isinstance(schedule, (tuple, list)):
+        if len(schedule) != 3 or schedule[0] != "geometric":
+            raise ValueError(f"unknown schedule {schedule!r}; the tuple form is ('geometric', q, period)")
+        q, period = float(schedule[1]), float(schedule[2])
+        if not (0.0 < q <= 1.0 and period > 0.0):
+            raise ValueError("('geometric', q, period) needs q in (0, 1] and period > 0")
+        f = q ** (t / period)
+    elif schedule == "geometric":
+        raise ValueError("schedule 'geometric' needs its factor: ('geometric', q, period) here, or "
+                         "schedule='geometric' with lr_decay=q in vrmuon.VRMuon")
     elif schedule == "const":
         f = np.ones(T)
     elif schedule == "cosine":
@@ -429,7 +448,8 @@ def muon_sgd(prob, W0, n_iters, batch, lr, beta=0.95, nesterov=True, orth="ns5",
         G = grad_batch(W, idx);  B <- beta B + G;  D = G + beta B (nesterov) or B;  O = orth(D);
         W <- (1 - lr_t weight_decay) W - lr_t scale O,   scale = max(1, K/d)^(1/2),  lr_t = lr * lr_factors(...)[t].
     (The current public code keeps an EMA m = beta m + (1 - beta) G and uses (1 - beta) G + beta m; both directions are
-    (1 - beta) times the ones above, a factor removed by the orthogonalization up to the eps of ns5.)
+    (1 - beta) times the ones above, a factor removed by the orthogonalization up to the eps of ns5: the default
+    eps = 1e-7 makes ns5 depend on the scale of its argument once ||D||_F is not large compared with it, see polar.py.)
     b gradients per iteration."""
     K, d = prob.K, prob.d
     orth_fn = get_orth(orth, **(orth_kw or {}))

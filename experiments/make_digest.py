@@ -204,6 +204,243 @@ def main():
         rows = [(k, v["slope_kappa_ge_10n"], ci(v, "slope_ci95"), *[fmt(x) for x in v["grads"]]) for k, v in d.items()]
         parts.append(table(rows, ["instance|method", "slope (kappa >= 10n)", "95% t-interval (K - 2 d.o.f.)"] + [f"grads @kappa {i}" for i in range(len(next(iter(d.values()))["grads"]))]))
 
+    if "B4" in files:
+        d = json.load(open(files["B4"], encoding="utf-8"))
+        cfg, m, lg, hd = d["config"], d["model"], d["logistic"], d["hard_instance"]
+        ns = [f"n={n}" for n in cfg["M_NS"]]
+
+        def lab(key):
+            """Problem key without the column separator of the tables."""
+            return key.replace("|", ", ")
+
+        def rng(v, digits=4):
+            """median [min, max] of a spread entry of the B4 summary."""
+            if not v or v.get("median") is None:
+                return "n/a"
+            return f"{v['median']:.{digits}g} [{v['min']:.{digits}g}, {v['max']:.{digits}g}]"
+
+        parts.append("\n## B4: sampling order and the memory term of SAGA\n")
+        parts.append("\nExponents are contraction exponents per pass (n iterations) of a squared error, in nats; c = gamma n lambda. "
+                     "Every quantity below is defined in the entry 'definitions' of results/B4_summary.json.\n\n")
+        parts.append(f"### B4 (M): identical-Hessian model, i.i.d. indices (typical run: median [min, max] over {m['n_seeds']} seeds, "
+                     f"fit over the passes {m['window_passes'][0]}-{m['window_passes'][1]})\n")
+        rows = [(c, r["iid_expectation_limit"]) + tuple(r[k]["iid_expectation"] for k in ns) + tuple(rng(r[k]["iid_typical"]) for k in ns)
+                for c, r in m["by_c"].items()]
+        parts.append(table(rows, ["c", "E e^2: limit min(2c, 1)"] + [f"E e^2 exact, {k}" for k in ns] + [f"typical run, {k}" for k in ns]))
+        parts.append("### B4 (M): random reshuffling\n")
+        rows = [(c, r["rr_limit"]) + tuple(r[k]["rr_first_moment"] for k in ns) + tuple(r[k]["rr_mean_square"] for k in ns)
+                + tuple(rng(r[k]["rr_simulated"]) for k in ns) + tuple(r[k]["rr_over_iid_typical"] for k in ns) for c, r in m["by_c"].items()]
+        parts.append(table(rows, ["c", "fluid law (R3)"] + [f"squared mean (first moments), {k}" for k in ns]
+                           + [f"E e^2 exact (second moments), {k}" for k in ns] + [f"simulated run, {k}" for k in ns]
+                           + [f"reshuffled / i.i.d. typical, {k}" for k in ns]))
+        rows = [(k, m[k]["rr_max_abs_dev_from_limit"], m[k]["rr_max_abs_dev_from_mean_square"], m[k]["rr_max_seed_spread"],
+                 m[k]["iid_max_seed_spread"]) for k in ns]
+        parts.append(table(rows, ["n", "max over c of |simulated reshuffled median - fluid law|",
+                                  "max over c of |simulated reshuffled median - exact E e^2 exponent|", "largest seed spread, reshuffled",
+                                  "largest seed spread, i.i.d."]))
+        parts.append("### B4 (M): fixed order (cyclic; any fixed permutation is equivalent in the model)\n")
+        parts.append(f"\nCritical step c_* = {m['c_star']:.6f} (omega_* = {m['omega_star']:.6f}); best exponent of a fixed order "
+                     f"{m['cyclic_best']['exponent']:.5f} at c = {m['cyclic_best']['c']:.5f}; stability threshold of the companion matrix: "
+                     + ", ".join(f"{v:.3f} ({k})" for k, v in m["cyclic_threshold"].items()) + ".\n\n")
+        kc = list(m["cyclic_companion"])
+        rows = [(c, r["cyclic_limit"]) + tuple(na(r[k]["cyclic_companion"]) for k in kc) + tuple(r[k]["cyclic_simulated"] for k in ns)
+                for c, r in m["by_c"].items()]
+        parts.append(table(rows, ["c", "limit (R2)"] + [f"companion matrix, {k}" for k in kc] + [f"simulated run, {k}" for k in ns]))
+        ev = m["expectation_vs_runs"]
+        parts.append(f"### B4 (M): expectation against single runs, i.i.d. indices, n = {ev['n']}, c = {fmt(ev['c'])} ({ev['n_seeds']} seeds)\n")
+        parts.append(f"\nExact exponent of E e^2: {fmt(ev['exact_exponent'])} per pass; n times the amplitude of its slow mode: "
+                     f"{fmt(ev['slow_amplitude_times_n'])} (limit 2c^3/(2c-1)^2 = {fmt(ev['plateau_limit'])}); pass at which the last slot of "
+                     f"the initial memory is refreshed: {rng(ev['all_slots_refreshed_pass'])}.\n\n")
+        rows = list(zip(ev["passes"], ev["exact_E_e2"], ev["seed_mean_e2"], ev["median_run_e2"], ev["max_run_e2"]))
+        parts.append(table(rows, ["pass", "exact E e^2", "mean of the simulated runs", "median run", "largest run"]))
+
+        parts.append(f"### B4 (L): logistic regression (n = {cfg['L_N']}, d = {cfg['L_D']}, theta_0 = 0, {len(cfg['L_SEEDS'])} seeds, "
+                     f"{cfg['L_PASSES']} passes at most; one data draw per problem)\n")
+        parts.append(f"\nRuns by status (cyclic: one run per step, the order does not use the seed): "
+                     + "; ".join(f"{o} {v['converged']} converged, {v['stalled']} stalled ({v['detail']['stalled_growing']} growing, "
+                                 f"{v['detail']['stalled_slow']} slow), {v['diverged']} diverged ({v['detail']['exploded']} exploded, "
+                                 f"{v['detail']['ended_above']} ended above the initial error)" for o, v in lg["status_counts"].items())
+                     + f". Largest relative difference between the batched loop of the script and vrlab.algorithms.saga: {fmt(lg['check_max_rel_dev'])}.\n\n")
+
+        def best(h, digits=3):
+            return "n/a" if not h else f"{fmt(h['gammaR2'])}: {rng(h['exponent'], digits)}"
+        rows = []
+        for k, h in lg["headline"].items():
+            pr, tb, g = lg["problems"][k], h["iid_textbook"], h.get("gain", {})
+            rows.append((lab(k), pr["kappa_over_n"], pr["n_lmin_over_R2"], pr["n_lmax_over_R2"], rng(tb["exponent"], 3), na(tb["passes"]["median"]),
+                         best(h["iid_best"]), best(h["rr_best"]), best(h["so_best"]), best(h["cyclic_best"]),
+                         na(g.get("rr_best_over_iid_best_exponent")), na(g.get("passes_iid_fastest")), na(g.get("passes_rr_fastest")),
+                         na(g.get("saving_first")), na(g.get("passes_iid_stay")), na(g.get("passes_rr_stay")), na(g.get("saving_stay"))))
+        parts.append(table(rows, ["problem", "kappa/n", "n lmin(H*)/R2", "n lmax(H*)/R2", "i.i.d. textbook step: exponent", "passes to 1e-10",
+                                  "i.i.d. best step: exponent", "reshuffled best step: exponent", "shuffled once best step: exponent",
+                                  "cyclic best step: exponent", "reshuffled / i.i.d. (best exponents)", "fewest passes to 1e-10 (first passage), i.i.d.",
+                                  "reshuffled", "saving", "fewest passes from which the error stays below 1e-10, i.i.d.", "reshuffled", "saving"]))
+        steps = [fmt(float(g)) for g in cfg["L_STEPS"]]
+        parts.append("### B4 (L): the law (R3) at c = gamma n lmin(H*) against the reshuffled runs (measured / law, by gamma R2)\n")
+        rows = []
+        for k, law in lg["law_R3"]["by_problem"].items():
+            rows.append((lab(k),) + tuple("n/a" if v is None else f"{v['measured']:.3f} / {v['law']:.3f} ({100 * v['rel_err']:+.1f}%)" for v in law.values()))
+        parts.append(table(rows, ["problem"] + [f"gamma R2 = {g}" for g in steps]))
+        for name, label in (("gammaR2_le_half", "gamma R2 <= 1/2"), ("gammaR2_ge_1", "gamma R2 >= 1")):
+            v = lg["law_R3"][name]
+            if v:
+                parts.append(f"\n{label}: {v['n_pairs']} (problem, step) pairs, largest |relative error| {100 * v['max_abs_rel_err']:.1f}% "
+                             f"({lab(v['worst']['problem'])}, gamma R2 = {fmt(v['worst']['gammaR2'])}), median relative error "
+                             f"{100 * v['median_rel_err']:+.1f}%, {v['n_within_10pct']} pairs within 10%.\n")
+        fo = lg["fixed_orders"]
+        parts.append("\n### B4 (L): fixed orders against c_max = gamma n lmax(H*) (shuffled-once median / cyclic / law (R2); * = failure)\n")
+        parts.append(f"\nLaw (R2): min of the limiting fixed-order exponent of the model at c_min and at c_max. Model threshold c_* = "
+                     f"{fo['c_star']:.2f} (companion matrix at n = {cfg['L_N']}: {fmt(na(fo['cyclic_threshold_at_n']))}).\n\n")
+        cell = {(p["problem"], fmt(p["gammaR2"])): p for p in fo["pairs"]}
+        rows = []
+        for k in lg["headline"]:
+            row = [lab(k)]
+            for g in steps:
+                p = cell.get((k, g))
+                if p is None:
+                    row.append("i.i.d. diverges")
+                else:
+                    row.append(f"c_max {p['c_max']:.3g}: {fmt(na(p['so_exponent_median']))}{'*' if p['so_failures'] else ''} / "
+                               f"{fmt(na(p['cyclic_exponent']))}{'*' if p['cyclic_fails'] else ''} / {fmt(na(p['law_R2']))}")
+            rows.append(tuple(row))
+        parts.append(table(rows, ["problem"] + [f"gamma R2 = {g}" for g in steps]))
+        for o in ("so", "cyclic"):
+            v = fo[o]
+            parts.append(f"\n{o}: {v['n_failing']} failing pairs out of {v['n_pairs']}; largest c_max without failure {fmt(na(v['largest_c_max_without_failure']))}, "
+                         f"smallest c_max with a failure {fmt(na(v['smallest_c_max_with_failure']))}; {v['n_failing_below_c_star']} failures below c_*, "
+                         f"{v['n_ok_above_c_star']} pairs above c_* without failure. Slow or failing (wider notion): {v['n_slow_or_failing']} pairs, "
+                         f"smallest c_max {fmt(na(v['smallest_c_max_slow']))}, largest c_max of a pair that is not slow "
+                         f"{fmt(na(v['largest_c_max_not_slow']))}, {v['n_slow_below_c_star']} below c_*.\n")
+        v = fo["law_R2"]
+        parts.append(f"\nLaw (R2) against the measured exponents ({v['n_pairs']} pairs): largest |difference| {fmt(v['max_abs_diff_so'])} (shuffled once) "
+                     f"and {fmt(v['max_abs_diff_cyclic'])} (cyclic) nats per pass; median |difference| {fmt(v['median_abs_diff_so'])} and "
+                     f"{fmt(v['median_abs_diff_cyclic'])}.\n")
+
+        parts.append(f"\n### B4 (S): instance (S) of the A1 note (n = {cfg['S_N']}, m = {cfg['S_M']}, theta_0 = 0, {len(cfg['S_SEEDS'])} seeds): "
+                     "gradient counts / n at which the seed mean of the relative squared error falls below eps\n")
+
+        def cnt(b, key="count"):
+            return "n/a" if not b or b.get(key) is None else f"{b[key]:.2f}"
+        rows = []
+        for k, e in hd.items():
+            for eps, b in e["by_eps"].items():
+                bi, br = b["iid"]["best"], b["rr"]["best"]
+                rows.append((k, eps, b["min_block"], cnt(b, "bound_iid"), cnt(b, "bound_any"), cnt(b["iid"], "textbook"),
+                             "n/a" if not bi else f"{cnt(bi)} ({fmt(bi['gammaR2'])})", cnt(bi, "typical_count"), cnt(bi, "count_over_bound_iid"),
+                             cnt(b["rr"], "textbook"), "n/a" if not br else f"{cnt(br)} ({fmt(br['gammaR2'])})", cnt(br, "typical_count"),
+                             cnt(br, "count_over_bound_iid"), cnt(br, "count_over_bound_any"), cnt(b, "rr_best_over_iid_best")))
+        parts.append(table(rows, ["instance", "eps", "smallest m allowed", "bound, i.i.d. span methods", "bound, any sequence", "i.i.d. textbook step",
+                                  "i.i.d. best (gamma R2)", "typical run", "i.i.d. best / i.i.d. bound", "reshuffled textbook step",
+                                  "reshuffled best (gamma R2)", "typical run", "reshuffled best / i.i.d. bound", "reshuffled best / any-sequence bound",
+                                  "reshuffled best / i.i.d. best"]))
+        parts.append("### B4 (S): the three conventions for the count of the reshuffled mean (a sawtooth within each pass), and the seed "
+                     "variability of the counts (2.5%-97.5% over bootstrap resamples of the seeds)\n")
+
+        def boot(b):
+            return "n/a" if not b or None in b["boot"] else f"[{b['boot'][0]:.2f}, {b['boot'][2]:.2f}]"
+        rows = []
+        for k, e in hd.items():
+            for eps, b in e["by_eps"].items():
+                bi, br = b["iid"]["best"], b["rr"]["best"]
+                if not br:
+                    continue
+                rows.append((k, eps, cnt(b, "bound_iid"), cnt(br), cnt(br, "stay_count"), cnt(br, "pass_end_count"), boot(br),
+                             cnt(br, "count_over_bound_iid"), cnt(br, "stay_count_over_bound_iid"), cnt(br, "pass_end_count_over_bound_iid"),
+                             cnt(bi), cnt(bi, "stay_count"), boot(bi),
+                             "n/a" if "rr_best_over_iid_best_boot_range" not in b else
+                             f"[{b['rr_best_over_iid_best_boot_range'][0]:.2f}, {b['rr_best_over_iid_best_boot_range'][1]:.2f}]"))
+        parts.append(table(rows, ["instance", "eps", "bound, i.i.d. span methods", "reshuffled: first passage", "stays below from", "first pass end below",
+                                  "bootstrap range of the first passage", "first / bound", "stays / bound", "pass end / bound", "i.i.d.: first passage",
+                                  "stays below from", "bootstrap range", "reshuffled / i.i.d., range from the two bootstrap ranges"]))
+        rows = [(k, fmt(e["below_iid_floor"]["gammaR2"]), cnt(e["below_iid_floor"], "below_iid_floor_from"), cnt(e["below_iid_floor"], "below_iid_floor_until"))
+                for k, e in hd.items() if e.get("below_iid_floor")]
+        parts.append("Comparison at equal counts: count from which the reshuffled seed mean is below the floor of inequality (expected-sweep) for "
+                     "span methods with i.i.d. indices at every later record (n/a: it is above the floor at the end of the range).\n\n")
+        parts.append(table(rows, ["instance", "gamma R2 (best reshuffled step at the first eps)", "below the i.i.d. floor from", "until (floor above 1e-25)"]))
+        parts.append("### B4 (S): seed mean against expectation under i.i.d. sampling (at the count where the seed mean reaches eps, best step)\n")
+        rows = []
+        for k, e in hd.items():
+            for eps, b in e["by_eps"].items():
+                c = b.get("caveat_iid")
+                if c:
+                    rows.append((k, eps, c["queries_after_full_gradient"], c["expectation_floor"], c["expectation_floor_over_eps"],
+                                 c["pathwise_floor_seed_mean"], c["expected_unsampled"], c["realized_unsampled"], c["worst_seed_share"],
+                                 na((b["rr"]["best"] or {}).get("worst_seed_share"))))
+        parts.append(table(rows, ["instance", "eps", "i.i.d. queries t", "certified lower bound on the expected error", "bound / eps",
+                                  "same bound averaged over the seeds run", "expected (seed, component) pairs never queried", "realized",
+                                  "share of the worst seed in the seed mean, i.i.d.", "reshuffled"]))
+
+    if "B4b" in files:
+        d = json.load(open(files["B4b"], encoding="utf-8"))
+        cfg, fx, ty, lg, ob = d["config"], d["fixed_g"], d["typical"], d["logistic"], d["orthogonal"]
+        parts.append("\n## B4b: refinements of the model of B4 (two regimes, typical runs, two-term law, orthogonal extreme)\n")
+        parts.append("\nExponents per pass of a squared error, in nats; c = gamma n lambda, g = gamma lambda = c / n. Definitions: entry "
+                     "'definitions' of results/B4b_summary.json. The entry 'note' of that file holds the numbers printed in the B4 note.\n\n")
+        gns = [str(n) for n in cfg["G_NS"]]
+        parts.append(f"### B4b (G): a mode at a fixed step g (exact second-moment matrices against the limits; crossing of the two reshuffled "
+                     f"branches at g = {fx['crossing']:.4f})\n")
+        rows = [(g, r["iid_limit"]) + tuple(r["iid_exact"][n] for n in gns) + (r["rr_limit"],) + tuple(r["rr_exact"][n] for n in gns)
+                + tuple(na(r["rr_mean"][n]) for n in gns) for g, r in fx["by_g"].items()]
+        parts.append(table(rows, ["g", "i.i.d. limit 2(1-g)/(2-g)"] + [f"i.i.d. exact, n={n}" for n in gns] + ["reshuffled limit min(2, log((2-g)/g))"]
+                           + [f"reshuffled E e^2 exact, n={n}" for n in gns] + [f"reshuffled squared mean, n={n}" for n in gns]))
+        rows = [(n, v["c"], v["g"], v["exponent"]) for n, v in fx["rr_best"].items()]
+        parts.append(table(rows, ["n", "best c for the reshuffled order", "g = c/n", "largest exact exponent of E e^2"]))
+        parts.append(f"### B4b (T): typical runs under i.i.d. sampling ({ty['n_seeds']} seeds, fit over the passes {ty['window_passes'][0]}-"
+                     f"{ty['window_passes'][1]}): median [min, max] / exact expectation / heuristic / exact reshuffled exponent\n")
+        tns = [k for k in ty if k.startswith("n=")]
+        cs = sorted({c for k in tns for c in ty[k]}, key=float)
+        rows = []
+        for c in cs:
+            row = [c]
+            for k in tns:
+                v = ty[k].get(c)
+                row.append("n/a" if v is None else f"{v['median']:.3f} [{v['min']:.3f}, {v['max']:.3f}] / {v['expectation']:.3f} / "
+                                                   f"{v['heuristic']:.3f} / {v['rr']:.3f}")
+            rows.append(tuple(row))
+        parts.append(table(rows, ["c"] + tns))
+        he = ty["heuristic_error"]
+        parts.append(f"\n|heuristic - median|: max {fmt(he['c_ge_8']['max'])}, median {fmt(he['c_ge_8']['median'])} over the {he['c_ge_8']['n']} cells with "
+                     f"c >= 8 and c/n <= 0.05; max {fmt(he['c_le_4']['max'])}, median {fmt(he['c_le_4']['median'])} over the {he['c_le_4']['n']} cells with c <= 4.\n")
+        parts.append("\n### B4b (F): logistic regression, effective curvature and the two-term law min(r_rr(c_min), log((2-g)/g)), g = gamma L_eff "
+                     "(measured / law (R3) alone / two-term, relative errors of the two)\n")
+        probs = [k for k in lg if k != "summary"]
+        rows = [(k.replace("|", ", "), lg[k]["L_eff_over_R2"], lg[k]["L_eff_over_mean_Li"], lg[k]["L_eff_over_lmax"],
+                 na((lg[k].get("best_step") or {}).get("gammaR2_two_term")), na((lg[k].get("best_step") or {}).get("exponent_two_term")),
+                 na((lg[k].get("best_step") or {}).get("gammaR2_grid")), na((lg[k].get("best_step") or {}).get("exponent_grid"))) for k in probs]
+        parts.append(table(rows, ["problem", "L_eff / R2", "L_eff / mean_i L_i", "L_eff / lmax(H*)", "gamma R2 where the two terms cross",
+                                  "two-term exponent there", "best step of the grid (B4)", "its measured exponent"]))
+        steps = sorted({g for k in probs for g in lg[k]["by_step"]}, key=float)
+        rows = []
+        for k in probs:
+            row = [k.replace("|", ", ")]
+            for g in steps:
+                v = lg[k]["by_step"].get(g)
+                if v is None or v["measured"] is None or v["two_term"] is None:
+                    row.append("n/a")
+                else:
+                    row.append(f"{v['measured']:.3f} / {v['law']:.3f} / {v['two_term']:.3f} ({100 * v['rel_err_law']:+.0f}%, {100 * v['rel_err_two_term']:+.0f}%)")
+            rows.append(tuple(row))
+        parts.append(table(rows, ["problem"] + [f"gamma R2 = {g}" for g in steps]))
+        rows = [(name, v["n_pairs"], v["law"]["max_abs_rel_err"], v["law"]["median_abs_rel_err"], v["law"]["n_within_10pct"],
+                 v["two_term"]["max_abs_rel_err"], v["two_term"]["median_abs_rel_err"], v["two_term"]["n_within_10pct"]) for name, v in lg["summary"].items()]
+        parts.append(table(rows, ["group of (problem, step) pairs", "pairs", "law (R3): max |rel. err.|", "median", "within 10%",
+                                  "two-term law: max |rel. err.|", "median", "within 10%"]))
+        rows = []
+        for k in probs:
+            row = [k.replace("|", ", ")]
+            for g in steps:
+                v = lg[k]["by_step"].get(g)
+                row.append("n/a" if v is None or v["iid_measured"] is None or v["iid_expectation_heuristic"] is None
+                           else f"{v['iid_measured']:.3f} / {v['iid_expectation_heuristic']:.3f}")
+            rows.append(tuple(row))
+        parts.append("i.i.d. runs: measured median exponent / 1 - g/(2-g) (the heuristic for the EXPECTATION at large c):\n\n")
+        parts.append(table(rows, ["problem"] + [f"gamma R2 = {g}" for g in steps]))
+        parts.append(f"### B4b (O): components on orthogonal directions (n = {ob['n']}, {ob['passes']} passes; c = gamma n lambda = gamma R2)\n")
+        rows = [(c, v["cyclic_limit"], v["cyclic"], f"{v['rr']['median']:.4f} [{v['rr']['min']:.4f}, {v['rr']['max']:.4f}]",
+                 f"{v['iid']['median']:.4f} [{v['iid']['min']:.4f}, {v['iid']['max']:.4f}]") for c, v in ob["by_c"].items()]
+        parts.append(table(rows, ["c", "fixed order, n -> infinity (exact)", "fixed order, exact at n", "reshuffled, typical run: median [min, max]",
+                                  "i.i.d., typical run: median [min, max]"]))
+
     with open(OUT, "w", encoding="utf-8") as f:
         f.write("".join(parts))
     print("wrote", OUT)
