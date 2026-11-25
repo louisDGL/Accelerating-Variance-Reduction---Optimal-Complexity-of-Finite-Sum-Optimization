@@ -19,8 +19,11 @@ pass lifts the memory rate of the table.
 | `paper_saga_to_muon.tex` | the source (one file) |
 | `paper_saga_to_muon.bib` | its bibliography (55 entries, all cited) |
 | `paper_saga_to_muon.pdf` | the compiled paper |
-| `figures/` | the four figures of the paper (PDF, included by LaTeX, and PNG) |
-| `scripts/` | the scripts that draw them; each reads JSON summaries, prints every number it plots and, for figures 2 and 3, stops if a number disagrees with `muon/results/digest.md` |
+| `figures/` | the four figures of the paper, `figR1`, `figP2`-`figP4` (PDF, included by LaTeX, and PNG), and five explanatory figures `figE1`-`figE5` for its optional appendix |
+| `scripts/` | the scripts that draw them; each reads JSON summaries, prints every number it plots and, for figures 2 and 3, stops if a number disagrees with `muon/results/digest.md`; `make_figE*.py` and `make_figT*.py` draw the explanatory figures with the shared style `explain_style.py` |
+| `appendix_explanatory_figures.tex` | an appendix of five explanatory figures, off by default (the paper keeps its 12 pages); see "Explanatory figures" below |
+| `paper_saga_to_muon_with_appendix.pdf` | the paper followed by that appendix (15 pages) |
+| `talk/` | figures for a lecture on the paper, not meant for the paper, and a catalogue of them on 16:9 slides (see `talk/README.md`) |
 
 | Figure | File | Script | Data |
 |---|---|---|---|
@@ -41,6 +44,39 @@ pdflatex paper_saga_to_muon && bibtex paper_saga_to_muon && pdflatex paper_saga_
 
 The figures are redrawn from the project root with `python paper/scripts/make_fig<name>.py` (single-threaded BLAS, as
 everywhere in the project).
+
+## Explanatory figures
+
+Added on 2026-11-25. `figE2` to `figE4` add no result: `figE2` and `figE3` illustrate Theorem 1, Theorem 2 and
+Proposition 3 on exact instances in the plane (in `figE3` the polar factor of a vector is its normalization), and
+`figE4` lays out the methods, with one random matrix; the numbers they show are those of these toys. `figE1` lays out
+the proof of Section 2.2 and recuts the measured shares of Figure 1(c), with those of a second order of attribution
+computed on the same runs. `figE5` redraws cached runs of experiment M9 (part C) and adds an exact enumeration along
+one of them and a cached configuration that Section 3.3 does not show (the SAGA table on the schedule of the runs
+without a table).
+Each script states its toy or its data and the status (proved, measured, illustration) of what it draws, prints every
+number and stops if a number it relies on disagrees with the repository or with the paper.
+
+| Figure of the appendix | File | Script | What it explains |
+|---|---|---|---|
+| 5 | `figures/figE1_proof_chain` | `scripts/make_figE1_proof_chain.py` | the proof of Proposition 5.9 as an exact identity and five substitutions, and the share of the gap carried by each inequality in the two orders of attribution (Section 2.2, (C1)-(C2); data: `results/B3_summary.json`) |
+| 6 | `figures/figE2_nfl_plane` | `scripts/make_figE2_nfl_plane.py` | Theorem 1 in the plane: ridge logistic regression with K = 1, d = 2; curvature along a ray, the two sets that bound every norm, condition numbers in five norms and a scan |
+| 7 | `figures/figE3_polar_median` | `scripts/make_figE3_polar_median.py` | Theorem 2 and Proposition 3 in the plane (K x d = 2 x 1): polar steps go to the geometric median of the data, with a SAGA table to the minimizer; the offset against the batch size |
+| 8 | `figures/figE4_recipe_pipeline` | `scripts/make_figE4_recipe_pipeline.py` (drawing function in `make_figT04_recipe_pipeline.py`) | SAGA, Muon and the recipe (4) on one skeleton: estimator, map, step |
+| 9 | `figures/figE5_recipe_table` | `scripts/make_figE5_recipe_table.py` (data functions in `recipe_data.py`) | why the recipe needs a table: the error of the estimator, the schedule law against lr_t^2, and two cached configurations that differ only by the estimator (data: `muon/results/M9_summary.json`, `M9_law.pkl`) |
+
+The appendix is read only when `\WithExplanatoryFigures` is defined, so the default build is unchanged. Version with the
+appendix, from `paper/`:
+
+```bash
+J=paper_saga_to_muon_with_appendix; C='\def\WithExplanatoryFigures{}\input{paper_saga_to_muon}'
+pdflatex -jobname=$J "$C" && bibtex $J && pdflatex -jobname=$J "$C" && pdflatex -jobname=$J "$C"
+```
+
+The figures are redrawn from the project root with
+`OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python paper/scripts/make_figE<name>.py` (each takes less than a minute).
+The lecture figures of `talk/` (`figT01` to `figT25`) follow the same conventions; they were built from written
+specifications, each checked by an independent reviewer that recomputed its numbers.
 
 ## Where the numbers come from
 

@@ -1,0 +1,170 @@
+{
+ "scope_covered": "(a) muon/lab/polar.py, vrmuon.py, algorithms.py, maps.py, mvr.py, katyusha.py lus en entier et confrontes aux lignes 196-206, 253-262, 508-515 et a l'enonce de la Proposition 5 ; 47 controles unitaires independants (code-fidelity_lab_units.py). (b) Protocole : common.py, families.py, exp_M1, exp_M9 (parties A-D), exp_M6, exp_M3, exp_M8, en-tetes de exp_M5b et exp_M9b ; selections et drapeaux de bord de M1_summary.json et M9_summary.json. (c) Reproductions avec le code du depot (common.run_one, aucun cache ecrit) : (M5) planchers et gel, (M2), deux rapports de (M6), trois cellules de (M3) ; controles d'equite des temoins sans table (code-fidelity_repro.py R1, R2, R2b, R3, R4, R4b). (d) vrlab/algorithms.py (saga, ordres), instrumentation.py, bounds.py, analysis.py : pas du livre, enumeration exacte contre force brute, identite (1) (code-fidelity_saga_exact.py, 12 controles).",
+ "checked_ok": [
+  {
+   "claim": "Muon's five Newton--Schulz steps (ns5, normalization constant $\\epsilon=10^{-7}$)",
+   "location": "l. 513",
+   "evidence": "polar.py l. 61, 157-181 : coefficients (3.4445, -4.7750, 2.0315), X/(||X||_F + 1e-7), 5 iterations, transposition si K > d ; egal a une reecriture independante de la routine publique a 1e-15 pres (8x40, 20x20, 40x8) ; non invariant d'echelle avec 1e-7, invariant avec 1e-30 ; float64 partout (bf16=False)."
+  },
+  {
+   "claim": "$\\polar(\\omega)=UV^\\top$ ... ($\\polar(0)=0$)",
+   "location": "l. 197-198",
+   "evidence": "polar.polar_svd ; pour softmax factorisation dans le sous-espace 1^T W = 0 (maps.sharp avec base de jauge), ce qui est la definition restreinte aux s > 0."
+  },
+  {
+   "claim": "$\\omega=m+\\vartheta c$: a predictable part $m$ (memory mean and regularizer gradient) and an innovation $c$ ; Prop. 5 : $\\omega_t=\\bar z+\\lambda W_t+\\frac\\vartheta b\\sum_{j\\in B_t}(\\nabla g_j(W_t)-z_j)$, entries replaced by their gradients at $W_t$",
+   "location": "l. 253-256, 550-553",
+   "evidence": "vrmuon.py l. 455-470, 564-566, 740-758 ; compare pas a pas a une table explicite sur 25 iterations (softmax et moindres carres, b = 1 et 4, theta = 1 et 0.3) : ecart 3e-15 ; table mise a jour au point d'avant le pas."
+  },
+  {
+   "claim": "its length $\\eta$ is fixed, as in Muon, or nuclear-scaled, $\\eta=\\gamma\\nnuc\\omega$ ; clipped ($\\min\\{\\rho,\\gamma\\nnuc\\omega\\}$)",
+   "location": "l. 204-205, 257",
+   "evidence": "vrmuon._eta l. 499-504 ; ||S||_op verifie dans les trois cas ; le facteur max(1, K/d)^(1/2) vaut 1 sur les six instances."
+  },
+  {
+   "claim": "$\\gamma(m+\\vartheta c)$ with $\\vartheta=1/n$, $\\gamma=1/\\lambda$ is MISO",
+   "location": "l. 255-256",
+   "evidence": "common.resolve l. 127-134 (theta = 1/n, gamma = 1/lam, table remplacee) ; W = -zbar/lam a 2e-16 pres sur 40 pas."
+  },
+  {
+   "claim": "SAGA in a polar metric frozen at $W_0$ ; $\\omega\\mapsto\\omega(V\\diag(g)V^\\top+r(I-VV^\\top))$ with $g_k=\\nnuc{G_0}/\\max(s_k,fs_1)$ ; $R_P^2=\\max_i(c_ix_i^\\top P^{-1}x_i)+\\lambda\\nop{P^{-1}}$",
+   "location": "l. 236-242, 258",
+   "evidence": "vrmuon.polar_metric l. 651-671 avec metric_every = 10**9 : ancre = gradient complet en W_0, pas (c/R_P^2) omega C recalcule a 1e-10, metrique non rafraichie apres 3 passes."
+  },
+  {
+   "claim": "damped SAGA (B-SAGA), importance sampling : estimateurs",
+   "location": "l. 259",
+   "evidence": "pas gamma(m + theta c) (vrmuon.step l. 563-564) ; p_i ~ L_i^a, innovation ponderee par 1/(n p_i) : moyenne sur les indices = gradient complet a 1e-16."
+  },
+  {
+   "claim": "$\\mathrm{lr}_t=\\mathrm{lr}_0\\,q^{tb/n}$ ; with or without Nesterov momentum $0.9$",
+   "location": "l. 511-514",
+   "evidence": "vrmuon._lr_t l. 478-480 ; families.recipe_family l. 315 ; direction (1-beta)(omega + beta buf) = forme lerp de Muon, verifiee a 1e-18 ; temoins MARS-M / STORM : lr_0 q^(2bt/n), meme decroissance par passe de gradients (exp_M9_schedule.py l. 497-499)."
+  },
+  {
+   "claim": "two controls that are not orthogonalizations, $\\omega/\\nF\\omega$ and the coordinatewise sign ; $q$ and $\\mathrm{lr}_0$ are tuned",
+   "location": "l. 514-515",
+   "evidence": "polar.frob_normalize, sign_map ; meme boucle, meme table, memes grilles de q, grilles de lr_0 propres a chaque carte ; aucune selection des controles avec moment sur un bord de grille ; le controle le plus rapide est frob (b = 1) ou frob + Nesterov (b = 16, 32) dans les 12 cellules de M9_summary.json."
+  },
+  {
+   "claim": "the target is a relative squared distance $10^{-6}$ ($10^{-9}$ where memory limits) ; Costs are passes over the data",
+   "location": "l. 262-263",
+   "evidence": "common.run_one l. 188, 245 : ||W - W_*||_F^2 / ||W_*||_F^2 avec W_0 = 0, premier enregistrement sous le seuil (resolution 0.1 passe) ; gradients par echantillon / n, passe initiale de la table comprise (vrmuon.py l. 356, 960)."
+  },
+  {
+   "claim": "a batch $B_t$ of $b$ distinct indices ; a fresh permutation per pass",
+   "location": "l. 551, 558, 598",
+   "evidence": "vrmuon._draws l. 872-878, 904 : rng.choice(n, b, replace=False) ; rng.permutation(n) a chaque passe, coupee en lots consecutifs ; verifie sur 3 passes (chaque indice une fois par passe, permutations differentes)."
+  },
+  {
+   "claim": "Six instances ($n\\in\\{200,500,1000\\}$, $K\\times d\\in\\{8\\times40,10\\times50,20\\times20\\}$ ...): two memory-limited ($R^2/\\mu$ of the order of $n$) and four conditioning-limited ($R^2/\\mu$ from $9n$ to $50n$; two square) ; tuned on five seeds and run on ten fresh ones",
+   "location": "l. 260-263",
+   "evidence": "exp_M1_headtohead.py l. 30-38 ; M1_summary.json info : R2/mu = 0.86n, 0.48n ; 48.3n, 36.5n, 8.7n, 18.4n ; graines de reglage 0-4, de confirmation 10-19 (common.py l. 62-66). Reserve sur 'five seeds' : CF-3."
+  },
+  {
+   "claim": "$2.3\\cdot10^{-29}$ (least squares) for the exact polar factor ; near $10^{-18}$ for Muon's recipe at $q=0.8$, $\\mathrm{lr}_0=0.1$ ; without a table ... $8\\%$",
+   "location": "l. 535-538",
+   "evidence": "code-fidelity_repro.py R1, ls-cond, graine 10, 300 passes : 3.793e-29 (= maximum des cinq graines du JSON, mediane 2.27e-29), 1.318e-18, 8.30e-2."
+  },
+  {
+   "claim": "$11.8$ against $11.9$, softmax with $\\kappa=n$; SAGA: $20.2$ (les chiffres)",
+   "location": "l. 502-503",
+   "evidence": "R2, graines 0, 1, 2, memes indices : joint [11.8, 13.2, 11.7], MISO [12.0, 11.9, 11.5], SAGA au pas du livre [20.1, 20.2, 20.2]. La comparaison a SAGA : CF-2."
+  },
+  {
+   "claim": "the fastest spectral variant needs $0.58$--$0.93$ of the passes of the fastest control (deux cellules rejouees)",
+   "location": "l. 588-589",
+   "evidence": "R3, graines 10-19 aux points selectionnes : ls-cond b = 16 : 27.7 (9/10) / 38.9 = 0.712 ; soft-cond b = 32 : 25.7 / 30.5 = 0.843 ; identiques au resume. La robustesse a la grille est traitee par num-m6m7."
+  },
+  {
+   "claim": "SAGA needs $69.5$ ... passes, the orthogonalized methods $22.1$--$29.0$ ..., the Euclidean devices $15.1$--$33.8$ (trois cellules rejouees)",
+   "location": "l. 375-378",
+   "evidence": "soft-cond, dix graines de confirmation, code actuel : SAGA 69.5, SAGA-Muon joint 29.0, B-SAGA 33.8, identiques graine par graine au cache de M1 (empreinte de code anterieure 76badfd4 : les ajouts ulterieurs n'ont pas change ces executions)."
+  },
+  {
+   "claim": "faster of SAGA and B-SAGA at the same batch (equite du reglage des references de (M6))",
+   "location": "l. 589-590, 526",
+   "evidence": "families.resolved_references : SAGA et B-SAGA sur des grilles 2^(1/4) (25 et 115 points), plus fines que celles de la recette : comparaison prudente ; a b = 1 la figure 4(b) prend les references de M5b (make_figP4_recipe.py l. 116-122)."
+  },
+  {
+   "claim": "with $\\gamma=1/(4R^2)$ ; SAGA with the textbook step ; $\\omega=f_i'(\\theta)-z_i+\\frac1n\\sum_jz_j$",
+   "location": "l. 190-194, 283",
+   "evidence": "vrlab/bounds.py l. 10-13, problems.py l. 96, 215 : R^2 = max_i(||x_i||^2/4 + lam), Delta = 3 gamma^2 ; reecriture independante de SAGA, memes indices : ecart 3e-15 apres 637 iterations."
+  },
+  {
+   "claim": "Enumerating the $n$ indices gives every conditional expectation along a run exactly ; equation (1) ; order I5, I4, I2, I3, I1 ; five seeds, passes 2--20",
+   "location": "l. 217-226",
+   "evidence": "saga_state_stats contre la force brute (n pas possibles, Lyapunov recalcule de zero) : V et E[V_+] egaux a 1e-12 en relatif, metrique euclidienne et metrique P dense ; identite (1) avec mu_eff, L_eff, r_sq, r_var mesures : 3e-16 ; analysis.cumulative_chain = ordre annonce ; exp_B3_tightness.py l. 20-24, 43, 215 (instrumentation tous les n/10 pas)."
+  }
+ ],
+ "findings": [
+  {
+   "id": "CF-1",
+   "severity": "major",
+   "location": "l. 538-540 (echos l. 104, 178, 679)",
+   "claim": "Without a table the same schedule freezes the iterate at $8\\%$ to $93\\%$ of the initial squared distance, for the minibatch gradient ($b=1$, $32$) as for MARS-M \\cite{liu2025marsm} and STORM-Muon \\cite{cutkosky2019momentum}: the cooldown outruns an estimator that does not vanish at $W_\\ast$.",
+   "problem": "Les temoins sans table tournent, a b = 1 comme a b = 32, sur le point selectionne pour la recette de Muon avec table a lot un (softmax : q = 0.7, lr_0 = 0.3 ; moindres carres : q = 0.75, lr_0 = 0.3), qui n'est pas le refroidissement des planchers cites dans la meme phrase (q = 0.8). A b = 32 une passe ne compte que 6.25 pas (3.1 pour MARS-M et STORM) : la longueur totale du refroidissement, sum_t lr_t, vaut 0.08 a 0.37 ||W_*||_op, et W_* est hors d'atteinte quel que soit l'estimateur. La table SAGA elle-meme gele sur ce refroidissement a b = 32. Les valeurs a b = 32 (63 % a 93 %, la moitie haute de la fourchette) mesurent donc le refroidissement, pas l'absence de table. A lot un le gel est reel et robuste (8 % a 34 %).",
+   "evidence": "exp_M9_schedule.py l. 481-499 (controls : pt_M repris pour b dans (1, 32)) ; M9_summary.json C/*/controls : medianes b = 1 : 0.083, 0.129, 0.143 (moindres carres), 0.256, 0.340, 0.341 (softmax) ; b = 32 : 0.629, 0.816, 0.813 et 0.823, 0.931, 0.931. code-fidelity_repro.py R4 : sum lr_t = 5.41 et 2.78 (softmax, ||W_*||_op = 35.82), 6.67 et 3.41 (moindres carres, 18.22) ; table SAGA a b = 32 sur ce refroidissement : distance relative finale 0.785 (ns5 + Nesterov) et 0.756 (polaire exact) sur softmax, 0.574 et 0.515 sur moindres carres, contre 0.82-0.83 et 0.62-0.63 sans table (3 graines). R4b (une graine, 300 passes) : gradient de lot b = 1 sans table a q = 0.9, 0.95, 0.98 : 5.0 %, 4.3 %, 4.0 % (moindres carres), 11.6 %, 10.6 %, 10.2 % (softmax). Reserve voisine : sur softmax, a q = 0.7, lr_0 = 0.3, la recette de Muon avec table ne suit la loi que pour 1 graine sur 5 (plancher median 1.3e-7 ; C/soft-cond/deep).",
+   "proposed_fix": "Without a table the schedule selected for Muon's recipe ($q=0.7$ and $0.75$, $\\mathrm{lr}_0=0.3$) freezes the iterate at batch one at $8\\%$ to $34\\%$ of the initial squared distance, for the minibatch gradient as for MARS-M \\cite{liu2025marsm} and STORM-Muon \\cite{cutkosky2019momentum}: the cooldown outruns an estimator that does not vanish at $W_\\ast$.",
+   "confidence": "high"
+  },
+  {
+   "id": "CF-2",
+   "severity": "major",
+   "location": "l. 501-503",
+   "claim": "With the same indices the joint SAGA-Muon needs the passes of MISO where MISO converges ($11.8$ against $11.9$, softmax with $\\kappa=n$; SAGA: $20.2$) and fails where MISO fails ($\\kappa\\gg n$): it is not a spectral method.",
+   "problem": "Ces executions sont a parametres fixes, non regles, sur trois graines, hors du protocole annonce l. 263 ; 'SAGA: 20.2' est SAGA au pas du livre gamma = 1/(4R^2). L'instance est exactement l'instance softmax limitee par la memoire de M1, ou le protocole du papier selectionne gamma = 1/(2R^2) : SAGA atteint alors 1e-6 en 11.4 passes, comme MISO (11.9) et la methode jointe (11.8). Le nombre de passes ne distingue donc pas 'comme MISO' de 'comme SAGA' sur cette instance, et l'ecart suggere par 'SAGA: 20.2' tient au pas non regle du concurrent. Ce qui discrimine dans les memes donnees : les moindres carres a kappa = n (joint 18.1, MISO 18.9, SAGA au pas du livre 12.9), l'insensibilite au pas de la methode jointe, l'echec commun a kappa = 10n.",
+   "evidence": "exp_M6_miso.py l. 31-46, 61-63 (SEEDS = (0, 1, 2), gamma = over('R2', 0.25)) ; M1_summary.json soft-mem (meme specification) : SAGA, gamma = 0.5/R2, passes a 1e-6 : mediane 11.4, 10/10. code-fidelity_repro.py R2b, graines 0, 1, 2 (memes indices) : SAGA 20.2 passes a gamma R^2 = 0.25, 14.8 a 0.35, 11.4 a 0.5, 10.8 a 0.7, 11.4 a 1 ; SAGA-Muon joint 12.0, 12.0, 11.8, 12.2 pour gamma R2_op = 1/16, 1/8, 1/4, 1. M6_summary.json 'ls, kappa/n = 1' : SAGA 12.9, MISO 18.9, joint 18.1.",
+   "proposed_fix": "With the same indices and untuned constants, the joint SAGA-Muon needs the passes of MISO where MISO converges ($11.8$ against $11.9$ on softmax with $\\kappa=n$, where tuned SAGA needs $11.4$; $18.1$ against $18.9$ on least squares, SAGA with its textbook step: $12.9$) and fails where MISO fails ($\\kappa\\gg n$): it is not a spectral method.",
+   "confidence": "high"
+  },
+  {
+   "id": "CF-3",
+   "severity": "minor",
+   "location": "l. 263-265",
+   "claim": "Each family is tuned on five seeds and run on ten fresh ones, ten families also on two further draws of the data; differences below about $10\\%$ are not resolved. Section~\\ref{sec:recipe} uses the same protocol, with step grids of ratio $2^{1/4}$.",
+   "problem": "Le reglage a trois etages : criblage de la grille sur une graine a 20 % du budget (meilleur tiers garde, au moins quatre points), deux graines sur les points gardes et leurs voisins, cinq graines pour les trois finalistes seulement. Et 'the same protocol' ne vaut que pour les comparaisons reglees (M1, M5b, M8, parties A et B de M9) : (M1) et (M2) sont a parametres fixes sur trois graines ; les planchers de (M5) sont cinq executions (graines 10-14) aux points de la partie B ; (M7) est un plan a parametres fixes sur cinq graines (0-4), lr_0 fixe par la regle sum lr_t = 4 ||W_*||_op, le refroidissement le plus rapide etant choisi et rapporte sur les memes graines. Pour les grilles de la recette (q par pas de 0.05 a 0.1, demi-decades de lr_0), voir num-m6m7 F1.",
+   "evidence": "common.py l. 62-72 et tune_and_confirm l. 441-567 ; exp_M3_floors.py l. 31, 92-94 ; exp_M6_miso.py l. 31 ; exp_M9_schedule.py l. 88, 96-104, 562-575 (order_task), 625-629 (fastest) ; families.py l. 271-293.",
+   "proposed_fix": "Each family is screened on one seed, tuned on two and, for its three best points, on five, then run on ten fresh ones, ten families also on two further draws of the data; differences below about $10\\%$ are not resolved. The tuned comparisons of Section~\\ref{sec:recipe} use the same protocol (grids of ratio $2^{1/4}$ for constant steps; steps of $0.05$ to $0.1$ in $q$ and half-decades of $\\mathrm{lr}_0$ for the recipe); \\finding{M1}, \\finding{M2}, the floors of \\finding{M5} and \\finding{M7} are designs at fixed parameters on three to five seeds.",
+   "confidence": "high"
+  },
+  {
+   "id": "CF-4",
+   "severity": "minor",
+   "location": "l. 257-260",
+   "claim": "with the exact polar factor or the ``soft'' map $U\\diag(s/\\sqrt{s^2+\\epsilon^2})V^\\top$ ... importance sampling \\cite{xiao2014proximal}",
+   "problem": "Deux ingredients regles ne sont pas decrits. (i) Dans la comparaison de (M3), epsilon n'est pas une constante : epsilon = eps_innov ||theta c||_F change a chaque pas, eps_innov est un second parametre regle dans {0.003, ..., 3}, et la longueur est gamma <omega, O> ; epsilon n'est constant (0.4, 0.04, longueur fixe) que dans l'experience des planchers de (M1). (ii) L'echantillonnage d'importance n'est pas celui de la reference citee (p_i proportionnel a L_i) : l'exposant est regle dans {1/2, 1}, 1/2 est retenu sur les six instances, et 'IS' de la figure 2(b) est fixe a p_i proportionnel a L_i^(1/2).",
+   "evidence": "families.py l. 54-63, 133-136 ; vrmuon.py l. 491-494, 573-574 ; exp_M3_floors.py l. 47-50 ; M1_summary.json : IS-SAGA 'sampling': 0.5 avec bord 'sampling-' sur les six instances ; controle unitaire de la carte soft dans code-fidelity_lab_units.py.",
+   "proposed_fix": "with the exact polar factor or the ``soft'' map $U\\diag(s/\\sqrt{s^2+\\epsilon^2})V^\\top$ ($\\epsilon$ a tuned multiple of $\\nF{\\vartheta c}$ in \\finding{M3}), or SAGA in a polar metric frozen at $W_0$; Euclidean ones: SAGA, damped SAGA (B-SAGA) \\cite{driggs2019biased}, importance sampling \\cite{xiao2014proximal} (here $p_i\\propto L_i^{1/2}$), the covariance metric.",
+   "confidence": "high"
+  },
+  {
+   "id": "CF-5",
+   "severity": "nit",
+   "location": "l. 514-515",
+   "claim": "one of two controls that are not orthogonalizations, $\\omega/\\nF\\omega$ and the coordinatewise sign",
+   "problem": "Pour softmax le signe est reprojete sur la jauge, O - (1/K) 1 1^T O : ses entrees ne sont plus +-1. Sans effet sur les rapports de (M6) : le controle le plus rapide est la normalisation de Frobenius dans les douze cellules.",
+   "evidence": "polar.sign_map(center=True) ; vrmuon.py l. 307-308 ; M9_summary.json A/*/cells/*/compare/control.",
+   "proposed_fix": "$\\omega/\\nF\\omega$ and the coordinatewise sign (projected on $\\ones^\\top W=0$ for softmax)",
+   "confidence": "high"
+  },
+  {
+   "id": "CF-6",
+   "severity": "nit",
+   "location": "l. 262 et l. 511",
+   "claim": "Costs are passes over the data (factorizations not counted)",
+   "problem": "Conventions non dites. Les passes comptent la passe initiale qui remplit la table, alors que l'exposant tb/n de (4) ne la compte pas ; les 36-49 % de (M7) sont calcules passes initiales comprises (38-52 % sans elle). Les methodes publiees sans table (muon_sgd, mvr_muon) tirent leurs lots avec remise et utilisent le moment 0.95, la recette et son temoin 'gradient de lot' tirent sans remise avec le moment 0.9 ; sans effet mesurable sur les conclusions.",
+   "evidence": "vrmuon.py l. 356, 478-480, 960 ; algorithms._batch_stream l. 186-194 (rng.integers : 91 % des lots de 32 parmi 200 ont un doublon, code-fidelity_lab_units.py) ; exp_M9_schedule.py l. 496-499 et exp_M3_floors.py l. 57-66 (beta = 0.95).",
+   "proposed_fix": "Costs are passes over the data, the pass that fills the table included (factorizations not counted)",
+   "confidence": "high"
+  }
+ ],
+ "not_checked": [
+  "Definitions de MARS-M et de STORM-Muon (g = 0.025, ecretage a 1, beta = 0.95) et moment par defaut de Muon contre les articles et le code publics : sources non ouvertes ; ns5 a ete compare a une reecriture de memoire de la routine publique, pas au fichier d'origine.",
+  "Les etages de criblage et de reglage n'ont pas ete rejoues (seules des cellules de confirmation et des plans a parametres fixes l'ont ete) ; M5b (fenetres, grille decalee), M8, M9 partie D et M9b n'ont pas ete rejoues.",
+  "muon/lab/exact.py, muon/lab/instrumentation.py (rang nucleaire 1.07), le simulateur model_run de exp_M9b_order_model.py, vrlab/order_model.py, l'instrumentation de L-Katyusha et les executions preconditionnees de (C5) : non audites ligne a ligne.",
+  "Scripts de figures paper/scripts/ : seul le choix des references de la figure 4(b) a ete regarde.",
+  "R4b (gel sans table a lot un sur des refroidissements plus lents) porte sur une graine et 300 passes : indication experimentale, a refaire sur cinq graines avant de citer un chiffre."
+ ],
+ "report_path": "/users/eleves-b/2023/louis.darrigol/projetSTATS/paper/audit/evidence/code-fidelity.md"
+}

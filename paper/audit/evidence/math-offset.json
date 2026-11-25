@@ -1,0 +1,115 @@
+{
+  "scope_covered": "Proposition 4, equation (3) et commentaire (paper_saga_to_muon.tex l. 449-467) ; debut de 'Numerical checks' (l. 482-484) ; coherence des mentions liees (resume l. 101, tableau 1 l. 165-166, section 2.3 l. 249-251, tableau 2 l. 632, limitations l. 671, phrase voisine l. 486-488). Developpement d'Edgeworth refait a la main ; constantes recalculees par une formule exacte independante (valeurs singulieres), par Monte-Carlo direct et par quadrature exacte (K = 2) ; valeurs 0.450-0.498 retrouvees par rejeu du script du depot (meme graine) et confrontees a une estimation independante a variance reduite ; formule (3) testee sur d'autres lois et tailles (2x2, 2x5, 3x5). Scripts : paper/audit/checks/math-offset_constants.py, math-offset_zero_meanfield.py (parties A et B), math-offset_other_laws.py, math-offset_3x5.py. Bilan : proposition et chiffres corrects ; 0 blocker, 0 major, 3 minor, 1 nit.",
+  "checked_ok": [
+    {
+      "claim": "Equation (3): G_b^dagger = kappa_3/(6 sigma^2 b) (a_{K,d}/c_{K,d}) 1 1^T + o(1/b), a_{K,d} = -E[polar(Z)_11 (Z_11^3 - 3 Z_11)], c_{K,d} = E||Z||_*/(Kd)",
+      "location": "l. 449-458",
+      "evidence": "Developpement d'Edgeworth a un terme refait independamment : densite phi(S)[1 + lambda_3/(6 sqrt b) sum He_3(S_kl)] ; termes croises E[polar(Z)_ij He_3(Z_kl)] nuls par changement de signe d'une ligne ou d'une colonne ; Phi_b(0) = -(kappa_3/(6 sigma^3 sqrt b)) a 1 1^T ; D Phi_Z(0) = c Id ; G = -D Phi(0)^{-1} Phi(0). Facteur kappa_3/(6 sigma^2 b), constantes, direction 1 1^T et signe retrouves. Numerique (2x3, Exp(1)-1, 3e6 tirages, variables de controle) : b||G_b||_* = 0.4640 +- 0.0012 (b=16), 0.4655 +- 0.0017 (32), 0.4657 +- 0.0024 (64), 0.4671 +- 0.0033 (128), 0.4591 +- 0.0047 (256), 0.4625 +- 0.0094 (1024) contre 0.4638."
+    },
+    {
+      "claim": "Phi_{xi_b}(0) = E polar(sqrt b xi_b) by homogeneity, whose Edgeworth correction is of order 1/sqrt b",
+      "location": "l. 460",
+      "evidence": "polar(tM) = polar(M) pour t > 0. Mesure : sqrt(b)||Phi_b(0)||_F = 0.2293, 0.2321, 0.2333, 0.2331, 0.2347, 0.2349, 0.2349, 0.2355, 0.2314, 0.2333 pour b = 1..256, 1024, contre (2/6) a sqrt(6) = 0.2339 ; 3x5, b = 32 : entree moyenne -0.05338 contre -0.05353 predit."
+    },
+    {
+      "claim": "the derivative of the mean field at 0 is sqrt b c_{K,d}/sigma to first order ; c_{K,d} est la bonne constante",
+      "location": "l. 461",
+      "evidence": "D Phi_Z(0)[Delta] = E[polar(Z)<Z,Delta>] (Stein) ; hors diagonale nul (signes), diagonale constante (permutations), trace = E||Z||_* : c = E||Z||_*/(Kd). Difference finie (2x3, h = 0.1, 2e6 tirages) : 0.5037 +- 0.0004 contre c = 0.5043, autres entrees nulles a 4e-4 ; pente du champ moyen non gaussien au zero / (6 sqrt b c) = 1.137, 1.065, 1.033, 1.016, 1.007, 1.002, 1.002, 1.001, 1.000 pour b = 1..256."
+    },
+    {
+      "claim": "L'hypothese 'i.i.d. entries' suffit pour la forme 1 1^T",
+      "location": "l. 450-453",
+      "evidence": "Tenseur des troisiemes cumulants diagonal et covariance sigma^2 Id ; de plus la loi est invariante par permutation des lignes et colonnes, donc le minimiseur unique est exactement proportionnel a 1 1^T pour tout b. Rejeu : cosinus 0.99997 (b=2) a 0.99561 (b=256), l'ecart a 1 etant du bruit de Monte-Carlo."
+    },
+    {
+      "claim": "in every entry, the scalar offset kappa_3/(6 sigma^2 b) of the median of a mean times a/c ; signe coherent avec G^dagger = -Med",
+      "location": "l. 456-457",
+      "evidence": "Esseen / Cornish-Fisher en p = 1/2 : mediane de la moyenne = -kappa_3/(6 sigma^2 b) + o(1/b) pour une loi non arithmetique ; a_{1,1} = c_{1,1} = sqrt(2/pi). Asymetrie positive : mediane negative, offset G = -Med positif. Numerique : b * mediane(Gamma(b)/b - 1) = -0.30685, -0.32165, -0.32794, -0.33075, -0.33207, -0.33271, -0.33326 (b=256), -0.33333 (b=4096) -> -1/3."
+    },
+    {
+      "claim": "a_{K,d}/c_{K,d} equals 3/(d+2) for K = 1",
+      "location": "l. 463-464",
+      "evidence": "Calcul exact : z = rho u, a = -E[rho^3]E[u_1^4] + 3E[rho]E[u_1^2] = 3E[chi_d]/(d(d+2)), c = E[chi_d]/d. Monte-Carlo : 0.59996 +- 0.0023 (d=3), 0.29725 +- 0.0015 (d=8), 0.05788 +- 0.0006 (d=50)."
+    },
+    {
+      "claim": "max(K,d) a_{K,d}/c_{K,d} lies between 1.4 and 2.8 for ten sizes from 2x2 to 32x32 and 16x64 (a l'arrondi pres, voir MO-2)",
+      "location": "l. 464-465",
+      "evidence": "Formule exacte de l'audit a/c = 3[(2K+2d+3) - 2 E sum s^3 / E sum s]/((K+2)(d+2)) (verifiee contre K = 1, la quadrature K = 2 et le Monte-Carlo direct aux 11 tailles, ecarts <= 1.6 erreur standard) : 1.364(4), 1.705(4), 2.005(4), 1.712(3), 1.985(2), 2.167(2), 2.276(1), 2.599(5), 2.735(4), 2.814(4) pour 2x2, 2x3, 3x5, 4x4, 8x8, 16x16, 32x32, 4x16, 8x32, 16x64. Quadrature exacte : 1.36528 (2x2), 1.70406 (2x3)."
+    },
+    {
+      "claim": "per entry the offset is a factor of order max(K,d) below that of sign descent",
+      "location": "l. 465",
+      "evidence": "Rapport = max(K,d)/(1.4 a 2.8) sur les dix tailles ; la formule exacte donne les limites max(K,d) a/c -> 12/5 (carre, loi du quart de cercle) et -> 3 (K fixe, d grand) : 64x64 : 2.334 ; 128x128 : 2.367 ; 2x64 : 2.88 +- 0.03 ; 4x256 : 3.01 +- 0.06."
+    },
+    {
+      "claim": "For 2x3 matrices with entries Exp(1)-1, (3) predicts b||G_b^dagger||_* -> 0.464",
+      "location": "l. 482-483",
+      "evidence": "Quadrature exacte (200x200 noeuds) : a_{2,3} = 0.286449, c_{2,3} = 0.504295, a/c = 0.568019 ; (2/6)(a/c) sqrt(6) = 0.46379 (sigma^2 = 1, kappa_3 = 2, ||1 1^T||_* = sqrt 6)."
+    },
+    {
+      "claim": "the zero of the mean field computed from 1.5e6 exactly sampled batch means gives 0.450-0.498 for b = 2,...,256 (transcription exacte ; reserve MO-1)",
+      "location": "l. 483-484",
+      "evidence": "Valeurs absentes de paper_figures_data.json ; rejeu de check_minibatch_offset_exact.py (graine 2026, meme flux, polar en forme close) : 0.4503, 0.4605, 0.4610, 0.4620, 0.4703, 0.4811, 0.4853, 0.4976 pour b = 2, 4, ..., 256 ; Gamma(b,1)/b - 1 est la loi exacte de la moyenne."
+    },
+    {
+      "claim": "The expansion is formal (against a discontinuous map) but parameter-free ; non-lattice ; o(1/b)",
+      "location": "l. 449-451, 462-463",
+      "evidence": "'formal' repris de facon coherente (titre, l. 462, etiquette [f] du tableau 1, 'formally' du resume, l. 671). 'non-lattice' est l'hypothese d'Esseen (cas scalaire : theoreme) et donne un vecteur fortement non arithmetique ; o(1/b) est le reste correspondant (numeriquement O(1/b^2)). 'parameter-free' teste hors depot, rapport mesure/prediction a b = 64 et 256 : 2x2 sigma^2=9 kappa_3=54 : 0.996(7), 1.003(13) ; 2x2 kappa_3=4 : 0.990(4), 0.995(7) ; 2x5 kappa_3=4 : 0.998(2), 1.000(4) ; 3x5 Exp(1)-1 b=32 : 0.996(5)."
+    },
+    {
+      "claim": "Tableau 1 'a limit gradient of order 1/b [f]' et resume 'an offset formally of order 1/b'",
+      "location": "l. 101, 165-166",
+      "evidence": "Coherents avec ce qui est etabli : developpement formel + zeros du champ moyen (ordre 1/b confirme de b = 1 a 1024 pour des entrees i.i.d. ; plateau de b fois l'offset sur la somme finie d'apres paper_figures_data.json : 0.168, 0.240, 0.276, 0.285, 0.303, 0.308)."
+    }
+  ],
+  "findings": [
+    {
+      "id": "MO-1",
+      "severity": "minor",
+      "location": "l. 482-484",
+      "claim": "the zero of the mean field computed from $1.5\\cdot10^6$ exactly sampled batch means gives $0.450$--$0.498$ for $b=2,\\dots,256$.",
+      "problem": "Transcription exacte de la sortie du script, mais sans erreur de Monte-Carlo, qui croit comme sqrt(b). La borne basse 0.450 (b = 2) est un ecart reel d'ordre 1/b ; la borne haute 0.498 (b = 256) est du bruit (erreur standard 0.015 sur la composante 1 1^T, plus un biais positif de la norme nucleaire, cosinus 0.9956). Telle que calculee, la suite croit avec b et depasse la limite annoncee 0.464 en s'en eloignant : sans barre d'erreur, un jury peut y lire une non-convergence.",
+      "evidence": "Rejeu (meme graine) : 0.4503, 0.4605, 0.4610, 0.4620, 0.4703, 0.4811, 0.4853, 0.4976 pour b = 2..256, erreurs standard 0.0013, 0.0019, 0.0026, 0.0037, 0.0053, 0.0075, 0.0106, 0.0150. Estimation independante (3e6 tirages, racine 1D, variables de controle) : 0.4500(4), 0.4571(6), 0.4600(8), 0.4640(12), 0.4655(17), 0.4657(24), 0.4671(33), 0.4591(47), et 0.4625(94) a b = 1024 : l'accord reel avec 0.4638 est bien meilleur que l'etendue publiee. Scripts paper/audit/checks/math-offset_zero_meanfield.py A et B.",
+      "proposed_fix": "the zero of the mean field computed from $1.5\\cdot10^6$ exactly sampled batch means gives $0.450$ at $b=2$ and $0.46$--$0.50$ for $b=4,\\dots,256$ (Monte Carlo standard error growing to $0.015$ at $b=256$).",
+      "confidence": "high"
+    },
+    {
+      "id": "MO-2",
+      "severity": "nit",
+      "location": "l. 464-465",
+      "claim": "$\\max(K,d)\\,a_{K,d}/c_{K,d}$ lies between $1.4$ and $2.8$ for ten sizes from $2\\times2$ to $32\\times32$ and $16\\times64$",
+      "problem": "Les extremes valent 1.365 (2x2) et 2.814 (16x64) : tous deux hors de [1.4, 2.8] pris a la lettre ; arrondi seulement.",
+      "evidence": "Quadrature exacte 2x2 : 1.36528 ; 16x64 : 2.8138 +- 0.0035 (formule en valeurs singulieres, 1e5 tirages ; la valeur 2.80 des notes avait 3 % d'erreur). Script paper/audit/checks/math-offset_constants.py.",
+      "proposed_fix": "lies between $1.37$ and $2.81$",
+      "confidence": "high"
+    },
+    {
+      "id": "MO-3",
+      "severity": "minor",
+      "location": "l. 632 (tableau 2)",
+      "claim": "The limit gradient is minus a nuclear median of the noise (Proposition~\\ref{prop:offset}).",
+      "problem": "Renvoi imprecis : cet enonce est le Theoreme 2(b), prouve ; la Proposition 4 n'en donne que la taille, et formellement. Le renvoi fait reposer un resultat [p] sur un enonce [f]. (Hors perimetre strict ; signale parce que le renvoi vise la proposition auditee.)",
+      "evidence": "Theoreme 2(b), l. 403 : 'G_t converges almost surely to a point of -Med(xi)' ; Proposition 4, l. 449 : 'size of the offset for minibatches; formal'.",
+      "proposed_fix": "The limit gradient is minus a nuclear median of the noise (Theorem~\\ref{thm:smd}), formally of order $1/b$ (Proposition~\\ref{prop:offset}).",
+      "confidence": "high"
+    },
+    {
+      "id": "MO-4",
+      "severity": "minor",
+      "location": "l. 486-488 (et figure 3(c))",
+      "claim": "for $b\\le32$ the runs end within $5\\%$ of the zero of the mean field, $b$ times the offset rising from $0.17$ to a plateau near $0.3$",
+      "problem": "Dans ce probleme de somme finie les gradients par echantillon sont de rang un, (W x_j - y_j) x_j^T : les entrees du bruit ne sont pas independantes et l'equation (3) ne s'applique pas. Le paragraphe enchaine la verification de (3) (0.464) et ce plateau (0.3) sans le dire : le lecteur peut prendre 0.3 pour un test de la constante de (3). De meme l'ordre 1/b du resume et du tableau 1 n'est derive dans le papier que pour des entrees i.i.d. Les chiffres eux-memes sont exacts.",
+      "evidence": "Hypothese de la Proposition 4, l. 450 : 'i.i.d. entries'. Notes archive/muon/notes_spectral_theory.tex l. 1038 : 'the per-sample gradients have rank one and the entries of the noise are not independent, so (3) does not apply as such: what is observed is the 1/b regime'. paper_figures_data.json (noise_offsets) : b fois le zero = 0.168, 0.240, 0.276, 0.285, 0.303, 0.308.",
+      "proposed_fix": "$b$ times the offset rising from $0.17$ to a plateau near $0.3$ (per-sample gradients have rank one: \\eqref{eq:offset} does not apply as such, the $1/b$ regime does), and",
+      "confidence": "medium"
+    }
+  ],
+  "not_checked": [
+    "Contenu des sources citees l. 461 et 465-467 (xie2026muon, chen2026when pour la constante c_{K,d} ; do2026muon ; cornish1938moments) : non ouvertes, dimension bibliographique. L'entree .bib de Cornish-Fisher est la reference classique et la formule de la mediane a ete recalculee.",
+    "Validite rigoureuse du developpement d'Edgeworth dans le cas matriciel : non demontree (le papier la declare formelle ; le cas scalaire est un theoreme).",
+    "'an intercept suffices to create one' (l. 463) : argument seulement (la colonne constante du bruit est le residu lui-meme), pas de controle numerique.",
+    "Zero du champ moyen contre (3) pour K >= 4 ou des entrees non Gamma : seules les constantes sont verifiees aux grandes tailles ; les zeros le sont pour 2x2, 2x3, 2x5, 3x5.",
+    "Runs de la somme finie (l. 484-488) : non relances, seulement compares a muon/theory_checks/paper_figures_data.json (0.170, 0.17 -> 0.31, ecarts runs/zero 1.2 a 4.6 % : conformes)."
+  ],
+  "report_path": "/users/eleves-b/2023/louis.darrigol/projetSTATS/paper/audit/evidence/math-offset.md"
+}

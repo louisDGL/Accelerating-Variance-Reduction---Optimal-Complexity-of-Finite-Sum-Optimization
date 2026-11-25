@@ -41,6 +41,9 @@ __pycache__/
 *.synctex.gz
 *.fls
 *.fdb_latexmk
+*.nav
+*.snm
+*.vrb
 _check_*
 
 # Editors / OS

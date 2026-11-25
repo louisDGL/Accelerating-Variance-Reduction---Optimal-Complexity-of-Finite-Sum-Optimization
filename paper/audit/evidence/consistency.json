@@ -1,0 +1,386 @@
+{
+ "scope_covered": "Dimension consistency, papier entier (paper/paper_saga_to_muon.tex, 700 lignes, 12 pages). (a) table des 24 repetitions de chiffres et d'affirmations (titre, resume, introduction, tableaux 1 et 2, corps, discussion, conclusion), avec recalcul des chiffres repetes ou en tension depuis results/B3_summary.json et muon/results/{M1,M3,M6,M9,M9b,M5b}_summary.json ; (b) etiquettes [p][m][e][f] : existence d'un enonce et d'une preuve pour chaque element [p] (papier, theory/*.tex, archive/muon/notes_spectral_theory.tex, muon/notes_theory.md F12-F15) ; (c) sur-affirmations du titre, du resume, des intitules de constats, des tableaux et de la conclusion ; (d) couverture de la section Limitations ; (e) notations ; (f) compilation dans paper/audit/checks/build_consistency ; (g) lecture du PDF page par page et des quatre figures ; (h) chemins du paragraphe Reproducibility, commentaires d'en-tete et paper/README.md. Bilan : 0 blocker, 4 major, 18 minor, 5 nit. Rapport detaille : paper/audit/evidence/consistency.md.",
+ "checked_ok": [
+  {
+   "claim": "Le papier compile en 12 pages sans reference ni citation non resolue",
+   "location": "paper_saga_to_muon.tex (entier)",
+   "evidence": "pdflatex + bibtex + pdflatex x2 dans paper/audit/checks/build_consistency : code 0, 12 pages, aucun LaTeX Warning, aucun overfull, 5 underfull dans la bibliographie ; texte pdftotext identique au PDF livre"
+  },
+  {
+   "claim": "Bibliographie : 55 entrees, toutes citees, aucune cle absente",
+   "location": "paper_saga_to_muon.bib ; paper/README.md l. 20 ; .tex l. 12",
+   "evidence": "paper/audit/checks/consistency_bibkeys.py : 55 cles citees, 55 entrees, differences vides dans les deux sens, 30 etiquettes sans doublon ni renvoi orphelin"
+  },
+  {
+   "claim": "Chaque figure et chaque tableau est appele dans le texte",
+   "location": "l. 134-135, 291, 294, 304, 369, 378, 484, 491, 532, 584, 595, 645, 654",
+   "evidence": "consistency_bibkeys.py : fig:classical 3 appels, fig:geometry 2, fig:noise 2, fig:recipe 3, tab:sota 2, tab:link 2 ; lecture du PDF pages 1 a 12"
+  },
+  {
+   "claim": "'3.2 to 220 times the certified one' identique dans le resume, le tableau 1 et (C1)",
+   "location": "l. 95, 150, 290-291",
+   "evidence": "results/B3_summary.json (consistency_b3_gap.py) : speedup min 3.17, max 220.39 ; kappa <= 1e2 : 3.17-3.71 ; kappa = 1e5 : 18.95-220.39"
+  },
+  {
+   "claim": "'77-96% of the gap' pour kappa >= 1e4 identique dans le resume, le tableau 1 et (C2) ; I1 39-44 %, I2 32-37 %, I3 au plus 0.6 %",
+   "location": "l. 95-96, 150-151, 292-294",
+   "evidence": "B3_summary.json : I2+I4 = 0.769 a 0.961 pour kappa >= 1e4 ; kappa <= 1e2 : I1 0.392-0.443, I2 0.317-0.365 ; I3 max 0.0054 (ordre de retrait du papier)"
+  },
+  {
+   "claim": "'0.58-0.93 of the passes of a normalized step' (resume) = 'of the fastest control' (M6) ; 0.41-0.89 ; 0.81-1.04 ; 0.92-1.06 a batch un",
+   "location": "l. 105-106, 585-590",
+   "evidence": "muon/results/M9_summary.json partie A (consistency_m6_controls.py) : rapports 0.579 a 0.928 ; 0.408 a 0.885 ; 0.812 a 1.038 ; 0.924 a 1.055 ; le controle le plus rapide a b = 16, 32 est toujours la normalisation de Frobenius avec Nesterov"
+  },
+  {
+   "claim": "'saves 36-49% of the passes where memory limits (batches of 20 and 50)' ; 16.7-20.0 vers 9.1-12.2 ; rho_star 0.27-0.43 puis 0.10-0.18",
+   "location": "l. 106-107, 596-599, 640",
+   "evidence": "M9_summary.json partie D (consistency_m7_order.py) : economies 49.2, 37.7 (softmax b = 20, 50), 43.5, 36.1 % (moindres carres) ; passes 17.9, 16.7, 20.0, 19.1 vers 9.1, 10.4, 11.3, 12.2 ; rho_star 0.368/0.32/0.27 et 0.43/0.368/0.32 puis 0.1, 0.135, 0.18, 0.18"
+  },
+  {
+   "claim": "'The instances need 1.7 to 2.7 times the passes of this model with independent batches but 1.0 to 1.3 times with a permutation at b = 20 and 50'",
+   "location": "l. 605-606",
+   "evidence": "M9_summary.json et M9b_summary.json : rapports 1.73 a 2.73 (independant, b = 1 a 50) ; 0.97, 1.14, 1.20, 1.34 (permutation, b = 20, 50)"
+  },
+  {
+   "claim": "Planchers de (M5) : 2.8e-29 et 2.3e-29 (polaire exact), pres de 1e-18 (ns5), 1.5e-29 et 4.1e-30 (epsilon = 1e-30), gel a 8-93 % sans table",
+   "location": "l. 103-104, 535-539 ; fig. 4(a)",
+   "evidence": "M9_summary.json partie C (consistency_m5_schedules.py) : min_rel medians 2.85e-29, 2.27e-29, 9.8e-19, 1.09e-18, 1.50e-29, 4.06e-30 ; controles sans table 0.083 a 0.931 (muon/findings.md l. 482-484)"
+  },
+  {
+   "claim": "Passes de (M3), (M4), (M5) coherentes entre elles et avec la figure 2(b) : SAGA 69.5 / 98.7 ; orthogonalises 22.1-29.0 / 24.4-43.5 ; euclidiens 15.1-33.8 / 16.1-31.9 ; polaire fige 12.9-24.4 ; 13.3, 27.1 sur l'instance carree",
+   "location": "l. 372-378, 540-542",
+   "evidence": "muon/results/M1_summary.json (consistency_m1_rows.py) : 69.55, 98.7 ; 22.05, 23.85, 29.0 / 24.35, 29.8, 43.55 (9/10) ; 15.05, 25.7, 33.8 / 16.05, 27.6, 31.9 ; one-shot polar-metric B-SAGA 22.05, 24.35, 13.95, 12.9 ; ls-orth : 13.3, SAGA 27.15"
+  },
+  {
+   "claim": "Ecarts a kappa = 1e3 coherents entre (C3) et (C4) : 5.2 pour la Proposition 5.9, gain de 17 %, 4.5 fois le meilleur certificat",
+   "location": "l. 305-306, 319-320",
+   "evidence": "results/digest.md l. 181-192 : gain x1.169, 0.9663 / 0.2156 = 4.48 ; B3_summary.json : 5.16 a kappa = 1e3, alpha = 1 ; 5.16 / 1.169 = 4.41"
+  },
+  {
+   "claim": "Chaque element etiquete [p] du tableau 1 a un enonce et une preuve, dans le papier ou dans une note du depot citee",
+   "location": "tableau 1 l. 146-180 ; section 2.4 l. 269",
+   "evidence": "Theoreme 1 : preuve l. 341-347 ; Theoreme 2 : archive/muon/notes_spectral_theory.tex thm:smd l. 868-900 ; Proposition 3 : preuve l. 433-440 et thm:median, prop:lad ; Proposition 5 : muon/notes_theory.md F12 (l. 525), F13 (l. 565, forme close L_op + 10 A L_max), F14 (l. 695) ; eq. (2) : prop:repr de la note archivee l. 355"
+  },
+  {
+   "claim": "'the main report proves' l'eq. (1)",
+   "location": "l. 216-221",
+   "evidence": "theory/B3_prop59_tightness.tex, prop:B3-representation l. 222-244 (memes c_D, c_M) ; note incluse dans archive/report/main.tex l. 68"
+  },
+  {
+   "claim": "Les enonces prouves cites sans preuve dans le corps ont une preuve dans le depot : (C4), (C5), (M7), F15",
+   "location": "l. 318-327, 600-603, 649-650",
+   "evidence": "prop:B3-lower (B3 l. 406), rem:B3-conclusion (facteurs 3 et 4/3) ; prop:B1-nofreelunch (B1 l. 780) ; prop:B4-iid-limit (B4 l. 83) et prop:B4-rr-ms (B4 l. 305) ; muon/notes_theory.md F15 l. 740 (gamma <= 1/(14 n L_max), 1400 et 350 fois)"
+  },
+  {
+   "claim": "'3.3e4 to 8.9e4 times slower' et 'error of the estimator 2.3 to 3.5 times the gradient' ; '1e4 to 1e5' en discussion",
+   "location": "l. 578-580, 648-649",
+   "evidence": "muon/notes_theory.md F13 l. 657-668 : 8.9e4, 6.5e4 (permute), 4.5e4, 3.3e4 (cyclique) ; rapports [2.69, 3.45] et [2.32, 3.42]"
+  },
+  {
+   "claim": "Exemple scalaire de la l. 393 : psi minimal en g = 1 et |Phi| >= 0.2",
+   "location": "l. 392-393",
+   "evidence": "calcul a la main : psi(g) = 0.4|g+1| + 0.6|g-1| - 1, pente -0.2 sur (-1, 1) et +1 au-dela ; Phi vaut -1, -0.6, -0.2, 0.4, 1 selon g"
+  },
+  {
+   "claim": "Bornes de l'eq. (2) : J dans [mu_op, L_op], mu_PL dans [mu_op, J]",
+   "location": "l. 226-227",
+   "evidence": "calcul a la main : <O,G>^2 <= <O,HO><G,H^{-1}G> = 2 J (F - F_*) (Cauchy-Schwarz dans le produit scalaire de H), donc mu_PL <= J"
+  },
+  {
+   "claim": "Les chemins du paragraphe Reproducibility et des commentaires d'en-tete existent",
+   "location": "l. 5-11, 683-688",
+   "evidence": "ls : archive/report/main.pdf, muon/notes_theory.md (F1-F16), archive/muon/notes_spectral_theory.pdf, archive/muon/report_spectral_muon_new.pdf, theory/main.pdf (inclut B4, theory/main.tex l. 25), muon/findings.md, muon/results/digest.md, results/findings.md (section 9 = B4), exp_M1, M2, M3, M5b, M6, M7, M8, M9, M9b, exp_B3, exp_B4, quatre scripts de figures"
+  },
+  {
+   "claim": "README : 55 entrees toutes citees, 12 pages, quatre figures, sources des figures presentes",
+   "location": "paper/README.md l. 4, 20, 27-30",
+   "evidence": "comptage des cles ; pdfinfo ; ls paper/figures ; fichiers M7, M1, M3, M6, M9, M5b, M9b_summary.json, M9_law.pkl, muon/theory_checks/paper_figures_data.json presents (results/B3.pkl absent, comme annonce)"
+  },
+  {
+   "claim": "Section Limitations : couvre forte convexite, donnees synthetiques, ordre de retrait, nombre d'instances et de tirages, factorisations, hypotheses des Theoremes 1 et 2, caractere formel de la Proposition 4, falaise en q, modele a courbure unique",
+   "location": "l. 667-672",
+   "evidence": "lecture ; reserves manquantes regroupees dans les constats C-13, C-14, C-21"
+  }
+ ],
+ "findings": [
+  {
+   "id": "C-01",
+   "severity": "major",
+   "location": "l. 502-503 (M2) ; aussi intitule l. 499 et tableau 1 l. 172",
+   "claim": "With the same indices the joint SAGA-Muon needs the passes of MISO where MISO converges ($11.8$ against $11.9$, softmax with $\\kappa=n$; SAGA: $20.2$) and fails where MISO fails ($\\kappa\\gg n$): it is not a spectral method.",
+   "problem": "Les trois chiffres viennent d'une experience a parametres non regles (pas de manuel c = 1/4, 3 graines, cible 1e-6), alors que la section 2.3 annonce des familles reglees, dix graines et la cible 1e-9 'where memory limits'. 'SAGA: 20.2' se lit comme un avantage de 1.7 que SAGA regle efface (11.4 passes sur la meme instance). 'fails where MISO fails (kappa >> n)' n'est vrai qu'au pas de manuel : a pas regles, sur les instances du papier ou kappa >> n, la methode jointe converge, ce que (M3) cite lui-meme (29.0 / 43.5 passes).",
+   "evidence": "muon/results/M6_summary.json : tol 1e-06, 3 graines ; 'SAGA (Euclidean), c = 1/4' 20.1, 20.2, 20.2 ; MISO 12.0, 11.9, 11.5 ; 'joint SAGA-Muon, c = 1/4' 11.8, 13.2, 11.7 ; a kappa/n = 10 rien n'atteint 1e-6 en 40 passes, SAGA compris. muon/results/M1_summary.json (consistency_m1_rows.py), meme instance soft-mem : SAGA regle 11.4 passes a 1e-6, 17.1 a 1e-9 ; instances a kappa >> n, pas regles : SAGA-Muon joint 29.0, 43.55 (9/10), 28.1, 20.3 contre MISO 42.7, 120.65, jamais (0/10), 29.15. muon/findings.md l. 403-404 : 'Its speed-up over SAGA at textbook steps [...] is MISO's, and tuned SAGA recovers it'.",
+   "proposed_fix": "With the same indices and untuned textbook-type steps (three seeds, target $10^{-6}$) the joint SAGA-Muon needs the passes of MISO where MISO converges ($11.8$ against $11.9$, softmax with $\\kappa=n$; SAGA at $\\gamma=1/(4R^2)$: $20.2$, tuned: $11.4$) and stalls where MISO stalls ($\\kappa\\gg n$); tuned, it converges there \\finding{M3}: at batch one it acts as a Euclidean method, not a spectral one.",
+   "confidence": "high"
+  },
+  {
+   "id": "C-02",
+   "severity": "major",
+   "location": "l. 538 (M5) ; l. 678-679 (conclusion) ; intitule l. 532",
+   "claim": "Without a table the same schedule freezes the iterate at $8\\%$ to $93\\%$ of the initial squared distance [...] / converges to rounding error where the same schedule freezes without one.",
+   "problem": "Les courses sans table n'ont pas ete faites au cooldown des courses avec table qui precedent (q = 0.8, lr_0 = 0.1 ou 0.3) mais au point regle de la recette de Muon (q = 0.7 en softmax, 0.75 en moindres carres, lr_0 = 0.3). A ce cooldown-la, la recette avec table ne reste sur le cooldown que pour 1 graine sur 5 en softmax et 4 sur 5 en moindres carres. La legende de la figure 4(a) est exacte ; le corps et la conclusion disent 'the same schedule'.",
+   "evidence": "muon/results/M9_summary.json, partie C (consistency_m5_schedules.py) : 'controls_schedule' = {lr_decay 0.7, lr 0.3} (soft-cond), {0.75, 0.3} (ls-cond) pour les six controles sans table ; 'polar, no momentum' a 0.8 / 0.1 et 0.8 / 0.3, 5/5 ; 'ns5 + Nesterov at q = 0.8, lr_0 = 0.1' 5/5 ; 'ns5 + Nesterov (Muon's recipe)' au point regle : on_schedule 1/5 (min_rel median 1.3e-7) et 4/5. Aucun controle sans table a q = 0.8.",
+   "proposed_fix": "Without a table the schedule selected for Muon's recipe ($q=0.7$ or $0.75$, $\\mathrm{lr}_0=0.3$) freezes the iterate at $8\\%$ to $93\\%$ of the initial squared distance, for the  %% and, l. 679:  geometric cooldown, converges to rounding error where such a schedule freezes without one.",
+   "confidence": "high"
+  },
+  {
+   "id": "C-03",
+   "severity": "major",
+   "location": "l. 627-628 (tableau 2) ; l. 645-646 (discussion) ; l. 680 (conclusion) ; intitule l. 584",
+   "claim": "A change of norm buys trajectory properties, reproduced by Euclidean devices at batch one \\finding{M3} but not with minibatches \\finding{M6}. / with minibatches the spectral map pays",
+   "problem": "En minibatch les seuls comparateurs euclidiens sont SAGA et B-SAGA. La metrique de covariance et l'echantillonnage d'importance, qui sont les dispositifs euclidiens de (M3), n'ont pas ete lances en minibatch. En passes, unite du papier, la metrique de covariance a batch un fait deja mieux que la variante spectrale la plus rapide a b = 16 ou 32 sur trois instances sur quatre. Le corps de (M6) est exact sur ses comparateurs ; le tableau 2, la discussion et la conclusion generalisent.",
+   "evidence": "Familles presentes dans M9_summary.json partie A et M5b_summary.json : SAGA, B-SAGA, SAGA-Muon, pas de longueur fixe polar/ns5/frob/sign (aucune 'cov-metric', aucune 'IS'). Passes vers 1e-6 : soft-cond cov-metric B-SAGA b = 1 : 15.05 contre spectral 22.4 (b = 16), 25.7 (b = 32) ; ls-cond 16.05 contre 27.7 (9/10), 30.8 ; ls-orth cov-metric SAGA 13.15 contre 16.6, 17.4 ; soft-sq 13.5 contre 13.6, 13.2 (M1_summary.json, consistency_m6_controls.py).",
+   "proposed_fix": "A change of norm buys trajectory properties, reproduced by Euclidean devices at batch one \\finding{M3}; with minibatches the spectral map beats normalized steps and (B-)SAGA \\finding{M6}, the covariance metric not being run there. \\\\  %% and, l. 594:  Passes do not count the factorization of each step, and the covariance metric was not run with minibatches (at batch one it needs $13.1$--$16.1$ passes on these instances).",
+   "confidence": "medium"
+  },
+  {
+   "id": "C-04",
+   "severity": "major",
+   "location": "l. 600-606 (M7) ; l. 638 (tableau 2) ; l. 680-681 (conclusion) ; intitule l. 595",
+   "claim": "Linear SAGA explains part of it [...] On such a sum the recipe follows $1.2$--$1.3$ nats of $\\mathrm{lr}^2$ per pass with independent indices and $1.7$--$1.9$ with a permutation / At most one nat per pass under independent sampling \\finding{M3}, two under a permutation (note B4). / a fresh permutation per pass, which lifts the memory rate of SAGA from $e^{-1}$ to nearly $e^{-2}$, pays where memory limits.",
+   "problem": "(i) Le gain de 36-49 % est mesure a b = 20 et 50, ou le modele qui isole la table ne montre aucun effet de l'ordre : rho_star identique et passes plus nombreuses avec la permutation. Les valeurs 1.2-1.3 et 1.7-1.9 nats sont a batch un, ce que le papier ne dit pas. La figure 4(c) montre les losanges pleins au-dessus des vides sans commentaire. (ii) Les taux 'un nat' et 'deux nats' sont prouves pour l'erreur quadratique moyenne de SAGA lineaire a hessienne commune, n infini ; (M7) dit lui-meme que les courses individuelles perdent environ 1.6 nat sous tirage independant. Le tableau 2 omet 'in expectation' et la conclusion ecrit 'the memory rate of SAGA'.",
+   "evidence": "muon/results/M9b_summary.json partie D (consistency_m7_order.py) : modele, rho_star 0.22 / 0.22 a b = 20 et a b = 50 ; passes 8.7 -> 9.4 (b = 20), 7.0 -> 9.1 (b = 50) ; partie L (batch un) : x_star 1.2-1.3 et 1.7-1.9. muon/findings.md l. 829-838 : 'changes nothing at b = 20 and 50 (0.22 both ways) [...] The large gain of reshuffling measured in part D is therefore not a property of the table alone'. theory/B4_sampling_order.tex : prop:B4-iid-limit (c fixe), prop:B4-rr-ms (g fixe), l. 340 'Not proved: that a typical run decays at the rate of E e^2'.",
+   "proposed_fix": "batches but $1.0$ to $1.3$ times with a permutation at $b=20$ and $50$; on the model itself the order changes nothing at these batch sizes ($\\rho_\\star=0.22$ both ways), so the gain on the instances is not a property of the table alone, and why they lose more under independent batches is not established. A permutation  %% table 2, l. 638:  In expectation, at most one nat per pass under independent sampling \\finding{M3}, up to two under a permutation (linear model, note B4). &  %% conclusion, l. 680-681:  and a fresh permutation per pass, which in a linear model lifts the expected memory rate of SAGA from $e^{-1}$ to nearly $e^{-2}$, saves passes where memory limits.",
+   "confidence": "medium"
+  },
+  {
+   "id": "C-05",
+   "severity": "minor",
+   "location": "l. 675-676 (conclusion) ; commentaire d'en-tete l. 2-3",
+   "claim": "no fixed change of geometry repairs the worst case on ridge logistic and softmax models",
+   "problem": "Le Theoreme 1 couvre les normes, pas toute geometrie fixe. Une geometrie de Bregman de reference h = F donne mu_h(F) = 1 et L_h(f_i) <= n quel que soit kappa ; le papier cite lui-meme les methodes de Bregman (dragomir2021fast). Titre, resume et theoreme disent 'norm'.",
+   "evidence": "Calcul : Hess F = (1/n) somme Hess f_j >= (1/n) Hess f_i, donc Hess f_i <= n Hess F : lissite relative n, forte convexite relative 1. Enonce du Theoreme 1, l. 336-339 : 'Let N be any norm'.",
+   "proposed_fix": "global constants, as does the exact formula of the nuclear-scaled polar step, and no change of norm repairs the",
+   "confidence": "high"
+  },
+  {
+   "id": "C-06",
+   "severity": "minor",
+   "location": "l. 99 (resume) ; l. 677 (conclusion)",
+   "claim": "With additive noise and decreasing deterministic lengths, stochastic polar steps are stochastic mirror descent [...] and converge to a point where the gradient is minus a nuclear median / with decreasing lengths, polar steps converge to minus a nuclear median of the noise",
+   "problem": "L'hypothese du Theoreme 2(b) est une somme infinie et des carres sommables, pas la decroissance. Le cooldown geometrique de la section 3.3 est decroissant et deterministe, et (M5) montre qu'il gele l'iterer. La conclusion perd en plus 'additive' et 'deterministic'.",
+   "evidence": "Theoreme 2(b), l. 403 ; (M5), l. 538-540 : gel a 8-93 % de la distance initiale sous cooldown geometrique.",
+   "proposed_fix": "With additive noise and deterministic lengths that are square-summable but not summable, stochastic polar  %% l. 677:  precision: with such lengths and additive noise, polar steps converge to a point where the gradient is minus",
+   "confidence": "high"
+  },
+  {
+   "id": "C-07",
+   "severity": "minor",
+   "location": "l. 632 (tableau 2)",
+   "claim": "The limit gradient is minus a nuclear median of the noise (Proposition~\\ref{prop:offset}).",
+   "problem": "Renvoi inexact : l'enonce est le Theoreme 2(b), prouve ; la Proposition 4 ne donne que la taille de l'offset et elle est formelle ([f]).",
+   "evidence": "Theoreme 2(b), l. 403 ; Proposition 4, l. 449-458 ('formal').",
+   "proposed_fix": "The limit gradient is minus a nuclear median of the noise (Theorem~\\ref{thm:smd}(b); size: Proposition~\\ref{prop:offset}). \\\\",
+   "confidence": "high"
+  },
+  {
+   "id": "C-08",
+   "severity": "minor",
+   "location": "l. 132-133 (introduction)",
+   "claim": "fixed lengths on a geometric cooldown, fed by a SAGA table, converge to rounding error where other estimators freeze (Proposition~\\ref{prop:schedule})",
+   "problem": "La Proposition 5 est citee pour un enonce mesure : l'erreur d'arrondi et le gel des autres estimateurs sont (M5), etiquete [e] ; la Proposition 5 certifie le mecanisme a des cooldowns 1e4 a 1e5 fois plus lents et ne dit rien des autres estimateurs. Le tableau 1 separe correctement les deux statuts.",
+   "evidence": "Tableau 1, l. 178-179 : 'With a table the cooldown converges, without one it freezes [e]; certified for tables of bounded age, at slower cooldowns [p]' ; l. 578-579.",
+   "proposed_fix": "other estimators freeze \\finding{M5}, which Proposition~\\ref{prop:schedule} certifies at slower cooldowns; with minibatches the spectral map then pays, and a fresh",
+   "confidence": "high"
+  },
+  {
+   "id": "C-09",
+   "severity": "minor",
+   "location": "l. 382-384 (M3)",
+   "claim": "the best family of every class needs $16$--$18$ (softmax) and $17$--$21$ passes (least squares) to $10^{-9}$, near the ceiling of SAGA under independent sampling, $e^{-1}$ per pass in expectation",
+   "problem": "1e-9 represente 20.7 nats : 16 a 18 passes font 1.15 a 1.30 nat par passe, au-dessus du 'plafond' d'un nat. L'explication (le facteur memoire borne l'erreur moyenne, pas une course) n'arrive qu'en (M7), l. 604-605.",
+   "evidence": "M1_summary.json, soft-mem, 1e-9 : 15.75 a 18.05 passes selon la famille ; log(1e9) = 20.72.",
+   "proposed_fix": "near the ceiling of the mean error of SAGA under independent sampling, $e^{-1}$ per pass (single runs are faster, \\finding{M7}), since stale entries keep their error.",
+   "confidence": "high"
+  },
+  {
+   "id": "C-10",
+   "severity": "minor",
+   "location": "l. 494 (M1) ; paper/README.md l. 53-54",
+   "claim": "with the SAGA estimator the iterates settle at a squared distance $3.8\\,\\eta^2$ (softmax) or $6.0\\,\\eta^2$ (least squares)",
+   "problem": "Cette distance est absolue alors que la cible, la figure 3(a) et les chiffres suivants de la meme phrase (1.2e-1, 4.8e-2) sont relatifs. Pour eta = 1e-2 le lecteur attend 3.8e-4 et lit 4.6e-7 sur la figure. La version anterieure disait 'an absolute squared distance' : le mot est tombe a la condensation, que le README dit sans changement d'enonce.",
+   "evidence": "muon/results/M3_summary.json : longueur fixe 1e-2, distance relative 4.6e-7 (softmax), 5.24e-7 (moindres carres) ; normes carrees de W_* 826.97 et 1146.99 (M9_summary.json) : 3.8e-4 et 6.0e-4. muon/findings.md l. 891 cite l'ancienne phrase avec 'absolute'.",
+   "proposed_fix": "squared distance $3.8\\,\\eta^2$  ->  absolute squared distance $3.8\\,\\eta^2$",
+   "confidence": "high"
+  },
+  {
+   "id": "C-11",
+   "severity": "minor",
+   "location": "l. 372-373 (M4) contre l. 541-542 (M5)",
+   "claim": "(SAGA $27.1$, covariance metric $13.1$) / more than in the covariance metric ($13.5$--$16.1$) but for a tie",
+   "problem": "'covariance metric' designe SAGA non amorti en (M4) et B-SAGA en (M5) : sur l'instance carree de moindres carres, qui fait partie des quatre instances de (M5), le lecteur trouve 13.1 hors de la plage 13.5-16.1 annoncee.",
+   "evidence": "M1_summary.json : ls-orth, cov-metric SAGA 13.15, cov-metric B-SAGA 13.9 ; cov-metric B-SAGA sur les quatre instances : 15.05, 16.05, 13.9, 13.5.",
+   "proposed_fix": "(SAGA $27.1$, SAGA in the covariance metric $13.1$)  %% l. 541-542:  more than damped SAGA in the covariance metric ($13.5$--$16.1$) but for a tie",
+   "confidence": "high"
+  },
+  {
+   "id": "C-12",
+   "severity": "minor",
+   "location": "l. 96-97 (resume) ; l. 151 (tableau 1) ; l. 626 (tableau 2)",
+   "claim": "the nuclear-scaled polar step has the same anatomy",
+   "problem": "L'eq. (2) est une identite pour une quadratique, ou l'ecart vaut environ 4, et rien n'est mesure pour le pas polaire sur pertes logistiques (l. 315). Place apres les chiffres 3.2-220 et 77-96 %, 'the same anatomy' laisse croire a une mesure analogue.",
+   "evidence": "l. 226 'For a quadratic with Hessian H' ; l. 313-315 'the gap is about a factor 4 [...] (not measured for the polar step)'.",
+   "proposed_fix": "comes from the two inequalities that replace the curvature met along the run by global constants; on quadratics the exact formula of the nuclear-scaled polar step has the same anatomy.",
+   "confidence": "high"
+  },
+  {
+   "id": "C-13",
+   "severity": "minor",
+   "location": "l. 292-294 (C2), l. 303 (C3), l. 667-668 (Limitations)",
+   "claim": "I2 and I4 [...] carry $77$--$96\\%$ of the logarithmic gap; for $\\kappa\\le10^2$ [...] I1 ($39$--$44\\%$) and I2 ($32$--$37\\%$) do / Proposition~5.9 recovers $59$--$96\\%$ of the logarithmic gap for $\\kappa\\ge10^4$ / the shares of (C2) depend on the order in which the inequalities are undone",
+   "problem": "77-96 % et 59-96 % sont la part des deux memes inegalites dans deux ordres de retrait ; le papier ne fait pas le lien et la limitation n'est pas chiffree. Pour kappa <= 1e2 la dependance est totale : la part de I2 tombe a 0 et passe a I5.",
+   "evidence": "results/B3_summary.json, champs 'shares' et 'shares_orderA' (consistency_b3_gap.py) : I2+I4 pour kappa >= 1e4 : 0.769-0.961 (ordre du papier), 0.590-0.964 (ordre I4, I2, I3, I1, I5) ; kappa <= 1e2 : I2 0.317-0.365 contre 0.000 ; I5 0.071-0.222 contre 0.557-0.611 ; I1 0.39-0.44 dans les deux. theory/B3_prop59_tightness.tex l. 305 : 'Reporting both orders'.",
+   "proposed_fix": "the order in which the inequalities are undone (undoing I4 and I2 first gives the $59$--$96\\%$ of \\finding{C3}, and for $\\kappa\\le10^2$ moves the share of I2 to I5), \\finding{M3}--\\finding{M7} rest on two to four instances and one to three",
+   "confidence": "high"
+  },
+  {
+   "id": "C-14",
+   "severity": "minor",
+   "location": "l. 264-265 (section 2.3)",
+   "claim": "Section~\\ref{sec:recipe} uses the same protocol, with step grids of ratio $2^{1/4}$.",
+   "problem": "Inexact pour la loi de (M5) et pour (M7) : cinq graines, pas de graines de confirmation ; dans (M7) le cooldown le plus rapide est choisi et mesure sur les memes graines et lr_0 est fixe a partir de la norme du minimiseur exact. Le 36-49 % du resume vient de cette partie. L'effet depasse largement la dispersion entre graines : seule la description du protocole est en cause.",
+   "evidence": "M9_summary.json : protocol tune_seeds [0, 1], refine_seeds [2, 3, 4], confirm_seeds [10..19] (parties A, B) ; partie C seeds [10..14] ; partie D seeds [0..4] ; definitions/order : 'lr_0 = 4 ||W_*||_op (1 - q^(b/n)) / (1 - 1e-05)', 'fastest = the rho with the smallest median passes to 1e-09 among those where every seed reaches it'.",
+   "proposed_fix": "Section~\\ref{sec:recipe} uses the same protocol for the passes to $10^{-6}$, with step grids of ratio $2^{1/4}$; the long runs of \\finding{M5} and \\finding{M7} use five seeds, \\finding{M7} with $\\mathrm{lr}_0$ set from $\\nop{W_\\ast}$.",
+   "confidence": "high"
+  },
+  {
+   "id": "C-15",
+   "severity": "minor",
+   "location": "l. 578-579 ; l. 648-649",
+   "claim": "on the two non-square conditioning-limited instances its cooldown is $3.3\\cdot10^4$ to $8.9\\cdot10^4$ times slower, in $\\log(1/q)$, than $q=0.8$",
+   "problem": "Ce facteur vaut pour les ordres cyclique et permute. Les courses de (M5) tirent des indices independants, cas ou la Proposition 5(b) ne vaut qu'avec grande probabilite sur un horizon fini et avec un A plus grand d'un facteur log(nT/delta) : l'ecart reel est plus grand.",
+   "evidence": "muon/notes_theory.md F13, l. 657-661 : 8.9e4 et 6.5e4 (reshuffled), 4.5e4 et 3.3e4 (cyclic) ; l. 662 : 'independent sampling' ; M9_summary.json partie C : aucune cle 'order' (defaut iid).",
+   "proposed_fix": "cooldown is $3.3\\cdot10^4$ to $8.9\\cdot10^4$ times slower, in $\\log(1/q)$, than $q=0.8$ (cyclic and permuted orders; more for the independent indices of \\finding{M5}), and along the fast runs the error",
+   "confidence": "high"
+  },
+  {
+   "id": "C-16",
+   "severity": "minor",
+   "location": "l. 106-107 (resume), l. 640 (tableau 2), l. 599 (M7)",
+   "claim": "a fresh permutation per pass saves $36$--$49\\%$ of the passes where memory limits (batches of $20$ and $50$)",
+   "problem": "Le chiffre du resume et du tableau 2 n'apparait pas dans les resultats : (M7) donne 16.7-20.0 puis 9.1-12.2, dont les bornes donneraient 27 a 54 %. Le chiffre est exact par couple (instance, b).",
+   "evidence": "M9_summary.json partie D : 17.9 -> 9.1 (49.2 %), 16.7 -> 10.4 (37.7 %), 20.0 -> 11.3 (43.5 %), 19.1 -> 12.2 (36.1 %).",
+   "proposed_fix": "and $50$, moves $\\rho_\\star$ to $0.10$--$0.18$ and the passes to $10^{-9}$ from $16.7$--$20.0$ to $9.1$--$12.2$ ($36$--$49\\%$ fewer). Linear",
+   "confidence": "high"
+  },
+  {
+   "id": "C-17",
+   "severity": "minor",
+   "location": "l. 215 contre 556-557, 572-573 (L_eff) ; l. 257, 557, 597 (rho) ; l. 202 contre 568-569 (c_i) ; l. 242, 337, 428, 549, 602 (g) ; l. 194 contre 559 (delta) ; l. 190 contre 204 (eta) ; l. 240, 328 (symboles non definis)",
+   "claim": "let $\\LEff=\\Lop+10AL_{\\max}$ / $c_i=(\\nabla\\ell_i(Wx_i)-\\nabla\\ell_i(\\phi_ix_i))x_i^\\top$ / $\\omega\\mapsto\\omega(\\bar c\\hat\\Sigma+\\lambda I)^{-1}$",
+   "problem": "Symboles surcharges : L_eff (fonction de theta pour SAGA, constante dans la Proposition 5), rho (longueur ecretee, facteur par iteration, rho_star par passe), c_i (borne de courbure, puis matrice), g (cinq sens), delta (poids de Lyapunov, probabilite), D (quatre sens), eta_* (minimiseur) contre eta (longueur). Symboles jamais definis : barre c et Sigma chapeau.",
+   "evidence": "grep sur le .tex ; table complete en section 7 du rapport.",
+   "proposed_fix": "let $L_A=\\Lop+10AL_{\\max}$, $\\rho=1-\\muop/L_A$ and $\\eta_t=\\eta_0\\rho^{t/2}$ with $\\eta_0=(2\\muop D_0)^{1/2}/L_A$  %% proof (a):  $\\omega-\\nabla F(W)=\\sum_iw_ie_i$ with $\\abs{w_i}\\le\\vartheta/b+1/n$, and $e_i=(\\nabla\\ell_i(Wx_i)-\\nabla\\ell_i(\\phi_ix_i))x_i^\\top$ has rank one, so $\\nnuc{e_i}\\le L_i\\nop{W-\\phi_i}$  %% l. 257:  clipped ($\\min\\{\\bar\\eta,\\gamma\\nnuc\\omega\\}$)  %% l. 240: define $\\hat\\Sigma$ and $\\bar c$",
+   "confidence": "high"
+  },
+  {
+   "id": "C-18",
+   "severity": "minor",
+   "location": "l. 408-416 (preuve du Theoreme 2) ; l. 269 (section 2.4)",
+   "claim": "\\begin{proof}[Proof sketch] [...] (b): the Robbins--Siegmund lemma, the coercivity of $\\psi_\\xi$ and the convergence of $D_F(W_t,W')$ for a countable dense set of minimizers.",
+   "problem": "Le Theoreme 2, etiquete [p], n'est qu'esquisse et ne dit pas ou est la preuve complete, alors que la Proposition 5 le fait. 'the theory notes' en section 2.4 ne distingue pas muon/notes_theory.md de la note archivee qui contient cette preuve.",
+   "evidence": "archive/muon/notes_spectral_theory.tex, section 5, thm:smd, l. 868-900 : enonce (a) a (d) et preuve complete.",
+   "proposed_fix": "\\cite{balles2020geometry}. Details: archived theory notes, Section~5.",
+   "confidence": "high"
+  },
+  {
+   "id": "C-19",
+   "severity": "minor",
+   "location": "l. 427-428 (Proposition 3(d)) ; l. 165 (tableau 1)",
+   "claim": "(d) (Batch one on least squares.) Let $g_j(W)=(Wx_j-y_j)x_j^\\top$, $x_j\\ne0$, $j$ uniform.",
+   "problem": "Hypothese implicite : pas de regularisation dans l'estimateur. Le modele du papier (GLM) est regularise ; avec le terme lambda W, g_j n'est plus de rang un et l'enonce tombe. La legende de la figure 3 dit 'Unregularized'.",
+   "evidence": "archive/muon/notes_spectral_theory.tex l. 939 : '(no ridge inside the polar factor)' ; legende de la figure 3, l. 475.",
+   "proposed_fix": "(d) (Batch one on unregularized least squares.) Let",
+   "confidence": "high"
+  },
+  {
+   "id": "C-20",
+   "severity": "minor",
+   "location": "l. 321-323 (C4)",
+   "claim": "SAGA with any constant step needs at least $\\frac{\\kappa-1}4\\log\\frac1{2\\varepsilon}$ iterations to bring $\\E\\norm{\\theta_t}^2$ below $\\varepsilon\\norm{\\theta_0}^2$",
+   "problem": "Le point de depart est omis. Tel qu'ecrit, l'enonce est faux pour certains theta_0.",
+   "evidence": "theory/B3_prop59_tightness.tex, prop:B3-lower, l. 406-411 : 'for theta_0 = (r, r) with r != 0 and epsilon < 1/2'. Contre-exemple : theta_0 = (0, 1), table initialisee en theta_0, gamma = 1/R^2 : avec n composantes identiques SAGA est la descente de gradient et theta_1 = 0.",
+   "proposed_fix": "constant step, started at $\\theta_0=(r,r)$, needs at least",
+   "confidence": "high"
+  },
+  {
+   "id": "C-21",
+   "severity": "minor",
+   "location": "l. 667-672 (Limitations)",
+   "claim": "Everything is for strongly convex objectives and synthetic data of moderate size [...] Theorem~\\ref{thm:smd} assumes additive noise, deterministic lengths and no momentum",
+   "problem": "Deux reserves absentes : la table stocke un gradient par echantillon (un residu de taille K pour ces modeles), ce qui borne la portee de la recette ; le Theoreme 2 et la Proposition 5(a)-(b) sont pour le facteur polaire exact, alors que Muon utilise Newton-Schulz.",
+   "evidence": "Enonces l. 396-397 et 550-553 (polar exact) ; l. 190-191 (table de gradients).",
+   "proposed_fix": "draws of the data, counts are in gradients, not factorizations, and the table stores one residual per sample. Theorem~\\ref{thm:nfl} concerns global constants, not  %% l. 670:  Theorem~\\ref{thm:smd} assumes additive noise, deterministic lengths, the exact polar factor and no momentum;",
+   "confidence": "medium"
+  },
+  {
+   "id": "C-22",
+   "severity": "nit",
+   "location": "l. 82-83 (titre)",
+   "claim": "variance reduction acts on the fixed point",
+   "problem": "Vaut pour les estimateurs a somme finie (SAGA, SVRG, Proposition 3(c)). Le papier appelle aussi 'variance-reduced' les variantes a moment (l. 120) et montre qu'elles gardent un plancher. Le resume qualifie aussitot ('a finite-sum estimator').",
+   "evidence": "(M1) l. 496 ; (M5) l. 538-539 ; conclusion l. 676 : 'finite-sum variance reduction'.",
+   "proposed_fix": "",
+   "confidence": "medium"
+  },
+  {
+   "id": "C-23",
+   "severity": "minor",
+   "location": "l. 686-688 (Reproducibility) ; paper/README.md l. 50",
+   "claim": "Numbers come from \\nolinkurl{experiments/} and \\nolinkurl{muon/experiments/} (\\texttt{exp\\_M1}--\\texttt{exp\\_M3}, \\texttt{exp\\_M5b}, \\texttt{exp\\_M6}--\\texttt{exp\\_M9b}, \\texttt{exp\\_B3}, \\texttt{exp\\_B4})",
+   "problem": "Liste incomplete : les chiffres de (C5) viennent de exp_B1, ceux de (C4) de exp_gamma_delta, ceux de Katyusha en (C3) de exp_A3, mu_eff de exp_B2, 'grids of factor 2' de (M6) de exp_M5, la Proposition 4 et la figure 3(b)-(c) de muon/theory_checks/. README : 'muon/findings.md (Sections 5.1-5.10)' alors que les sections 5.3 a 5.6, 5.8, 5.9 n'existent pas dans le fichier.",
+   "evidence": "results/digest.md l. 169-200 (sections B1, (gamma, Delta), A3 : 1 -> 1.114, 0.6104 -> 1.257, gain x1.169, 2.775, 4.117) ; grep '^### 5\\.' muon/findings.md : 5.1, 5.2, 5.7, 5.10, 5.11, 5.12, 5.13 seulement.",
+   "proposed_fix": "\\nolinkurl{experiments/} and \\nolinkurl{muon/experiments/} (\\texttt{exp\\_M1}--\\texttt{exp\\_M3}, \\texttt{exp\\_M5}, \\texttt{exp\\_M5b}, \\texttt{exp\\_M6}--\\texttt{exp\\_M9b}, \\texttt{exp\\_A3}, \\texttt{exp\\_B1}--\\texttt{exp\\_B4}, \\texttt{exp\\_gamma\\_delta}) and \\nolinkurl{muon/theory_checks/}, figures from \\nolinkurl{paper/scripts/}. A large",
+   "confidence": "high"
+  },
+  {
+   "id": "C-24",
+   "severity": "nit",
+   "location": "l. 138-139 (legende du tableau 1) ; l. 269-270 (section 2.4)",
+   "claim": "Tags (Section~\\ref{sec:status}) / The labels \\finding{C1}--\\finding{C5} and \\finding{M1}--\\finding{M4} are those of the extended report",
+   "problem": "La section 2.4 ne definit que [p] ; [m], [e], [f] ne sont definis que dans la legende. Le rapport etendu a aussi (C6), fondu ici dans (C3), et ses intitules (C4), (M1), (M3), (M4) different.",
+   "evidence": "grep '\\\\nat{' : 14 occurrences, lignes 138-180 et 269 ; archive/muon/report_spectral_muon_new.tex l. 308-401.",
+   "proposed_fix": "",
+   "confidence": "high"
+  },
+  {
+   "id": "C-25",
+   "severity": "nit",
+   "location": "PDF pages 8 et 10 ; figure 4(b)",
+   "claim": "Figure 4 ; Table 2",
+   "problem": "La figure 4 (section 3.3) est placee au-dessus de (M1) et (M2), qui renvoient a la figure 3 ; le tableau 2 coupe l'item (M7). Les annotations '7/10' et '9/10' de la figure 4(b) n'indiquent pas la serie concernee (variante spectrale).",
+   "evidence": "Lecture du PDF ; M9_summary.json partie A : soft-cond b = 1 'polar+N' 7/10, ls-cond b = 16 'polar' 9/10.",
+   "proposed_fix": "",
+   "confidence": "high"
+  },
+  {
+   "id": "C-26",
+   "severity": "nit",
+   "location": "l. 133, 179, 584, 680 ; l. 106",
+   "claim": "the spectral map pays / where memory limits",
+   "problem": "'pays' peut se lire 'paie un cout' ; 'where memory limits' est employe dans le resume avant sa definition (l. 261).",
+   "evidence": "Lecture.",
+   "proposed_fix": "the spectral map pays off",
+   "confidence": "medium"
+  },
+  {
+   "id": "C-27",
+   "severity": "nit",
+   "location": "l. 372-373, 375-378",
+   "claim": "SAGA needs $69.5$ / $98.7$ passes [...] (SAGA $27.1$, covariance metric $13.1$) [...] $15.1$--$33.8$ / $16.1$--$31.9$",
+   "problem": "Arrondis non uniformes des medianes en .x5 : 69.55 -> 69.5, 27.15 -> 27.1, 13.15 -> 13.1, mais 15.05 -> 15.1, 16.05 -> 16.1, 24.35 -> 24.4. Ecart d'au plus 0.05 passe, sans consequence.",
+   "evidence": "M1_summary.json : medianes 69.55, 27.15, 13.149999999999999, 15.05, 16.05, 24.35.",
+   "proposed_fix": "",
+   "confidence": "high"
+  }
+ ],
+ "not_checked": [
+  "Detail des preuves (Theoremes 1 et 2, Propositions 3 a 5, notes B1, B3, B4, F12 a F15) : seule l'existence des enonces et des preuves a ete controlee, avec quelques verifications a la main (exemple l. 393, bornes de J et mu_PL, contre-exemple de C-20).",
+  "Attributions bibliographiques et mentions 'not found' : hors perimetre.",
+  "'Muon's own recipe' : que le cooldown geometrique et le moment de Nesterov 0.9 correspondent a la recette publiee de Muon n'a pas ete controle contre la source.",
+  "Chiffres non repetes ((C5), Katyusha en (C3) au-dela du digest, 'eight data sets' de (C2), '16-18' et '17-21' de (M3), '0.20-0.37', '0.78-1.08', Proposition 4 et controles numeriques, (M6) a b = 4) : non recalcules depuis les donnees brutes.",
+  "Scripts des figures non relances (ils ecrivent dans paper/figures/, en lecture seule ici). results/B3.pkl est absent : la figure 1 ne peut pas etre regeneree sans relancer exp_B3_tightness.py. L'affirmation du README sur l'arret des scripts des figures 2 et 3 en cas de desaccord avec le digest n'a pas ete testee.",
+  "Valeur de la constante 'barre c' de la metrique de covariance (l. 240) : non retrouvee dans le code."
+ ],
+ "report_path": "/users/eleves-b/2023/louis.darrigol/projetSTATS/paper/audit/evidence/consistency.md"
+}

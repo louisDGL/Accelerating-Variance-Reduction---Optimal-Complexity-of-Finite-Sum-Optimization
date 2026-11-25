@@ -1,0 +1,163 @@
+{
+ "scope_covered": "Bibliography, second group (sign, medians, normalized steps, mirror, tools): the 17 keys balles2020geometry, bernstein2019majority, cardot2013efficient, carlson2015stochastic, chen2020distributed, chzhen2023signsvrg, cornish1938moments, cutkosky2019momentum, davis2018subgradient, duchi2012randomized, goffin1977convergence, hu2017unified, karimireddy2019error, maddison2021dual, minsker2015geometric, sidford2018coordinate, taylor2017smooth. For each: .bib entry checked against arXiv/publisher/Crossref/PMLR, and every citing sentence (lines 117-118, 147-148, 160-162, 169, 174, 205-206, 246-249, 354, 409-415, 418-420, 442-444, 456-457, 539) checked against the source text (PDFs extracted with pdftotext, except Goffin and Cornish-Fisher). Two numerical checks: checks/cite-stat_kop_minKd.py, checks/cite-stat_cornish_median.py.",
+ "checked_ok": [
+  {
+   "claim": "(c): $2\\muop(F(W)-F_\\ast)\\le\\nnuc{\\nabla F(W)}^2\\le2\\Lop(F(W)-F_\\ast)$ \\cite{balles2020geometry}",
+   "location": "415",
+   "evidence": "arXiv:2002.08056v1 PDF: Definition 1 (App. A) 'PL condition with constant mu w.r.t. a norm if ||grad f||_*^2 >= 2mu(f - f*)' + 'strong convexity implies the PL condition'; Lemma 2 Eq. (12) f(x_{t+1}) <= f(x_t) - ||grad f||_*^2/(2L), hence ||grad f||_*^2 <= 2L(f - f*) (Eq. (94)). Nuclear = dual of spectral."
+  },
+  {
+   "claim": "mirror descent in the space of gradients with mirror map $F^\\ast$ (as in \\cite{maddison2021dual})",
+   "location": "409-410",
+   "evidence": "arXiv:1902.02257v4 PDF, Section 5: 'The second interpretation is as a Bregman gradient method in the dual space, which minimizes the designed k while the conjugate f* plays the role of the reference function'; Lemma 3.2 gives D_{f*}(grad f(y), grad f(x)) = D_f(x,y) for Legendre f (identity used next)."
+  },
+  {
+   "claim": "$\\Med(\\xi)=\\arg\\min_C\\E[\\nnuc{\\xi-C}-\\nnuc\\xi]$ is the set of nuclear medians of $\\xi$ \\cite{minsker2015geometric}",
+   "location": "248-249",
+   "evidence": "arXiv:1308.1334 PDF, Section 2: geometric median of a probability measure mu on a Banach space 'x* = argmin_y int (||y - x|| - ||x||) mu(dx)': same definition."
+  },
+  {
+   "claim": "sign methods follow a median \\cite{chen2020distributed,bernstein2019majority}",
+   "location": "160-161",
+   "evidence": "arXiv:1906.01736v2 PDF: Proposition 1 sign(sum_i sign(g_{t,i})) = sign(median({g_t})), 'signSGD actually goes along the signed median direction', 'drive the median of gradients to 0'; majority vote of Bernstein et al. is that signed median."
+  },
+  {
+   "claim": "Its scalar and coordinatewise analogues are published (sign methods \\cite{chen2020distributed}, ...)",
+   "location": "419",
+   "evidence": "Chen et al. Theorem 3: signSGD converges to a point with gradient fixed by the median-mean gap (coordinatewise analogue of the offset): supported (see cs-cardot-scalar for the Cardot half)."
+  },
+  {
+   "claim": "Item (a) parallels the noise condition of \\cite{bernstein2019majority}",
+   "location": "442",
+   "evidence": "arXiv:1810.05291v3 PDF (ICLR 2019): 'Assumption 4 (Unimodal, symmetric gradient noise) ... each component ... has a unimodal distribution that is also symmetric about the mean'; item (a) is the symmetric-law case."
+  },
+  {
+   "claim": "batch-one sign descent need not converge \\cite{karimireddy2019error}",
+   "location": "444",
+   "evidence": "arXiv:1901.09847v2 PDF, Theorem I: 'SIGNSGD with batch-size 1 ... does not converge to x* a.s. for any adaptive sequence of step-sizes' (data with a common sign pattern); Counterexample 3 is least squares."
+  },
+  {
+   "claim": "normalized steps and the geometric median \\cite{cardot2013efficient}",
+   "location": "161-162",
+   "evidence": "arXiv:1101.4316 (ar5iv): Eq. (8) Z_{n+1} = Z_n + gamma_n (X_{n+1} - Z_n)/||X_{n+1} - Z_n||, Eq. (1) m = argmin E[||X - u|| - ||X||], Thm 3.1 a.s. convergence."
+  },
+  {
+   "claim": "For $d=1$ the limit in (d) is the geometric median of the $y_i/x_i$ \\cite{cardot2013efficient}",
+   "location": "443-444",
+   "evidence": "For d=1, Lambda(W) = (1/n) sum ||W - y_i/x_i|| and the batch-one polar step is W - eta (W - y_j/x_j)/||W - y_j/x_j||, i.e. Cardot Eq. (8) on the empirical measure."
+  },
+  {
+   "claim": "SVRG in ... sign steps \\cite{chzhen2023signsvrg}",
+   "location": "169",
+   "evidence": "arXiv:2305.13187v1 PDF: x_{t+1} = x_t - gamma sign(grad f_{i_t}(x_t) - grad f_{i_t}(x~) + grad f(x~) + G_t U_t) (SignSVRG, Algorithm 1)."
+  },
+  {
+   "claim": "Geometric schedules of fixed lengths with exact gradients \\cite{goffin1977convergence,davis2018subgradient}",
+   "location": "174",
+   "evidence": "arXiv:1803.02461 PDF, Section 5, Algorithm 3: alpha_k = lambda q^k, x_{k+1} = proj(x_k - alpha_k zeta_k/||zeta_k||), Theorem 5.1 linear rate; 'The analogous strategy in the convex setting goes back to [19]' = Goffin 1977 (Goffin itself not opened)."
+  },
+  {
+   "claim": "worst cases by performance estimation \\cite{taylor2017smooth}",
+   "location": "148",
+   "evidence": "arXiv:1502.05666 abstract: performance estimation problem, exact worst-case performance of fixed-step first-order methods via SDP."
+  },
+  {
+   "claim": "without momentum this is steepest descent for the spectral norm \\cite{carlson2015stochastic,...}",
+   "location": "117-118",
+   "evidence": "PMLR v38 PDF, Theorem 3 (majorization in ||W - W^k||_{S_inf}^2) and Eq. (28) W* = W - (||lambda||_1/MJ) sum_k a_k b_k^T: steepest descent for the Schatten-inf norm."
+  },
+  {
+   "claim": "the scalar offset $\\kappa_3/(6\\sigma^2b)$ of the median of a mean \\cite{cornish1938moments} (magnitude)",
+   "location": "456-457",
+   "evidence": "Cornish-Fisher w_p = x + gamma_1 (x^2-1)/6 + ... at p=1/2 gives median of the mean = -kappa_3/(6 sigma^2 b) + o(1/b); checks/cite-stat_cornish_median.py: Gamma means b*median -> -1/3 (-0.3327 at b=32, -0.3333 at b=512), lognormal MC -0.00543 +- 0.00021 vs -0.00550 (sign: see cs-cornish-sign)."
+  },
+  {
+   "claim": "$\\kop\\ge\\min(K,d)$ (statement itself, independently of the citation)",
+   "location": "354",
+   "evidence": "Averaging over unit rank-one directions gives mu_op <= tr(H)/(Kd), over Haar partial isometries L_op >= min(K,d) tr(H)/(Kd); checks/cite-stat_kop_minKd.py confirms both averages (e.g. K=4,d=6: 1.1195 vs 1.1185, 4.4678 vs 4.4740) and equality for H = I."
+  },
+  {
+   "claim": "Bibliographic entries of the 17 keys (authors, title, year, venue, identifiers)",
+   "location": "paper_saga_to_muon.bib",
+   "evidence": "arXiv abs pages for all arXiv ids; Crossref for 10.1007/BF01584346 (Math. Program. 13(1):329-347), 10.1007/s10957-018-1372-8 (JOTA 179(3):962-982), 10.1007/s10107-016-1009-3 (Math. Program. 161(1-2):307-345), 10.1137/110831659 (SIAM J. Optim. 22(2):674-701); PMLR pages (v65 hu17b 1157-1189; v38 carlson15); Edinburgh portal (Maddison SIAM J. Optim. 31(1):991-1016); projecteuclid (Cardot Bernoulli 19(1):18-43); arXiv journal-ref (Minsker Bernoulli 21(4):2308-2335); ICLR 2019 header (Bernstein), ICML 2019 comment (Karimireddy), NeurIPS proceedings (Chen 2020, Cutkosky 2019), FOCS 2018 comment (Sidford); JSTOR 1400905 (Cornish-Fisher 5(4):307-320). All match; PDF bibliography rendering checked."
+  }
+ ],
+ "findings": [
+  {
+   "id": "cs-sidford-kop",
+   "severity": "major",
+   "location": "354",
+   "claim": "and the spectral geometry has its own cost, $\\kop\\ge\\min(K,d)$ \\cite{sidford2018coordinate}.",
+   "problem": "The source contains neither the spectral norm, nor min(K,d), nor a condition-number bound: its only related statement is the folklore ell_inf range bound (Appendix A.1, Lemma A.1). The inequality as cited is attributed to a paper that does not contain it (it is true; the earlier draft archive/muon/paper_spectral_muon.tex:230 correctly called it 'the spectral form of a folklore fact on ell_inf').",
+   "evidence": "arXiv:1808.01278v2 PDF, p. 57: 'Lemma A.1. Suppose psi is 1-strongly convex with respect to the ell_inf norm on [-1,1]^n. Then max psi(x) - min psi(x) >= n/2'; p. 4: 'it is a folklore result that any function strongly-convex over [-1,1]^n in the ell_inf norm has range at least n/2, which we show in Appendix A.1'. No other occurrence. checks/cite-stat_kop_minKd.py verifies the matrix statement by the averaging argument.",
+   "proposed_fix": "and the spectral geometry has its own cost, $\\kop\\ge\\min(K,d)$ (average $D^2F$ over unit rank-one and over orthogonal directions), the spectral form of a folklore $\\ell_\\infty$ bound \\cite[Lemma~A.1]{sidford2018coordinate}.",
+   "confidence": "high"
+  },
+  {
+   "id": "cs-hu-pep",
+   "severity": "minor",
+   "location": "147-148",
+   "claim": "worst cases by performance estimation \\cite{taylor2017smooth,hu2017unified}",
+   "problem": "Hu, Seiler and Rantzer do not compute worst cases by performance estimation: they derive sufficient conditions (LMIs from jump-system theory and quadratic constraints) that certify rates for SAGA, Finito, SDCA. Only Taylor et al. is performance estimation.",
+   "evidence": "arXiv:1706.08141 PDF, abstract: 'jump system theory with several simple quadratic inequalities to derive sufficient conditions for convergence'; 'The derived conditions are linear matrix inequalities' (PMLR page). The text contains neither 'performance estimation' nor 'worst case' outside the bibliography title of Taylor et al.",
+   "proposed_fix": "worst cases by performance estimation \\cite{taylor2017smooth} and rate certificates by quadratic constraints \\cite{hu2017unified}",
+   "confidence": "high"
+  },
+  {
+   "id": "cs-cardot-scalar",
+   "severity": "minor",
+   "location": "418-420",
+   "claim": "Its scalar and coordinatewise analogues are published (sign methods \\cite{chen2020distributed}, normalized steps and the geometric median \\cite{cardot2013efficient}); the statement for polar steps was not found.",
+   "problem": "Cardot et al. is not a scalar analogue but the Euclidean (Hilbert-space) one, and it is exactly the case K=1 of Theorem 2(b) for a quadratic F: with grad F(Z) = Z - E X and xi = E X - X, normalized steps converge to the geometric median, i.e. grad F = -Med(xi). Calling it 'scalar' understates the prior work a jury would compare Theorem 2 with.",
+   "evidence": "ar5iv 1101.4316: Eq. (1) m = argmin_u E[||X - u|| - ||X||] in a Hilbert space H, Eq. (8) Z_{n+1} = Z_n + gamma_n (X_{n+1} - Z_n)/||X_{n+1} - Z_n||; for K=1, polar(g) = g/||g|| and the nuclear norm is the Euclidean norm.",
+   "proposed_fix": "Its coordinatewise and Euclidean ($K=1$) analogues are published (sign methods \\cite{chen2020distributed}, normalized steps and the geometric median \\cite{cardot2013efficient}); the statement for polar steps was not found.",
+   "confidence": "high"
+  },
+  {
+   "id": "cs-storm-muon",
+   "severity": "minor",
+   "location": "539",
+   "claim": "as for MARS-M \\cite{liu2025marsm} and STORM-Muon \\cite{cutkosky2019momentum}",
+   "problem": "Cutkosky and Orabona (2019) introduce the STORM estimator, before Muon; 'STORM-Muon' (Muon fed by a STORM buffer) is not in that source and is not defined in the paper, so the citation reads as if the source proposed a Muon variant.",
+   "evidence": "arXiv:1905.10018 abstract (STORM, NeurIPS 2019); muon/lab/mvr.py docstring: 'g = 1, same batch  STORM / MVR2 (Cutkosky and Orabona; Chang et al. arXiv:2509.15816; Qian et al. arXiv:2512.16598)'; the name appears only at paper line 539.",
+   "proposed_fix": "as for MARS-M \\cite{liu2025marsm} and Muon on a STORM buffer \\cite{cutkosky2019momentum}",
+   "confidence": "high"
+  },
+  {
+   "id": "cs-duchi-density",
+   "severity": "minor",
+   "location": "247",
+   "claim": "and $\\Phi_\\xi(G)\\in\\partial\\psi_\\xi(G)$ \\cite{duchi2012randomized,jiang2026adaptive}",
+   "problem": "Duchi et al. prove the smoothing identities for a smoothing law with a Lebesgue density (uniform on balls, Gaussian); the paper states them for an arbitrary law (two-point laws at line 393, batch means of a finite sum), and the full-rank condition is not in the source. The statement is true (expectation of the subgradient inequality of the nuclear norm at G+xi; dominated convergence for differentiability), so only the attribution is too broad.",
+   "evidence": "arXiv:1103.4296v2 PDF, Appendix E: 'since mu is a density with respect to Lebesgue measure, the function f_mu is in fact differentiable [4]'; Lemma 6(iv) 'E[grad F(x+Z)] = grad f_mu(x)' for mu uniform on the ell_inf ball (Lemmas 6-9: other densities). jiang2026adaptive not opened (outside scope).",
+   "proposed_fix": "and $\\Phi_\\xi(G)\\in\\partial\\psi_\\xi(G)$ (take expectations in the subgradient inequality of $\\nnuc\\cdot$ at $G+\\xi$; for smoothing densities, \\cite{duchi2012randomized,jiang2026adaptive})",
+   "confidence": "medium"
+  },
+  {
+   "id": "cs-cornish-sign",
+   "severity": "nit",
+   "location": "456-457",
+   "claim": "in every entry, the scalar offset $\\kappa_3/(6\\sigma^2b)$ of the median of a mean \\cite{cornish1938moments} times $a_{K,d}/c_{K,d}$.",
+   "problem": "By Cornish-Fisher the median of a centred mean is $-\\kappa_3/(6\\sigma^2b)+o(1/b)$; $+\\kappa_3/(6\\sigma^2b)$ is the scalar $G_b^\\dagger=-\\Med$. The formula (eq:offset) is right, only the wording flips the sign.",
+   "evidence": "Cornish-Fisher w_p = x + gamma_1 (x^2-1)/6 + ... (Wikipedia, citing Rev. Inst. Int. Stat. 5(4):307-320), at x = 0: -gamma_1/6 times sigma/sqrt(b); checks/cite-stat_cornish_median.py: b*median of centred Gamma means -> -0.3333 = -kappa_3/(6 sigma^2).",
+   "proposed_fix": "in every entry, minus the scalar offset $-\\kappa_3/(6\\sigma^2b)$ of the median of a mean \\cite{cornish1938moments}, times $a_{K,d}/c_{K,d}$.",
+   "confidence": "high"
+  },
+  {
+   "id": "cs-carlson-exact",
+   "severity": "nit",
+   "location": "205-206",
+   "claim": "(with exact gradients and $\\gamma=1/\\Lop$, stochastic spectral descent \\cite{carlson2015stochastic} or PolarGrad \\cite{lau2025polargrad})",
+   "problem": "Carlson et al. apply the nuclear-scaled step to stochastic (PCD) gradient estimates, with the majorization constant MJ in place of L_op; 'stochastic spectral descent with exact gradients' is self-contradictory.",
+   "evidence": "PMLR v38 PDF, Eq. (27)-(28): W* = W - (||lambda||_1/MJ) sum_k a_k b_k^T, gradients estimated by Monte Carlo / PCD (Section 2).",
+   "proposed_fix": "(with $\\gamma=1/\\Lop$, the step of stochastic spectral descent \\cite{carlson2015stochastic} and of PolarGrad \\cite{lau2025polargrad})",
+   "confidence": "medium"
+  }
+ ],
+ "not_checked": [
+  "Goffin 1977 (Math. Program. 13:329-347): full text behind Springer authentication; its content (geometric step sizes for normalized subgradient steps) is attested only by Davis et al. Section 5 and search summaries. Issue number: Crossref says 1, Davis et al. cite 13(3); left as is.",
+  "Cornish and Fisher 1938 original (JSTOR): not opened; the expansion was checked through a secondary source (Wikipedia citing the paper) and by computation.",
+  "Publication status of Balles et al. (ICLR 2020 according to mlanthology.org; OpenReview and DBLP refused automated access): the arXiv entry used in the .bib is correct either way.",
+  "jiang2026adaptive, co-cited with duchi2012randomized at line 247: outside this scope, not opened; it may cover the general-law case of cs-duchi-density."
+ ]
+}

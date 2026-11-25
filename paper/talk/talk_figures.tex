@@ -1,0 +1,106 @@
+% Figures for a lecture that presents paper/paper_saga_to_muon.tex: one frame per figure, in the order of the paper.
+% The frame title is the message of the figure; a figure drawn in several states is revealed step by step.
+% This is a catalogue of figures on 16:9 slides (160 mm x 90 mm), ready to be reused in a talk; it is not the talk.
+% The figures (figures/figT*.pdf) are drawn at their final size by paper/scripts/make_figT*.py and are included without
+% scaling; see README.md in this folder for the statement each figure explains, its status and its script.
+% Build (from paper/talk/):  pdflatex talk_figures && pdflatex talk_figures
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{pgffor}
+\graphicspath{{figures/}{../figures/}}
+\usetheme{default}
+\usefonttheme{professionalfonts}
+\setbeamertemplate{navigation symbols}{}
+\definecolor{surface}{HTML}{FCFCFB}      % the surface of the figures (experiments/plotstyle.py)
+\definecolor{ink}{HTML}{0B0B0B}
+\definecolor{inksecondary}{HTML}{52514E}
+\definecolor{inkmuted}{HTML}{898781}
+\setbeamercolor{background canvas}{bg=surface}
+\setbeamercolor{normal text}{fg=ink}
+\setbeamercolor{frametitle}{fg=ink}
+\setbeamercolor{structure}{fg=inksecondary}
+\setbeamerfont{frametitle}{size=\normalsize,series=\bfseries}
+\setbeamertemplate{frametitle}{\vspace{2.2mm}\insertframetitle\par\vspace{-1.5mm}}
+\setbeamersize{text margin left=5mm,text margin right=5mm}
+\setbeamertemplate{footline}{\hfill{\tiny\color{inkmuted}\insertframenumber\hspace{3mm}}\vspace{1.5mm}}
+
+% \figframe{message}{file}: one figure.  \buildframe{message}{file}{N}: the states file_s1 ... file_sN, one per click.
+% \paperframe{message}{file}: a figure of the paper itself (drawn for the page, scaled to the slide: small text).
+\newcommand{\figframe}[2]{\begin{frame}{#1}\centering\includegraphics{#2}\end{frame}}
+\newcommand{\buildframe}[3]{\begin{frame}{#1}\centering
+\foreach \k in {1,...,#3}{\includegraphics<\k>{#2_s\k}}%
+\end{frame}}
+\newcommand{\paperframe}[2]{\begin{frame}{#1}\centering\includegraphics[width=\textwidth]{#2}\end{frame}}
+% \partframe{title}{one line}: a divider between the parts of the lecture
+\newcommand{\partframe}[2]{\begin{frame}\vfill{\large\bfseries #1}\par\medskip{\color{inksecondary}#2}\vfill\end{frame}}
+
+\begin{document}
+
+
+\partframe{From SAGA to Muon-type steps}{figures for a lecture on the paper: the objects, the two findings, the recipe, memory}
+
+% ---- the objects
+\buildframe{The rate of SAGA rests on four ingredients; we follow each through the polar map}{figT01_roadmap}{3}
+\buildframe{SGD and SAGA are both unbiased; only SAGA's error vanishes at the minimizer}{figT02_saga_table}{3}
+\buildframe{The polar factor keeps the singular directions and sets every singular value to one}{figT03_polar_factor}{3}
+\buildframe{SAGA, Muon and the recipe (4) on one skeleton: estimator, map, step}{figT04_recipe_pipeline}{3}
+
+\partframe{Finding 1: the geometry}{certified rates lose at the global constants; no norm repairs the logistic worst case}
+
+\figframe{Where we are: the geometry}{figT01_roadmap_r1}
+\buildframe{At $\kappa = 10^4$ SAGA gains 11 orders of magnitude in 100 passes; its certified bound, less than one}{figT05_bound_vs_run}{3}
+\paperframe{Figure 1 of the paper: the gap between the exact and the certified rate, and where it comes from}{figR1_classical}
+\buildframe{The certified rate is an exact identity followed by inequalities; two of them insert global constants}{figT06_proof_chain}{3}
+\buildframe{On spectrum $j^{-1}$ and for $\kappa \ge 10^4$, I2 and I4 carry about 90\,\% of the gap in either order; at $\kappa = 10^2$ the order decides}{figT06b_gap_shares}{2}
+\buildframe{On a planar toy, $\mu = \lambda$ is approached only far from the origin, where the runs do not go}{figT06c_curvature_far}{3}
+\buildframe{Along runs of SAGA at $\kappa \ge 10^4$: exact rate = certified rate $\times$ bounded slack $\times$ curvature met}{figT07_two_identities}{4}
+\buildframe{The same anatomy for the nuclear-scaled polar step, on a quadratic}{figT07b_polar_identity}{2}
+\buildframe{On its worst case the certificate has the right order in $\kappa$; on a logistic instance SAGA converges at 4 times the largest proved step}{figT08_worst_case}{3}
+\buildframe{Theorem 1 in the plane: a norm reweights directions; it cannot change one direction's range of curvature}{figT09_nfl_plane}{4}
+\buildframe{Condition numbers in several norms: the global one never improves, the local one can}{figT09b_nfl_norms}{3}
+\buildframe{Theorem 1 over all directions (another toy): a norm moves the waviness from one edge of the band to the other}{figT09c_nfl_bands}{4}
+\paperframe{Figure 2 of the paper: certified and local constants; tuned steps at batch one (factor-2 step grids)}{figP2_geometry}
+
+\partframe{Finding 2: the estimator}{through the polar map, variance reduction acts on the fixed point}
+
+\figframe{Where we are: unbiasedness through a nonlinear map}{figT01_roadmap_r2}
+\buildframe{A sign step on a sampled gradient computes a median; a SAGA table brings the mean back}{figT10_sign_median}{4}
+\buildframe{In the plane: polar steps go to the geometric median of the data; with a table, to the minimizer}{figT11_polar_median}{4}
+\buildframe{The offset of a minibatch is of order $1/b$: exact, formal, measured}{figT12_offset_scaling}{3}
+\paperframe{Figure 3 of the paper: what a finite-sum estimator changes inside polar steps}{figP3_noise}
+\figframe{Where we are: an error that vanishes at the minimizer}{figT01_roadmap_r3}
+\buildframe{Two floors: one from the length of the step, one from the noise of the estimator}{figT13_two_floors}{4}
+\figframe{At a constant length a table changes the order of the floor, not its existence}{figT13b_floor_vs_length}
+\buildframe{With a table the error of the estimator vanishes with the iterate}{figT14_estimator_error}{3}
+
+\partframe{Fixed lengths on a cooldown, fed by a SAGA table}{Section 3.3: the recipe, its law, what is proved}
+
+\buildframe{On a toy, same schedule and seeds: with a table the iterate follows the cooldown, without one it freezes}{figT14b_cooldown_toy}{4}
+\buildframe{At batch one, with a table the squared distance follows $\mathrm{lr}_t^2$ down to the floor of the map}{figT15_schedule_law}{3}
+\buildframe{The same runs divided by $\mathrm{lr}_t^2$: a flat band until the floor of the map}{figT15b_schedule_band}{2}
+\buildframe{Same map, momentum, schedule and seeds: with a table 4 of 5 seeds reach $10^{-18}$, without one they stop at 8--9\,\%}{figT16_same_schedule}{2}
+\paperframe{Figure 4 of the paper: the schedule law, batch size, sampling order}{figP4_recipe}
+\buildframe{Two ways for a cooldown to fail: too short a path, or too fast}{figT17_cooldown_map}{2}
+\figframe{A control without a table tests the estimator only if its path could reach the minimizer}{figT17b_path_budget}
+\buildframe{Newton--Schulz has a scale: its constant $\epsilon$ sets a floor near $10^{-18}$}{figT18_ns5_scale}{3}
+\buildframe{An entry keeps its error until refreshed: ages under three sampling orders}{figT23_memory_ages}{3}
+\buildframe{One inequality behind Proposition 5(b): a floor at a constant length, an invariant interval on a slow cooldown}{figT19_one_step_map}{3}
+\buildframe{Proposition 5(b) in action on a toy: the certified cooldown and its bound}{figT19b_certified_cooldown}{3}
+
+\partframe{Batch size and sampling order}{where the spectral map pays; what a fresh permutation changes}
+
+\buildframe{On one instance, the estimator is close to rank one at batch one; with minibatches it is not}{figT20_estimator_rank}{3}
+\buildframe{Batches of 16 and 32: the spectral map needs 0.41--0.89 of the passes of (B-)SAGA and 0.58--0.93 of those of the controls, on grids that resolve about 20\,\%}{figT21_minibatch_ratios}{3}
+\buildframe{Why every ratio comes with its tuning grid: the fast steps end at a cliff}{figT22_grid_cliff}{3}
+\figframe{Where we are: the memory of the table}{figT01_roadmap_r4}
+\buildframe{Linear SAGA: one nat per pass is the rate of the mean, not of a run}{figT24b_expectation_vs_runs}{3}
+\buildframe{A fresh permutation: up to two nats per pass for linear SAGA in expectation; 36--49\,\% fewer passes on two instances at $b = 20, 50$}{figT24_order_rates}{3}
+
+\partframe{What is proved, what is run}{the distance between the certificates and the experiments}
+
+\buildframe{Each certificate holds in a regime at a measured distance from the runs}{figT25_proofs_and_runs}{2}
+\buildframe{From SAGA to Muon-type steps: what becomes of each ingredient}{figT01_roadmap}{3}
+
+\end{document}

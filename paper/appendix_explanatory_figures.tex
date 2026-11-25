@@ -1,0 +1,65 @@
+% Appendix of explanatory figures of paper_saga_to_muon.tex. It is read only when \WithExplanatoryFigures is defined
+% (see the end of paper_saga_to_muon.tex), so that the paper keeps its 12 pages by default. The figures are drawn by
+% paper/scripts/make_figE*.py; each script states its toy or its data, prints every number it plots and gives the status
+% (proved, measured, illustration) of what it shows. Figures E2 to E4 add no result: they illustrate a statement of the
+% paper on an exact instance in the plane or lay out its methods. Figure E1 lays out the proof of Section 2.2 and recuts
+% results/B3_summary.json (the shares of Figure 1(c), plus a second order of attribution). Figure E5 redraws cached runs
+% of experiment M9 (part C), adds one exact enumeration along one of them and one cached configuration not shown in
+% the paper (the SAGA table on the schedule of the runs without a table).
+\clearpage
+\appendix
+% Figures set in place and in order (no float), captions in footnotesize: two figures per page.
+\makeatletter
+\long\def\@makecaption#1#2{\vskip\abovecaptionskip{\footnotesize #1: #2\par}\vskip\belowcaptionskip}
+\newenvironment{explfigure}{\par\medskip\noindent\begin{minipage}{\textwidth}\def\@captype{figure}}{\end{minipage}\par\bigskip}
+\makeatother
+\newcommand{\explgraphics}[1]{{\centering\includegraphics[width=0.97\textwidth]{#1}\par}}
+\section*{Appendix: explanatory figures}
+
+Figures~\ref{fig:nflplane}--\ref{fig:pipeline} add no result: Figures~\ref{fig:nflplane} and~\ref{fig:polarmedian}
+illustrate Theorems~\ref{thm:nfl} and~\ref{thm:smd} and Proposition~\ref{prop:comp} on exact instances in the plane (in
+Figure~\ref{fig:polarmedian} the polar factor of a vector is its normalization), and Figure~\ref{fig:pipeline} lays out
+the methods, with one random matrix; the numbers they show are those of these toys and are not quoted in the text.
+Figure~\ref{fig:proofchain} lays out the proof of Section~\ref{sec:measure} and recuts the measured shares of
+Figure~\ref{fig:classical}(c), with those of a second order of attribution computed on the same runs.
+Figure~\ref{fig:recipe-table} redraws runs of Figure~\ref{fig:recipe}(a) and adds an exact enumeration along one of them
+and a cached configuration of the same experiment that Section~\ref{sec:recipe} does not show (the SAGA table on the
+schedule of the runs without a table).
+
+\begin{explfigure}
+\explgraphics{figE1_proof_chain}
+\caption{The proof of Proposition~5.9 as substitutions, and where the gap of \finding{C1}--\finding{C2} sits. (a) The exact identity \eqref{eq:saga-repr} (top; $V=D+\delta M$) becomes the certified contraction (bottom) when five inequalities each put a worst-case value in it: I1 and I3 set the tightness ratios $r_{\mathrm{sq}},r_{\mathrm{var}}\le1$ to one, I2 and I4 (tinted) replace the curvature met by the iterate, $\LEff$ and $\muEff$, by the global constants $R^2$ and $\mu$, and I5 replaces the mean of $c_D$ and $c_M$, weighted by $D$ and $\delta M$, by their maximum. Rows are in the order in which the attribution applies them (I2 and I3 act on different terms); I6 bounds $V_0$ and changes only the constant. (b) Shares of the logarithmic gap between the exact and the certified exponents (ridge logistic regression, $n=1000$, $d=50$, spectrum $j^{-1}$, passes 2--20, mean of five sampling seeds on one data set; colours of (a); I3, below $0.2\%$, is not visible) at $\kappa=10^2$ and $\kappa=10^5$, where the exact exponent is $3.3$ and $100$ times the certified one, in the two orders of attribution computed: I5 undone first (the order of the paper: I5, I4, I2, I3, I1) and I5 undone last (I4, I2, I3, I1, I5). At $\kappa=10^5$, I2 and I4 carry $91\%$ and $92\%$ of the gap; at $\kappa=10^2$ they carry $48\%$ or nothing, since in the second order they change $c_D$ alone while the bound still takes the larger coefficient, $c_M$ ($\kappa<9n/16$). A share is a fraction of a difference of exponents; it depends on the order and on the window (on passes 20--100 the ratio at $\kappa=10^5$ is $72$).}\label{fig:proofchain}
+\end{explfigure}
+
+\begin{explfigure}
+\explgraphics{figE2_nfl_plane}
+\caption{Theorem~\ref{thm:nfl} in the plane: ridge logistic regression with $K=1$, $d=2$ ($n=40$, $\lambda=0.02$;
+$D^2F(0)$ has the eigenvalues $9\lambda$ and $2.25\lambda$, so $\kF=9$). (a) Curvature $D^2F(tW_1)[u,u]/\lambda$ in two
+fixed directions, the eigenvectors $u_1,u_2$ of $D^2F(0)$, along a ray: for the logistic loss it falls in each direction
+from its largest value to the floor $\lambda$; for the quadratic loss with the same Hessian at $0$ it is constant. For
+every norm $N$ and direction $u$, $L_N\ge D^2F(W)[u,u]/N(u)^2$ and $\mu_N\le D^2F(W')[u,u]/N(u)^2$: a norm reweights
+directions and cannot change the ratio of two curvatures in the same direction. (b) The same argument in the plane of
+$\Delta$ (unit $\lambda^{-1/2}$): $L_N^{-1/2}$ is the size of the largest copy of the unit ball of $N$ inside the set
+where the curvature at $0$ is at most one, $\mu_N^{-1/2}$ the size of the smallest copy that contains the set where
+the floor is at most one. On the line of $u_1$ the inner copy cannot pass a point at distance $1/3$ and the outer one
+must reach the circle, so their sizes are in a ratio at least $\sqrt{\kF}=3$ whatever the ball; the Euclidean and the
+matched balls (drawn) pass through both points. (c) Condition number $\kappa_N$ of $F$ in five norms (for $K=1$ the
+spectral norm is the Euclidean one), and the smallest one over $10\,801$ ellipsoidal norms: global, $L_N/\mu_N$
+(filled; never below $\kF$), and at the minimizer (open), where the norm matched to $D^2F(W_\ast)$ reaches
+one.}\label{fig:nflplane}
+\end{explfigure}
+
+\begin{explfigure}
+\explgraphics{figE3_polar_median}
+\caption{Where polar steps go, in the plane: $K\times d=2\times1$, where $\polar(\omega)=\omega/\nF\omega$ is the normalization and a nuclear median is a geometric median (the classical case of \cite{cardot2013efficient}; not evidence about the spectral map). $f_i(W)=\frac12\nF{W-y_i}^2$ for $n=200$ points $y_i$ of a skewed cloud: $W_\ast$ is their mean and the gradient noise $\bar y-y_i$ is additive. (a) Level sets of $\Lambda(W)=\frac1n\sum_i\nF{W-y_i}$, minimal at the geometric median $W^\dagger$; one run without a table, $\eta_t=0.03\,(1+t/n)^{-3/4}$ (thin: iterates; thick: their average over $(t/2,t]$), and the run with the SAGA table on the cooldown $\mathrm{lr}_t=0.03\cdot0.8^{t/n}$ of \eqref{eq:recipe} (exact polar factor, no momentum, same indices; a segment, since here the estimator does not involve the sampled $y_j$ and the run stays on the line through $W_0$ and $W_\ast$, up to rounding); rings: where the two runs end. Inset ($\times3.3$): zeros of the mean field for batches of $b=1,2,4,8,16$. (b) Median and range over five seeds: distance of the averaged iterate without a table to $W^\dagger$; of the iterate with the table to $W_\ast$; of the same cooldown without a table to $W_\ast$ (grey: it stops next to $W^\dagger$, though its total path is $21\,\nF{W_0-W_\ast}$). (c) Batch size times the distance of the limit to $W_\ast$: zeros of the mean field (line; exact for $b\le2$, then $8\cdot10^6$ sampled batch means), averaged runs ($64$, dots; bars: two standard errors) and the SAGA table with $\mathrm{lr}_0=0.03\,b$ (squares). The limit without a table is proved (Theorem~\ref{thm:smd}(b), Proposition~\ref{prop:comp}(d)), as is the fact that $W_\ast$ is the only fixed point with the table (Proposition~\ref{prop:comp}(c)); its attraction at $q=0.8$ is observed on this instance. Panel (c) shows the $1/b$ scaling only: the entries of the noise are not identically distributed, and \eqref{eq:offset} and its constant are not drawn.}\label{fig:polarmedian}
+\end{explfigure}
+
+\begin{explfigure}
+\explgraphics{figE4_recipe_pipeline}
+\caption{SAGA, Muon and the recipe \eqref{eq:recipe} on one skeleton: estimator, map, step. SAGA (Section~\ref{sec:setting}): a table, no map, a constant step. Muon as published \cite{jordan2024muon}: Nesterov momentum of the minibatch gradient $\hat g_t$, five Newton--Schulz steps (ns5, $\epsilon=10^{-7}$), a step of fixed length whose learning rate is cooled down. The recipe: the SAGA estimator on a batch $B_t$ of $b$ indices, the exact polar factor or ns5, fixed lengths on a geometric cooldown (the geometric form is our choice; also run with Nesterov momentum before the map, with the coefficient $0.9$, our choice too). Tinted stations hold a table (blue: Euclidean step; orange: the table feeds a polar step). Below: for one $8\times40$ standard Gaussian matrix $\omega=U\diag(s)V^\top$, the values $s_k/s_1$ and $u_k^\top o(\omega)v_k$ for the exact polar factor (all $1$) and for ns5 ($0.74$ to $1.13$ on this draw); and the two other length rules of the polar step, nuclear-scaled (Section~\ref{sec:setting}) and clipped (Section~\ref{sec:experiments}).}\label{fig:pipeline}
+\end{explfigure}
+
+\begin{explfigure}
+\explgraphics{figE5_recipe_table}
+\caption{Why the recipe \eqref{eq:recipe} needs a table (least squares, conditioning-limited instance, $n=200$, batch one; cached runs of experiment M9, part C, five seeds, one line per seed in (b)--(c)). (a) Exact mean over the index $j$ of $\nF{\omega_j-\nabla F(W_t)}^2$, by enumeration of the $n$ indices at the states of one of these runs (SAGA table, exact polar factor, $q=0.8$, $\mathrm{lr}_0=0.3$, one seed), for the SAGA estimator of the run and for the batch-one gradient at the same states; dashed, $\nF{\nabla F(W_t)}^2$. The table is exact at pass $1$; from pass $1.2$ to pass $6.9$ the stale table gives the SAGA estimator the larger error; afterwards its error decreases with the distance to $W_\ast$, while that of the batch-one gradient settles at its variance at $W_\ast$. (b) The runs of Figure~\ref{fig:recipe}(a) against $\mathrm{lr}_t^2$: with the table (exact polar factor, solid; ns5 with Nesterov momentum at $q=0.8$, $\mathrm{lr}_0=0.1$, dashed; the same with $\epsilon=10^{-30}$, dotted) the squared distance follows $C\,\mathrm{lr}_t^2$ (slope one) down to its floor; without a table (minibatch gradient, solid grey; MARS-M, dashed grey; schedule selected for Muon's recipe, $q=0.75$, $\mathrm{lr}_0=0.3$) it stops at $8\%$ to $15\%$ of its initial value while $\mathrm{lr}_t$ keeps decreasing. (c) Two cached configurations that differ only by the estimator (ns5, Nesterov momentum $0.9$, $\mathrm{lr}_t=0.3\cdot0.75^{t/n}$, same seeds): with the SAGA table four seeds end at $3.6$--$7.7\cdot10^{-18}$ and one, which leaves the law $C\,\mathrm{lr}_t^2$ (the tuned point sits next to a cliff in $q$), at $2.6\cdot10^{-6}$; with the minibatch gradient the five seeds stop at $8\%$--$9\%$ of the initial squared distance. Nothing is proved at these cooldowns: Proposition~\ref{prop:schedule}(b) certifies cooldowns $10^4$ to $10^6$ times slower, for the exact polar factor without momentum.}\label{fig:recipe-table}
+\end{explfigure}

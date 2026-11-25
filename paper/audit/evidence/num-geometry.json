@@ -1,0 +1,198 @@
+{
+ "scope_covered": "paper/paper_saga_to_muon.tex : (M4) et (M3) (l. 367-384), legende de la figure 2 (l. 359-363), paragraphe 'Geometries' (l. 236-242), paragraphe 'Experiments' (l. 253-265), tableau 1 ligne 2 'Added here' (l. 156-158). Chaque chiffre relu dans muon/results/M7_summary.json, M1_summary.json, M8_summary.json, M5b_summary.json (medianes recalculees a partir des passes par graine) ; constantes R_P^2/mu_P recalculees de facon independante a partir des donnees des six instances (ecart relatif maximal 7.5e-14 sur 96 cellules) ; petite reproduction sur le troisieme tirage softmax (SAGA, B-SAGA, IS-B-SAGA a des pas intermediaires, 2 a 3 graines) ; figure figP2_geometry.png et son script relus. Scripts : paper/audit/checks/num-geometry_numbers.py, num-geometry_constants.py, num-geometry_repro_draw2.py.",
+ "checked_ok": [
+  {
+   "claim": "local constants are up to $17.5$ times smaller (covariance metric: $551$ against $9659$)",
+   "location": "l. 370",
+   "evidence": "M7 soft-cond : 9658.69 / 550.546 = 17.544 (f = 0.01) ; maximum sur les trois instances softmax (2.39, 17.54, 7.91) ; recalcul independant identique."
+  },
+  {
+   "claim": "On least squares the certified constant improves by $1.6$ to $103$ in the polar metric ($7.6$ to $163$ in the covariance metric)",
+   "location": "l. 370-371",
+   "evidence": "M7 : 1.589, 4.522, 102.855 (polaire, meilleur plancher) ; 7.631, 163.16, 110.79 (covariance) ; recalcul independant a 7.5e-14."
+  },
+  {
+   "claim": "on the square instance $R_P^2/\\mu_P=42$ against $R^2/\\mu=4364$",
+   "location": "l. 371-372",
+   "evidence": "ls-orth : 42.424 (f = 0) et 4363.575 ; recalcul independant."
+  },
+  {
+   "claim": "this one-shot polar-metric SAGA needs $13.3$ passes (SAGA $27.1$, covariance metric $13.1$)",
+   "location": "l. 372-373",
+   "evidence": "M1 ls-orth, 10/10 graines : medianes 13.30, 27.15, 13.15 (cov-metric SAGA) ; SAGA inchange sur la grille 2^(1/4) de M5b (27.15) ; courbe de reglage plate autour du point retenu (13.2 a 14.4)."
+  },
+  {
+   "claim": "the orthogonalized methods $22.1$--$29.0$ / $24.4$--$43.5$ (joint SAGA-Muon, its soft version, damped SAGA in a frozen polar metric; one seed of the joint method misses the target on least squares)",
+   "location": "l. 375-377",
+   "evidence": "M1 soft-cond : 22.05, 23.85, 29.00 ; ls-cond : 24.35, 29.80, 43.55 avec 9/10 graines a la cible pour SAGA-Muon (joint)."
+  },
+  {
+   "claim": "the Euclidean devices $15.1$--$33.8$ / $16.1$--$31.9$",
+   "location": "l. 377-378",
+   "evidence": "M1 : cov-metric B-SAGA 15.05 / 16.05, IS-B-SAGA 25.70 / 27.60, B-SAGA 33.80 / 31.90 (10/10 graines)."
+  },
+  {
+   "claim": "on grids of ratio $2^{1/4}$ B-SAGA needs $27.1$ / $31.9$",
+   "location": "l. 378-379",
+   "evidence": "M5b, b = 1, partie 'fine', tirage 0 : 27.10 [26.0, 29.6] et 31.90 [30.4, 36.7]."
+  },
+  {
+   "claim": "$0.20$--$0.37$ ... and $0.78$--$1.08$ (arithmetique)",
+   "location": "l. 379-380",
+   "evidence": "M8 + M1, meilleur de {joint, soft, IS soft, split} sur SAGA : 0.342, 0.369, 0.202 / 0.286, 0.301, 0.296 ; sur le meilleur de {B-SAGA, IS-B-SAGA} : 0.926, 0.858, 0.780 / 1.024, 1.079, 0.987. Chiffres exacts ; leur portee fait l'objet des constats G2 et G3."
+  },
+  {
+   "claim": "the covariance metric is the best method on least squares for every draw, and on softmax for one draw of three",
+   "location": "l. 380-381",
+   "evidence": "Parmi les dix familles de M8 : ls 16.55, 15.95, 16.30 (meilleur a chaque tirage) ; softmax 18.05 (meilleur), 26.9 (battu par 23.4), 35.3 (battu par 27.45). Reserve : constat G6."
+  },
+  {
+   "claim": "the best family of every class needs $16$--$18$ (softmax) and $17$--$21$ passes (least squares) to $10^{-9}$",
+   "location": "l. 381-382",
+   "evidence": "M1, familles dont les 10 graines atteignent 1e-9 : meilleures des six classes VR 15.8-18.4 (soft-mem) et 17.1-20.6 (ls-mem) ; la classe plein lot (L-BFGS 23 et 25) n'est pas comptee."
+  },
+  {
+   "claim": "two memory-limited ($R^2/\\mu$ of the order of $n$) and four conditioning-limited ($R^2/\\mu$ from $9n$ to $50n$; two square)",
+   "location": "l. 261-262",
+   "evidence": "Recalcul : soft-mem 1.00 n, ls-mem 0.48 n ; ls-orth 8.73 n, soft-sq 20.0 n, ls-cond 36.5 n, soft-cond 50.0 n (mu globale : lambda pour softmax, lambda_min de la hessienne pour moindres carres)."
+  },
+  {
+   "claim": "Six instances ($n\\in\\{200,500,1000\\}$, $K\\times d\\in\\{8\\times40,10\\times50,20\\times20\\}$, exact minimizers and constants); targets $10^{-6}$ ($10^{-9}$ where memory limits)",
+   "location": "l. 260-263",
+   "evidence": "Specs et tol de M1_summary.json ; norme du gradient recalcule en W_* : 5e-18 a 6e-17."
+  },
+  {
+   "claim": "Each family is tuned on five seeds and run on ten fresh ones",
+   "location": "l. 263",
+   "evidence": "Protocole de M1_summary.json : graines de reglage 0-1, trois finalistes sur 2-4, confirmation 10-19 (criblage prealable a 20 % du budget sur une graine)."
+  },
+  {
+   "claim": "$\\gamma(m+\\vartheta c)$ with $\\vartheta=1/n$, $\\gamma=1/\\lambda$ is MISO",
+   "location": "l. 255-256",
+   "evidence": "Algebre : theta - (1/lambda)(zbar + lambda theta + (1/n)(grad g_j(theta) - z_j)) = -(1/lambda) zbar apres mise a jour, l'iteration de MISO pour mu = lambda."
+  },
+  {
+   "claim": "Formules de R_P^2, mu_P, de la metrique polaire a un coup et de la metrique de covariance",
+   "location": "l. 236-242",
+   "evidence": "Conformes a muon/lab/vrmuon.py (l. 41-61, 651-671) ; recalcul independant des 96 cellules de M7 a 7.5e-14."
+  },
+  {
+   "claim": "Legende de la figure 2(b) : median and range over ten seeds; arrow: a seed misses the target",
+   "location": "l. 361-363",
+   "evidence": "data_c / panel_c de make_figR2_muon_vr.py : mediane, min, max des dix confirm_passes de M1 pour les 7 familles du texte, fleche si max infini ; la figure montre les valeurs du texte."
+  },
+  {
+   "claim": "Legende de la figure 2(a) : filled global, open local, each at its best f, one marker when they coincide",
+   "location": "l. 359-361",
+   "evidence": "make_figP2_geometry.py : minimum sur f pris separement pour la constante globale et la locale ; un marqueur si egalite a 1e-9 ; valeurs tracees = M7. Reserve de forme : constat G8."
+  },
+  {
+   "claim": "Intitule (M4) : A frozen polar metric certifies a gain only where Theorem 1 does not apply",
+   "location": "l. 367",
+   "evidence": "Softmax (3 instances, 96 cellules ancre x plancher) : aucun rapport sous 1, comme le theoreme l'impose ; moindres carres (3 instances) : constante certifiee amelioree de 1.6, 4.5, 103. Reserve sur le taux certifie : constat G5."
+  },
+  {
+   "claim": "Intitule (M3) et tableau 1 : at batch one, Euclidean devices reproduce / match orthogonalization",
+   "location": "l. 374, 157-158",
+   "evidence": "Tirage 0, six instances : meilleure methode recalculant le facteur polaire / meilleure euclidienne sans preconditionneur = 0.93 a 1.11 ; trois tirages de soft-cond et ls-cond : 0.78 a 1.08, la metrique de covariance faisant mieux sur 4 cellules sur 6. Tient a la resolution des grilles : constat G3."
+  }
+ ],
+ "findings": [
+  {
+   "id": "G2",
+   "severity": "major",
+   "location": "l. 375 et 378-380 ; figure 2(b), ligne SAGA",
+   "claim": "SAGA needs $69.5$ / $98.7$ passes [...] the best method recomputing the polar factor needs $0.20$--$0.37$ of the passes of SAGA",
+   "problem": "Ces chiffres sont fixes par la grille de pas de facteur 2 de SAGA (un seul parametre ; ses deux meilleurs points de grille different de 98 %). La grille 2^(1/4) du depot donne 49.8 / 83.5 passes au lieu de 69.5 / 98.7 (-28 % et -15 %), et le papier ne cite la valeur a grille fine que pour B-SAGA. La borne 0.20 vient d'un cran de grille sur le troisieme tirage softmax (gamma = 2/R2 retenu, 136.1 passes, contre 4/R2 et 68 a 70 passes sur les deux autres). A pas resolus le rapport est d'environ 0.34 a 0.49, soit un gain de 2 a 3 et non de 3 a 5.",
+   "evidence": "M5b_summary.json, instances/<inst>/0/batches/1/fine/rows/SAGA : soft-cond 49.75 [49.3, 50.6] (gamma = 5.66/R2), ls-cond 83.55 [82.8, 87.8] (gamma = 2.38/R2), 10/10 graines ; M1 : 69.55 et 98.70 ; scores de reglage M1 de SAGA : 69.5 / 137.9 et 99.1 / 195.9. M8 soft-cond/2 : SAGA gamma = 2/R2, 136.1. Reproduction paper/audit/checks/num-geometry_repro_draw2.py saga (tirage 2, graines 10 et 11) : 2/R2 : 136.0, 136.2 (identique a M8) ; 2.38/R2 : 114.6 ; 2.83/R2 : 96.5 ; 3.36/R2 : 81.4 ; 4/R2 : 73.5 et 111.0. Rapports a pas resolus : tirage 2, 27.45/81.4 = 0.34 ; tirage 0, 23.8/49.75 = 0.48 et 28.25/83.55 = 0.34 ; grilles fines des deux cotes (M5b, SAGA-Muon / SAGA) : 0.49 et 0.40.",
+   "proposed_fix": "(Figure~\\ref{fig:geometry}(b); step grids of factor $2$; on grids of ratio $2^{1/4}$ SAGA needs $49.8$ / $83.5$ and B-SAGA $27.1$ / $31.9$). Over three draws of the data, on factor-$2$ grids, the best method recomputing the polar factor needs $0.20$--$0.37$ of the passes of SAGA ($0.34$--$0.48$ against SAGA at resolved steps, first draw) and $0.78$--$1.08$ of those of the best Euclidean method without preconditioner;",
+   "confidence": "high"
+  },
+  {
+   "id": "G3",
+   "severity": "minor",
+   "location": "l. 374 et 379-380 ; tableau 1 l. 157-158",
+   "claim": "At batch one, orthogonalization buys a trajectory effect that Euclidean devices reproduce. [...] $0.78$--$1.08$ of those of the best Euclidean method without preconditioner",
+   "problem": "Sur le troisieme tirage softmax la meilleure methode orthogonalisee (27.45 passes) devance de 22 % toutes les methodes euclidiennes de M8, metrique de covariance comprise (35.2 a 35.6), et de 14 % les methodes sans preconditionneur sur le deuxieme tirage : au-dela de la resolution annoncee de 10 %, donc en contradiction apparente avec 'reproduce' et 'match'. L'ecart tient en partie a la grille de facteur 2 du cote euclidien (les trois familles euclidiennes y perdent un cran de pas) : la borne 0.78 n'est pas une difference resolue, ce que le texte ne dit pas.",
+   "evidence": "M8_summary.json soft-cond/2 : soft SAGA-Muon 27.45, IS-B-SAGA 35.2 (gamma = 8/R2), cov-metric SAGA 35.3, B-SAGA 35.6 ; tirage 1 : 25.05 contre 29.2. Reproduction num-geometry_repro_draw2.py isbsaga (tirage 2, graines 10-12, theta = 0.2) : 8/R2 : 35.5 ; 9.51/R2 : 31.7 ; 11.31/R2 : 30.8 ; 13.45/R2 : 31.5 ; 16/R2 : 47.6, soit un rapport d'environ 27.45/30.8 = 0.89 (cote orthogonalise non raffine). B-SAGA ne gagne rien entre 8/R2 et 16/R2 (35.7 a 35.9 puis pire).",
+   "proposed_fix": "\\item[(M3)] \\emph{At batch one, orthogonalization buys a trajectory effect that Euclidean devices reproduce to within the resolution of the step grids.}",
+   "confidence": "medium"
+  },
+  {
+   "id": "G4",
+   "severity": "minor",
+   "location": "l. 263-264",
+   "claim": "differences below about $10\\%$ are not resolved",
+   "problem": "Le 10 % ne couvre que le bruit de graines (erreur-type bootstrap des medianes : 0.1 a 8.7 % pour les familles de (M3)). Le raffinement de la grille de pas, mesure dans le depot, deplace les medianes de 15 a 28 % ; les comparaisons de (M3), sur grilles de facteur 2, ne sont donc pas resolues a 10 %.",
+   "evidence": "M5b_summary.json, b = 1, grille de facteur 2 -> grille 2^(1/4) : SAGA 69.55 -> 49.75 (-28.5 %) et 98.70 -> 83.55 (-15.3 %) ; B-SAGA 33.80 -> 27.10 (-19.8 %) et 31.90 -> 31.90 ; SAGA-Muon 29.00 -> 24.55 (-15.3 %) et 43.55 (9/10) -> 33.30 (-23.5 %) ; ls-orth SAGA-Muon 28.10 -> 22.95 (-18.3 %). Script num-geometry_numbers.py, blocs 'M5b' et 'Resolution'.",
+   "proposed_fix": "differences below about $10\\%$ are not resolved, and on step grids of factor $2$ \\finding{M3} a median can sit up to $30\\%$ above its value on a finer grid.",
+   "confidence": "high"
+  },
+  {
+   "id": "G1",
+   "severity": "minor",
+   "location": "l. 368-370 ; figure 2(a), marqueurs pleins de la metrique de covariance sur softmax",
+   "claim": "On softmax no metric tested improves the global constant (Figure~\\ref{fig:geometry}(a): best ratio to the Euclidean one exactly $1$)",
+   "problem": "Le rapport 1 est atteint par la metrique de covariance au plancher f = 1, ou toutes ses valeurs propres sont egalisees : c'est un multiple de l'identite. 'Exactly 1' est donc vrai par construction, et le marqueur plein 'covariance metric' de la figure sur softmax represente l'identite. Le resultat informatif est que toute metrique testee autre que l'identite est strictement moins bonne.",
+   "evidence": "num-geometry_constants.py : sur les trois instances softmax la seule cellule de rapport 1.000000 est (covariance, f = 1), signalee 'metric is a multiple of the identity' ; covariance a f < 1 : 1.14 a 4.46 ; metrique polaire : au mieux 1.419, 1.068, 1.001 (a f = 1). muon/lab/vrmuon.py l. 655-657 le dit aussi.",
+   "proposed_fix": "On softmax no metric tested improves the global constant (Figure~\\ref{fig:geometry}(a): the ratio to the Euclidean one is $1$ only at $f=1$, where the covariance metric is the identity, and $1.001$ to $4.5$ otherwise)",
+   "confidence": "high"
+  },
+  {
+   "id": "G5",
+   "severity": "minor",
+   "location": "l. 367 et 370-371",
+   "claim": "A frozen polar metric certifies a gain only where Theorem~\\ref{thm:nfl} does not apply. [...] the certified constant improves by $1.6$ to $103$ in the polar metric",
+   "problem": "Le gain certifie porte sur la constante R_P^2/mu_P, pas toujours sur le taux certifie min{1/(3n), 3 mu_P/(16 R_P^2)} : sur l'instance limitee par la memoire le taux euclidien vaut deja 1/(3n) et ne change pas ; sur l'instance carree le facteur 103 vaut 15.5 sur le taux (plafond 1/(3n)).",
+   "evidence": "num-geometry_numbers.py, dernier bloc : ls-mem 3.333e-4 -> 3.333e-4 (x 1.0) ; ls-cond 2.570e-5 -> 1.162e-4 (x 4.5) ; ls-orth 4.297e-5 -> 6.667e-4 (x 15.5).",
+   "proposed_fix": "On least squares the certified constant improves by $1.6$ to $103$ in the polar metric ($7.6$ to $163$ in the covariance metric), worth $1$ to $15.5$ in the certified rate, which $1/(3n)$ caps;",
+   "confidence": "high"
+  },
+  {
+   "id": "G6",
+   "severity": "minor",
+   "location": "l. 380-381",
+   "claim": "the covariance metric is the best method on least squares for every draw, and on softmax for one draw of three",
+   "problem": "Les dix familles des tirages supplementaires contiennent la metrique de covariance sans amortissement seulement, alors que la metrique polaire y figure avec et sans. Sur le premier tirage softmax l'amortissement la fait passer de 18.05 a 15.05 passes : 'one draw of three' vaut pour la version non amortie, et 'the best method' pour dix familles.",
+   "evidence": "muon/experiments/exp_M8_dataseeds.py, FAMILIES (cov-metric SAGA seule) ; M1 soft-cond : cov-metric SAGA 18.05, cov-metric B-SAGA 15.05 ; M8 : tirage 1, 26.9 contre 23.4 (one-shot polar-metric B-SAGA) ; tirage 2, 35.3 contre 27.45 (soft SAGA-Muon).",
+   "proposed_fix": "the covariance metric (undamped) is the best of the ten methods on least squares for every draw, and on softmax for one draw of three.",
+   "confidence": "high"
+  },
+  {
+   "id": "G7",
+   "severity": "minor",
+   "location": "l. 381-383",
+   "claim": "the best family of every class needs $16$--$18$ (softmax) and $17$--$21$ passes (least squares) to $10^{-9}$, near the ceiling of SAGA under independent sampling, $e^{-1}$ per pass in expectation",
+   "problem": "A exactement e^-1 par passe, 1e-9 demande 20.7 passes ; les medianes mesurees (15.8 a 18.4 et 17.1 a 20.6, passe initiale comprise) sont sous ce 'plafond'. La reserve qui l'explique (borne sur l'erreur moyenne, pas sur une trajectoire) n'apparait qu'en (M7).",
+   "evidence": "ln(1e9) = 20.72 ; M1 soft-mem et ls-mem, meilleures familles par classe (num-geometry_numbers.py, bloc 'memory-limited').",
+   "proposed_fix": "to $10^{-9}$, slightly fewer than the $20.7$ passes of the memory rate of SAGA under independent sampling, $e^{-1}$ per pass in expectation (a bound on the mean error, see \\finding{M7}), since stale entries keep their error.",
+   "confidence": "medium"
+  },
+  {
+   "id": "G8",
+   "severity": "nit",
+   "location": "figure 2(a) (l. 359-361)",
+   "claim": "Filled: global constants (certified); open: $\\mu_P$ at the optimum (each at its best $f$); one marker when they coincide (least squares).",
+   "problem": "Sur soft-cond et soft-sq le marqueur plein de l'identite (10000) est recouvert par le marqueur ouvert (9659 et 9214), dessine au-dessus : on ne voit qu'un marqueur 'local' pour l'identite, alors que sa constante certifiee est la reference de la phrase de (M4). Correction dans paper/scripts/make_figP2_geometry.py (panel_constants) : decaler les deux marqueurs ou tracer le plein au-dessus quand ils se touchent.",
+   "evidence": "Agrandissement de paper/figures/figP2_geometry.png ; make_figP2_geometry.py l. 177-180 (zorder 3 pour le plein, 4 pour l'ouvert).",
+   "proposed_fix": "",
+   "confidence": "high"
+  },
+  {
+   "id": "G9",
+   "severity": "nit",
+   "location": "l. 264",
+   "claim": "ten families also on two further draws of the data",
+   "problem": "Les tirages supplementaires ne concernent que les deux instances non carrees limitees par le conditionnement.",
+   "evidence": "M8_summary.json : cles soft-cond et ls-cond seulement, graines de donnees 1 et 2 ; pour ls-orth seuls existent les caches M8_ls-orth_s1_screen/tune.pkl, sans confirmation.",
+   "proposed_fix": "ten families also on two further draws of the two non-square conditioning-limited instances;",
+   "confidence": "high"
+  }
+ ],
+ "not_checked": [
+  "Effet d'une grille de pas fine sur les familles orthogonalisees des tirages 1 et 2 : seul le cote euclidien a ete raffine (2 a 3 graines), le rapport 0.89 du constat G3 est indicatif.",
+  "Reglage complet de M1 et de M8 non relance ; pickles et M1_pass*_summary.json non ouverts (les resumes JSON avec passes par graine ont ete utilises).",
+  "Le plafond e^-1 par passe comme enonce demontre (note B4) : non redemontre dans cette dimension.",
+  "Attributions bibliographiques de B-SAGA, de l'echantillonnage preferentiel et de la metrique de covariance (autre dimension)."
+ ]
+}

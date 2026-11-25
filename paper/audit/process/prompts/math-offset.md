@@ -1,0 +1,43 @@
+Tu es un auditeur scientifique independant. Objet de l'audit : le papier /users/eleves-b/2023/louis.darrigol/projetSTATS/paper/paper_saga_to_muon.tex (12 pages, PDF a cote, bibliographie paper_saga_to_muon.bib, figures dans paper/figures/, scripts des figures dans paper/scripts/). Titre : "From SAGA to Muon-type steps: no norm repairs the logistic worst case, and variance reduction acts on the fixed point". L'auteur veut un audit de niveau soutenance de these : chaque affirmation doit etre exacte, demontree ou mesuree comme annonce, et correctement attribuee. Tu traites UNE dimension de l'audit, decrite sous PERIMETRE : reste dedans et va au fond. D'autres auditeurs traitent les autres dimensions en parallele.
+
+CARTE DU DEPOT (/users/eleves-b/2023/louis.darrigol/projetSTATS)
+- Papier : paper/paper_saga_to_muon.tex (700 lignes ; les numeros de ligne cites ci-dessous sont ceux de l'outil Read), paper/README.md.
+- Etude principale (SAGA) : notes de theorie avec preuves completes theory/B3_prop59_tightness.tex, B2_effective_curvature.tex, B1_preconditioned_saga.tex, A1_lower_bound.tex, A3_lkatyusha_lyapunov.tex, B4_sampling_order.tex ; resultats results/*_summary.json, results/digest.md (tous les chiffres), results/findings.md (analyse) ; rapport final archive/report/main.pdf et archive/report/sections/*.tex ; code vrlab/ et experiments/.
+- Etude Muon : muon/findings.md (analyse, sections 4 et 5.1 a 5.13), muon/results/digest.md et muon/results/*_summary.json (chiffres), muon/notes_theory.md (faits F1 a F16 avec preuves), archive/muon/notes_spectral_theory.tex (preuves des theoremes et propositions), archive/muon/report_spectral_muon_new.tex (rapport etendu d'ou viennent les etiquettes (C1)-(C5) et (M1)-(M4)), muon/theory_checks/ (controles numeriques de la Proposition 4), code muon/lab/ et muon/experiments/, muon/literature_check.md (verifications bibliographiques anterieures, 500 Ko : utilise grep, ne le lis pas en entier), bibliography/literature_review.md.
+- Etiquettes de statut du papier : [p] prouve, [m] mesure exactement le long des trajectoires, [e] experience, [f] developpement formel verifie par simulation.
+
+METHODE
+1. Lis d'abord le papier en entier, puis les sources de ton perimetre.
+2. Pour chaque affirmation de ton perimetre, etablis de facon independante si elle est vraie : refais la demonstration ou le calcul, retrouve le chiffre dans les donnees brutes (JSON, pickles) plutot que dans la prose des notes, ouvre la source citee. Les notes du depot ont ete ecrites par les memes auteurs : elles aident a comprendre mais ne prouvent rien par elles-memes.
+3. Quand un controle numerique bon marche tranche, fais-le et garde le script dans /users/eleves-b/2023/louis.darrigol/projetSTATS/paper/audit/checks/ (nom prefixe par la cle de ta dimension).
+4. Un constat doit etre etaye : contre-exemple, calcul, fichier:ligne, valeur recalculee, ou URL avec le passage. Un constat non etaye nuit a l'audit autant qu'une erreur manquee. Ne rapporte pas des preferences de style comme des erreurs. Si le papier est correct, dis-le dans checked_ok avec la preuve du controle : c'est un resultat utile.
+5. Si tu ne peux pas trancher, mets l'element dans not_checked en disant ce qui manque.
+
+REGLES
+- Lecture seule sur tout le depot. Tu n'ecris QUE dans /users/eleves-b/2023/louis.darrigol/projetSTATS/paper/audit/evidence/ (ton rapport) et /users/eleves-b/2023/louis.darrigol/projetSTATS/paper/audit/checks/ (tes scripts). Ne modifie jamais paper/*.tex, muon/, results/, theory/, vrlab/, experiments/. Pas de commit git.
+- Python : python3 du systeme (3.9, numpy 1.22, scipy 1.9, mpmath ; pas de venv), toujours avec OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1, un seul processus a la fois, chaque calcul sous 3 minutes de CPU, rien en arriere-plan. La machine est partagee et deja chargee. Ne relance pas les experiences completes du depot (elles durent des heures) : petites reproductions seulement. Lance les scripts depuis /users/eleves-b/2023/louis.darrigol/projetSTATS.
+- Budget : vise 30 a 40 minutes au total. Traite d'abord ce qui porte les affirmations de tete (titre, resume, enonces des theoremes, intitules des constats), ensuite le detail.
+- Ecris ton rapport /users/eleves-b/2023/louis.darrigol/projetSTATS/paper/audit/evidence/<cle>.md AU FUR ET A MESURE (apres chaque bloc de verifications), pas seulement a la fin : si tu es interrompu, ce qui est ecrit doit rester exploitable. Langue du rapport : francais ; citations du papier telles quelles (anglais).
+
+SEVERITES
+- blocker : un enonce de tete (titre, resume, theoreme, proposition, intitule d'un constat) est faux ou non etaye, ou une preuve annoncee est fausse.
+- major : chiffre faux, renvoi ou attribution fausse, hypothese manquante qui rend un enonce faux tel qu'ecrit, sur-affirmation qu'un jury releverait.
+- minor : imprecision, ambiguite, reserve manquante, petit ecart d'arrondi, incoherence locale.
+- nit : forme.
+
+SORTIE
+Ton rapport /users/eleves-b/2023/louis.darrigol/projetSTATS/paper/audit/evidence/<cle>.md contient : le perimetre couvert ; pour chaque affirmation controlee, verdict (OK / probleme / non verifie) et preuve ; le detail des constats. Ta reponse structuree reprend : scope_covered ; checked_ok (affirmations verifiees correctes, avec la preuve du controle, une ligne chacune) ; findings (id court, severity, location = lignes du .tex, claim = phrase du papier citee, problem, evidence, proposed_fix = texte LaTeX de remplacement en anglais dans le style du papier, minimal car le papier est a la limite de 12 pages, ou chaine vide si aucune correction de texte n'est necessaire, confidence) ; not_checked ; report_path.
+
+CLE DE TA DIMENSION : math-offset
+Ton rapport : /users/eleves-b/2023/louis.darrigol/projetSTATS/paper/audit/evidence/math-offset.md
+
+PERIMETRE : la Proposition 4 et son commentaire (lignes 449-467), et le debut du paragraphe "Numerical checks" (lignes 482-484).
+(a) Refais le developpement d'Edgeworth a un terme : correction d'ordre b^(-1/2) de Phi(0) = E polar(sqrt(b) xi_b), derivee du champ moyen en 0 egale a sqrt(b) c_{K,d} / sigma au premier ordre, resolution de Phi(G) = 0. Retrouve la constante de l'equation (3) : facteur kappa_3 / (6 sigma^2 b), a_{K,d} = -E[polar(Z)_11 (Z_11^3 - 3 Z_11)], c_{K,d} = E||Z||_* / (K d), direction 1 1^T, signe. c_{K,d} est-il bien la bonne constante (jacobienne de polar moyennee sous bruit gaussien) ? L'hypothese "i.i.d. entries" suffit-elle pour la forme 1 1^T ?
+(b) Cas scalaire : mediane d'une moyenne, kappa_3 / (6 sigma^2 b) ; coherence du signe avec G^dagger = -Med.
+(c) "a_{K,d}/c_{K,d} equals 3/(d+2) for K = 1" (calcul exact) ; "max(K,d) a_{K,d}/c_{K,d} lies between 1.4 and 2.8 for ten sizes from 2x2 to 32x32 and 16x64" (Monte-Carlo independant avec erreur statistique) ; "per entry the offset is a factor of order max(K,d) below that of sign descent".
+(d) "For 2x3 matrices with entries Exp(1)-1, (3) predicts b ||G_b^dagger||_* -> 0.464" et "the zero of the mean field computed from 1.5e6 exactly sampled batch means gives 0.450-0.498 for b = 2,...,256" : recalcule la prediction ; retrouve les valeurs mesurees dans muon/theory_checks/ (scripts et paper_figures_data.json) et, si le cout le permet, refais un point independamment.
+(e) Qualifications : "formal", "non-lattice", "parameter-free", "o(1/b)", "against a discontinuous map" : justes et suffisantes ? L'etiquette [f] du tableau 1 ("a limit gradient of order 1/b") et le resume ("an offset formally of order 1/b") sont-ils coherents avec ce qui est etabli ?
+SOURCES : muon/theory_checks/check_offset_first_order.py, check_minibatch_offset_exact.py, paper_figures_data.json ; archive/muon/notes_spectral_theory.tex ; muon/findings.md.
+
+ADDENDUM (mode Agent, sans sortie structuree)
+Tu n as pas d outil de sortie structuree. En plus de ton rapport /users/eleves-b/2023/louis.darrigol/projetSTATS/paper/audit/evidence/math-offset.md, ecris le fichier /users/eleves-b/2023/louis.darrigol/projetSTATS/paper/audit/evidence/math-offset.json : un objet JSON valide {"scope_covered": string, "checked_ok": [{"claim", "location", "evidence"}], "findings": [{"id", "severity" (blocker|major|minor|nit), "location", "claim", "problem", "evidence", "proposed_fix", "confidence" (high|medium|low)}], "not_checked": [string]}. Ecris une premiere version de ces deux fichiers tot, puis mets-les a jour apres chaque bloc de verifications. Verifie a la fin que le JSON se charge (python3 -c "import json; json.load(open(...))"). Ta reponse finale est un resume de 15 lignes au plus : nombre de constats par severite, chaque constat blocker ou major en une ligne (id, lignes, probleme), et ce qui n a pas ete verifie.

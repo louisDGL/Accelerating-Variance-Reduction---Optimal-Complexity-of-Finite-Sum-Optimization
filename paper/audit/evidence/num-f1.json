@@ -1,0 +1,184 @@
+{
+ "scope_covered": "Chiffres et protocole de la partie SAGA de paper/paper_saga_to_muon.tex : resume (l. 94-96), tableau 1 ligne 1 (l. 150-151), protocole (l. 222-226), legende et contenu de la figure 1 (l. 283-286, figR1_classical.png, make_figR1_classical.py), constats (C1)-(C5) (l. 290-331), ordre de retrait des inegalites (vrlab/analysis.py, experiments/exp_B3_tightness.py) et reserve des Limitations (l. 667-668). Tous les chiffres listes dans la consigne ont ete retrouves dans les JSON, et ceux de B3, B1, GammaDelta, B2 (alignement), figure 1(a) et trois problemes de B3_families ont ete recalcules par de petites reproductions (les caches B3.pkl, B1.pkl, B3_families.pkl sont absents du depot). Scripts : paper/audit/checks/num-f1_*.py.",
+ "checked_ok": [
+  {
+   "claim": "exact contraction exponent 3.2-3.7 times the certified one for kappa<=10^2, 19-220 at kappa=10^5, 3.2 to 220 overall",
+   "location": "l. 95, 150, 290-291, fig. 1(b)",
+   "evidence": "B3_summary.json : moyennes sur 5 graines [3.172, 3.710] (kappa<=1e2), 18.95/100.3/220.4 (kappa=1e5), min global 3.172 ; reproduction independante de 75 runs (num-f1_b3_rerun.py) identique au JSON a 1.3e-7 ; la pente realisee de -log D donne les memes facteurs."
+  },
+  {
+   "claim": "for kappa>=10^4, I2 and I4 carry 77-96% of the logarithmic gap",
+   "location": "l. 95-96, 151, 292-293",
+   "evidence": "I2+I4 en ordre B, moyennes sur graines : 0.7691 a 0.9606 (6 configurations) ; par graine 0.748-0.961 ; fenetre tardive 20-100 : 0.83-0.97."
+  },
+  {
+   "claim": "for kappa<=10^2, where the memory term is active, I1 (39-44%) and I2 (32-37%)",
+   "location": "l. 293-294",
+   "evidence": "ordre B : I1 0.3923-0.4428, I2 0.3170-0.3651 ; terme memoire actif ssi kappa < 9n/16 = 562.5 (verifie pour kappa = 10, 100). Valable pour l'ordre B seulement (voir N1-ORDER)."
+  },
+  {
+   "claim": "I3 is nearly tight (at most 0.6%)",
+   "location": "l. 294",
+   "evidence": "max des moyennes de la part I3 en ordre B sur les 15 configurations : 0.54% (kappa=10, alpha=1) ; 0.75% pour une graine isolee ; r_var >= 0.958."
+  },
+  {
+   "claim": "first factor 2.45-2.62 along the runs, the second reaches 81, product reproduces 91-96% of the speed-ups (kappa>=10^4)",
+   "location": "l. 296-297",
+   "evidence": "avec les moyennes geometriques de fenetre de B3_summary.json : (1-(L_eff/R2)(r_sq/4+3/8))/(3/8) = 2.4509 a 2.6244 ; mu_eff/mu max 81.34 ; produit/speed-up 0.9060 a 0.9635. Recalcul par enregistrement : facteur 2.36-2.63."
+  },
+  {
+   "claim": "eight data sets of the designs of na2023hessian ; gap 13 to 198 at kappa=10^5",
+   "location": "l. 297-299",
+   "evidence": "B3_families_summary.json : 8 jeux (P x4, L x2, R x2) ; speed-up a kappa=1e5 de 12.64 a 198.42 ; I2+I4 0.6400-0.9834 pour kappa>=1e4 ; trois problemes relances (198.42, 12.64, 16.77 : identiques au JSON)."
+  },
+  {
+   "claim": "mu_eff reaches the smallest Hessian eigenvalue at kappa=10n for alpha in {0,1}",
+   "location": "l. 300-303",
+   "evidence": "num-f1_b2_alignment.py, graines 0-4, 60 passes : part de l'erreur sur le vecteur propre le plus plat 0.997-0.9997, mu_eff/lmin(H*) = 1.001-1.011 (alpha=0,1) ; alpha=2 : 0.002 et 1.285. Le depot n'avait qu'une execution par configuration."
+  },
+  {
+   "claim": "Rewritten with mu_eff and L_eff, Proposition 5.9 recovers 59-96% of the logarithmic gap for kappa>=10^4 (Figure 1(a))",
+   "location": "l. 303-304",
+   "evidence": "part I4+I2 de l'ordre A (= taux a posteriori avec mu_eff, L_eff) : 0.5898 a 0.9636 (JSON et reproduction) ; figure 1(a) recalculee : 0.91 a kappa=1e4, alpha=1."
+  },
+  {
+   "claim": "loopless Katyusha : gap 2.8 and 4.1 at kappa=10^3, 10^4, against 5.2 and 15.7 for Proposition 5.9",
+   "location": "l. 304-306",
+   "evidence": "recalcul depuis results/A3.pkl : 2.775 et 4.117 (3 graines, enregistrements Psi>=1e-10 ; 2.789 et 4.134 sur passes 2-20 ; 3.70 et 8.23 contre le taux du theoreme 11) ; SAGA alpha=1 : 5.155 et 15.73."
+  },
+  {
+   "claim": "best step and Lyapunov weight gain at most a factor 3 (4/3 when kappa>=9n/16) ; 17% at kappa=10^3 ; largest admissible step gamma R^2 < 1/2",
+   "location": "l. 318-321",
+   "evidence": "num-f1_gamma_delta.py : optimum par balayage de (g, c) : gain 2.994 quand kappa->1 (n=1000), 1.05-1.333 pour kappa>=9n/16, 1.169 a kappa=1e3 (JSON 1.1691) ; admissibilite c>2 et g(1+c/2)<1 => g<1/2."
+  },
+  {
+   "claim": "P = Sigma_hat + lambda I raises the observed exponent per pass from 1.00 to 1.11 (alpha=1) and from 0.61 to 1.26 (alpha=2), while the certified bound ranks it below the identity",
+   "location": "l. 327-329",
+   "evidence": "reproduction num-f1_b1_rerun.py (5 graines, pente de log D_P sur passes 2-20) : 1.0003->1.1137 et 0.6104->1.2569, identiques a B1_summary.json ; exposants certifies par passe 0.1875 contre 0.0369 et 0.0515 ; kappa_P = 5083 et 3639. Reserve : a alpha=1, 4 graines sur 5 (9 sur 10 avec dix graines, 1.000->1.098)."
+  },
+  {
+   "claim": "tightness of I2 from 0.13 to 0.33, of I4 from 0.42 to 0.017",
+   "location": "l. 330-331",
+   "evidence": "alpha=1 : r_coco 0.1289->0.3288, r_sc 0.4233->0.01692 (JSON et reproduction)."
+  },
+  {
+   "claim": "protocole : n=1000, d=50, kappa de 10 a 1e5, spectres j^(-alpha), alpha dans {0,1,2}, cinq graines, passes 2-20 ; ordre de retrait I5, I4, I2, I3, I1",
+   "location": "l. 222-226",
+   "evidence": "experiments/exp_B3_tightness.py:20-25, 133, 151-152 ; vrlab/analysis.py:22-35, 123-149 (chaine exact<=I1<=I3<=I2<=I4<=I5, parts = differences d'exposants moyens) ; 181 enregistrements par run dans la fenetre, aucun ecarte par V>=1e-18."
+  },
+  {
+   "claim": "identite (4) : E_t[V_{t+1}] = c_D D + c_M delta M avec les formules du papier",
+   "location": "l. 217-222",
+   "evidence": "verifiee algebriquement et numeriquement sur les etats instrumentes de 4 configurations (ecart relatif <= 4e-16, num-f1_repr_and_lower.py)."
+  },
+  {
+   "claim": "legende de la figure 1 : (a) borne certifiee, borne a posteriori le long d'une execution, distance moyenne de cinq executions ; (b) rapport des exposants ; (c) parts, alpha=1, moyenne et etendue sur cinq graines",
+   "location": "l. 283-286",
+   "evidence": "make_figR1_classical.py lu ; courbes de (a) recalculees (num-f1_fig1a.py : 3.68e5->5.65e4, 2.08e3->6.8e-8, 1.95e3->7.11e-9, digest 7.11e-09) ; points de (b) et (c) = JSON reproduit ; image conforme."
+  },
+  {
+   "claim": "Limitations : the shares of (C2) depend on the order in which the inequalities are undone",
+   "location": "l. 667-668",
+   "evidence": "exact : B3_summary.json contient les deux ordres (shares, shares_orderA) et ils different (voir N1-ORDER)."
+  }
+ ],
+ "findings": [
+  {
+   "id": "N1-STEP4",
+   "severity": "major",
+   "location": "l. 320-321",
+   "claim": "SAGA still converges at $\\gamma R^2=4$, eight times the largest step the proof admits.",
+   "problem": "A gamma R^2 = 4 SAGA ne converge pas sur ce probleme (kappa=1e3, alpha=1, n=1000) : la distance au carre chute pendant environ 40 passes puis stagne vers 4.5% de sa valeur initiale. Le chiffre source (exposant 0.027 par passe, GammaDelta_summary.json) est une pente ajustee sur les passes 2-40 de runs de 40 passes (experiments/exp_gamma_delta.py:23, 38-44) et ne capte que la fin du transitoire. Le plus grand pas teste qui converge est gamma R^2 = 2, quatre fois la limite 1/2 de la preuve.",
+   "evidence": "paper/audit/checks/num-f1_gamma_delta.py et num-f1_gamma_delta_long.py : memes graines 0-2, pentes passes 2-40 = 0.0204, 0.0357, 0.0260 (identiques a GammaDelta.pkl), puis pentes passes 100-400 = -0.0008, -0.0003, +0.0002 par passe ; graine 0 sur 2000 passes : D = 19.6, 11.0, 26.9, 18.2, 32.2 aux passes 100, 200, 400, 1000, 2000 (mediane 22, min 5.3, max 142, D_0 = 486) ; graines 1, 2 sur 1000 passes : mediane 22. A gamma R^2 = 2 : D = 4.2e-15, 5.3e-16, 1.3e-15 a 60 passes. results/findings.md:230 disait 'remains stable', pas 'converges'.",
+   "proposed_fix": "and SAGA still converges at $\\gamma R^2=2$, four times the largest step the proof admits (at $\\gamma R^2=4$ it stalls).",
+   "confidence": "high"
+  },
+  {
+   "id": "N1-LOWER",
+   "severity": "major",
+   "location": "l. 321-324",
+   "claim": "On $n$ identical components $\\frac12(\\mu\\theta_1^2+R^2\\theta_2^2)$ SAGA with any constant step needs at least $\\frac{\\kappa-1}4\\log\\frac1{2\\varepsilon}$ iterations to bring $\\E\\norm{\\theta_t}^2$ below $\\varepsilon\\norm{\\theta_0}^2$",
+   "problem": "Hypothese manquante : l'enonce n'est vrai que pour un point de depart a coordonnees egales, theta_0 = (r, r) (et eps < 1/2), comme dans la Prop. B3-lower de la note (borne ((kappa-1)/(kappa+1))^{2t} min{theta_{0,1}^2, theta_{0,2}^2}). Tel qu'ecrit, sans condition sur theta_0, il est faux. (En bordure du perimetre num-f1 : enonce prouve, pas un chiffre.)",
+   "evidence": "theory/B3_prop59_tightness.tex:406-412 ; contre-exemple paper/audit/checks/num-f1_repr_and_lower.py : theta_0 = (0,1), gamma = 1/R^2, z_i^(0) = f_i'(theta_0) donne theta_1 = 0 exactement (une iteration au lieu de 1552 pour kappa = 1e3, eps = 1e-3).",
+   "proposed_fix": "SAGA with any constant step, started from $\\theta_0=(r,r)$, needs at least $\\frac{\\kappa-1}4\\log\\frac1{2\\varepsilon}$ iterations",
+   "confidence": "high"
+  },
+  {
+   "id": "N1-45",
+   "severity": "minor",
+   "location": "l. 320",
+   "claim": "whereas the observed exponent is $4.5$ times the best certificate",
+   "problem": "4.5 est le rapport de l'exposant observe au certificat au pas du livre avec Delta optimise (0.9663/0.2156 = 4.48). Le 'best certificate' de la phrase (pas et poids optimaux, celui qui gagne 17%) vaut 0.2192 par passe et le rapport est 4.41. Incoherent aussi avec les chiffres voisins du papier : 5.2/1.17 = 4.4.",
+   "evidence": "results/GammaDelta_summary.json : empirical 0.9663/pass (gamma R^2 = 1/4), certified 0.2156 (gamma R^2 = 1/4, Delta optimise), optimal_within_proof.rate = 2.192e-4/iter ; num-f1_gamma_delta.py recalcule 4.481 et 4.408.",
+   "proposed_fix": "whereas the observed exponent is $4.4$ times the best certificate",
+   "confidence": "high"
+  },
+  {
+   "id": "N1-ORDER",
+   "severity": "minor",
+   "location": "l. 292-294, 667-668 (et 95-96, 150-151)",
+   "claim": "for $\\kappa\\le10^2$, where the memory term is active, I1 ($39$--$44\\%$) and I2 ($32$--$37\\%$) do ; the shares of \\finding{C2} depend on the order in which the inequalities are undone",
+   "problem": "La dependance a l'ordre est signalee mais son ampleur ne l'est pas, alors qu'elle renverse la phrase sur kappa <= 1e2 : dans l'autre ordre calcule par les auteurs (ordre A : I4, I2, I3, I1 puis I5), I2 porte exactement 0% et I5 56-61% pour kappa <= 1e2 ; pour kappa >= 1e4, I2+I4 portent 59-96% au lieu de 77-96% (0.59 a kappa=1e4, alpha=0) ; I3 monte a 6.3%. Le chiffre du resume et du tableau 1 est le plus favorable des deux, et (C3) cite 59-96% pour la meme quantite sans faire le lien.",
+   "evidence": "results/B3_summary.json, cle shares_orderA (digest.md:50-67) ; recalcul num-f1_b3_summary.py et reproduction num-f1_b3_rerun.py : I2+I4 ordre A pour kappa>=1e4 = [0.5898, 0.9636] ; I2 ordre A pour kappa<=1e2 = 0 ; I5 ordre A = [0.557, 0.611].",
+   "proposed_fix": "the shares of \\finding{C2} depend on the order in which the inequalities are undone (in the other order tested, I2 and I4 carry $59$--$96\\%$ for $\\kappa\\ge10^4$, and I5, not I2, $56$--$61\\%$ for $\\kappa\\le10^2$),",
+   "confidence": "high"
+  },
+  {
+   "id": "N1-FAM",
+   "severity": "minor",
+   "location": "l. 297-298",
+   "claim": "On eight data sets of the designs of \\cite{na2023hessian}, I2 and I4 carry $64$--$98\\%$ of the gap",
+   "problem": "La plage 64-98% ne vaut que pour kappa >= 1e4 (16 problemes) ; sur les cinq valeurs de kappa elle est 37-98% (ordre B). La phrase ne reprend pas le qualificatif.",
+   "evidence": "results/B3_families_summary.json, num-f1_b3_families.py : kappa>=1e4 : [0.6400, 0.9834] ; tous kappa : [0.3685, 0.9834].",
+   "proposed_fix": "I2 and I4 carry $64$--$98\\%$ of the gap for $\\kappa\\ge10^4$",
+   "confidence": "high"
+  },
+  {
+   "id": "N1-83",
+   "severity": "minor",
+   "location": "l. 294-296 (repris l. 311)",
+   "claim": "In \\eqref{eq:saga-repr} I1 and I2 together contribute at most a factor $8/3$",
+   "problem": "Vrai pour le coefficient c_D seulement. Dans c_M de la meme equation, I1 (avec I3) contribue le facteur (1 - (2/3) r_sq r_var)/(1/3), qui va jusqu'a 3 : l'enonce n'est exact que pour le terme de parametre (celui qui est actif pour kappa >= 1e4).",
+   "evidence": "calcul direct sur (4) ; num-f1_repr_and_lower.py : facteur de c_M mesure entre 1.97 et 3.00 (2.76-3.00 a kappa=1e5, alpha=2), facteur de c_D entre 2.35 et 2.61 (<= 8/3).",
+   "proposed_fix": "In the coefficient $c_D$ of \\eqref{eq:saga-repr} I1 and I2 together contribute at most a factor $8/3$",
+   "confidence": "medium"
+  },
+  {
+   "id": "N1-WINDOW",
+   "severity": "minor",
+   "location": "l. 290-291 (et 95, 150, 667-668)",
+   "claim": "The exact contraction exponent is $3.2$--$3.7$ times the certified one for $\\kappa\\le10^2$ and $19$--$220$ times at $\\kappa=10^5$",
+   "problem": "Les facteurs dependent de la fenetre (passes 2-20), reserve absente de (C1) et des Limitations. A kappa = 1e5 les runs sont loin d'avoir converge (alpha=2 : E D_t = 878 apres 100 passes, 8% de D_0) et mu_eff decroit le long du run : sur les passes 20-100 les facteurs sont 11.3, 71.6, 186.6 au lieu de 18.9, 100.3, 220.4. Pour kappa <= 1e2 rien ne change.",
+   "evidence": "results/B3_summary.json, cle speedup_late_20_100 (digest.md:72-88) : kappa=1e5 : 186.57, 71.64, 11.29 ; kappa<=1e2 : 3.17-3.72.",
+   "proposed_fix": "the shares of \\finding{C2} depend on the order in which the inequalities are undone and the factors of \\finding{C1} on the window ($11$--$187$ at $\\kappa=10^5$ over passes 20--100),",
+   "confidence": "high"
+  },
+  {
+   "id": "N1-SEEDS",
+   "severity": "minor",
+   "location": "l. 225-226, 285-286",
+   "claim": "five seeds, passes 2--20 ; (b) Exact over certified contraction exponent (passes 2--20, five seeds)",
+   "problem": "Les cinq graines sont des graines d'echantillonnage sur un seul tirage de donnees par alpha, et les plages de (C1) sont des plages, sur les configurations, de moyennes sur cinq graines. Par execution les facteurs vont de 2.90 a 4.73 pour kappa <= 1e2 (cite 3.2-3.7) et de 18.9 a 223.9 a kappa = 1e5 ; sur deux autres tirages du meme generateur, 14.0 a 185 a kappa = 1e5.",
+   "evidence": "experiments/exp_B3_tightness.py:36 (seed=0 pour les donnees), :160 (nanmean sur les graines) ; num-f1_b3_rerun.py (plages par graine) ; B3_families_summary.json, famille C (dseed 1, 2).",
+   "proposed_fix": "five sampling seeds on one data set per $\\alpha$, passes 2--20.  [caption] (b) Exact over certified contraction exponent (passes 2--20, mean of five seeds) against $\\kappa$.",
+   "confidence": "high"
+  },
+  {
+   "id": "N1-C5ALPHA",
+   "severity": "nit",
+   "location": "l. 330-331",
+   "claim": "(tightness of I2 from $0.13$ to $0.33$, of I4 from $0.42$ to $0.017$)",
+   "problem": "Ces quatre valeurs sont celles de alpha = 1 ; la phrase precedente donne alpha = 1 et alpha = 2 (pour alpha = 2 : 0.019 -> 0.19 et 0.79 -> 0.0094, meme sens).",
+   "evidence": "results/B1_summary.json (r_coco_geomean, r_sc_geomean) et reproduction num-f1_b1_rerun.py.",
+   "proposed_fix": "(tightness of I2 from $0.13$ to $0.33$, of I4 from $0.42$ to $0.017$, $\\alpha=1$)",
+   "confidence": "high"
+  }
+ ],
+ "not_checked": [
+  "paper/scripts/make_figR1_classical.py n'a pas ete execute tel quel (results/B3.pkl absent, reconstruction documentee dans paper/README.md:27) ; son contenu a ete recalcule par mes scripts.",
+  "Famille L (etiquettes remises a l'echelle) et la plupart des 40 problemes de B3_families : lus dans le JSON seulement (3 problemes P/R relances) ; la valeur 98% (L, forte coherence, kappa=1e5) n'est verifiee que dans le JSON.",
+  "L-Katyusha non relance (instrumentation en O(n^2 d)) : recalcul depuis results/A3.pkl seulement.",
+  "Enonces de theorie et attributions des lignes 290-331 hors chiffres : 'global strong-convexity constant ... exactly lambda', 'every P has kappa_P >= kappa', citations (hofmann2015variance pour le pas optimal, arjevani2016lower, na2023hessian, dragomir2021fast), et le paragraphe polaire l. 309-315 (dont 'about a factor 4' attribue a shulgin2026quadratic)."
+ ],
+ "report_path": "/users/eleves-b/2023/louis.darrigol/projetSTATS/paper/audit/evidence/num-f1.md"
+}

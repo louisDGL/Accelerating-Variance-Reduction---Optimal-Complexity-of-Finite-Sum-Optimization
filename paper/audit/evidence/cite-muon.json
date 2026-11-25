@@ -1,0 +1,211 @@
+{
+ "scope_covered": "Bibliographie, groupe Muon 2024-2026 : 17 cles (bernstein2024old, chen2026when, do2026muon, hird2025quantifying, huang2026muon, jawanpuria2026constant, jiang2026adaptive, jordan2024muon, lau2025polargrad, li2026implicit, liu2025marsm, ma2026preconditioning, paquette2026phases, shulgin2026quadratic, vasudeva2025muon, xie2026muon, zhu2026short). Pour chacune : entree .bib verifiee (API arXiv, JMLR, billet), toutes les phrases du papier qui la citent, et tous les renvois precis ouverts dans le PDF de la version indiquee (Eq. (17) et rayon de Shulgin et al. ; Eq. (8), Theoreme 3, Lemme 4 de Jawanpuria et al. ; Proposition 7 de Hird-Livingstone ; Lemme H.1 et Theoreme 4.10 de Li-Tang-Zou ; Corollaire 3.1 et Theoreme 3.2 de Huang-Pu-Johansson ; Theoreme 1.3 et Proposition 6.2 de Do-Dereich-Jentzen ; Propositions 3.1 de Xie et de Chen et al.). Point supplementaire : schedule des executions de reference de Muon (billet et depots modded-nanogpt, cifar10-airbench, Muon) et fidelite de 'Muon's own recipe'. Deux controles numeriques : paper/audit/checks/cite-muon_ray_factor4.py et cite-muon_linear_cooldown.py.",
+ "checked_ok": [
+  {
+   "claim": "Les 16 entrees arXiv du groupe (bernstein2024old, chen2026when, do2026muon, huang2026muon, jawanpuria2026constant, jiang2026adaptive, lau2025polargrad, li2026implicit, liu2025marsm, ma2026preconditioning, paquette2026phases, shulgin2026quadratic, vasudeva2025muon, xie2026muon, zhu2026short, et arXiv:2312.04898 pour hird2025quantifying) existent avec le titre, les auteurs et l'annee du .bib",
+   "location": "paper_saga_to_muon.bib",
+   "evidence": "API arXiv export.arxiv.org/api/query?id_list=... du 2026-11-20 : 16 entrees, titres et auteurs identiques ; versions courantes : 2409.20325v2, 2610.31728v1, 2608.04607v1, 2312.04898v2, 2611.18124v1, 2610.27747v1, 2602.08232v1, 2505.21799v4, 2602.11557v2, 2510.21800v3, 2601.13474v1, 2605.09552v2, 2610.30280v1, 2510.22980v3, 2609.32861v1, 2602.05304v2"
+  },
+  {
+   "claim": "hird2025quantifying : Journal of Machine Learning Research 26, 1-51, 2025",
+   "location": ".bib ; l. 155, 350-351",
+   "evidence": "jmlr.org/papers/v26/23-1633.html : 'Max Hird, Samuel Livingstone; 26(119):1-51, 2025'"
+  },
+  {
+   "claim": "jordan2024muon : auteurs, titre, annee, URL",
+   "location": ".bib ; l. 116",
+   "evidence": "Section 'Citation' du billet kellerjordan.github.io/posts/muon/ (date du billet : December 8, 2024) : meme BibTeX (Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker Newhouse, Jeremy Bernstein)"
+  },
+  {
+   "claim": "Muon's five Newton--Schulz steps (ns5, normalization constant $\\epsilon=10^{-7}$), Nesterov momentum",
+   "location": "l. 116, 513-514",
+   "evidence": "Billet : 'def newtonschulz5(G, steps=5, eps=1e-7)', 'X /= (X.norm() + eps)' ; 'using Nesterov-style momentum for Muon works a bit better ... the default in the public Muon implementation' ; README du depot Muon : 'default values of momentum (0.95), nesterov (True), and ns_steps (5)'"
+  },
+  {
+   "claim": "Eq. (17) of shulgin2026quadratic = identite (2) du papier",
+   "location": "l. 227-231",
+   "evidence": "arXiv:2610.30280v1, Theoreme 3, Eq. (17) : f(X+)/f(X) = 1 - alpha(2-alpha)p(X), alpha = gamma tr(H), p(X) = ||HX||_*^2/(tr(H) tr(HXX^T)) ; avec gamma = 1/L, p = muPL/tr(H) et J = tr(H) (rang plein) on retrouve 1 - (muPL/L)(2 - J/L). Recalcul fait."
+  },
+  {
+   "claim": "Eq. (8) of jawanpuria2026constant",
+   "location": "l. 231",
+   "evidence": "arXiv:2610.27747v1, annexe C, Eq. (8) : f(X_{t+1}) = f(X_t) - alpha ||G_t||_*^2 + (alpha^2/2)||G_t||_*^2 tr(U_t^T H U_t), 'the exact identity' ; identique a (2) avec alpha = 1/L, J = tr(U^T H U)"
+  },
+  {
+   "claim": "the values $J=\\Lop$, $\\muPL=\\muop$ give the certified factor $1-1/\\kop$ \\cite[Theorem~3]{jawanpuria2026constant}",
+   "location": "l. 231-232",
+   "evidence": "Theoreme 3 : f(X_{t+1}) <= (1 - u(2-u) lambda_min/tr(H)) f(X_t), u = alpha tr(H) ; a u = 1 : 1 - lambda_min/tr(H) = 1 - muop/Lop pour n >= d (Remark 2 : tr_n(H) est la constante de regularite spectrale ; la preuve donne l'enonce avec tr_n(H))"
+  },
+  {
+   "claim": "functions that no linear preconditioner improves exist in every dimension \\cite[Proposition~7]{hird2025quantifying}",
+   "location": "l. 350-351",
+   "evidence": "Version JMLR, Proposition 7 : 'There exist distributions satisfying Assumption 6 with arbitrary condition number kappa >= 1 in arbitrary dimension d >= 1 for which any non-orthogonal linear preconditioner will cause the condition number to increase.' (Proposition 1 dans arXiv v2)"
+  },
+  {
+   "claim": "$\\polar(rx^\\top)=rx^\\top/(\\norm r\\norm x)$ \\cite[Lemma~H.1]{li2026implicit}",
+   "location": "l. 438-439",
+   "evidence": "arXiv:2602.11557v2 (et v1), Lemme H.1 'Equivalence of Spectral and Frobenius Descent for Single-Sample' : gradient de rang un sigma_1 u v^T, Delta_Spec = Delta_Frob = u v^T"
+  },
+  {
+   "claim": "batch-one spectral descent with reshuffling has another limit direction on separable data \\cite[Theorem~4.10]{li2026implicit}",
+   "location": "l. 444-445",
+   "evidence": "v2, Theoreme 4.10 : per-sample SignSGD / Normalized-SGD, random reshuffling, jeu Orthogonal Scale-Skewed : W_t/||W_t||_F -> Wbar/||Wbar||_F, 'a fundamental difference between per-sample methods and full-batch gradient descent' ; section H.1 : Spectral-SGD = Normalized-SGD a batch un"
+  },
+  {
+   "claim": "SVRG in polar steps ; SVRG anchors under reshuffling, without linear rate ; finite-sum estimators in fixed-length polar steps ; descent inequalities with SVRG anchors (li2026implicit)",
+   "location": "l. 168, 175, 654, 658-660",
+   "evidence": "v2 : Algorithme 1 (random reshuffling, snapshot par epoque, estimateur 'SVRG-style'), normes de Schatten dont la spectrale (phi_spec(G) = U V^T), eta_t = c t^-a ; Theoreme 4.7 et Corollaire 4.8 (taux polynomiaux) ; Lemme C.13 (ecart de l'estimateur), Lemme F.1 (inegalite de descente)"
+  },
+  {
+   "claim": "Muon with momentum under shuffling reaches stationarity when the momentum coefficient tends to one with $n$ and the horizon, and fails for every fixed coefficient on some finite sum \\cite[Corollary~3.1, Theorem~3.2]{huang2026muon}",
+   "location": "l. 176, 660-662",
+   "evidence": "arXiv:2611.18124v1 : Corollaire 3.1 et Remark 3.1 (1 - beta = Theta((L Delta_f/(N^2 D_0 T))^(1/3)), O(eps^-3)) ; Theoreme 3.2 ('Fix beta in [0,1) ...', ||grad f(W_t)||_* >= 1/N pour toute suite de permutations, somme finie convexe sur matrices 2x2)"
+  },
+  {
+   "claim": "For Muon in dimension one, \\cite{do2026muon} prove non-convergence under skewed bounded data and show that every limit is a zero of the mean field",
+   "location": "l. 162-163, 465-467",
+   "evidence": "arXiv:2608.04607v1 : Theoreme 1.3 (theta scalaire, X bornes i.i.d., E[(X-EX)^3] != 0, limsup E[min{1,|Theta_n - E X|}] > 0 pour presque tout M) ; Proposition 6.2 'MUON-type limit theorem' : convergence L^1 vers vartheta implique f(vartheta) = 0"
+  },
+  {
+   "claim": "Noise smooths the polar map \\cite{xie2026muon,chen2026when} ; the derivative of the mean field at $0$ is $\\sqrt b\\,c_{K,d}/\\sigma$ to first order",
+   "location": "l. 160, 460-461",
+   "evidence": "arXiv:2609.32861v1, Proposition 3.1 : D Psi_sigma(0) = (c/sigma) Id, c = E||Z||_*/(mn), 'Gaussian noise smooths the polar map' ; arXiv:2610.31728v1, Proposition 3.1 : E[msgn(G + sigma Xi)] = (c_d/sigma) G + O(||G||_F^3/sigma^3), c_d = d^-2 E||Xi||_* ; bruit sigma/sqrt(b) pour une moyenne de b echantillons"
+  },
+  {
+   "claim": "Its theory is recent (least squares \\cite{shulgin2026quadratic,vasudeva2025muon}, gradient noise \\cite{xie2026muon,chen2026when,paquette2026phases})",
+   "location": "l. 118-119",
+   "evidence": "Vasudeva et al. v3 : SpecGD, modeles lineaires et bilineaires, perte quadratique en population ; Paquette et al. v2 : Muon stochastique sur moindres carres matriciels de grande dimension, batch effectif B(1+beta)/(1-beta) ; Shulgin et al. : quadratiques matricielles"
+  },
+  {
+   "claim": "published variance-reduced versions are mostly momentum-based \\cite{liu2025marsm} ; Momentum-based variance reduction for Muon",
+   "location": "l. 120, 168, 496, 539",
+   "evidence": "arXiv:2510.21800v3, resume : 'MARS-M, a new optimizer that integrates MARS-style variance reduction with Muon' ; section 3 : MARS construit sur STORM (moment recursif)"
+  },
+  {
+   "claim": "nuclear-scaled length = PolarGrad \\cite{lau2025polargrad} ; floors of fixed lengths \\cite{lau2025polargrad,jawanpuria2026constant}",
+   "location": "l. 205-206, 169",
+   "evidence": "arXiv:2505.21799v4 : section 3.3, X_{k+1} = X_k - gamma_k tr(H_k) U_k avec tr(H_k) = norme nucleaire ; Theoreme 3.4 et commentaire : 'if the learning rate is constant, convergence plateaus at a floor' ; Jawanpuria et al., Lemme 4 (non-convergence a pas constant)"
+  },
+  {
+   "claim": "Geometric schedules of fixed lengths ... for Muon \\cite{ma2026preconditioning} ; published for exact gradients, also for Muon and spectral descent",
+   "location": "l. 174-175, 657-658",
+   "evidence": "arXiv:2601.13474v1 : Muon simplifie sans moment, eta_t = C_eta lambda_max rho^t avec 1/2 <= rho < 1 (Theoremes 1 et 3), convergence lineaire ; 'the length of each movement ... must decrease geometrically over iterations'"
+  },
+  {
+   "claim": "a Euclidean staleness lemma for SAG and SAGA tables \\cite{zhu2026short}",
+   "location": "l. 659-660",
+   "evidence": "arXiv:2602.05304v2 : Lemme 3.1 (Bounded Staleness), Lemme 3.3 (Gradient Error) : ||e_k||^2 <= 4 L^2 tau alpha^2 U_k 'for both SAG and SAGA'"
+  },
+  {
+   "claim": "$\\Phi_\\xi(G)\\in\\partial\\psi_\\xi(G)$ \\cite{duchi2012randomized,jiang2026adaptive}",
+   "location": "l. 246-247",
+   "evidence": "arXiv:2602.08232v1, section 4.1, Eq. (6) : Psi(S;L) = E||S + LZ||_* et son gradient E[argmax_{||X||op<=1} <S+LZ,X>] = E polar(S+LZ) (bruit gaussien ; le cas general est l'extension du papier)"
+  },
+  {
+   "claim": "without momentum this is steepest descent for the spectral norm \\cite{carlson2015stochastic,bernstein2024old}",
+   "location": "l. 117-118",
+   "evidence": "arXiv:2409.20325v2, Proposition 5 : 'Shampoo [without accumulation] as steepest descent under the spectral norm', mise a jour U V^T ; billet Muon : 'Muon with momentum turned off as ... accumulation-free Shampoo'"
+  },
+  {
+   "claim": "(controle numerique) dans la queue des trajectoires generiques sur moindres carres, l'exposant exact du pas nucleaire vaut environ 4 fois le certifie",
+   "location": "l. 313-314",
+   "evidence": "paper/audit/checks/cite-muon_ray_factor4.py : exposant de queue / certifie = 4.02 a 4.23 (rayon de Shulgin et al., Cor. 5 : 4.01 a 4.06) pour 20x20, 40x20, 100x100, spectres k^-1 et k^-2 ; voir F2 pour l'attribution et la portee"
+  },
+  {
+   "claim": "(controle numerique) le point geometrique q = 0.8, lr_0 = 0.3 avec table SAGA atteint le plancher d'arrondi sur ls-cond",
+   "location": "l. 535, Fig. 4(a)",
+   "evidence": "paper/audit/checks/cite-muon_linear_cooldown.py : distance carree relative finale 2.37e-29 [1.43e-29, 3.79e-29] (graines 10-12), contre 2.3e-29 dans le papier"
+  }
+ ],
+ "findings": [
+  {
+   "id": "CM-1-recipe-schedule",
+   "severity": "major",
+   "location": "l. 102-103 (abstract), 131-132, 173 (Table 1), 506-515 (title of Section 3.3 and Eq. (4)), 520 (caption of Fig. 4), 678-679 (conclusion); also l. 4 and paper/README.md l. 11",
+   "claim": "\\emph{Muon's own recipe.} Steps of fixed length on a geometric cooldown of the learning rate, fed by a SAGA table, follow the schedule down to rounding error [...] / Muon does not shrink its steps with the estimator: it keeps steps of fixed length and cools the learning rate down. We feed that recipe with the SAGA estimator, [...] $\\mathrm{lr}_t=\\mathrm{lr}_0\\,q^{tb/n}$ [...] with or without Nesterov momentum $0.9$ (\\emph{Muon's recipe}: ns5 with momentum)",
+   "problem": "La source citee (jordan2024muon : billet et depots de reference) ne contient aucun schedule geometrique. Le billet ne prescrit aucun schedule (taux eta constant dans la definition ; aucune occurrence de 'learning rate', 'schedule', 'decay', 'cooldown'). Les executions de reference refroidissent LINEAIREMENT a horizon fini : constant puis lineaire vers zero (NanoGPT), lineaire vers zero (CIFAR-10), constant puis lineaire vers 0.1x (records 2025). Sont fideles a Muon : la longueur fixe, l'existence d'un refroidissement, ns5 (5 pas, eps = 1e-7), le moment de Nesterov. Sont des choix du papier, non signales : la forme geometrique q^(tb/n), l'horizon infini, le coefficient 0.9 (defaut de Muon : 0.95). Le choix n'est pas neutre : avec le refroidissement lineaire de reference, la meme table SAGA s'arrete entre 1e-6 et 1e-3 au lieu de l'arrondi (reproduction ci-dessous). A la limite du blocker : l'expression figure dans le resume, le titre de la section 3.3, la table 1, la legende de la figure 4 et la conclusion ; la correction est de redaction, le resultat pour le refroidissement geometrique restant vrai.",
+   "evidence": "(1) kellerjordan.github.io/posts/muon/ : texte complet sans schedule ; code 'def newtonschulz5(G, steps=5, eps=1e-7)'. (2) github.com/KellerJordan/modded-nanogpt, commit 973030408364f8738b4ad9e8f912d8cbbf56e4d4 (lie par le billet), train_gpt2.py l. 370-372 : 'num_iterations : int = 1530', 'warmup_iters : int = 0', 'cooldown_iters : int = 600 # number of iterations of linear warmup/cooldown for triangular or trapezoidal schedule' ; l. 458-471 : '# learning rate decay scheduler (linear warmup and cooldown)', '# 2) constant lr for a while ... return 1.0', '# 3) linear cooldown ... decay_ratio = (args.num_iterations - it) / args.cooldown_iters' ; l. 455 : 'Muon(matrix_params, lr=0.05, momentum=0.95)'. (3) github.com/KellerJordan/cifar10-airbench, commit 0e6f9614572d7e8e3c259905aebc7196f91d5d79 (lie par le billet), research/clean_muon.py l. 224-226 : 'return 1 - step / total_train_steps'. (4) README de github.com/KellerJordan/Muon : 'default values of momentum (0.95), nesterov (True), and ns_steps (5)' ; exemples lies : record 2025-05-25 l. 482-490 '# learning rate schedule: stable then decay' (lineaire de 1.0 a 0.1 sur les 40 % finaux), airbench94_muon.py l. 401-403 '(1 - step / total_train_steps)'. (5) paper/audit/checks/cite-muon_linear_cooldown.py (code du depot, instance ls-cond, batch un, polaire exact, table SAGA, 300 passes, graines 10-12), distance carree relative finale : geometrique q=0.8 lr0=0.3 : 2.37e-29 ; lineaire vers zero, lr0 = 0.03 / 0.1 / 0.3 / 1 : 1.62e-06 / 1.67e-05 / 1.49e-04 / 1.52e-03 ; constant puis lineaire (39 % finaux), lr0 = 0.03 / 0.1 / 0.3 : 9.70e-06 / 1.20e-04 / 1.07e-03. (6) muon/literature_check.md l. 1386 notait deja que le billet ne mentionne pas de schedule geometrique.",
+   "proposed_fix": "Abstract (l. 102-103): ``\\emph{Muon's recipe on a geometric cooldown.} Muon keeps steps of fixed length and cools its learning rate down, linearly in its reference runs. On a geometric cooldown and fed by a SAGA table, such steps follow the schedule down to rounding error with the exact polar factor [...]''. Section 3.3 (l. 508-509): ``Muon does not shrink its steps with the estimator: it keeps steps of fixed length and cools the learning rate down, linearly to zero at the end of its reference runs \\cite{jordan2024muon}. We feed that recipe with the SAGA estimator on a \\emph{geometric} cooldown, our choice: the schedule on which fixed lengths converge linearly with exact gradients \\cite{goffin1977convergence,ma2026preconditioning}; a linear cooldown over a fixed horizon outruns the table near its end,''. L. 514: ``with or without Nesterov momentum $0.9$ (\\emph{Muon's recipe}: ns5 with momentum; Muon's default coefficient is $0.95$)''. Title of Section 3.3 and conclusion (l. 678-679): ``Muon's fixed-length recipe on a geometric cooldown''. If space allows, report the linear-cooldown control (final squared distance $10^{-6}$ to $10^{-3}$ after $300$ passes, proportional to $\\mathrm{lr}_0^2$) after rerunning it with the protocol of the paper.",
+   "confidence": "high"
+  },
+  {
+   "id": "CM-2-ray-factor4",
+   "severity": "major",
+   "location": "l. 313-315",
+   "claim": "On least squares the curvature is constant and the gap is about a factor $4$ on the ray that attracts generic runs \\cite{shulgin2026quadratic}; a large gap needs a global constant far below the curvature met, as for logistic and softmax losses (not measured for the polar step).",
+   "problem": "(a) Attribution : Shulgin et al. donnent le taux (1-2w)^2 sur la famille a deux amas du cas commutant (Corollaire 5 ; w = lambda_min/tr(H) pour la famille de l'annexe E.2), d'ou le facteur 4 sur ce rayon ; ils ne disent nulle part que les trajectoires generiques y sont attirees. C'est une observation numerique de l'etude, que ses propres notes classent [N], 'not proved', et posent en question ouverte, les rayons etant lineairement instables pour l'iteration commutante. Jawanpuria et al. ecrivent meme que le taux asymptotique 'varies with the initialization'. (b) Portee : le facteur 4 ne vaut que dans la queue. Sur moindres carres, a courbure constante, l'exposant moyen jusqu'a F/F_0 = 1e-6 est 8 a 13 fois le certifie, 55 a 420 fois jusqu'a 1e-2, 107 a 1750 fois au premier pas : 'a large gap needs a global constant far below the curvature met' est contredit par ce cas, que la source citee documente (p(X) = 1 pour une erreur isotrope en lignes, convergence en un pas ; le pas regle 'keeps p(X_k) near 0.6'). muPL/muop depend de la forme de l'erreur, pas de la seule courbure.",
+   "evidence": "arXiv:2610.30280v1 : Corollaire 5 ('p(X_k) = 4w(1-w), f(X_{k+1}) = (1-2w)^2 f(X_k)', hypotheses du Corollaire 4 = cas commutant) ; apres le Theoreme 3 : 'Row-isotropic iterates give p(X) = 1' ; 'the tuned rate alpha ~ 1.7 ... keeps p(X_k) near 0.6, whereas under line search p(X_k) decays to 0.01 within 150 iterations'. arXiv:2610.27747v1, annexe C : 'we do not know its rate in closed form. In experiments on random problems (not reported here), the measured asymptotic factor is typically smaller than the slowest invariant rate ..., and it varies with the initialization.' archive/muon/notes_spectral_theory.tex l. 800-801 ('Which of these rates a run follows is a numerical matter [N], because the rays are unstable'), l. 829 ('here it is not proved'), l. 1210-1214 ('Is the flattest ray attracting for the non-commuting iteration, and why?'). paper/audit/checks/cite-muon_ray_factor4.py (20x20, 40x20, 100x100 ; spectres k^-1, k^-2 ; departs gaussiens ; L = Lop) : exposant de queue / certifie = 4.02 a 4.23 ; exposant moyen / certifie jusqu'a 1e-2, 1e-4, 1e-6, 1e-8 : 55-420, 13-60, 8-13, 7-9 ; premier pas : 107 a 1750.",
+   "proposed_fix": "On least squares the curvature is constant and the gap depends on the shape of the error: $\\muPL=\\Lop$ for a row-isotropic error, and the gap is about a factor $4$ on the invariant ray of the flattest direction \\cite[Theorem~3, Corollary~5]{shulgin2026quadratic}, which the tails of generic runs approach in our simulations (the mean exponent down to $10^{-6}$ is about $10$ times the certified one); for logistic and softmax losses the global constant is in addition far below the curvature met (not measured for the polar step).",
+   "confidence": "high"
+  },
+  {
+   "id": "CM-3-lemma4-floor",
+   "severity": "minor",
+   "location": "l. 491-492",
+   "claim": "With a constant spectral length $\\eta$, $\\max(F(W_t),F(W_{t+1}))-F_\\ast\\ge\\muop\\eta^2/8$ whenever the step is nonzero \\cite[Lemma~4]{jawanpuria2026constant}",
+   "problem": "Le Lemme 4 n'enonce pas cette inegalite. Il donne, pour la quadratique f = 1/2 tr(X^T H X) et le facteur polaire exact (ou ns sans eps), max{||E_t||_F, ||E_{t+1}||_F} >= alpha gamma/2 (gamma = 1) et l'absence de limite pour presque tout X_0 : un plancher en distance de Frobenius, sur quadratiques, a gradient exact. Le plancher en valeur de fonction muop eta^2/8, pour F quelconque et un estimateur quelconque, est un corollaire du papier (inegalite triangulaire en norme spectrale, puis F - F_* >= (muop/2)||W - W_*||_op^2). Le calcul est exact ; le renvoi presente comme cite un enonce qui ne figure pas dans la source.",
+   "evidence": "arXiv:2610.27747v1, Lemme 4 : 'Let Phi be the polar map or the normalized NS iteration with eps = 0. Then for every H > 0, alpha > 0, and X_0, the iteration (2) satisfies max{||E_t||_F, ||E_{t+1}||_F} >= alpha gamma/2 whenever G_t != 0, where gamma = 1 for the polar map ..., and the iterates have no limit for almost every X_0.' Annexe D, Proposition 10, Step 1 : inegalite triangulaire. Aucune occurrence de '/8' ni de plancher en f dans le texte.",
+   "proposed_fix": "whenever the step is nonzero (two consecutive iterates are $\\eta$ apart in spectral norm; the argument of \\cite[Lemma~4]{jawanpuria2026constant})",
+   "confidence": "high"
+  },
+  {
+   "id": "CM-4-eq17-scope",
+   "severity": "nit",
+   "location": "l. 226-231",
+   "claim": "For a quadratic with Hessian $H$ [...] the nuclear-scaled step $W^+=W-\\nnuc G\\,O/L$ satisfies exactly [Eq. (2)] (Eq.~(17) of \\cite{shulgin2026quadratic}, Eq.~(8) of \\cite{jawanpuria2026constant})",
+   "problem": "Les deux equations citees sont etablies pour la quadratique unilaterale f(X) = 1/2 tr(X^T H X) ; l'Eq. (17) de Shulgin et al. l'est de plus en rang plein en lignes, ou J = tr(H) est constant. L'identite (2), enoncee pour un Hessien quelconque avec J = <O, HO>, en est l'extension immediate (meme calcul en une ligne) mais n'est pas litteralement dans ces sources.",
+   "evidence": "arXiv:2610.30280v1, Theoreme 3 : 'Assume H > 0 and rank(X) = d ... for a fixed dual-adapted step X+ = X - gamma ||HX||_* Q, f(X+)/f(X) = 1 - alpha(2-alpha)p(X), alpha := gamma tr(H). (17)' ; arXiv:2610.27747v1, Eq. (8) avec tr(U_t^T H U_t).",
+   "proposed_fix": "(for one-sided quadratics: Eq.~(17) of \\cite{shulgin2026quadratic}, Eq.~(8) of \\cite{jawanpuria2026constant})",
+   "confidence": "high"
+  },
+  {
+   "id": "CM-5-bernstein-muon",
+   "severity": "nit",
+   "location": "l. 155 (Table 1)",
+   "claim": "Muon as spectral steepest descent \\cite{bernstein2024old}",
+   "problem": "L'anthologie ne nomme pas Muon (le mot n'apparait pas dans v2) : sa Proposition 5 porte sur Shampoo sans accumulation, dont la mise a jour est U V^T. L'identification avec Muon est faite dans le billet jordan2024muon (section 'Shampoo').",
+   "evidence": "arXiv:2409.20325v2 : 'Proposition 5 (Shampoo as steepest descent under the spectral norm)' ; recherche de 'muon' dans le texte : aucune occurrence. Billet Muon : 'It is therefore possible to interpret Muon with momentum turned off as a kind of ... accumulation-free Shampoo'.",
+   "proposed_fix": "Muon as spectral steepest descent \\cite{bernstein2024old,jordan2024muon}",
+   "confidence": "high"
+  },
+  {
+   "id": "CM-6-hird-bib",
+   "severity": "nit",
+   "location": "paper_saga_to_muon.bib, entree hird2025quantifying ; l. 350-351",
+   "claim": "journal = {Journal of Machine Learning Research}, volume = {26}, pages = {1--51}, note = {arXiv:2312.04898} ; \\cite[Proposition~7]{hird2025quantifying}",
+   "problem": "Le numero de l'article (119) manque. 'Proposition 7' est la numerotation de la version JMLR ; dans arXiv v2, que la note du .bib indique aussi, le meme enonce est la Proposition 1.",
+   "evidence": "jmlr.org/papers/v26/23-1633.html : '26(119):1-51, 2025' ; PDF JMLR : 'Proposition 7 There exist distributions ...' ; arXiv:2312.04898v2 : 'Proposition 1. There exist distributions ...'.",
+   "proposed_fix": "number = {119},  (et, dans la note : arXiv:2312.04898, where it is Proposition~1)",
+   "confidence": "high"
+  },
+  {
+   "id": "CM-7-li-version",
+   "severity": "nit",
+   "location": "l. 444-445 ; .bib, entree li2026implicit",
+   "claim": "batch-one spectral descent with reshuffling has another limit direction on separable data \\cite[Theorem~4.10]{li2026implicit}",
+   "problem": "'Theorem 4.10' est la numerotation de arXiv v2 (16 juin 2026) ; dans v1 c'est le Theoreme 4.9. Le .bib ne precise pas la version. Le theoreme est enonce pour SignSGD et Normalized-SGD par echantillon sur un jeu de donnees particulier (Orthogonal Scale-Skewed) ; le cas spectral s'en deduit par le Lemme H.1 de la meme source.",
+   "evidence": "arXiv:2602.11557v2 : 'Theorem 4.10 (Implicit Bias of Per-sample SignSGD and Per-sample Normalized-SGD) ... On the Orthogonal Scale-Skewed dataset D' ; v1 : 'Theorem 4.9 (Implicit Bias of Per-sample SignSGD and Per-sample Normalized-SGD)'.",
+   "proposed_fix": "note = {arXiv:2602.11557v2} ; texte : ``has another limit direction on a separable data set \\cite[Theorem~4.10 and Lemma~H.1]{li2026implicit}''",
+   "confidence": "high"
+  },
+  {
+   "id": "CM-8-do-almost-every-batch",
+   "severity": "nit",
+   "location": "l. 465-467",
+   "claim": "For Muon in dimension one, \\cite{do2026muon} prove non-convergence under skewed bounded data",
+   "problem": "Le Theoreme 1.3 etablit la non-convergence 'for almost all M' (presque toute taille de minibatch), pas pour toute taille.",
+   "evidence": "arXiv:2608.04607v1, Theoreme 1.3 : 'Then it holds for almost all M in N that limsup_{n} E[min{1, |Theta^M_n - E[X_{1,1}]|}] > 0' ; resume : 'we show for almost every mini-batch size that MUON fails to converge'.",
+   "proposed_fix": "prove non-convergence under skewed bounded data, for almost every batch size,",
+   "confidence": "high"
+  }
+ ],
+ "not_checked": [
+  "Lieux de publication definitifs des preprints 2025-2026 (zhu2026short : ICML 2026 d'apres le commentaire arXiv ; paquette2026phases : en-tete NeurIPS 2026 du PDF ; li2026implicit) : non verifies sur les sites des conferences ; le .bib les donne comme arXiv, ce qui est exact.",
+  "Versions arXiv anterieures a la derniere pour lau2025polargrad (v4 lue), liu2025marsm (v3), vasudeva2025muon (v3), paquette2026phases (v2), zhu2026short (v2), bernstein2024old (v2) : non lues ; le papier n'y renvoie a aucun numero de resultat.",
+  "La figure de definition de Muon dans le billet est une image, non lue ; le code du billet et des depots lies l'a ete.",
+  "Le controle cite-muon_linear_cooldown.py est une petite reproduction (une instance, trois graines, lr_0 sur trois ou quatre valeurs, polaire exact sans moment) : il etablit l'ordre de grandeur du plancher sous refroidissement lineaire, pas un chiffre a publier ; softmax, ns5 avec moment et les batches 16 et 32 n'ont pas ete testes.",
+  "Les mentions 'not found' / 'were not found' attachees a ces cles (nouveaute) relevent de la dimension novelty.",
+  "Les proprietes experimentales attribuees a MARS-M et STORM-Muon (planchers, gel sous refroidissement) sont des mesures du papier (dimensions num-*), non des affirmations sur la source."
+ ],
+ "report_path": "/users/eleves-b/2023/louis.darrigol/projetSTATS/paper/audit/evidence/cite-muon.md"
+}

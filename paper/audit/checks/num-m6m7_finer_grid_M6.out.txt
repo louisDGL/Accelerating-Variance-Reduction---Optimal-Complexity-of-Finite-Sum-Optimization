@@ -1,0 +1,152 @@
+# Output of paper/audit/checks/num-m6m7_finer_grid_M6.py (audit num-m6m7, 2026-11-20)
+
+##### soft-cond_16 
+--- soft-cond b=16 polar: paper point q=0.7 lr0=10 (confirmation median 22.40). Tuning medians (seeds (0, 1, 2)), inf = a seed misses within 90 passes
+      lr0/lr0_paper   1.334   1.000   0.750   0.562   0.422   0.316   0.237
+      q=0.6             inf     inf     inf     inf     inf     inf     inf
+      q=0.625           inf     inf     inf     inf     inf     inf     inf
+      q=0.65            inf     inf     inf     inf     inf     inf     inf
+      q=0.675          23.6     inf     inf     inf     inf     inf     inf
+      q=0.7            22.8    22.4    22.0    21.1    21.2     inf     inf
+      confirm q=0.7 lr0=5.623: median 21.52 [20.04, inf] reached 9/10
+      confirm q=0.7 lr0=4.217: median 20.92 [20.04, inf] reached 9/10
+      confirm q=0.7 lr0=7.499: median 21.24 [20.76, 24.44] reached 10/10
+      confirm q=0.7 lr0=10: median 22.40 [21.40, 23.48] reached 10/10
+      confirm q=0.7 lr0=13.34: median 23.72 [22.36, 25.64] reached 10/10
+      confirm q=0.675 lr0=13.34: median 24.24 [21.80, inf] reached 7/10
+      elapsed 59.3s
+--- soft-cond b=16 frob+N: paper point q=0.8 lr0=3 (confirmation median 27.84). Tuning medians (seeds (0, 1, 2)), inf = a seed misses within 90 passes
+      lr0/lr0_paper   1.334   1.000   0.750   0.562   0.422   0.316   0.237
+      q=0.7             inf     inf     inf     inf     inf     inf     inf
+      q=0.725           inf     inf     inf     inf     inf     inf     inf
+      q=0.75            inf     inf     inf     inf     inf     inf     inf
+      q=0.775          25.9    25.3     inf     inf     inf     inf     inf
+      q=0.8            27.2    26.7     inf     inf     inf     inf     inf
+      confirm q=0.775 lr0=3: median 30.76 [24.52, inf] reached 7/10
+      confirm q=0.775 lr0=4.001: median 28.64 [24.68, inf] reached 9/10
+      confirm q=0.8 lr0=3: median 27.84 [25.08, 30.52] reached 10/10
+      confirm q=0.8 lr0=4.001: median 29.28 [27.56, 31.88] reached 10/10
+      elapsed 122.4s
+RESULT soft-cond b=16: paper polar 22.40 / frob+N 27.84 = 0.805
+RESULT soft-cond b=16: finer grid, 10/10 rule: polar 21.24 (q=0.7, lr0=7.499, 10/10) / frob+N 27.84 (q=0.8, lr0=3, 10/10) = 0.763
+RESULT soft-cond b=16: finer grid, smallest median (seeds may be lost): polar 20.92 (q=0.7, lr0=4.217, 9/10) / frob+N 27.84 (q=0.8, lr0=3, 10/10) = 0.751
+
+##### soft-cond_32 
+--- soft-cond b=32 polar: paper point q=0.8 lr0=3 (confirmation median 25.72). Tuning medians (seeds (0, 1, 2)), inf = a seed misses within 90 passes
+      lr0/lr0_paper   1.334   1.000   0.750   0.562   0.422   0.316   0.237
+      q=0.7             inf     inf     inf     inf     inf     inf     inf
+      q=0.725           inf     inf     inf     inf     inf     inf     inf
+      q=0.75            inf     inf     inf     inf     inf     inf     inf
+      q=0.775          24.8     inf     inf     inf     inf     inf     inf
+      q=0.8            26.6    25.8     inf     inf     inf     inf     inf
+      confirm q=0.775 lr0=4.001: median 25.24 [23.56, 30.76] reached 10/10
+      confirm q=0.8 lr0=3: median 25.72 [24.84, 27.08] reached 10/10
+      confirm q=0.8 lr0=4.001: median 26.60 [26.28, 28.20] reached 10/10
+      elapsed 35.1s
+--- soft-cond b=32 frob+N: paper point q=0.8 lr0=10 (confirmation median 30.52). Tuning medians (seeds (0, 1, 2)), inf = a seed misses within 90 passes
+      lr0/lr0_paper   1.334   1.000   0.750   0.562   0.422   0.316   0.237
+      q=0.7             inf     inf     inf     inf     inf     inf     inf
+      q=0.725           inf     inf     inf     inf     inf     inf     inf
+      q=0.75           27.6    25.3    24.4     inf     inf     inf     inf
+      q=0.775          28.8    28.4    26.0    25.5     inf     inf     inf
+      q=0.8            31.6    31.6    29.6    28.2     inf     inf     inf
+      confirm q=0.75 lr0=7.499: median 25.32 [24.20, inf] reached 6/10
+      confirm q=0.75 lr0=10: median 25.96 [24.84, inf] reached 8/10
+      confirm q=0.775 lr0=5.623: median 26.20 [24.68, inf] reached 7/10
+      confirm q=0.775 lr0=7.499: median 26.52 [26.12, 27.88] reached 10/10
+      confirm q=0.75 lr0=13.34: median 27.00 [25.96, inf] reached 8/10
+      confirm q=0.8 lr0=5.623: median 28.28 [27.08, 29.00] reached 10/10
+      confirm q=0.775 lr0=10: median 27.48 [26.60, 30.12] reached 10/10
+      confirm q=0.775 lr0=13.34: median 28.76 [27.88, 39.24] reached 10/10
+      confirm q=0.8 lr0=7.499: median 28.60 [28.36, 30.44] reached 10/10
+      elapsed 67.9s
+RESULT soft-cond b=32: paper polar 25.72 / frob+N 30.52 = 0.843
+RESULT soft-cond b=32: finer grid, 10/10 rule: polar 25.24 (q=0.775, lr0=4.001, 10/10) / frob+N 26.52 (q=0.775, lr0=7.499, 10/10) = 0.952
+RESULT soft-cond b=32: finer grid, smallest median (seeds may be lost): polar 25.24 (q=0.775, lr0=4.001, 10/10) / frob+N 25.32 (q=0.75, lr0=7.499, 6/10) = 0.997
+
+##### ls-cond_16 
+--- ls-cond b=16 polar: paper point q=0.8 lr0=1 (confirmation median 27.72). Tuning medians (seeds (0, 1, 2)), inf = a seed misses within 90 passes
+      lr0/lr0_paper   1.334   1.000   0.750   0.562   0.422   0.316   0.237
+      q=0.7             inf     inf     inf     inf     inf     inf     inf
+      q=0.725           inf     inf     inf     inf     inf     inf     inf
+      q=0.75            inf     inf     inf     inf     inf     inf     inf
+      q=0.775          26.0     inf     inf     inf     inf     inf     inf
+      q=0.8            26.5    26.8     inf     inf     inf     inf     inf
+      confirm q=0.775 lr0=1.334: median 28.00 [24.28, inf] reached 7/10
+      confirm q=0.8 lr0=1.334: median 26.76 [26.04, 27.80] reached 10/10
+      confirm q=0.8 lr0=1: median 27.72 [25.00, inf] reached 9/10
+      elapsed 41.4s
+--- ls-cond b=16 frob+N: paper point q=0.8 lr0=10 (confirmation median 38.92). Tuning medians (seeds (0, 1, 2)), inf = a seed misses within 90 passes
+      lr0/lr0_paper   1.334   1.000   0.750   0.562   0.422   0.316   0.237
+      q=0.7             inf     inf     inf     inf     inf     inf     inf
+      q=0.725           inf     inf     inf     inf     inf     inf     inf
+      q=0.75            inf     inf     inf     inf     inf     inf     inf
+      q=0.775           inf     inf     inf     inf     inf     inf     inf
+      q=0.8            40.7    38.6    38.5    37.0    36.2    38.2     inf
+      confirm q=0.8 lr0=4.217: median 38.40 [36.76, 40.12] reached 10/10
+      confirm q=0.8 lr0=5.623: median 37.52 [35.56, 40.52] reached 10/10
+      confirm q=0.8 lr0=3.162: median 40.52 [38.28, 45.88] reached 10/10
+      confirm q=0.8 lr0=7.499: median 37.96 [36.52, 41.08] reached 10/10
+      confirm q=0.8 lr0=10: median 38.92 [36.68, 40.20] reached 10/10
+      confirm q=0.8 lr0=13.34: median 39.80 [37.64, 41.80] reached 10/10
+      elapsed 78.6s
+RESULT ls-cond b=16: paper polar 27.72 / frob+N 38.92 = 0.712
+RESULT ls-cond b=16: finer grid, 10/10 rule: polar 26.76 (q=0.8, lr0=1.334, 10/10) / frob+N 37.52 (q=0.8, lr0=5.623, 10/10) = 0.713
+RESULT ls-cond b=16: finer grid, smallest median (seeds may be lost): polar 26.76 (q=0.8, lr0=1.334, 10/10) / frob+N 37.52 (q=0.8, lr0=5.623, 10/10) = 0.713
+
+##### ls-cond_32 
+--- ls-cond b=32 polar: paper point q=0.8 lr0=3 (confirmation median 30.76). Tuning medians (seeds (0, 1, 2)), inf = a seed misses within 90 passes
+      lr0/lr0_paper   1.334   1.000   0.750   0.562   0.422   0.316   0.237
+      q=0.7             inf     inf     inf     inf     inf     inf     inf
+      q=0.725           inf     inf     inf     inf     inf     inf     inf
+      q=0.75            inf     inf     inf     inf     inf     inf     inf
+      q=0.775          31.6     inf     inf     inf     inf     inf     inf
+      q=0.8            31.6    30.4     inf     inf     inf     inf     inf
+      confirm q=0.8 lr0=3: median 30.76 [29.64, 32.20] reached 10/10
+      confirm q=0.775 lr0=4.001: median 30.68 [29.80, 45.00] reached 10/10
+      confirm q=0.8 lr0=4.001: median 31.72 [30.76, 33.96] reached 10/10
+      elapsed 21.0s
+--- ls-cond b=32 frob+N: paper point q=0.9 lr0=3 (confirmation median 53.16). Tuning medians (seeds (0, 1, 2)), inf = a seed misses within 90 passes
+      lr0/lr0_paper   1.334   1.000   0.750   0.562   0.422   0.316   0.237
+      q=0.8             inf     inf     inf     inf     inf     inf     inf
+      q=0.825           inf     inf     inf     inf     inf     inf     inf
+      q=0.85           46.0    46.1     inf     inf     inf     inf     inf
+      q=0.875          46.6    46.6    45.8    49.5     inf     inf     inf
+      q=0.9            56.0    54.9    51.4    49.0    50.9     inf     inf
+      confirm q=0.875 lr0=2.25: median 45.32 [44.04, 46.28] reached 10/10
+      confirm q=0.85 lr0=4.001: median 44.44 [43.40, 44.84] reached 10/10
+      confirm q=0.85 lr0=3: median 44.84 [44.20, 45.96] reached 10/10
+      confirm q=0.875 lr0=4.001: median 46.76 [45.80, 48.68] reached 10/10
+      confirm q=0.875 lr0=3: median 45.48 [44.04, 46.60] reached 10/10
+      confirm q=0.9 lr0=1.687: median 48.92 [47.72, 50.28] reached 10/10
+      confirm q=0.875 lr0=1.687: median 47.64 [46.76, 50.76] reached 10/10
+      confirm q=0.9 lr0=1.265: median 49.96 [47.88, 52.36] reached 10/10
+      confirm q=0.9 lr0=2.25: median 50.52 [49.80, 51.72] reached 10/10
+      elapsed 43.8s
+RESULT ls-cond b=32: paper polar 30.76 / frob+N 53.16 = 0.579
+RESULT ls-cond b=32: finer grid, 10/10 rule: polar 30.68 (q=0.775, lr0=4.001, 10/10) / frob+N 44.44 (q=0.85, lr0=4.001, 10/10) = 0.690
+RESULT ls-cond b=32: finer grid, smallest median (seeds may be lost): polar 30.68 (q=0.775, lr0=4.001, 10/10) / frob+N 44.44 (q=0.85, lr0=4.001, 10/10) = 0.690
+
+##### ls-orth_16 (--small)
+--- ls-orth b=16 ns5: paper point q=0.7 lr0=1 (confirmation median 16.65). Tuning medians (seeds (0, 1)), inf = a seed misses within 90 passes
+      lr0/lr0_paper   1.000   0.750   0.562   0.422   0.316
+      q=0.65            inf     inf     inf     inf     inf
+      q=0.675          15.7    18.2     inf     inf     inf
+      q=0.7            16.3    15.9    16.7     inf     inf
+      confirm q=0.675 lr0=1: median 17.32 [15.21, inf] reached 6/10
+      confirm q=0.7 lr0=0.7499: median 16.98 [15.78, inf] reached 9/10
+      confirm q=0.7 lr0=1: median 16.65 [16.46, 17.51] reached 10/10
+      confirm q=0.7 lr0=0.5623: median inf [15.02, inf] reached 5/10
+      confirm q=0.675 lr0=0.7499: median inf [14.92, inf] reached 3/10
+      elapsed 37.8s
+--- ls-orth b=16 frob+N: paper point q=0.7 lr0=3 (confirmation median 17.94). Tuning medians (seeds (0, 1)), inf = a seed misses within 90 passes
+      lr0/lr0_paper   1.000   0.750   0.562   0.422   0.316
+      q=0.65            inf     inf     inf     inf     inf
+      q=0.675           inf     inf     inf     inf     inf
+      q=0.7            17.9    20.3     inf     inf     inf
+      confirm q=0.7 lr0=3: median 17.94 [16.94, 18.95] reached 10/10
+      confirm q=0.7 lr0=2.25: median 20.54 [19.05, 30.66] reached 10/10
+      elapsed 54.6s
+RESULT ls-orth b=16: paper ns5 16.65 / frob+N 17.94 = 0.928
+RESULT ls-orth b=16: finer grid, 10/10 rule: ns5 16.65 (q=0.7, lr0=1, 10/10) / frob+N 17.94 (q=0.7, lr0=3, 10/10) = 0.928
+RESULT ls-orth b=16: finer grid, smallest median (seeds may be lost): ns5 16.65 (q=0.7, lr0=1, 10/10) / frob+N 17.94 (q=0.7, lr0=3, 10/10) = 0.928

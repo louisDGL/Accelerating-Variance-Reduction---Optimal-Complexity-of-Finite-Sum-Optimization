@@ -1,0 +1,161 @@
+{
+ "scope_covered": "Proposition 5 (paper_saga_to_muon.tex l. 547-566) et son esquisse de preuve (l. 567-575), remarques l. 577-581, recette (4) l. 508-515, phrase F15 l. 648-650, et les phrases qui resument la Proposition 5 (resume l. 105, introduction l. 131-133, tableau 1 l. 178-179, usage de (c) dans (M5) l. 536-537). Preuves de (a), (b), (c), des bornes d'age et de F15 refaites a la main avec les constantes ; controles numeriques independants du lab (K = 3, d = 4, n = 12) et recalcul des chiffres sur soft-cond et ls-cond. Sources : muon/notes_theory.md l. 483-792, muon/lab/vrmuon.py, muon/lab/polar.py, muon/experiments/families.py, exp_M9_schedule.py, M1_summary.json, M5b_summary.json, _archive/muon/tests/test_facts.py. Bilan : 0 blocker, 0 major, 7 minor, 1 nit.",
+ "checked_ok": [
+  {
+   "claim": "(a) $\\nnuc{\\omega-\\nabla F(W)}\\le(\\vartheta L_{\\max}+\\bar L)\\max_i\\nop{W-\\phi_i}$, no rank factor",
+   "location": "l. 555, 568-569, 577-578",
+   "evidence": "Preuve refaite (w_i = theta 1[i in B]/b - 1/n, c_i de rang un, sum_i |w_i| L_i <= theta L_max + L_bar). paper/audit/checks/math-schedule_prop5_sim.py a : 12000 etats aleatoires (moindres carres c_l = 1, softmax c_l = 1/2), max gauche/droite 0.812 et 0.100, 0 violation ; verifiee aussi a chaque indice sur soft-cond et ls-cond."
+  },
+  {
+   "claim": "$\\inner{\\nabla F}{\\polar(\\omega)}\\ge\\nnuc{\\nabla F}-2\\nnuc{\\omega-\\nabla F}$, spectral smoothness, dual Polyak-Lojasiewicz inequality",
+   "location": "l. 570-571",
+   "evidence": "Refait a la main (||polar||_op <= 1 ; minimisation en V de la forte convexite spectrale) ; cas omega = 0 trivial (pas nul, membre droit >= D_t). 0 violation de l'inegalite sur les runs simules."
+  },
+  {
+   "claim": "$D_{t+1}\\le D_t-\\eta_t(2\\muop D_t)^{1/2}+\\frac{\\LEff}2\\eta_t^2$ with $\\LEff=\\Lop+10AL_{\\max}$",
+   "location": "l. 556, 571-572",
+   "evidence": "Sous mu_op <= L_max : rho >= 1 - 1/(10A), rho^(-A/2) <= 0.9^(-1/2) = 1.054, 4(theta L_max + L_bar) sum_{k<=A} rho^(-k/2) <= 8.44 A L_max <= 10 A L_max ; pire cas numerique 0.841 (paper/audit/checks/math-schedule_F15_lyapunov.py). 0 violation de la recurrence sur 32 runs. Pour t < A la somme a moins de A termes."
+  },
+  {
+   "claim": "the convex map ... sends $[0,C\\eta^2]$ into $[0,C\\rho\\eta^2]$ for $C=\\LEff^2/(2\\muop)$",
+   "location": "l. 572-573",
+   "evidence": "phi(C eta^2) = (C - L_eff/2) eta^2 = C rho eta^2 (egalite), phi(0) = L_eff eta^2/2 <= C rho eta^2 ssi L_eff >= 2 mu_op (ici L_eff >= 11 mu_op), min phi = (L_eff - mu_op) eta^2/2 >= 0 ; C eta_0^2 = D_0."
+  },
+  {
+   "claim": "(b) $D_t\\le D_0\\rho^t$ for all $t$",
+   "location": "l. 556-558",
+   "evidence": "paper/audit/checks/math-schedule_prop5_sim.py b adv : recette prescrite, facteur polaire exact, table en W_0 ; 24 runs (cyclique et permutation fraiche, b = 1 et 3, theta = 1 et b/n, departs aleatoire, PL-serre, W_0 = 0, proche de W_*) et 8 runs a regle adverse gloutonne : max_t D_t/(D_0 rho^t) = 0.999966, 0 violation."
+  },
+  {
+   "claim": "The ages are at most $n/b$ for a fixed cyclic order ... $2n/b-1$ for a fresh permutation per pass ... $\\lceil(n/b)\\log(nT/\\delta)\\rceil$ up to iteration $T$ with probability $1-\\delta$",
+   "location": "l. 558-560",
+   "evidence": "Comptage refait ; ages maximaux observes 12, 4 (cyclique b = 1, 3) et 23, 7 (permutation), egaux aux bornes ; borne d'union n T (1 - b/n)^A <= n T exp(-A b/n) ; 0/46 runs independants avec un age > A (delta = 0.05). Pour les lots independants A, donc rho et eta_0, dependent de (T, delta) : enonce a horizon fini, ce que le papier n'outrepasse pas."
+  },
+  {
+   "claim": "role of the hypothesis $\\muop\\le L_{\\max}$",
+   "location": "l. 556",
+   "evidence": "Elle donne rho >= 1 - 1/(10A) et L_eff >= 2 mu_op. Sans elle (lam = 1e4) la condition suffisante de la preuve tombe (L_eff = 3.11e4 contre 3.22e4 requis) ; aucune violation de la conclusion observee."
+  },
+  {
+   "claim": "(c) $u_{t+1}=\\eta_t\\Phi(u_t/\\eta_t;B_t)$ ... time-homogeneous Markov chain for i.i.d. batches; ns5 without $\\epsilon$ has $o(sM)=o(M)$",
+   "location": "l. 561-564, 574",
+   "evidence": "omega lineaire en u (grad F(W_*) = 0), pas homogene de degre un. paper/audit/checks/math-schedule_prop5_sim.py c : identite a un pas a 1.6e-15 pres (polaire, ns5 a eps = 0, Frobenius, signe), 1.8e-4 a 0.18 pour ns5 a eps = 1e-7 ; trajectoires aux echelles 1 et 1e-3 : 8e-14 apres 120 iterations (polaire). polar.py l. 173 : X / (||X||_F + eps)."
+  },
+  {
+   "claim": "its cooldown is $3.3\\cdot10^4$ to $8.9\\cdot10^4$ times slower, in $\\log(1/q)$, than $q=0.8$",
+   "location": "l. 578-579",
+   "evidence": "paper/audit/checks/math-schedule_benchmark_numbers.py : cyclique 4.46e4 (soft-cond), 3.26e4 (ls-cond) ; permutation fraiche 8.90e4, 6.50e4. Exact pour ces deux ordres (voir constat S1 pour les lots independants)."
+  },
+  {
+   "claim": "along the fast runs the error of the estimator is $2.3$ to $3.5$ times the gradient in nuclear norm",
+   "location": "l. 579-580",
+   "evidence": "Run recalcule (q = 0.8, lr_0 = 0.1, polaire exact, b = 1, graine 10, passes 2 a 26, enumeration des 200 indices) : [2.69, 3.45] sur soft-cond, [2.32, 3.42] sur ls-cond."
+  },
+  {
+   "claim": "recipe (4): $\\mathrm{lr}_t=\\mathrm{lr}_0\\,q^{tb/n}$, ns5 with $\\epsilon=10^{-7}$, Nesterov momentum $0.9$, two controls",
+   "location": "l. 508-515",
+   "evidence": "vrmuon.py l. 478-480 (lr q^(t b/n)), facteur max(1, K/d)^(1/2) = 1 sur les six instances (K <= d), polar.py l. 157 (eps = 1e-7), families.py l. 305-316 (beta = 0.9, nesterov, 'frob', 'sign'). eta_t = eta_0 rho^(t/2) est (4) avec q = rho^(n/(2b)), lr_0 = eta_0."
+  },
+  {
+   "claim": "a Lyapunov function for $\\gamma\\le1/(14nL_{\\max})$ (theory notes, F15)",
+   "location": "l. 649-650",
+   "evidence": "Preuve de F15 refaite (I1 a I3, compensation 2n/(8 n gamma) = 1/(4 gamma), 48/196 = 0.245 <= 1/4). paper/audit/checks/math-schedule_F15_lyapunov.py : enumeration exacte, 1000 etats et un run, 0 echec ; gamma L_op <= 1 vrai sur les six instances (<= 5.4e-5). Rapports aux pas de M1 : 1399 (soft-cond), 350 (ls-cond)."
+  },
+  {
+   "claim": "It gives no critical $q$ and does not cover momentum.",
+   "location": "l. 581",
+   "evidence": "Conforme a l'enonce : (b) est une condition suffisante pour le facteur polaire exact sans tampon."
+  }
+ ],
+ "findings": [
+  {
+   "id": "S1",
+   "severity": "minor",
+   "location": "l. 578-579 ; l. 648-649",
+   "claim": "its cooldown is $3.3\\cdot10^4$ to $8.9\\cdot10^4$ times slower, in $\\log(1/q)$, than $q=0.8$ / Proposition~\\ref{prop:schedule} at cooldowns $10^4$ to $10^5$ times slower than in \\finding{M5}",
+   "problem": "La fourchette vaut pour les ordres cyclique (3.3e4, 4.5e4) et a permutation fraiche (6.5e4, 8.9e4), sans que ce soit dit. Les runs de (M5) tirent des indices independants (exp_M9_schedule.py, parties A a C : order par defaut 'iid'). Pour cet ordre (b) n'est qu'un enonce a horizon fini de probabilite 1 - delta, avec A = ceil(n log(nT/delta)), et le refroidissement certifie est 6.3e5 a 8.6e5 fois plus lent que q = 0.8 sur 300 passes (delta = 0.05).",
+   "evidence": "paper/audit/checks/math-schedule_benchmark_numbers.out, section (i) : A = 3860, rapports 8.61e5 (soft-cond) et 6.28e5 (ls-cond) ; 9.33e5 et 6.81e5 a delta = 0.01. exp_M9_schedule.py l. 569-570 : l'ordre n'est change qu'en partie D.",
+   "proposed_fix": "its cooldown is $3.3\\cdot10^4$ to $8.9\\cdot10^4$ times slower, in $\\log(1/q)$, than $q=0.8$ for the two permutation orders (and $6\\cdot10^5$ to $9\\cdot10^5$ times over the $300$ passes of \\finding{M5}, whose indices are independent), [...] ; l. 648-649: at cooldowns $10^4$ to $10^6$ times slower than in \\finding{M5}",
+   "confidence": "high"
+  },
+  {
+   "id": "S2",
+   "severity": "minor",
+   "location": "l. 105 ; l. 131-133 ; l. 178-179 ; l. 581",
+   "claim": "we prove this law for tables of bounded age, at slower cooldowns / fixed lengths on a geometric cooldown, fed by a SAGA table, converge to rounding error where other estimators freeze (Proposition~\\ref{prop:schedule})",
+   "problem": "(b) est prouve pour le facteur polaire exact, sans momentum, pour un seul couple (eta_0, rho) par borne d'age ; eta_0 = (2 mu_op D_0)^(1/2)/L_eff demande D_0 et vaut 4.5e-6 a 1.6e-5 sur les deux instances, 6e3 a 6.6e4 fois sous lr_0 = 0.1 a 0.3. Le resume enchaine sur une phrase qui mentionne ns5 : 'this law' peut se lire comme couvrant ns5. L'introduction cite la Proposition 5 a l'appui du constat experimental (M5) ('where other estimators freeze'), comme elle cite les theoremes pour les points prouves.",
+   "evidence": "Enonce l. 556-557 ; paper/audit/checks/math-schedule_benchmark_numbers.out (eta_0 prescrit, section (i)).",
+   "proposed_fix": "l. 105: we prove this law for the exact polar factor and tables of bounded age, at slower cooldowns. ; l. 132-133: converge to rounding error where other estimators freeze \\finding{M5}, a law certified at slower cooldowns (Proposition~\\ref{prop:schedule}); ; l. 581: It prescribes $\\eta_0$, gives no critical $q$ and covers neither momentum nor ns5.",
+   "confidence": "medium"
+  },
+  {
+   "id": "S3",
+   "severity": "minor",
+   "location": "l. 550 (et l. 556-559)",
+   "claim": "A SAGA table stores $z_i=\\nabla g_i(\\phi_i)$, $\\phi_i$ the iterate at which entry $i$ was last replaced",
+   "problem": "L'initialisation de la table n'est pas ecrite. Avant son premier remplacement phi_i n'est pas defini ; (b) et les bornes d'age supposent phi_i = W_0 (gradients en W_0, comme l. 192-193 pour SAGA et dans F12). Avec une table nulle au depart la conclusion est fausse.",
+   "evidence": "paper/audit/checks/math-schedule_prop5_sim.out, controles negatifs : table nulle, ordre cyclique, 10/24 runs violent D_t <= D_0 rho^t (max 1.0052) ; 0/24 pour les memes runs avec la table en W_0.",
+   "proposed_fix": "$\\phi_i$ the iterate at which entry $i$ was last replaced ($\\phi_i=W_0$ initially);",
+   "confidence": "high"
+  },
+  {
+   "id": "S4",
+   "severity": "minor",
+   "location": "l. 579-581",
+   "claim": "along the fast runs the error of the estimator is $2.3$ to $3.5$ times the gradient in nuclear norm, a decrease that only the average over the index explains.",
+   "problem": "Les rapports sont exacts, mais le mecanisme affirme n'est pas montre : aux memes etats la moyenne exacte a un pas E_j D_+/D vaut 0.9903 a 0.9993 (soft-cond) et 0.9906 a 1.0053 (ls-cond, au-dessus de 1 en deux etats sur sept et 1.0000 en un troisieme), et le pas augmente F pour 1 % a 73 % des indices. La moyenne sur l'indice ne fait pas decroitre F a chaque etat ; ce qui est etabli est que la borne par trajectoire ne peut pas expliquer la decroissance.",
+   "evidence": "paper/audit/checks/math-schedule_benchmark_numbers.out, section (ii) (un run par instance, graine 10, 7 etats, enumeration des 200 indices).",
+   "proposed_fix": "times the gradient in nuclear norm: the pathwise bound cannot explain their decrease (over the index, the one-step mean of $D_{t+1}/D_t$ is $0.990$--$1.005$).",
+   "confidence": "medium"
+  },
+  {
+   "id": "S5",
+   "severity": "minor",
+   "location": "l. 561-564 ; l. 536-537",
+   "claim": "the state $u_t$ made of $W_t-W_\\ast$ and the errors $z_i-\\nabla g_i(W_\\ast)$ / a floor of ns5, whose constant $\\epsilon$ breaks the scale invariance of Proposition~\\ref{prop:schedule}(c)",
+   "problem": "(c) est enonce sans momentum et pour les moindres carres ; (M5) l'invoque pour la recette de Muon (ns5 avec momentum de Nesterov) et pour softmax comme pour moindres carres. Avec momentum la covariance reste vraie si l'etat contient le tampon (F14) ; pour softmax elle n'est pas exacte (F14, point (2)).",
+   "evidence": "Enonce l. 561-564 ; muon/notes_theory.md l. 697-702 (etat avec tampon) et l. 727-728 (echec pour softmax).",
+   "proposed_fix": "l. 562: the state $u_t$ made of $W_t-W_\\ast$, the errors $z_i-\\nabla g_i(W_\\ast)$ and the momentum buffer, if any, satisfies ; l. 537: breaks the scale invariance of Proposition~\\ref{prop:schedule}(c) (exact on least squares; with $\\epsilon=10^{-30}$: $1.5\\cdot10^{-29}$ and $4.1\\cdot10^{-30}$)",
+   "confidence": "medium"
+  },
+  {
+   "id": "S6",
+   "severity": "minor",
+   "location": "l. 649-650",
+   "claim": "a Lyapunov function for $\\gamma\\le1/(14nL_{\\max})$, $350$ to $1400$ times below the tuned steps",
+   "problem": "350 et 1400 sont les rapports sur ls-cond et soft-cond avec les pas de M1 (grille de facteur 2) ; ni les instances ni la grille ne sont dites. Sur les grilles resolues utilisees pour ce pas dans (M6) les rapports sont 416 et 1176 ; sur les six instances avec les pas de M1, 217 (ls-mem) a 3493 (soft-sq).",
+   "evidence": "paper/audit/checks/math-schedule_benchmark_numbers.out, section (iii) ; muon/results/M5b_summary.json, b = 1, grille 'fine' : 0.420/R2_op (soft-cond) et 0.149/R2_op (ls-cond), contre 3.574e-4/R2_op.",
+   "proposed_fix": "$350$ to $1400$ times below the steps tuned on the same two instances",
+   "confidence": "high"
+  },
+  {
+   "id": "S7",
+   "severity": "nit",
+   "location": "l. 568-569",
+   "claim": "$\\omega-\\nabla F(W)=\\sum_iw_ic_i$ with $\\abs{w_i}\\le\\vartheta/b+1/n$",
+   "problem": "Lue pour tout i, cette majoration donne sum_i |w_i| L_i <= (theta n/b + 1) L_bar et non theta L_max + L_bar ; il faut w_i = -1/n hors du lot. Collisions de notation : c_i designe deja sup_z lambda_max(grad^2 l_i(z)) (l. 202), rho la longueur d'ecretage (l. 257) et rho_star un facteur par passe de lr^2 (l. 597).",
+   "evidence": "Calcul : sum_i (theta/b + 1/n) L_i = (theta n/b + 1) L_bar (13 L_bar pour n = 12, b = 1, theta = 1).",
+   "proposed_fix": "with $w_i=\\vartheta\\mathbf{1}[i\\in B]/b-1/n$, and",
+   "confidence": "high"
+  },
+  {
+   "id": "S8",
+   "severity": "minor",
+   "location": "l. 578-580 ; l. 686-688",
+   "claim": "Numbers come from \\nolinkurl{experiments/} and \\nolinkurl{muon/experiments/}",
+   "problem": "Les chiffres '3.3e4 a 8.9e4' et '2.3 a 3.5' sont imprimes par test_F13_limits_on_the_benchmark, deplace le 2026-11-20 dans _archive/muon/tests/test_facts.py, dossier liste dans .gitignore ; aucun script de muon/experiments/ ne les calcule. Les valeurs sont exactes (recalculees).",
+   "evidence": "_archive/README.md ; .gitignore l. 6 ; muon/findings.md l. 313-316 ; recalcul dans paper/audit/checks/math-schedule_benchmark_numbers.py.",
+   "proposed_fix": "",
+   "confidence": "high"
+  }
+ ],
+ "not_checked": [
+  "Existence d'un contre-exemple a la conclusion de (b) quand mu_op > L_max : la condition suffisante de la preuve tombe, aucune violation observee.",
+  "'a decrease that only the average over the index explains' au-dela d'un run par instance (graine 10).",
+  "F15 numeriquement sur softmax (la preuve ne depend pas de la perte) ; les pas regles de M1 et M5b sont pris tels quels.",
+  "F13 (e), convergence presque sure sous lots independants : absent du papier, non controle.",
+  "Affirmations bibliographiques liees a la Proposition 5 ('not found', proximite de zhu2026short) et chiffres experimentaux de (M5) : autres dimensions.",
+  "Le test archive test_F13_limits_on_the_benchmark n'a pas ete relance ; ses chiffres ont ete recalcules par un script distinct."
+ ],
+ "report_path": "/users/eleves-b/2023/louis.darrigol/projetSTATS/paper/audit/evidence/math-schedule.md"
+}

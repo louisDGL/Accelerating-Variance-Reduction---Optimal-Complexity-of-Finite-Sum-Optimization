@@ -1,0 +1,201 @@
+{
+ "scope_covered": "(M1) et (M2), l. 491-503 ; « Numerical checks » à partir de « On the finite sum of Figure 3 », l. 484-488 ; légende de la figure 3 (l. 472-479) et image figP3_noise.png ; dernière phrase de « Stochastic polar steps », l. 249-251 ; « γ(m+ϑc) … is MISO », l. 255-256 ; tableau 1, lignes 3 et 4, colonne « Added here » (l. 164-166, 171-172). Chiffres retrouvés dans M3/M6/M2/M1_summary.json et paper_figures_data.json ; borne μ_op η²/8 redémontrée et testée ; identité MISO vérifiée par une implémentation indépendante ; réexécutions courtes avec le code du dépôt (autres graines, budgets plus longs, autres constantes de pas). Scripts : paper/audit/checks/num-noise_*.py (cinq scripts).",
+ "checked_ok": [
+  {
+   "claim": "‖W_LAD − W_LS‖_F = 0.170",
+   "location": "l. 485",
+   "evidence": "paper_figures_data.json noise_trace.dist_lad_ls = 0.16963 ; recalculé 0.16963 (num-noise_finite_sum_ls.py a) ; champ moyen exact à b = 1 nul en W_LAD (8.7e-16), 0.194 en W_LS."
+  },
+  {
+   "claim": "averaged batch-one polar steps end 2.6·10⁻³ from W_LAD",
+   "location": "l. 485",
+   "evidence": "cache mb_to_lad[-1] = 2.609e-3 ; autre graine (1010) : 2.10e-3."
+  },
+  {
+   "claim": "the SAGA estimator 2.1·10⁻⁴ from W_LS",
+   "location": "l. 486",
+   "evidence": "cache saga_to_ls[-1] = 2.147e-4 ; autre graine (1011) : 7.4e-5 (valeur bruitée d'une réalisation, ordre de grandeur confirmé)."
+  },
+  {
+   "claim": "for b ≤ 32 the runs end within 5 % of the zero of the mean field",
+   "location": "l. 486-487",
+   "evidence": "écarts du cache −1.4, −2.1, −1.4, −1.2, −3.8, −4.6 % (b = 1..32). Remarque : les zéros sont des estimations de Monte-Carlo ; 6 répliques à b = 32 donnent b×‖∇F‖⋆ = 0.286 à 0.309 (≈ 3 %), 3 répliques à b = 16 : 0.297 à 0.310 ; les écarts à b = 16, 32 ne sont pas résolus de ce bruit, l'énoncé tient."
+  },
+  {
+   "claim": "b times the offset rising from 0.17 to a plateau near 0.3",
+   "location": "l. 487",
+   "evidence": "b×zéro = 0.168, 0.240, 0.276, 0.285, 0.303, 0.308 (cache) ; répliques : 0.2395 (b = 2), 0.303 (b = 16), 0.30 (b = 32)."
+  },
+  {
+   "claim": "the SAGA estimator with the nuclear-scaled length ends at rounding level",
+   "location": "l. 487-488",
+   "evidence": "cache noise_offsets.saga = 1.8e-15 à 2.4e-15 ; réexécution autres graines : 2.0e-15 (b = 1), 2.3e-15 (b = 32), plateau atteint."
+  },
+  {
+   "claim": "Légende de la figure 3 : η = 10⁻², lr = 10⁻², b = 32, n = 2000, K = 2, d = 3, η_t = 0.3(1+t/200)^(−3/4), moyenne sur (t/2,t] et 32 runs, 64 runs, non régularisé, intercept, résidus asymétriques",
+   "location": "l. 472-479",
+   "evidence": "make_figR2_muon_vr.py l. 61-66 ; make_paper_figures.py l. 202-211, 229, 251, 319, 352 ; asymétrie mesurée des résidus −2.1 et −2.0 ; ‖∇F(W_LS)‖ = 1.7e-16 sans terme ridge ; l'image montre les quatre courbes de (a), les trois de (b), la ligne, les points et les carrés de (c) aux valeurs des données."
+  },
+  {
+   "claim": "max(F(W_t),F(W_{t+1})) − F⋆ ≥ μ_op η²/8 whenever the step is nonzero",
+   "location": "l. 491-492",
+   "evidence": "Redémontrée (inégalité triangulaire en norme spectrale, puis forte convexité spectrale) pour tout estimateur ; 24 000 paires d'itérés sur 60 quadratiques, min du rapport 1.0445 ; égalité atteinte sur le 2-cycle ±η/2 (num-noise_bound_and_miso.py)."
+  },
+  {
+   "claim": "the iterates settle at a squared distance 3.8 η² (softmax) or 6.0 η² (least squares) [valeur]",
+   "location": "l. 493-494",
+   "evidence": "M3 : niveaux relatifs 4.6e-5/4.6e-7/4.6e-9 et 5.3e-5/5.2e-7/5.2e-9 × ‖W⋆‖²_F = 826.97 et 1146.99 (recalculés) = 3.79-3.84 η² et 6.00-6.06 η² ; réexécution 3.78 η² et 6.00 η² (num-noise_floor_constants.py)."
+  },
+  {
+   "claim": "the floor of minibatch Muon is linear in its learning rate",
+   "location": "l. 494-495",
+   "evidence": "M3, niveaux stationnaires : 5.74e-2/5.71e-3 = 10.05 (softmax), 1.59e-2/1.66e-3 = 9.58 (moindres carrés), 3 graines ; deux valeurs de lr seulement (voir F7)."
+  },
+  {
+   "claim": "1.2·10⁻¹ and 4.8·10⁻² with the minibatch gradient, b = 32 [valeur]",
+   "location": "l. 495-496",
+   "evidence": "M3 « minibatch b=32, nuclear-scaled », niveau stationnaire 1.241e-1 et 4.847e-2 (distances carrées relatives)."
+  },
+  {
+   "claim": "Rounding precision with the SAGA estimator and a nuclear-scaled or clipped length",
+   "location": "l. 497-498",
+   "evidence": "M3 : softmax 2.0e-27, 5.3e-27, 2.1e-27 ; moindres carrés 3.3e-20 à 60 passes (encore décroissant) ; réexécution de ls-mem à 110 passes : arrêt sous 1e-30 à la passe 87 (graines 0, 1) ; soft-mem plafonne à 1.1e-29 (num-noise_miso_regime.py c)."
+  },
+  {
+   "claim": "γ(m+ϑc) with ϑ = 1/n, γ = 1/λ is MISO",
+   "location": "l. 255-256",
+   "evidence": "W⁺ = −z̄⁺/λ = argmin de la moyenne des minorants ; implémentation indépendante, softmax et moindres carrés, 399 pas : écart relatif max 1.6e-15 (num-noise_bound_and_miso.py)."
+  },
+  {
+   "claim": "The predictable part m is the gradient of an isotropic quadratic … which MISO does exactly",
+   "location": "l. 499-502",
+   "evidence": "m = z̄ + λW = ∇(λ/2)‖W + z̄/λ‖²_F, hessienne λI (3e-15) ; après un pas de MISO ‖m‖_F ≤ 1.1e-16."
+  },
+  {
+   "claim": "11.8 against 11.9, softmax with κ = n; SAGA: 20.2",
+   "location": "l. 502-503",
+   "evidence": "M6_summary.json, softmax κ/n = 1 : joint c = 1/4 [11.8, 13.2, 11.7], MISO [12.0, 11.9, 11.5], SAGA [20.1, 20.2, 20.2] ; autres cas convergents 8.8/8.7, 10.5/10.4, 18.1/18.9."
+  },
+  {
+   "claim": "Predictions are checked with zeros of the mean field from exactly sampled batch means, quadrature or Monte Carlo, and runs on a finite-sum least-squares problem with an intercept and skewed residuals",
+   "location": "l. 249-251",
+   "evidence": "check_minibatch_offset_exact.py (Gamma(b,1)/b − 1, 1.5e6 tirages) ; check_offset_first_order.py (quadrature, Monte-Carlo) ; make_paper_figures.py ls_problem."
+  },
+  {
+   "claim": "Tableau 1, ligne 3 : at batch one on least squares, to a least-distances estimator ; a limit gradient of order 1/b",
+   "location": "l. 165-166",
+   "evidence": "W_LAD minimise Λ (0.49570 contre 0.51236 en W_LS ; 200 perturbations défavorables) ; b×décalage entre 0.17 et 0.31 pour b = 1 à 32."
+  }
+ ],
+ "findings": [
+  {
+   "id": "F1-M2-step-regime",
+   "severity": "major",
+   "location": "l. 499-503 ; aussi l. 172 (tableau 1, ligne 4) et l. 636 (tableau 2)",
+   "claim": "With the same indices the joint SAGA-Muon needs the passes of MISO where MISO converges ($11.8$ against $11.9$, softmax with $\\kappa=n$; SAGA: $20.2$) and fails where MISO fails ($\\kappa\\gg n$): it is not a spectral method.",
+   "problem": "L'expérience M6 compare à deux constantes de pas fixes non réglées (γ = c/R²_op, c = 1/4 et 1 ; 3 graines, 40 passes, n = 1000, κ/n ∈ {0.1, 1, 10}), ce que le papier ne dit pas. Avec un pas 4 à 16 fois plus petit la même méthode converge sur les instances mêmes où MISO échoue, et (M3) du papier (l. 375-377) rapporte le joint SAGA-Muon réglé à 29.0 et 43.5 passes sur des instances κ ≈ 48n et 36n où MISO (δ = 1) stagne ou diverge. L'énoncé est faux tel qu'écrit hors de son hypothèse de pas ; l'intitulé « is MISO in disguise » et « it is not a spectral method » ont la même limite (aux pas réglés des instances limitées par le conditionnement, ‖m‖⋆/‖∇F‖⋆ médian 0.35-0.47 et rang nucléaire 1.76-1.81).",
+   "evidence": "num-noise_miso_regime.py a : κ/n = 10 de M6, graine 0, 40 passes ; softmax : MISO 0.88, joint c = 1 : 0.84, c = 1/4 : 0.20, c = 1/16 : 10⁻⁶ en 25.1 passes (5.3e-10 à 40) ; moindres carrés : MISO diverge, joint c = 1, 1/4, 1/16 divergent, c = 1/64 : 10⁻⁶ en 25.6 passes (2.3e-10 à 40). Partie b : soft-cond/ls-cond, graine 10 : MISO δ = 1 stagne à 9.5 / diverge ; joint au pas de M1 : 30.6 / 31.0 passes. M1_summary.json (digest l. 326, 335) : MISO à table relâchée 42.7, 120.7, non atteint, 29.1 ; joint 29.0, 43.5 (9/10), 28.1, 20.3. M2_summary.json : base_ratio et nrank_omega du joint.",
+   "proposed_fix": "\\item[(M2)] \\emph{At batch one and at textbook steps the nuclear-scaled polar step of SAGA is MISO in disguise.} [...] exactly. With the same indices and untuned step constants ($1/4$ and $1$, three seeds) the joint SAGA-Muon needs the passes of MISO where MISO converges ($11.8$ against $11.9$, softmax with $\\kappa=n$; SAGA: $20.2$) and stalls or diverges with it at $\\kappa=10n$: at these steps it is not a spectral method. Steps $4$ to $16$ times smaller converge there, as do the tuned steps of \\finding{M3}, where MISO does not. % Table 1, row 4: at batch one and at textbook steps the nuclear-scaled polar step of SAGA behaves as MISO \\nat{e}.",
+   "confidence": "high"
+  },
+  {
+   "id": "F6-LSVRG-not-reported",
+   "severity": "major",
+   "location": "l. 497-498 ; l. 171-172 (tableau 1, ligne 4) ; l. 636 (tableau 2)",
+   "claim": "Only a finite-sum estimator reaches rounding precision, with a length that vanishes with it (nuclear-scaled or clipped; on least squares also the soft map) or with fixed lengths cooled geometrically",
+   "problem": "La proposition 3(c) et le paragraphe « Experiments » nomment deux estimateurs à somme finie (SAGA, SVRG sans boucle). Le pas polaire à longueur nucléaire de l'estimateur L-SVRG (« L-SVRG-Muon (joint) », pas réglé) manque la cible sur les six instances de M1 (0/10 graines sur cinq instances, 1/10 sur soft-cond ; distances finales 5.5e-5 à 5.9e-2) : résultat négatif connu du dépôt, absent du papier. La précision d'arrondi n'est établie que pour la table SAGA ; les tableaux 1 et 2 la présentent comme une propriété de « a finite-sum estimator ». La phrase est littéralement une condition nécessaire : la sévérité est un jugement.",
+   "evidence": "M1_summary.json, famille « L-SVRG-Muon (joint) » (digest l. 55, 111, 153, 211, 257, 304, 336). num-noise_lsvrg_joint.py : réexécution 150 passes au pas de M1, graine 10 : soft-mem 7.3e-2, 7.5e-3, 3.2e-4, 7.9e-4, 4.1e-4, 1.7e-3 aux passes 10, 20, 40, 80, 120, 150 (pas de convergence) ; ls-mem 6.1e-8 à 150 passes (table SAGA : 10⁻⁹ en 23 passes).",
+   "proposed_fix": "Among the estimators tested at constant parameters, only the SAGA estimator reaches rounding precision, with a length that vanishes with it (nuclear-scaled or clipped; on least squares also the soft map) or with fixed lengths cooled geometrically \\finding{M5}; with the loopless-SVRG estimator the nuclear-scaled step misses the targets of Section~\\ref{sec:experiments} on all six instances.",
+   "confidence": "medium"
+  },
+  {
+   "id": "F2-nuclear-rank-one-instance",
+   "severity": "minor",
+   "location": "l. 500-501",
+   "claim": "(nuclear rank $\\nnuc\\omega^2/\\nF\\omega^2$ of $1.07$, median over the recorded states)",
+   "problem": "1.07 est la médiane de 5 états d'une seule trajectoire sur une seule instance (soft-mem, pas réglé γ = 0.125/R²_op, expérience M2). Sur les cinq autres instances : 1.36, 1.76, 1.81, 1.65, 1.36. L'instance n'est pas nommée et (M6) du papier s'y réfère pour des instances où la valeur est 1.76-1.81.",
+   "evidence": "M2_summary.json, SAGA-Muon (joint) → own → nrank_omega : soft-mem [1.095, 1.058, 1.066, 1.077, 1.064] ; médianes des autres : ls-mem 1.355, soft-cond 1.758, ls-cond 1.813, ls-orth 1.649, soft-sq 1.359 (digest l. 452, 471, 490, 509, 528, 547).",
+   "proposed_fix": "(nuclear rank $\\nnuc\\omega^2/\\nF\\omega^2$ of $1.07$ on the softmax instance with $\\kappa=n$, $1.36$--$1.81$ on the five others; medians over the recorded states)",
+   "confidence": "high"
+  },
+  {
+   "id": "F3-M1-units",
+   "severity": "minor",
+   "location": "l. 493-496 ; figure 3(a)",
+   "claim": "the iterates settle at a squared distance $3.8\\,\\eta^2$ (softmax) or $6.0\\,\\eta^2$ (least squares) [...] ($1.2\\cdot10^{-1}$ and $4.8\\cdot10^{-2}$ with the minibatch gradient, $b=32$",
+   "problem": "3.8 η² et 6.0 η² sont des distances carrées absolues ; 1.2·10⁻¹ et 4.8·10⁻² sont relatives à ‖W⋆‖²_F, comme l'axe de la figure 3(a), où le plateau à η = 10⁻² est 4.6·10⁻⁷ = 4.6·10⁻³ η². Le texte ne distingue pas les deux unités (le mot « absolute » de la rédaction antérieure a disparu).",
+   "evidence": "num-noise_floor_constants.py : ‖W⋆‖²_F = 826.97 (soft-mem), 1146.99 (ls-mem) ; M3_summary.json ; muon/findings.md l. 891.",
+   "proposed_fix": "the iterates settle at an absolute squared distance $3.8\\,\\eta^2$ (softmax) or $6.0\\,\\eta^2$ (least squares) [...] (relative squared distances $1.2\\cdot10^{-1}$ and $4.8\\cdot10^{-2}$ with the minibatch gradient, $b=32$;",
+   "confidence": "high"
+  },
+  {
+   "id": "F4-STORM-not-MARSM",
+   "severity": "minor",
+   "location": "l. 496",
+   "claim": "a momentum buffer as in MARS-M \\cite{liu2025marsm} keeps a floor",
+   "problem": "La configuration testée avec la longueur nucléaire est un tampon STORM (g = 1, même lot, SVD exacte), à 4.1e-2 et 9.1e-3 (b = 32). MARS-M (g = 0.025, correction écrêtée) n'a été lancé qu'à longueur fixe (plancher 4.8e-3 et 1.7e-3).",
+   "evidence": "muon/experiments/exp_M3_floors.py l. 63-75 ; muon/lab/mvr.py (docstring) ; M3_summary.json « STORM buffer b=32, nuclear-scaled ».",
+   "proposed_fix": "a STORM buffer \\cite{cutkosky2019momentum} with this length keeps a floor, $4.1\\cdot10^{-2}$ and $9.1\\cdot10^{-3}$)",
+   "confidence": "high"
+  },
+  {
+   "id": "F5-only-scope",
+   "severity": "minor",
+   "location": "l. 497-498",
+   "claim": "Only a finite-sum estimator reaches rounding precision",
+   "problem": "Repose sur deux instances limitées par la mémoire (même graine de données), trois graines, 60 passes, et des alternatives toutes à paramètres constants (mini-lot b = 32, Muon, MARS-M, STORM-Muon, tampon STORM) ; les versions à paramètres décroissants ne sont pas testées. Dans les données stockées ls-mem finit à 3.3e-20 encore décroissant (arrondi atteint seulement dans ma réexécution à 87 passes) ; sur ls-cond au pas réglé le même pas est à 3.5e-10 à 3.9e-8 après 300 passes.",
+   "evidence": "exp_M3_floors.py (configurations) ; M3_summary.json (traces) ; num-noise_miso_regime.py c ; réexécution ls-cond, graines 10 à 12, 300 passes.",
+   "proposed_fix": "Among the estimators tested at constant parameters, only the SAGA estimator reaches rounding precision,",
+   "confidence": "high"
+  },
+  {
+   "id": "F7-Muon-floor-figure",
+   "severity": "minor",
+   "location": "l. 491, 494-495 ; figure 3(a)",
+   "claim": "whereas the floor of minibatch Muon is linear in its learning rate",
+   "problem": "Dans la figure 3(a) la courbe Muon (lr = 10⁻²) vaut 1.3e-2 à la passe 60 et décroît encore ; son niveau stationnaire est 5.7e-3. La linéarité est lue sur les runs démarrés en W⋆ à deux valeurs de lr ; depuis W_0 = 0 le rapport des niveaux à 60 passes est 3.5 et 1.2.",
+   "evidence": "M3_summary.json, « Muon b=32, lr 1e-2 » : trace 1.27e-2 à la passe 60, trace_stat ≈ 5.4e-3 ; num-noise_floor_constants.py.",
+   "proposed_fix": "whereas the floor of minibatch Muon is linear in its learning rate ($5.7\\cdot10^{-2}$ and $5.7\\cdot10^{-3}$ at $\\mathrm{lr}=10^{-1}$ and $10^{-2}$ on softmax, runs started at $W_\\ast$; the run of Figure~\\ref{fig:noise}(a) has not reached it).",
+   "confidence": "high"
+  },
+  {
+   "id": "F8-lemma4-attribution",
+   "severity": "minor",
+   "location": "l. 491-492",
+   "claim": "$\\max(F(W_t),F(W_{t+1}))-F_\\ast\\ge\\muop\\eta^2/8$ whenever the step is nonzero \\cite[Lemma~4]{jawanpuria2026constant}",
+   "problem": "La borne est juste, mais le lemme 4 cité énonce max{‖E_t‖_F, ‖E_{t+1}‖_F} ≥ αγ/2 pour des gradients exacts sur une quadratique : forme en distance de Frobenius. La forme en écart d'objectif avec μ_op, pour tout estimateur, est un corollaire des auteurs et ne se lit pas dans le lemme (qui ne donne que μ_F η²/8).",
+   "evidence": "https://arxiv.org/html/2610.27747, Section 5, Lemma 4 (Nonconvergence), lu par l'outil de récupération : « max{∥Et∥F,∥Et+1∥F}≥αγ/2 whenever Gt≠0 » ; muon/notes_theory.md, F2 et F13(b).",
+   "proposed_fix": "whenever the step is nonzero, for any estimator (in distance and for exact gradients: \\cite[Lemma~4]{jawanpuria2026constant})",
+   "confidence": "medium"
+  },
+  {
+   "id": "F9-soft-map-softmax",
+   "severity": "nit",
+   "location": "l. 497-498",
+   "claim": "on least squares also the soft map",
+   "problem": "Sur softmax la carte soft à longueur fixe n'a pas de plancher non plus (run démarré à 10⁻¹⁴ : 5.7e-19 à la passe 30, sans palier ; depuis W_0 = 0 : 1.4e-9 à la passe 60, décroissance linéaire) : la restriction reflète le budget de 60 passes. Sous-affirmation, sans conséquence.",
+   "evidence": "M3_summary.json, « SAGA est., bounded gain (eps = 0.04), fixed length 1e-2 », trace et trace_stat.",
+   "proposed_fix": "",
+   "confidence": "high"
+  },
+  {
+   "id": "F10-table1-row3-wording",
+   "severity": "nit",
+   "location": "l. 164-165",
+   "claim": "Polar steps are stochastic mirror descent on a smoothed nuclear norm and converge to minus a nuclear median of the noise \\nat{p}",
+   "problem": "C'est le gradient qui converge vers l'opposé d'une médiane nucléaire (théorème 2(b)), pas les itérés.",
+   "evidence": "Énoncé du théorème 2(b), l. 403.",
+   "proposed_fix": "Polar steps are stochastic mirror descent on a smoothed nuclear norm and their gradient converges to minus a nuclear median of the noise \\nat{p};",
+   "confidence": "high"
+  }
+ ],
+ "not_checked": [
+  "Expériences M2, M3, M6 complètes non relancées : réexécutions courtes seulement (graines 0, 1, 10 à 12 ; 32 à 300 passes).",
+  "« With the same indices » : l'identité des indices tirés entre les runs MISO et SAGA-Muon de M6 n'a pas été contrôlée dans le code.",
+  "Règles « clipped » et « soft map » de (M1) : lues dans M3_summary.json, non réexécutées.",
+  "Zéros du champ moyen pour b = 4 et 8 non répliqués (b = 2, 16, 32 répliqués).",
+  "Lemme 4 de Jawanpuria et al. (arXiv:2610.27747) lu seulement à travers le résumé de l'outil de récupération ; défauts de MARS-M lus dans la docstring de muon/lab/mvr.py, pas dans l'article.",
+  "Début du paragraphe « Numerical checks » (0.464 ; 0.450-0.498) : hors périmètre.",
+  "Partie « or with fixed lengths cooled geometrically (M5) » de (M1) : autre dimension."
+ ]
+}

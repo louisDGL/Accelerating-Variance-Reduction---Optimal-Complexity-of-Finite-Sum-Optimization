@@ -1,0 +1,164 @@
+{
+ "scope_covered": "Bibliography, first group (21 keys: variance reduction, finite sums, classical theory). For each key: bib entry checked against arXiv API, Crossref, PMLR/JMLR/NeurIPS metadata; every sentence citing it (grep) checked against the opened source text (PDFs downloaded and read). Precise references opened: Arjevani et al. Theorem 8 (JMLR), Mokhtari et al. Corollary 3, Hofmann et al. Theorem 1/Corollary 1, Bach Proposition 5.9 and Section 5.4.4 (online version), Zhang-Yin Definition 2, Na et al. Section 5, Dragomir et al. Corollary 1, Yang et al. Assumption 1, Qin et al. Algorithm 2/Theorem 4.1, Finito Section 3, Driggs et al. B-SAGA, Xiao-Zhang weighted sampling, Mairal eq. (3.8)/Prop. 3.4, Katyusha Section 6. One numeric check (MISO identity, DIAG threshold).",
+ "checked_ok": [
+  {
+   "claim": "Theorem 8 of arjevani2016lower and 'the order of one-step stationary methods'",
+   "location": "l. 321-324",
+   "evidence": "JMLR 17 (2016) p. 23: 'Theorem 8 Let A be a consistent p-SCLI optimization algorithm ... If the inversion matrix of A is diagonal ... IC_A(eps,f) = Omega~((kappa^{1/p}-1)/2 ln(1/eps))'; p-SCLI = p-stationary canonical linear iterative (Def. 1); p = 1 gives order kappa log(1/eps), attained by GD (Sec. 4.2)."
+  },
+  {
+   "claim": "Proposition 5.9 and Section 5.4.4 of bach2024learning (step 1/(4R^2), z_i^(0)=f_i'(theta_0), delta=3 gamma^2, contraction 1-min{1/(3n),3mu/(16R^2)}; six inequalities)",
+   "location": "l. 113-114, 147, 189-194, 210-212",
+   "evidence": "Online PDF of the book (26 May 2025) p. 146-149: statement (5.30) and proof (||a+b||^2<=2||a||^2+2||b||^2, co-coercivity, variance <= second moment, strong convexity, min of rates, initialization 1+3n/16<=1+n/4) match the paper."
+  },
+  {
+   "claim": "'the step of hofmann2015variance' (best step of the proof)",
+   "location": "l. 319",
+   "evidence": "arXiv 1506.03662 v4, Theorem 1: gamma*(K)=a*(K)/(4L), a*(K)=2K/(1+K+sqrt(1+K^2)), K=4qL/(n mu); Corollary 1: 'rho is maximized for gamma = gamma*(K)'. (Equality with the best step of Prop. 5.9's proof checked by math-saga.)"
+  },
+  {
+   "claim": "'the restricted-secant constant of zhang2013gradient'; 'one-point curvature conditions'",
+   "location": "l. 148, 213-214",
+   "evidence": "arXiv 1303.4645 v2, Definition 2: 'Restricted secant inequality - RSI(nu) ... <grad f(x), x - x_prj> >= nu ||x - x_prj||^2'; 'nu can be viewed as a lower bound of the average curvature' (nuance: see CV-5)."
+  },
+  {
+   "claim": "'(n+sqrt(n kappa)) log(1/eps)' for accelerated variants",
+   "location": "l. 115",
+   "evidence": "Katyusha arXiv v6 Theorem 2.1 O((n+sqrt(n kappa))log(1/eps)); L-Katyusha (arXiv 1901.08689) k=O((n+sqrt(nL/mu))log 1/eps); RPDG (arXiv 1507.02000) O((m+sqrt(mL/mu))log 1/eps) with matching lower bound (1.11)."
+  },
+  {
+   "claim": "'the designs of na2023hessian'",
+   "location": "l. 297-298",
+   "evidence": "arXiv 2204.09266 Section 5: low/high coherence (rows of U divided by sqrt(z_i), z_i ~ Gamma(0.5, 2)), singular values equally spaced from 1 to kappa_A in {d^0.5, d, d^1.5}, logistic labels; port vrlab/problems.py make_logistic_ndm l. 258-298 uses kappa_A in {d^0.5, d}."
+  },
+  {
+   "claim": "dragomir2021fast = 'SAGA in a fixed metric'",
+   "location": "l. 153",
+   "evidence": "arXiv 2104.09813 Algorithm 1 'Bregman-SAGA'; Corollary 1: 'If nabla^2 h is constant (h is quadratic) ... E[psi_t] <= (1-min(1/(8 kappa_{f/h}),1/(2n)))^t psi_0'."
+  },
+  {
+   "claim": "yang2014data, gonen2016solving = 'preconditioning where the loss curvature is bounded below'; Yang = 'a preconditioner computed once'",
+   "location": "l. 154, 327, 655",
+   "evidence": "Yang et al. Assumption 1: 'l''(z,y) >= beta for |z| <= r'; preconditioner H = rho I + C, rho = lambda/beta, then SAG/SVRG on preconditioned data. Gonen et al.: 'a novel preconditioning method for ridge regression ... equipping SVRG with this preconditioning'."
+  },
+  {
+   "claim": "qin2023convergence = 'SVRG anchors under reshuffling, without linear rate' (sign steps)",
+   "location": "l. 175, 658-660",
+   "evidence": "arXiv 2310.15976 v4 Algorithm 2 SignRVR: v = grad f_pi(x) - grad f_pi(y_t) + grad f(y_t), y_t anchor at the start of each reshuffled epoch; Theorem 4.1: pathwise descent inequality, nonconvex stationarity bound, no linear rate. SignRVR already in v1 (2023)."
+  },
+  {
+   "claim": "ying2017variance, park2020linear = linear rates under reshuffled / cyclic orders",
+   "location": "l. 608",
+   "evidence": "Ying et al. abstract: 'the first theoretical guarantee of linear convergence under random reshuffling for SAGA', Theorem 1; Park-Ryu abstract: 'We prove C-SAGA converges linearly', C-SAGA = cyclic SAGA."
+  },
+  {
+   "claim": "defazio2014finito = 'a permutation order was seen to help'",
+   "location": "l. 606-607",
+   "evidence": "Finito PMLR PDF Sec. 3: 'this approach does not give any speedup with SAG, however it works spectacularly well with Finito. We see speedups of up to a factor of two'; SAGA paper: 'per-pass re-permuted access ordering, empirical speed-ups of up-to a factor of 2x'."
+  },
+  {
+   "claim": "driggs2019biased = damped SAGA (B-SAGA)",
+   "location": "l. 259",
+   "evidence": "arXiv 1906.01133: 'grad~^{B-SAGA} = (1/theta)(grad f_j(x_k) - grad f_j(phi_j)) + (1/n) sum_i grad f_i(phi_i) ... When theta = n ... recovers the SAG gradient estimator'."
+  },
+  {
+   "claim": "xiao2014proximal = importance sampling",
+   "location": "l. 259",
+   "evidence": "arXiv 1403.4699: 'When the sampling probabilities for f_i are proportional to their Lipschitz constants ... O((n + L_avg/mu) log(1/eps))'."
+  },
+  {
+   "claim": "mairal2015incremental = MISO; gamma(m + vartheta c), vartheta=1/n, gamma=1/lambda is MISO",
+   "location": "l. 170, 255-256, 499-503",
+   "evidence": "arXiv 1402.4419 eq. (3.8) lower-bound surrogates with mu, Proposition 3.4 (needs T >= 2L/mu, 'may diverge if T is small'); identity checked numerically (checks/cite-vr_miso_and_diag.py: max deviation 4.4e-16)."
+  },
+  {
+   "claim": "allenzhu2018katyusha = finite-sum estimators in general norms",
+   "location": "l. 655",
+   "evidence": "Katyusha arXiv v6, Section 6 'Katyusha in the Non-Euclidean Norm Setting': smoothness 'with respect to an arbitrary norm', Bregman divergence."
+  },
+  {
+   "claim": "kovalev2020dont = loopless SVRG and loopless Katyusha",
+   "location": "l. 253, 305",
+   "evidence": "Abstract: 'we design loopless variants of both of these methods' (L-SVRG, L-Katyusha)."
+  },
+  {
+   "claim": "johnson2013accelerating, defazio2014saga: linear convergence with constant step; Lyapunov proof of SAGA",
+   "location": "l. 113, 147",
+   "evidence": "SAGA arXiv 1407.0202: 'Theorem 1. With x* the optimal solution, define the Lyapunov function T'."
+  },
+  {
+   "claim": "Bibliographic entries of the 19 other keys (authors, title, year, venue, volume, pages, arXiv/DOI)",
+   "location": "paper_saga_to_muon.bib",
+   "evidence": "arXiv API (19 ids), Crossref (lan, mairal, mokhtari, na, park, ying, allenzhu STOC, xiao), PMLR meta tags (kovalev20a, defazio14, gonen16, dragomir21a), JMLR (15-106, 16-410), NeurIPS Metadata.json (Hofmann 2305-2313, Johnson-Zhang 315-323), UCLA CAM 13-17 PDF; Finito author order checked on the PMLR PDF."
+  }
+ ],
+ "findings": [
+  {
+   "id": "CV-1",
+   "severity": "minor",
+   "location": "l. 607-609",
+   "claim": "linear rates are proved for reshuffled and cyclic orders \\cite{ying2017variance,park2020linear}, some beating $e^{-1}$ per pass for $\\kappa<4.08$ \\cite{mokhtari2018surpassing}.",
+   "problem": "The threshold 4.08 and the comparison with the memory factor e^{-1} are the authors' computation, not a statement of the cited source; 'some' suggests several proved rates do it, whereas among the cited sources only DIAG's does (Ying et al. and Park-Ryu prove 1-O(1/kappa^2) per pass).",
+   "evidence": "Mokhtari et al. (arXiv 1611.00347 v2) Corollary 3: ||x^{n(m-1)+1}-x*|| <= rho^m[1-(1-rho)/n min{1,(n-1)/2}]||x0-x*||, rho=(kappa-1)/(kappa+1), cyclic order; no occurrence of e^{-1}, 4.08 or of a comparison with i.i.d. sampling in the text. rho^2<e^{-1} iff kappa<(sqrt e+1)/(sqrt e-1)=4.08299 (checks/cite-vr_miso_and_diag.py). Repository note theory/B4_sampling_order.tex l. 515: 'a comparison that these papers do not make'.",
+   "proposed_fix": "linear rates are proved for reshuffled and cyclic orders \\cite{ying2017variance,park2020linear}, and that of cyclic DIAG, $\\frac{\\kappa-1}{\\kappa+1}$ per pass on the distance \\cite[Corollary~3]{mokhtari2018surpassing}, beats $e^{-1}$ for $\\kappa<4.08$ (our comparison).",
+   "confidence": "high"
+  },
+  {
+   "id": "CV-2",
+   "severity": "minor",
+   "location": "l. 177 (Table 1)",
+   "claim": "reshuffled SAGA-type methods \\cite{ying2017variance,mokhtari2018surpassing}",
+   "problem": "DIAG (mokhtari2018surpassing) is a fixed cyclic-order method, not a reshuffled one.",
+   "evidence": "Mokhtari et al., after Lemma 1: 'The cyclic scheme is critical in proving the result in (21) ... If we pick functions uniformly at random, as in MISO, it is not possible to write the expression in (21)'; title: 'A Cyclic Incremental Method'.",
+   "proposed_fix": "reshuffled and cyclic SAGA-type methods \\cite{ying2017variance,mokhtari2018surpassing}",
+   "confidence": "high"
+  },
+  {
+   "id": "CV-3",
+   "severity": "minor",
+   "location": "paper_saga_to_muon.bib (driggs2019biased, yang2014data)",
+   "claim": "@misc{driggs2019biased, ... eprint = {1906.01133}} ; @misc{yang2014data, ... eprint = {1408.3115}}",
+   "problem": "Both papers are published in journals; the bibliography cites only the arXiv preprints (the other entries of this group cite the published version when it exists).",
+   "evidence": "https://jmlr.org/papers/v23/20-316.html (citation_* tags): JMLR vol. 23, issue 24, pp. 1-43, 2022. Crossref 10.1007/s10994-015-5536-6: Yang, Jin, Zhu, Lin, Machine Learning 103(1):57-79 (online 20 Oct 2015).",
+   "proposed_fix": "@article{driggs2019biased, ..., journal = {Journal of Machine Learning Research}, volume = {23}, number = {24}, pages = {1--43}, year = {2022}, eprint = {1906.01133}} ; @article{yang2014data, ..., journal = {Machine Learning}, volume = {103}, number = {1}, pages = {57--79}, year = {2016}, doi = {10.1007/s10994-015-5536-6}, eprint = {1408.3115}}",
+   "confidence": "high"
+  },
+  {
+   "id": "CV-4",
+   "severity": "minor",
+   "location": "l. 240",
+   "claim": "the feature-covariance metric $\\omega\\mapsto\\omega(\\bar c\\hat\\Sigma+\\lambda I)^{-1}$ \\cite{yang2014data}",
+   "problem": "c_bar is defined nowhere in the paper; in the code it is the upper curvature bound c_loss (0.5 softmax, 1 least squares), whereas the cited preconditioner uses a LOWER bound beta of the loss curvature (H = C + (lambda/beta) I). The metric is a variant of the source's, not the source's; they coincide for least squares.",
+   "evidence": "grep: single occurrence of \\bar c in the .tex; muon/lab/vrmuon.py l. 641-649 ('model Hessian c_l Sigma_hat + lam I'), muon/lab/problems.py l. 319, 415; Yang et al. arXiv 1408.3115 v4 Assumption 1 'l''(z,y) >= beta' and 'H = rho I + C, where rho = lambda/beta'.",
+   "proposed_fix": "the feature-covariance metric $\\omega\\mapsto\\omega(\\bar c\\hat\\Sigma+\\lambda I)^{-1}$, $\\bar c=\\max_ic_i$ (\\cite{yang2014data} use a lower bound of the loss curvature in its place)",
+   "confidence": "high"
+  },
+  {
+   "id": "CV-5",
+   "severity": "nit",
+   "location": "l. 213-214",
+   "claim": "$\\muEff(\\theta)=\\inner{\\theta-\\etas}{F'(\\theta)}/\\norm{\\theta-\\etas}^2$ (the restricted-secant constant of \\cite{zhang2013gradient})",
+   "problem": "Zhang-Yin's RSI constant nu is a single lower bound valid for all x; mu_eff(theta) is the pointwise ratio, whose infimum is the best RSI constant.",
+   "evidence": "arXiv 1303.4645 v2, Definition 2: 'satisfies the restricted secant inequality (RSI) with constant nu > 0 if ... <grad f(x), x - x_prj> >= nu ||x - x_prj||^2'.",
+   "proposed_fix": "(the pointwise ratio of the restricted secant inequality of \\cite{zhang2013gradient})",
+   "confidence": "medium"
+  },
+  {
+   "id": "CV-6",
+   "severity": "nit",
+   "location": "l. 325-326",
+   "claim": "Proposition~5.9 holds in any fixed metric $P$ with $R_P^2,\\mu_P$ \\cite{dragomir2021fast}",
+   "problem": "The source certifies a Bregman SAGA in a fixed (quadratic) metric with its own constants (1/8, 1/2), not Proposition 5.9; the transfer of Proposition 5.9 is a change of variables.",
+   "evidence": "arXiv 2104.09813, Corollary 1: 'If nabla^2 h is constant (h is quadratic) ... E[psi_t] <= (1 - min(1/(8 kappa_{f/h}), 1/(2n)))^t psi_0'.",
+   "proposed_fix": "Proposition~5.9 holds in any fixed metric $P$ with $R_P^2,\\mu_P$ (a change of variables; cf.\\ \\cite[Corollary~1]{dragomir2021fast})",
+   "confidence": "medium"
+  }
+ ],
+ "not_checked": [
+  "Print edition (MIT Press, Dec. 2024) of bach2024learning: only the author's online version of 26 May 2025 was opened; numbering 'Proposition 5.9' / 'Section 5.4.4' verified there only.",
+  "Algebraic equality of the best step of Prop. 5.9's proof with gamma*(K) of hofmann2015variance: not redone here (done by math-saga, check3); only the source text was checked.",
+  "DBLP was unreachable (anti-bot page); metadata cross-checked with Crossref, PMLR, JMLR, NeurIPS and the arXiv API instead.",
+  "The count 'eight data sets' and the numbers 64-98% / 13-198 on the na2023hessian designs (l. 297-299): numeric dimension (num-f1), not checked here."
+ ],
+ "report_path": "/users/eleves-b/2023/louis.darrigol/projetSTATS/paper/audit/evidence/cite-vr.md"
+}

@@ -1,0 +1,185 @@
+{
+ "scope_covered": "Recette (4) et constat (M5), lignes 508-544 ; legende de la figure 4(a), lignes 520-523, image et script ; chiffres des lignes 578-581 (3.3e4-8.9e4 ; 2.3-3.5) et 648-650 (1e4-1e5 ; 350-1400) ; resume, lignes 102-105 ; tableau 1, ligne 5. Chaque chiffre est recalcule depuis muon/results/M9_summary.json, M9_law.pkl, M1_summary.json, M5b_summary.json ; code lu : muon/lab/polar.py, vrmuon.py, mvr.py, muon/experiments/exp_M9_schedule.py, families.py, common.py ; huit controles numeriques dans paper/audit/checks/num-m5_*.py (reproduction de 12 runs du cache, reimplementation independante de la recette, controles d'equite avec et sans table, constantes certifiees).",
+ "checked_ok": [
+  {
+   "claim": "lr_t = lr_0 q^{tb/n} (recette (4))",
+   "location": "511",
+   "evidence": "muon/lab/vrmuon.py:478-480 : self.lr * self.lr_decay ** (t * self.batch / self.n) ; MARS-M / STORM-Muon : schedule ['geometric', q, n/(2b)] (exp_M9_schedule.py:497-499), meme facteur q par passe de gradients"
+  },
+  {
+   "claim": "Muon's five Newton--Schulz steps (ns5, normalization constant epsilon = 1e-7)",
+   "location": "513",
+   "evidence": "muon/lab/polar.py:157 : def ns5(M, steps=5, coeffs=(3.4445, -4.7750, 2.0315), eps=1e-7) ; division par ||X||_F + eps ligne 173"
+  },
+  {
+   "claim": "with or without Nesterov momentum 0.9 (Muon's recipe: ns5 with momentum); two controls omega/||omega||_F and sign; q and lr_0 are tuned",
+   "location": "514-515",
+   "evidence": "families.py:314-315 (beta=0.9, nesterov=True), families.py:332 (recette de Muon = ns5 + Nesterov), vrmuon.py:568-571 (buf = beta buf + omega ; D = (1-beta)(omega + beta buf)) ; polar.py:234-255 ; grilles q in {0.55..0.9}, lr_0 in {0.003..1} (families.py:272, 331)"
+  },
+  {
+   "claim": "batch one, 300 passes, five seeds, the two non-square conditioning-limited instances",
+   "location": "532-533",
+   "evidence": "exp_M9_schedule.py:87-88 : LAW_ON = (soft-cond, ls-cond) (8 x 40, n = 200), LAW_SEEDS = 10..14, passes = 300, batch = 1"
+  },
+  {
+   "claim": "floor 2.8e-29 (softmax) and 2.3e-29 (least squares) for the exact polar factor, the rounding floor",
+   "location": "535",
+   "evidence": "M9_law.pkl : medianes 2.85e-29 [2.34e-29, 4.10e-29] et 2.27e-29 [1.43e-29, 3.79e-29] (distance au carre relative a ||W_*||_F^2) ; sqrt = 5.3e-15 = 24 eps machine ; la course quitte la loi a lr_t = 1.1e-15 et 3.7e-16, l'espacement des flottants a la taille des coefficients de W_* ; reimplementation independante : plancher 1e-28 a 2e-27 (dependant de l'arithmetique, comme un plancher d'arrondi)"
+  },
+  {
+   "claim": "near 1e-18 for Muon's recipe at q = 0.8, lr_0 = 0.1, a floor of ns5, whose constant epsilon breaks the scale invariance (with epsilon = 1e-30: 1.5e-29 and 4.1e-30)",
+   "location": "535-537",
+   "evidence": "M9_law.pkl : 9.77e-19 [7.7e-19, 2.85e-18] et 1.09e-18 [1.00e-18, 1.43e-18], 5/5 graines ; eps = 1e-30 : 1.50e-29 et 4.06e-30. Reimplementation independante (num-m5_independent_recipe.py) : 1.2e-18 a 1.5e-18 et 0.93e-18 a 1.03e-18 avec eps = 1e-7, 1.3e-28 a 3.2e-27 avec eps = 1e-30 ; a la sortie de la loi ||D_t||_F = 1.1e-11 et 7.9e-11, tres en dessous de eps = 1e-7"
+  },
+  {
+   "claim": "freezes the iterate at 8% to 93% of the initial squared distance (valeurs numeriques seules)",
+   "location": "538",
+   "evidence": "M9_law.pkl, medianes sur 5 graines : softmax 0.256, 0.340, 0.341 (b = 1), 0.823, 0.931, 0.931 (b = 32) ; moindres carres 0.083, 0.129, 0.143 (b = 1), 0.629, 0.816, 0.813 (b = 32) ; 12 de ces runs relances a l'identique. L'interpretation est contestee : constats M1 et m1"
+  },
+  {
+   "claim": "At batch one the recipe needs 13.4--25.5 passes to 1e-6 on the four conditioning-limited instances",
+   "location": "540-541",
+   "evidence": "M9_summary.json B/<inst>/rows/'fixed-length SAGA [ns5 + Nesterov] b=1' : 21.75, 25.50, 16.65, 13.45"
+  },
+  {
+   "claim": "damped SAGA in a frozen polar metric (12.9--24.4); covariance metric (13.5--16.1) but for a tie",
+   "location": "541-542",
+   "evidence": "B/<inst>/M1/rows : one-shot polar-metric B-SAGA 22.05, 24.35, 13.95, 12.90 ; cov-metric B-SAGA 15.05, 16.05, 13.90, 13.50 ; egalite sur soft-sq (13.45 contre 13.50)"
+  },
+  {
+   "claim": "its tuned points sit next to a cliff in q and lose confirmation seeds on three instances (7/10, 9/10, 9/10), which the fixed point q = 0.8, lr_0 = 0.1 avoids (21.3--26.4 passes)",
+   "location": "542-544",
+   "evidence": "graines atteignant 1e-6 : 7/10, 9/10, 9/10, 10/10 ; point fixe : 23.35, 26.45, 25.30, 21.30, 10/10 partout ; scores de reglage : soft-cond lr_0 = 0.3, 20.0 passes a q = 0.7 et cible manquee a q = 0.65 ; ls-cond 25.3 a q = 0.75, 98.5 a q = 0.7"
+  },
+  {
+   "claim": "Figure 4(a) et sa legende",
+   "location": "520-523",
+   "evidence": "make_figP4_recipe.py:48-56 et 77-106 : ls-cond, mediane (log) de 5 graines ; polaire au point selectionne (0.8, 0.3) ; recette de Muon au point fixe (0.8, 0.1), eps 1e-7 et 1e-30 ; sans table au schedule selectionne (0.75, 0.3), minibatch et MARS-M a b = 1 ; l'image montre les paliers 2e-29, 1e-18, 4e-30, 0.08 et 0.13"
+  },
+  {
+   "claim": "its cooldown is 3.3e4 to 8.9e4 times slower, in log(1/q), than q = 0.8 (valeur numerique)",
+   "location": "578-579",
+   "evidence": "num-m5_certified_constants.py : log(1/0.8) / ((n/2) log(1/rho)), rho = 1 - mu_op/(L_op + 10 A L_max) ; soft-cond (mu_op = 5.0e-5, L_op = 0.0751, L_max = 0.5) : 4.46e4 (A = n), 8.90e4 (A = 2n-1) ; ls-cond (mu_op = 1.371e-4, L_op = 0.1502, L_max = 1) : 3.26e4, 6.50e4. Reserve : constat m2"
+  },
+  {
+   "claim": "gamma <= 1/(14 n L_max), 350 to 1400 times below the tuned steps (soft-cond, ls-cond)",
+   "location": "650",
+   "evidence": "1/(14 n L_max) = 3.574e-4 / R2_op ; M1_summary.json, 'SAGA-Muon (joint)' : 0.5 / R2_op et 0.125 / R2_op : rapports 1399 et 350 ; gamma L_op = 5.4e-5 <= 1. Reserve : constat m5"
+  },
+  {
+   "claim": "where minibatch and momentum-based estimators freeze (resume) ; With a table the cooldown converges, without one it freezes [e] (tableau 1)",
+   "location": "104, 178",
+   "evidence": "qualitativement etabli et robuste au reglage : controles num-m5_no_table_fairness.py (1 graine, 300 passes, q jusqu'a 0.98) : sans table 0.25 % a 10 % de la distance initiale au carre (minibatch et MARS-M, b = 1 et 32), avec table 7.9e-20 et 2.0e-19 a b = 32, 1e-18 a b = 1"
+  }
+ ],
+ "findings": [
+  {
+   "id": "M5-b32-path-length",
+   "severity": "major",
+   "location": "538-540",
+   "claim": "Without a table the same schedule freezes the iterate at $8\\%$ to $93\\%$ of the initial squared distance, for the minibatch gradient ($b=1$, $32$) as for MARS-M \\cite{liu2025marsm} and STORM-Muon \\cite{cutkosky2019momentum}: the cooldown outruns an estimator that does not vanish at $W_\\ast$.",
+   "problem": "A b = 32 le gel ne vient pas de l'estimateur mais de la longueur du schedule. Les controles sans table tournent au point selectionne pour la recette de Muon avec table a batch un (q = 0.7 ou 0.75, lr_0 = 0.3) ; a b = 32 la longueur totale sum_t lr_t de ce schedule est inferieure a ||W_*||_op, donc aucun estimateur, meme exact, ne peut atteindre W_* depuis W_0 = 0. La table SAGA gele au meme niveau sur ce schedule. La moitie haute de l'intervalle (63 % a 93 %, les six valeurs a b = 32) ne dit rien de la table, et l'explication donnee est fausse pour ces valeurs.",
+   "evidence": "sum_t lr_t = lr_0/(1 - q^{g/n}) : minibatch b = 32 : 5.41 = 0.15 ||W_*||_op (soft-cond, ||W_*||_op = 35.82) et 6.67 = 0.37 ||W_*||_op (ls-cond, 18.22) ; MARS-M / STORM-Muon b = 32 : 2.78 = 0.08 et 3.41 = 0.19 ||W_*||_op (paper/audit/checks/num-m5_law_from_pkl.py). Controle avec le code du depot (num-m5_no_table_fairness.py A, graines 10 et 11), b = 32, meme schedule : sans table 0.819, 0.830 (soft-cond) et 0.629, 0.622 (ls-cond) ; AVEC la table SAGA 0.785, 0.785 et 0.574, 0.573. Avec un schedule regle a b = 32 (partie B32) la table descend a 7.9e-20 et 2.0e-19, le minibatch a 0.31 % et 0.25 %, MARS-M a 0.83 % et 0.60 %. Restreint a b = 1 l'intervalle du papier est 8 % a 34 % (0.083 a 0.341).",
+   "proposed_fix": "Without a table the schedule selected for Muon's recipe ($q=0.7$, $0.75$; $\\mathrm{lr}_0=0.3$; not retuned) freezes the iterate at $8\\%$ to $34\\%$ of the initial squared distance at batch one, for the minibatch gradient as for MARS-M \\cite{liu2025marsm} and STORM-Muon \\cite{cutkosky2019momentum}: the cooldown outruns an estimator that does not vanish at $W_\\ast$.",
+   "confidence": "high"
+  },
+  {
+   "id": "M5-no-table-untuned",
+   "severity": "minor",
+   "location": "538",
+   "claim": "Without a table the same schedule freezes the iterate at $8\\%$ to $93\\%$ of the initial squared distance",
+   "problem": "Equite : les concurrents sans table ne sont pas regles sur une grille (q, lr_0) ; ils sont evalues a un seul point, celui selectionne pour la recette de Muon avec table, au bord de la falaise de cette methode (et MARS-M / STORM-Muon, a 2b gradients par pas, y font deux fois moins de pas). De plus 'the same schedule' n'a pas le bon antecedent : les phrases precedentes donnent les planchers avec table a q = 0.8 (lr_0 = 0.1 ou 0.3), alors que les controles sont a q = 0.7 / 0.75, lr_0 = 0.3 ; a ce schedule, sur softmax, la recette avec table quitte elle-meme le schedule pour 4 graines sur 5. La legende de la figure 4(a) est correcte, le texte non. L'intitule et le resume restent vrais qualitativement.",
+   "evidence": "exp_M9_schedule.py:482, 494-499 (q, lr0 = point selectionne pt_M ; aucune grille pour les controles) ; M9_summary.json C/soft-cond/controls_schedule = (0.7, 0.3), C/ls-cond = (0.75, 0.3) ; C/soft-cond/deep/'ns5 + Nesterov (Muon's recipe)' : on_schedule 1/5, plus basses distances 3.0e-5, 2.2e-12, 1.3e-7, 5.2e-13, 1.7e-5. Controle de reglage (num-m5_no_table_fairness.py B1, B1M ; 1 graine, 300 passes, q in {selectionne, 0.9, 0.95, 0.98}) : minibatch b = 1 : 0.263 -> 0.102 (soft-cond), 0.083 -> 0.038 (ls-cond) ; MARS-M b = 1 : 0.355 -> 0.025, 0.149 -> 0.014. Les niveaux baissent d'un facteur 2 a 14 a b = 1 (jusqu'a 300 a b = 32) mais restent a 1 % - 10 %, tres au-dessus de 1e-18.",
+   "proposed_fix": "Without a table the schedule selected for Muon's recipe ($q=0.7$, $0.75$; $\\mathrm{lr}_0=0.3$; not retuned) freezes the iterate at $8\\%$ to $34\\%$ of the initial squared distance at batch one, for the minibatch gradient as for MARS-M \\cite{liu2025marsm} and STORM-Muon \\cite{cutkosky2019momentum}: the cooldown outruns an estimator that does not vanish at $W_\\ast$.",
+   "confidence": "high"
+  },
+  {
+   "id": "P5-age-bound-not-M5-sampling",
+   "severity": "minor",
+   "location": "578-579, 648-649",
+   "claim": "on the two non-square conditioning-limited instances its cooldown is $3.3\\cdot10^4$ to $8.9\\cdot10^4$ times slower, in $\\log(1/q)$, than $q=0.8$ ; Proposition~\\ref{prop:schedule} at cooldowns $10^4$ to $10^5$ times slower than in \\finding{M5}",
+   "problem": "L'intervalle est exact mais melange deux bornes d'age : 3.3e4 est l'ordre cyclique (A = n) sur ls-cond, 8.9e4 la permutation fraiche (A = 2n - 1) sur soft-cond. Les courses de (M5) tirent des indices independants ; la borne d'age de la Proposition 5(b) pour ce tirage, A = ceil(n log(nT/delta)), donne un refroidissement certifie environ vingt fois plus lent encore, et seulement avec probabilite 1 - delta. La ligne 649 compare donc a (M5) un certificat qui ne porte pas sur son tirage (l'ecart theorie / pratique est sous-estime).",
+   "evidence": "num-m5_certified_constants.py : A = n : 4.46e4 (soft-cond), 3.26e4 (ls-cond) ; A = 2n - 1 : 8.90e4, 6.50e4 ; A = 3860 (T = 300 n = 60000, delta = 0.05) : 8.61e5, 6.28e5 ; delta = 0.01 : 9.33e5, 6.81e5. Tirage de (M5) : aucune cle 'order' dans les configurations de M9_summary.json C/*/deep/*/cfg, defaut order='iid' (vrmuon.py:206).",
+   "proposed_fix": "its cooldown for a cyclic order or a fresh permutation is $3.3\\cdot10^4$ to $8.9\\cdot10^4$ times slower, in $\\log(1/q)$, than $q=0.8$ (about twenty times more for the independent indices of \\finding{M5}) ;; line 648-649: at cooldowns $10^4$ to $10^6$ times slower than in \\finding{M5}",
+   "confidence": "high"
+  },
+  {
+   "id": "M5-ratio-band-definition",
+   "severity": "minor",
+   "location": "534",
+   "claim": "(the ratio varies by a factor $3.2$ to $5.7$ along a run)",
+   "problem": "3.2 et 5.7 sont les extremes, sur six configurations, de la mediane sur cinq graines du rapport max/min de dist^2/lr^2, mesure sur la seconde moitie (en passes) de la partie de la course qui suit la loi. Ce n'est pas la variation 'along a run' : par graine le rapport va de 2.4 a 8.3, et depuis une distance relative de 1e-2 la recette de Muon au point fixe varie d'un facteur 20 a 44 sur softmax.",
+   "evidence": "exp_M9_schedule.py:463-466 et 525-526 (band sur p >= 0.5 p[k1] ; width_median) ; M9_summary.json C/*/deep/*/band/width_median = 3.82, 5.69, 3.96, 4.12, 3.34, 3.16 ; recalcul depuis M9_law.pkl (num-m5_law_from_pkl.py) : par graine 2.37 a 8.31 ; depuis rel <= 1e-2 : 20.2 a 43.8 (soft-cond, ns5 + Nesterov au point fixe), 3.9 a 9.3 (ls-cond).",
+   "proposed_fix": "(over the second half of a run the ratio varies by a factor $3.2$ to $5.7$, median over seeds)",
+   "confidence": "high"
+  },
+  {
+   "id": "P5-error-ratio-one-seed",
+   "severity": "minor",
+   "location": "579-580",
+   "claim": "along the fast runs the error of the estimator is $2.3$ to $3.5$ times the gradient in nuclear norm",
+   "problem": "L'intervalle vient d'une seule course par instance (graine 10, polaire exacte, q = 0.8, lr_0 = 0.1 sur les deux instances, sept etats), moyenne sur l'indice. Sur six suites d'indices il s'elargit a 2.0 - 4.4 : l'affirmation qualitative tient (l'erreur depasse le gradient), les deux decimales non. Le test source est dans _archive/, que le paragraphe de reproductibilite ne cite pas.",
+   "evidence": "_archive/muon/tests/test_facts.py:850-909 (test_F13_limits_on_the_benchmark : seed=10, lr0 = 0.1, at = p n pour p in 2, 6, ..., 26) ; muon/notes_theory.md:662-664 : [2.69, 3.45] et [2.32, 3.42]. Boucle independante, 6 graines x 7 etats (num-m5_estimator_error_ratio.py) : [2.40, 4.19] (soft-cond), [2.26, 4.37] (ls-cond, lr_0 = 0.1), [2.00, 3.51] (ls-cond, lr_0 = 0.3).",
+   "proposed_fix": "along the fast runs the mean error of the estimator is $2$ to $4$ times the gradient in nuclear norm",
+   "confidence": "medium"
+  },
+  {
+   "id": "L650-tuned-steps-scope",
+   "severity": "minor",
+   "location": "650",
+   "claim": "a Lyapunov function for $\\gamma\\le1/(14nL_{\\max})$, $350$ to $1400$ times below the tuned steps",
+   "problem": "350 et 1400 ne valent que pour soft-cond et ls-cond avec les pas de M1 (grilles de facteur 2) ; la phrase ne nomme pas les instances. Avec les pas de M5b (grilles 2^{1/4}, ceux que (M6) cite pour la meme methode) les rapports sont 416 et 1176 ; sur les six instances de M1 ils vont de 217 a 3493.",
+   "evidence": "num-m5_certified_constants.py : M1 'SAGA-Muon (joint)' : soft-cond 0.5/R2_op -> 1399, ls-cond 0.125/R2_op -> 350, ls-orth 437, soft-sq 3493, soft-mem 1733, ls-mem 217 ; M5b (instances/<inst>/0/batches/1/fine/rows/SAGA-Muon) : 0.4204/R2_op -> 1176, 0.1487/R2_op -> 416, ls-orth 309.",
+   "proposed_fix": "$350$ to $1400$ times below the steps tuned on the same two instances",
+   "confidence": "high"
+  },
+  {
+   "id": "M5-comparators-factor2-grids",
+   "severity": "minor",
+   "location": "540-542 (et 264-265)",
+   "claim": "about as many as damped SAGA in a frozen polar metric ($12.9$--$24.4$) and more than in the covariance metric ($13.5$--$16.1$) but for a tie",
+   "problem": "Les deux comparateurs sont lus dans M1 (grilles de pas de facteur 2, parametres selectionnes au bord de leur grille sur chaque instance), alors que la recette est reglee sur 48 points (q, lr_0) et que la ligne 264-265 annonce des grilles de rapport 2^{1/4} pour la section 3.3 (lr_0 est en demi-decades). 'about as many' couvre un ecart de +19 % sur ls-orth.",
+   "evidence": "exp_M9_schedule.py:400, 420-427 ('M1_summary.json (same instance, budget and target; factor-2 step grids)') ; B/<inst>/M1/rows : edge = ['metric_floor+'], ['metric_floor+'], ['theta+'], ['theta+'] (polar-metric B-SAGA) et ['theta+'], ['theta+', 'metric_floor-'], ['theta+'], ['theta+', 'metric_floor-'] (cov-metric B-SAGA) ; rapports recette / metrique polaire : 0.99, 1.05, 1.19, 1.04 ; families.py:277-293, 331 (lr_0 en demi-decades, q par pas de 0.05).",
+   "proposed_fix": "about as many as damped SAGA in a frozen polar metric ($12.9$--$24.4$; step grids of factor $2$)",
+   "confidence": "medium"
+  },
+  {
+   "id": "M5-muon-momentum-default",
+   "severity": "nit",
+   "location": "514",
+   "claim": "with or without Nesterov momentum $0.9$ (\\emph{Muon's recipe}: ns5 with momentum)",
+   "problem": "Le depot decrit lui-meme le Muon publie avec un moment 0.95 ; la 'recette de Muon' de la section 3.3 utilise 0.9. Le papier ecrit 0.9 explicitement, rien n'est faux ; a signaler si 'Muon's recipe' est lu comme 'les valeurs par defaut de Muon'. Non verifie sur le code public.",
+   "evidence": "muon/experiments/families.py:241 : \"Keller Jordan's Muon: momentum 0.95, Nesterov, 5 Newton-Schulz steps\" ; families.py:315 : dict(beta=0.9, nesterov=True) pour la recette.",
+   "proposed_fix": "",
+   "confidence": "medium"
+  },
+  {
+   "id": "M5-relative-distance",
+   "severity": "nit",
+   "location": "533-535",
+   "claim": "With the table the squared distance follows $C\\,\\mathrm{lr}_t^2$ [...] until it meets a floor: $2.8\\cdot10^{-29}$ (softmax) and $2.3\\cdot10^{-29}$ (least squares)",
+   "problem": "Les planchers sont des distances au carre relatives (divisees par ||W_*||_F^2 = 5130 et 1401) ; le texte de (M5) ecrit 'the squared distance'. L'axe de la figure 4(a) et la section 2.3 le disent, pas ce passage.",
+   "evidence": "muon/experiments/common.py:188, 245 (rel = dist2_F / D0) ; M9_summary.json C/*/norms/D0 ; make_figP4_recipe.py:46.",
+   "proposed_fix": "With the table the relative squared distance follows",
+   "confidence": "high"
+  },
+  {
+   "id": "intro-prop5-for-experimental-claim",
+   "severity": "nit",
+   "location": "131-133 (en bordure du perimetre)",
+   "claim": "fixed lengths on a geometric cooldown, fed by a SAGA table, converge to rounding error where other estimators freeze (Proposition~\\ref{prop:schedule})",
+   "problem": "La Proposition 5 ne porte ni sur l'erreur d'arrondi ni sur le gel des autres estimateurs, et certifie des refroidissements 3e4 a 9e5 fois plus lents ; c'est (M5), etiquete [e], qui porte cette phrase. Le resume et le tableau 1 separent correctement les deux statuts.",
+   "evidence": "enonce de la Proposition 5, lignes 547-566 ; constat (M5), lignes 532-544 ; num-m5_certified_constants.py.",
+   "proposed_fix": "converge to rounding error where other estimators freeze (\\finding{M5}; Proposition~\\ref{prop:schedule} at slower cooldowns)",
+   "confidence": "medium"
+  }
+ ],
+ "not_checked": [
+  "Valeurs par defaut du code public de Muon (epsilon = 1e-7, cinq pas de Newton-Schulz, moment) : source externe non ouverte, seul le code du depot est lu.",
+  "Fidelite des controles MARS-M (g = 0.025, clip 1, beta = 0.95) et STORM-Muon (g = 1) aux articles cites.",
+  "Preuve de la Proposition 5 et du fait F15 (autre dimension de l'audit) ; seuls leurs chiffres sont recalcules.",
+  "Les 110 runs de M9_law.pkl ne sont pas tous relances : 12 le sont (identiques a trois chiffres), les autres sont recoupes par une reimplementation independante (planchers de ns5 a un facteur 1.5 pres).",
+  "Mes controles de reglage sans table : une graine, grilles de 8 a 16 points, pas de graines de confirmation (la dispersion entre graines des controles du depot est inferieure a 20 %).",
+  "Parties (b) et (c) de la figure 4, constats (M6) et (M7) : hors perimetre."
+ ]
+}

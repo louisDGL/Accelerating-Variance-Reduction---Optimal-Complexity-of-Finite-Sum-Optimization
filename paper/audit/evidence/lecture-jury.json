@@ -1,0 +1,102 @@
+{
+ "scope_covered": "Lecture critique des affirmations de tete (titre, resume, tableaux 1 et 2, conclusion) contre le corps du papier ; faite par la session VSCode sur le texte seul, sans rouvrir les donnees ni les sources externes.",
+ "checked_ok": [
+  {
+   "claim": "every P has kappa_P >= kappa (C5)",
+   "location": "lignes 325-327",
+   "evidence": "mu_P = lambda/lambda_max(P) et R_P^2 >= (max_i c_i ||x_i||^2 + lambda)/lambda_max(P)"
+  },
+  {
+   "claim": "gamma(m + theta c) with theta = 1/n, gamma = 1/lambda is MISO",
+   "location": "lignes 255-256",
+   "evidence": "theta+ = -(1/lambda)(zbar + (grad g_i(theta) - z_i)/n), iteree de MISO avec le ridge comme partie quadratique"
+  },
+  {
+   "claim": "the predictable part m is the gradient of an isotropic quadratic",
+   "location": "lignes 499-500",
+   "evidence": "m = grad de (lambda/2)||W + zbar/lambda||_F^2"
+  },
+  {
+   "claim": "floor of ns5 near 1e-18 set by epsilon",
+   "location": "lignes 535-537",
+   "evidence": "pour ||omega||_F << epsilon la carte ns5 devient lineaire (gain environ 485 sur omega/epsilon), le pas n'est plus de longueur fixe ; coherent avec l'essai epsilon = 1e-30"
+  }
+ ],
+ "findings": [
+  {
+   "id": "jury-1",
+   "severity": "major",
+   "location": "lignes 96-97 (resume), 151 (tableau 1), 626 (tableau 2)",
+   "claim": "the nuclear-scaled polar step has the same anatomy.",
+   "problem": "L'identite (2) n'est enoncee que pour une quadratique (ligne 226) ; le corps dit que le cas a grand ecart (logistique, softmax) n'est 'not measured for the polar step' (ligne 315). Le resume et le tableau 1 ([p]) presentent l'analogie sans cette restriction, juste apres des chiffres mesures sur la regression logistique.",
+   "evidence": "paper_saga_to_muon.tex lignes 226-232, 309-315",
+   "proposed_fix": "Abstract: 'on quadratics, the exact one-step formula of the nuclear-scaled polar step has the same anatomy.' Table 1: 'the same anatomy for the polar step on quadratics \\nat{p}'. Table 2: 'The same exact anatomy on quadratics \\eqref{eq:polar-repr}'.",
+   "confidence": "high"
+  },
+  {
+   "id": "jury-3",
+   "severity": "major",
+   "location": "lignes 104 (resume), 132-133 (introduction), 178 (tableau 1)",
+   "claim": "where minibatch and momentum-based estimators freeze",
+   "problem": "Le corps dit 'the same schedule freezes' (ligne 538) et la legende precise que le schedule est celui choisi pour la recette de Muon (ligne 523). Un gel a 8-93 % de la distance initiale indique un refroidissement regle pour une autre methode. Les trois phrases courtes generalisent. A trancher avec les donnees : les concurrents sans table ont-ils ete regles sur une grille (q, lr_0) ?",
+   "evidence": "paper_saga_to_muon.tex lignes 523, 538-540, 679 ; verification des donnees par l'auditeur num-m5",
+   "proposed_fix": "Abstract: 'where, on the same schedule, minibatch and momentum-based estimators freeze'. Introduction: 'converge to rounding error where, on the same schedule, other estimators freeze'. Table 1: 'With a table the cooldown converges, without one the same schedule freezes \\nat{e}'.",
+   "confidence": "medium"
+  },
+  {
+   "id": "jury-4",
+   "severity": "minor",
+   "location": "lignes 638 (tableau 2), 680-681 (conclusion)",
+   "claim": "At most one nat per pass under independent sampling (M3), two under a permutation (note B4).",
+   "problem": "Borne en esperance, prouvee sur le modele a hessiennes identiques pour n grand ; le papier mesure 1.6 nat par passe pour une trajectoire (ligne 603) et ecrit 'bounds the mean error, not a single run' (lignes 604-605). La conclusion generalise a 'the memory rate of SAGA'.",
+   "evidence": "paper_saga_to_muon.tex lignes 599-606, 672",
+   "proposed_fix": "Table 2: 'In expectation, at most one nat per pass under independent sampling \\finding{M3}, two under a permutation (common Hessian, note B4).' Conclusion: 'which lifts the expected memory rate of linear SAGA from $e^{-1}$ to nearly $e^{-2}$'.",
+   "confidence": "high"
+  },
+  {
+   "id": "jury-5",
+   "severity": "minor",
+   "location": "lignes 238-239",
+   "claim": "local ones, at the minimizer (on $\\ones^\\top W=0$ for softmax), describe the end of a run but certify nothing.",
+   "problem": "Trop fort : pour une methode monotone, des constantes sur l'ensemble de sous-niveau du point initial certifient un taux ; ce que les constantes au minimiseur ne donnent pas est un taux global.",
+   "evidence": "raisonnement ; voir aussi lignes 325-327 et 669-670 du papier",
+   "proposed_fix": "'describe the end of a run but certify no global rate.'",
+   "confidence": "high"
+  },
+  {
+   "id": "jury-6",
+   "severity": "minor",
+   "location": "apres la ligne 354",
+   "claim": "Theorem 1 (constantes de forte convexite mu_N)",
+   "problem": "Objection previsible non traitee : un certificat ecrit avec la constante de Polyak-Lojasiewicz en norme duale echappe-t-il au theoreme ? Non pour des pertes lipschitziennes : le long de W = t Delta_0 le rapport ||grad F||_{N*}^2 / (2(F - F_*)) tend vers lambda/c_N^2, donc mu_PL,N = lambda/c_N^2. Renforcement propose, a verifier numeriquement ; choix d'auteur.",
+   "evidence": "calcul dans lecture-jury.md, section jury-6 ; controle numerique paper/audit/checks/jury-6_pl_constant.py (softmax ridge K=3, d=4, n=30, lambda=0.1 ; normes spectrale, max des entrees, Frobenius ponderee) : le rapport le long de t*Delta_0 tend vers lambda/c_N^2 (0.10001, 0.10003, 0.02500 a t=1e5) et reste au-dessus sur 20000 points aleatoires",
+   "proposed_fix": "'For Lipschitz losses the Polyak--\\L{}ojasiewicz constant in the dual norm is also $\\lambda/c_N^2$ (take $W=t\\Delta_0$, $t\\to\\infty$), so certificates of steepest descent in $N$ do not escape.'",
+   "confidence": "high"
+  },
+  {
+   "id": "jury-2",
+   "severity": "minor",
+   "location": "lignes 102-103 (resume), 508 (section 3.3)",
+   "claim": "Muon's own recipe. Steps of fixed length on a geometric cooldown of the learning rate",
+   "problem": "La forme geometrique du refroidissement est un choix du papier ; les executions de reference de Muon font, de memoire, decroitre le taux d'apprentissage lineairement. A verifier sur la source de Jordan et al. (2024) avant toute correction.",
+   "evidence": "non verifie sur source",
+   "proposed_fix": "'... and cools the learning rate down (linearly in its reference runs; we use the geometric cooldown that gives a linear rate with exact gradients).'",
+   "confidence": "low"
+  },
+  {
+   "id": "jury-7",
+   "severity": "minor",
+   "location": "lignes 105-106 (resume)",
+   "claim": "the spectral map needs $0.58$--$0.93$ of the passes of a normalized step",
+   "problem": "(M6) compare au 'fastest control', normalisation de Frobenius ou signe ; a verifier que le controle le plus rapide est toujours la normalisation. 0.93 est dans la bande des 10 % non resolus (ligne 264).",
+   "evidence": "paper_saga_to_muon.tex lignes 514-515, 588-589, 264 ; donnees a verifier par num-m6m7",
+   "proposed_fix": "'of the fastest non-spectral control' si le signe est parfois le plus rapide.",
+   "confidence": "low"
+  }
+ ],
+ "not_checked": [
+  "jury-2 : schedule des executions de reference de Muon (source externe)",
+  "jury-3 : reglage des concurrents sans table dans les donnees M9",
+  "jury-7 : identite du controle le plus rapide par instance"
+ ]
+}

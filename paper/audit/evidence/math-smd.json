@@ -1,0 +1,154 @@
+{
+ "scope_covered": "Dimension math-smd (theorie des pas polaires stochastiques) de paper/paper_saga_to_muon.tex : (a) l. 244-249 ; (b) l. 389-393 ; (c) Theoreme 2, l. 395-416, enonces (a)-(c) et esquisse de preuve etape par etape ; (d) l. 418-420 ; (e) Proposition 3, l. 422-440, et remarques l. 442-447 ; reprises de ces enonces dans le resume (l. 99-102), l'introduction (l. 128-131), les Tableaux 1 et 2 (l. 164-166, 171, 629-636) et la conclusion (l. 676-678). Chaque etape a ete redemontree a la main et controlee numeriquement (scripts paper/audit/checks/math-smd_*.py). Aucun constat blocker ni major : 3 minor, 2 nit.",
+ "checked_ok": [
+  {
+   "claim": "No moment is required: $\\psi_\\xi$ is convex and $1$-Lipschitz for $\\nnuc\\cdot$",
+   "location": "l. 246",
+   "evidence": "Integrande bornee par ||G||_* (inegalite triangulaire inverse) ; esperance de convexes ; |psi(G)-psi(G')| <= ||G-G'||_*. polar est borelienne bornee. Controle : bruit de Cauchy 2x2, gradient moyen de queue 0.0010 contre 0.367 au depart (math-smd_thm2_limit.py pmI)."
+  },
+  {
+   "claim": "$\\Phi_\\xi(G)\\in\\partial\\psi_\\xi(G)$, with equality to $\\nabla\\psi_\\xi(G)$ when $G+\\xi$ has full rank almost surely",
+   "location": "l. 247-248",
+   "evidence": "polar(M) est dans le sous-differentiel de la norme nucleaire en M (y compris rang deficient et M = 0 avec polar(0) = 0) ; a rang plein ce sous-differentiel est un singleton et la convergence dominee donne la differentiabilite. Numerique : inegalite de sous-gradient verifiee (min -9e-16) sur 4 lois a support fini avec atomes de rang deficient ; 2x2 Exp(1)-1 : ||Phi(G^dag)||_F = 1.6e-3 au minimiseur (bruit MC 1e-3)."
+  },
+  {
+   "claim": "$\\Med(\\xi)=\\arg\\min_C\\E[\\nnuc{\\xi-C}-\\nnuc\\xi]$ is the set of nuclear medians",
+   "location": "l. 248-249",
+   "evidence": "Definition de la mediane geometrique d'une loi dans un espace norme (forme renormalisee, sans moment), appliquee a la norme nucleaire ; coherente avec argmin psi_xi = -Med(xi)."
+  },
+  {
+   "claim": "$\\arg\\min\\psi_\\xi=-\\Med(\\xi)$ is nonempty, convex and compact; it contains every zero of $\\Phi_\\xi$, and consists of zeros of $\\Phi_\\xi$ where $G+\\xi$ has full rank almost surely",
+   "location": "l. 391-392",
+   "evidence": "psi_xi(G) = E[||xi-(-G)||_* - ||xi||_*] ; coercivite sans moment : avec p = P(||xi||_* <= R) > 1/2, psi_xi(G) >= (2p-1)||G||_* - 2pR ; continuite + convexite. Un zero de Phi est un point ou 0 est sous-gradient ; a rang plein p.s. le gradient Phi s'annule au minimum."
+  },
+  {
+   "claim": "for $\\Prob(\\xi=1)=0.4$, $\\Prob(\\xi=-1)=0.6$, $\\psi_\\xi$ is minimal at $g=1$ and $\\abs{\\Phi_\\xi}\\ge0.2$",
+   "location": "l. 393",
+   "evidence": "psi(g) = 0.4|g+1| + 0.6|g-1| - 1 a pour pentes -1, -0.2, +1 ; Phi vaut -1, -0.6, -0.2, 0.4, 1. Grille de 600001 points : argmin 1.0000, min|Phi| = 0.200 ; simulation : moyenne de queue du gradient 0.990 (predit 1)."
+  },
+  {
+   "claim": "Theorem 2, hypotheses and proof sketch: $\\nabla F$ bijection with inverse $\\nabla F^\\ast$, mirror reading, three-point identity, $D_{F^\\ast}(G',G)=D_F(W,W')$, $D_F(W_{t+1},W_t)\\le\\frac{\\Lop}2\\eta_t^2$, subgradient inequality",
+   "location": "l. 396-413",
+   "evidence": "Recalcul a la main de chaque identite (signes et ordre des arguments des divergences de Bregman corrects). Numerique (math-smd_thm2a_inequality.py) : residu relatif de l'identite des trois points <= 7e-15 ; D_F(W+,W) - L_op eta^2/2 <= 0 (egalite a l'arrondi dans les cas quadratiques carres) ; aucune hypothese manquante (F C^2 implicite via la definition de mu_op, L_op ; polar borelienne ; pas de moment ; polar(0)=0 couvert)."
+  },
+  {
+   "claim": "(a) $\\E[D_F(W_{t+1},W^\\dagger)\\mid W_t]\\le D_F(W_t,W^\\dagger)-\\eta_t(\\psi_\\xi(G_t)-\\min\\psi_\\xi)+\\frac{\\Lop}2\\eta_t^2$, hence the averaged bound, whatever the lengths",
+   "location": "l. 400-402",
+   "evidence": "Esperances EXACTES (lois a 2-7 atomes, F quadratique 1x1, 2x2, 2x3 et non quadratique 3x3, 2000-4000 triplets (W_t, eta) par cas) : max (LHS-RHS) = 1.6e-15 (cas scalaire, egalite), -1e-8, -7e-7, -3e-6 ; vaut aussi pour un point de reference quelconque. Monte-Carlo loi continue (Exp(1)-1, N=2e5) : score z minimal de RHS-LHS = +259 sur 12 configurations. Borne moyennee : somme telescopique + Jensen."
+  },
+  {
+   "claim": "(b) if $\\sum_t\\eta_t=\\infty$ and $\\sum_t\\eta_t^2<\\infty$, $G_t$ converges almost surely to a point of $-\\Med(\\xi)$",
+   "location": "l. 403, 413-415",
+   "evidence": "Robbins-Siegmund applique a D_F(W_t,W^dag) ; W_t borne par forte convexite ; point d'accumulation minimiseur ; argument de l'ensemble denombrable dense verifie : D_F(W_t,W') - D_F(W_t,W_k) = const + <G_k - G', W_t>, donc D_F(W_t,W') converge pour tout minimiseur. Simulations : scalaire Exp(1)-1, moyennes de queue 0.3056 / 0.3044 / 0.3011 pour trois F (predit 1 - log 2 = 0.3069) ; 2x2 Exp(1)-1 : distance du gradient moyen a G^dag 0.0038 (quadratique) et 0.0045 (non quadratique) contre ||G^dag||_F = 0.424 ; le gradient limite ne depend pas de F."
+  },
+  {
+   "claim": "(c) $W_t\\to W_\\ast$ if $\\Med(\\xi)=\\{0\\}$, and if $0\\notin\\Med(\\xi)$ then $\\lim_tF(W_t)-F_\\ast\\ge\\min_{C\\in\\Med(\\xi)}\\nnuc C^2/(2\\Lop)>0$; $2\\muop(F(W)-F_\\ast)\\le\\nnuc{\\nabla F(W)}^2\\le2\\Lop(F(W)-F_\\ast)$",
+   "location": "l. 404-405, 415",
+   "evidence": "Les deux inegalites redemontrees (forte convexite ; lissite le long de -polar(G)) et verifiees sur 3000 quadratiques (rapport dans [mu_op, L_op], bornes atteintes) et 300 F non quadratiques (math-smd_pl_bounds.py). 2x2 : F(W^dag)-F_* = 0.0919 >= 0.0362 (quadratique), 0.0543 >= 0.0171 (non quadratique). Med compact et 0 hors de Med donnent le minimum strictement positif."
+  },
+  {
+   "claim": "The theorem replaces $\\E\\xi=0$ by $\\Med(\\xi)=\\{0\\}$",
+   "location": "l. 418",
+   "evidence": "Condition suffisante de convergence vers W_* ; independante de E xi = 0 dans les deux sens (Cauchy : converge sans esperance ; Exp(1)-1 et loi a deux points centree P(xi=2)=1/3, P(xi=-1)=2/3 : centres mais gradient limite 0.307 et 0.995)."
+  },
+  {
+   "claim": "Proposition 3(a): if $\\xi$ and $-\\xi$ have the same law, $0\\in\\Med(\\xi)$, and $\\Med(\\xi)=\\{0\\}$ if moreover $0$ is in the support of $\\xi$",
+   "location": "l. 423-424, 434-435",
+   "evidence": "psi paire et convexe ; integrande >= max(0, 2||G||_* - 2||xi||_*) par deux inegalites triangulaires (verifie point par point, gaussien 2x2, 2e5 tirages, min 4e-16). La condition de support est necessaire : xi = +-I_2 a pour medianes toutes les matrices symetriques de norme spectrale <= 1."
+  },
+  {
+   "claim": "Proposition 3(b): if $\\E\\xi=0$, every $C\\in\\Med(\\xi)$ has $\\nnuc C\\le\\E\\nnuc\\xi$, so $F(W^\\dagger)-F_\\ast\\le(\\E\\nnuc\\xi)^2/(2\\muop)$",
+   "location": "l. 424-425, 435-436",
+   "evidence": "C = E[C - xi], Jensen, minimalite contre 0 ; 40 lois centrees a support fini (1x1 a 3x3) : E||xi-C|| - ||C|| >= -4e-15 et E||xi|| - E||xi-C|| >= 1e-3 ; 2x2 Exp(1)-1 : 0.0919 <= 0.312 <= 7.79."
+  },
+  {
+   "claim": "Proposition 3(c) for a SAGA estimator: fixed point without offset, and it is the only one",
+   "location": "l. 425-427, 436-438",
+   "evidence": "omega_j = grad F(W_*) = 0 a table exacte (8e-17 numeriquement), polar(0) = 0 ; une table qu'aucun indice ne change a z_i = f_i'(W), donc omega_j = grad F(W), nul seulement en W_*. (Pour SVRG voir le constat S2.)"
+  },
+  {
+   "claim": "Proposition 3(d): the batch-one polar step is the stochastic subgradient method on $\\Lambda$; it converges almost surely to a minimizer of this weighted least-distances objective, in general not the least-squares solution",
+   "location": "l. 427-431, 438-439",
+   "evidence": "polar(r x^T) = r x^T/(|r||x|) (ecart 2e-16 ; differences finies 8e-11) ; un minimiseur de Lambda existe toujours (coercivite sur le quotient par {W : W x_i = 0}). n=60, K=2, d=3 : ||W_LAD - W_LS||_F = 0.243 ; moyenne de queue de 1500 chaines a 0.0136 de W_LAD et 0.246 de W_LS ; Lambda(moyenne) - min Lambda = 4.0e-5 contre 2.4e-2 pour W_LS (math-smd_prop3.py d1)."
+  },
+  {
+   "claim": "For $d=1$ the limit in (d) is the geometric median of the $y_i/x_i$",
+   "location": "l. 443-444",
+   "evidence": "||w x_i - y_i||/|x_i| = ||w - y_i/x_i|| (ecart 0) ; argmin Lambda = point de Weiszfeld (ecart 2e-12), different des moindres carres ([1.153,-0.198] contre [0.909,-0.272])."
+  },
+  {
+   "claim": "With lengths proportional to the sampled gradient the step is plain stochastic gradient descent, which converges to the least-squares solution: deterministic lengths are needed",
+   "location": "l. 446-447",
+   "evidence": "||r x^T||_* = |r||x| donc gamma ||g_j||_* polar(g_j) = gamma g_j ; run temoin sur les memes donnees (gamma_t decroissant) : moyenne de queue a 0.0004 de W_LS et 0.243 de W_LAD."
+  },
+  {
+   "claim": "(b) is the mean--median inequality in a normed space; (c) identifies a fixed point, not its attraction",
+   "location": "l. 442-443",
+   "evidence": "Meme preuve que |moyenne - mediane| <= E|X - mediane| <= E|X - moyenne| ; rapport |C|/E|xi| = 0.98 pour une loi a deux points (constante 1 non ameliorable). La reserve sur (c) est exacte."
+  },
+  {
+   "claim": "Resume, introduction et Tableau 1 : stochastic polar steps are stochastic mirror descent on a noise-smoothed nuclear norm and converge to a point where the gradient is minus a nuclear median of the noise; a finite-sum estimator makes the minimizer the only fixed point",
+   "location": "l. 99-102, 128-131, 164-166, 171",
+   "evidence": "Conformes au Theoreme 2(b) et a la Proposition 3(c) ; l'hypothese de bruit additif et de longueurs deterministes est rappelee dans le resume et dans les limites (l. 670)."
+  }
+ ],
+ "findings": [
+  {
+   "id": "S1",
+   "severity": "minor",
+   "location": "l. 418-419",
+   "claim": "The theorem replaces $\\E\\xi=0$ by $\\Med(\\xi)=\\{0\\}$; otherwise the limit gradient is an \\emph{offset} that no schedule of this class removes.",
+   "problem": "\"otherwise\" couvre Med(xi) != {0}, alors que le Theoreme 2(c) ne prouve un gradient limite non nul que si 0 n'appartient pas a Med(xi). Dans le cas intermediaire 0 dans Med(xi) != {0} (loi symetrique dont le support evite 0), le theoreme donne seulement la convergence vers un point aleatoire de -Med(xi), qui peut etre 0.",
+   "evidence": "xi = +-I_2 avec probabilite 1/2, F = ||W||_F^2/2, W_0 = 0 : psi_xi(S) = min pour toute S symetrique de norme spectrale <= 1 (psi(0.5 I) = psi(-0.9 I) = 0, psi(1.2 I) = 0.4) ; la recurrence reste sur w I avec w_{t+1} = w_t -/+ eta_t ; sur 2000 chaines la limite a pour moyenne +0.017 et ecart-type 0.54 (math-smd_thm2_limit.py pmI). Le decalage y est presque sur mais aleatoire, et le theoreme ne l'etablit pas.",
+   "proposed_fix": "The theorem replaces $\\E\\xi=0$ by $\\Med(\\xi)=\\{0\\}$; if $0\\notin\\Med(\\xi)$ the limit gradient is an \\emph{offset} that no schedule of this class removes.",
+   "confidence": "high"
+  },
+  {
+   "id": "S2",
+   "severity": "minor",
+   "location": "l. 425-427 et 436-438",
+   "claim": "For a SAGA or SVRG estimator, [...] such estimators have a fixed point without offset (iterate and memory that no index moves), and it is the only one. [...] conversely a table that no index changes has $z_i=f_i'(W)$, hence $\\omega_j=\\nabla F(W)$, which vanishes only at $W_\\ast$.",
+   "problem": "La reciproque n'est ecrite que pour une table. Pour SVRG la memoire (point de reference) n'est deplacee par aucun indice mais par le rafraichissement : avec la definition entre parentheses prise a la lettre l'unicite est fausse pour SVRG ; elle est vraie des que le rafraichissement est compte dans la dynamique, et la composante iteree du point fixe est W_* dans tous les cas.",
+   "evidence": "Composantes de meme hessienne f_j(w) = (1/2)(w - a_j)^T H (w - a_j) : pour tout point de reference w~, omega_j = f_j'(w) - f_j'(w~) + grad F(w~) = grad F(w) pour tout j, donc (W_*, w~) n'est deplace par aucun indice quel que soit w~ (max_j |omega_j| = 1.8e-15 avec ||w~ - W_*|| = 3.31 ; math-smd_prop3.py rest). Argument general : si aucun indice ne deplace l'iteree, 0 = (1/n) sum_j omega_j = grad F(W).",
+   "proposed_fix": "(c) With $z_i=f_i'(W_\\ast)$, $\\omega_j=\\nabla F(W_\\ast)=0$ and $\\polar(0)=0$; conversely, if no index moves the iterate, $0=\\frac1n\\sum_j\\omega_j=\\nabla F(W)$, so $W=W_\\ast$, and a memory that its own update leaves unchanged (table entry, or reference point when refreshed) is the one at $W_\\ast$.  [and, in the statement, l. 426-427: (iterate and memory that no update moves)]",
+   "confidence": "high"
+  },
+  {
+   "id": "S3",
+   "severity": "minor",
+   "location": "l. 632 (Table 2)",
+   "claim": "The limit gradient is minus a nuclear median of the noise (Proposition~\\ref{prop:offset}).",
+   "problem": "Cet enonce est le Theoreme 2(b), prouve ; la Proposition 4 (prop:offset, formelle, entrees i.i.d.) n'en donne que la taille. Le renvoi appuie un resultat [p] sur une proposition [f]. Le bon theoreme est cite dans la cellule voisine de la meme ligne.",
+   "evidence": "l. 403 (Theorem 2(b): G_t converges almost surely to a point of -Med(xi)) ; l. 449-458 (Proposition 4: size of the offset for minibatches; formal).",
+   "proposed_fix": "The limit gradient is minus a nuclear median of the noise (Theorem~\\ref{thm:smd}), formally of order $1/b$ (Proposition~\\ref{prop:offset}).",
+   "confidence": "medium"
+  },
+  {
+   "id": "S4",
+   "severity": "nit",
+   "location": "l. 443 (et legende de la Figure 3, l. 476)",
+   "claim": "For $d=1$ the limit in (d) is the geometric median of the $y_i/x_i$",
+   "problem": "Le minimiseur de Lambda existe toujours mais n'est pas unique en general (points y_i/x_i alignes avec n pair, plan de rang deficient) ; l'enonce (d) dit correctement \"a minimizer\", la remarque suppose l'unicite (vraie pour des donnees generiques).",
+   "evidence": "K = d = 1, x = (1,1), y = (0,1) : Lambda(w) = 0.5 pour tout w de [0,1] ; plan a x_i colineaires : Lambda(W) = Lambda(W + Z) pour Z x_i = 0 (math-smd_prop3.py rest).",
+   "proposed_fix": "For $d=1$ the limit in (d) is a geometric median of the $y_i/x_i$",
+   "confidence": "high"
+  },
+  {
+   "id": "S5",
+   "severity": "nit",
+   "location": "l. 676-677",
+   "claim": "with decreasing lengths, polar steps converge to minus a nuclear median of the noise",
+   "problem": "Raccourci : c'est le gradient qui converge, et sous bruit additif (rappele l. 670) ; pour le bruit d'une somme finie, qui depend de l'iteree, seul le cas de la Proposition 3(d) est prouve.",
+   "evidence": "Theoreme 2, l. 396-403 (xi_t i.i.d. independants du passe ; G_t converge vers un point de -Med(xi)).",
+   "proposed_fix": "with additive noise and decreasing lengths, the gradient of polar steps converges to minus a nuclear median of the noise",
+   "confidence": "medium"
+  }
+ ],
+ "not_checked": [
+  "Attributions et contenus des sources citees dans le perimetre (duchi2012randomized, jiang2026adaptive, minsker2015geometric, maddison2021dual, balles2020geometry, chen2020distributed, cardot2013efficient, bernstein2019majority, karimireddy2019error, li2026implicit Lemma H.1 et Theorem 4.10) : aucune source ouverte, dimension bibliographique.",
+  "Mentions \"was not found\" (l. 420, 446) et \"Searched only in an earlier form\" (l. 272-273).",
+  "Proposition 4 et les chiffres du paragraphe \"Numerical checks\" et de la Figure 3 (0.170, 2.6e-3, 2.1e-4, etc.) : hors perimetre.",
+  "Convergence presque sure trajectoire par trajectoire a horizon infini : les simulations montrent la convergence des moyennes de queue et la decroissance de la dispersion avec eta_t ; la preuve a ete verifiee etape par etape.",
+  "Convergence de SGD vers les moindres carres (l. 447) : controlee par un seul run temoin."
+ ]
+}

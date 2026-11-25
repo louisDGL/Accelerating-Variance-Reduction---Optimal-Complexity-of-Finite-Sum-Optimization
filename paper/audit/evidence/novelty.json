@@ -1,0 +1,185 @@
+{
+ "scope_covered": "Affirmations de nouveaute et de positionnement de paper/paper_saga_to_muon.tex : section 2.4 (l. 267-274), tableau 1 (l. 137-183), l. 418-420, 442-447, 465-467, 606-609, section 4.2 (l. 652-663), les six occurrences de 'not found' (l. 270, 274, 420, 446, 656, 663), pour les huit contributions (Th. 1, Th. 2, Prop. 3(d), Prop. 4, Prop. 3(c)/table SAGA/(M2)/metrique figee, Prop. 5, (M7), (C1)-(C3)). Registres internes lus : muon/literature_check.md (verdicts, addendum du 18 nov.), bibliography/literature_review.md (sections 6, 8, 10), muon/findings.md, archive/muon/notes_spectral_theory.tex, archive/muon/report_spectral_muon_new.tex. Recherches propres du 20 nov. 2026 : 11 requetes WebSearch, 6 requetes API arXiv au niveau des resumes (jusqu'aux depots du 18 nov. 2026), 18 PDF arXiv lus aux passages cites, 10 pages de resume (dont 4 sans lecture du PDF). Script : paper/audit/checks/novelty_close_works.py. Bilan : 0 bloquant, 0 majeur, 8 mineurs, 3 nits ; aucune anteriorite contenant deja un resultat revendique.",
+ "checked_ok": [
+  {
+   "claim": "the statement for polar steps was not found (Theorem 2)",
+   "location": "l. 418-420, l. 272",
+   "evidence": "API arXiv 'abs:muon AND (median OR mirror descent OR nuclear norm OR biased OR skewed)' : 28 entrees Muon, aucune avec mediane ou norme lissee ; PDF ouverts sans l'enonce : Xie 2609.32861 (bruit gaussien, pas moyen = pas de gradient), Chen et al. 2610.31728 (Prop. 3.1), Beneventano et al. 2606.08388, Jagannath-Sarangian 2611.19059, Wang-Klabjan 2410.14158."
+  },
+  {
+   "claim": "Theorem 1 searched 'for right-preconditioned spectral norms only'",
+   "location": "l. 272-274, l. 349-354",
+   "evidence": "3 requetes sans enonce equivalent ; Diakonikolas-Guzman 2101.11041 ('No function can be both smooth and strongly convex with respect to an l_p norm and have a dimension-independent condition number, unless p = 2. This is a basic fact') ne couvre que le cout dimensionnel deja cite l. 354 ; Hird-Livingstone 2312.04898 sans enonce pour la logistique ridge."
+  },
+  {
+   "claim": "The SAGA-table version with a linear rate was not found",
+   "location": "l. 662-663, l. 274",
+   "evidence": "API arXiv '(Muon OR spectral descent OR orthogonalized) AND (SAGA OR SVRG OR finite-sum OR reshuffling OR variance reduction)' : 52 resultats, 15 pertinents, aucun avec table SAGA/SVRG, taux lineaire ou refroidissement geometrique ; parutions du 6-18 nov. 2026 (2611.10212, 2611.11387, 2611.15825) sans recouvrement."
+  },
+  {
+   "claim": "its published variance-reduced versions are mostly momentum-based",
+   "location": "l. 119-120",
+   "evidence": "Meme listing : MARS-M 2510.21800, 2509.15816, 2509.14562, 2512.16598, 2605.11850, 2608.12710, 2611.10212 sont de type momentum/STORM ; exception SVRG : Li-Tang-Zou 2602.11557 (cite)."
+  },
+  {
+   "claim": "A permutation order was seen to help SAGA-type methods with Finito",
+   "location": "l. 606-607",
+   "evidence": "Papier SAGA arXiv:1407.0202, section 3 : 'The big advantage of Finito/MISOmu is that when using a per-pass re-permuted access ordering, empirical speed-ups of up-to a factor of 2x has been observed. This access order can also be used with the other methods discussed, but with smaller empirical speed-ups.'"
+  },
+  {
+   "claim": "some beating e^{-1} per pass for kappa<4.08 (as a computation)",
+   "location": "l. 608-609",
+   "evidence": "DIAG arXiv:1611.00347, Corollaire 3 : erreur apres m passes <= rho^m(...)||x0-x*||, rho=(kappa-1)/(kappa+1) ; rho^2<e^-1 <=> kappa<(sqrt(e)+1)/(sqrt(e)-1)=4.0830 (script novelty_close_works.py)."
+  },
+  {
+   "claim": "batch-one spectral descent with reshuffling has another limit direction on separable data [Theorem 4.10]",
+   "location": "l. 444-445",
+   "evidence": "Li-Tang-Zou 2602.11557v2 : 'Theorem 4.10 (Implicit Bias of Per-sample SignSGD and Per-sample Normalized-SGD) ... with random reshuffling' ; Lemme H.1 : directions spectrale et de Frobenius identiques pour un echantillon."
+  },
+  {
+   "claim": "in dimension one Muon need not converge under skewed noise; every limit is a zero of the mean field",
+   "location": "l. 162-163, l. 465-467",
+   "evidence": "Do-Dereich-Jentzen 2608.04607v1 : Th. 1.3 (theta reel, L(theta,x)=|theta-x|^2, donnees bornees, troisieme moment centre non nul, non-convergence pour presque tout M) ; Prop. 6.2 ('very specific one-dimensional quadratic example class')."
+  },
+  {
+   "claim": "a limit gradient of order 1/b and its constant (Proposition 4): no prior expansion found",
+   "location": "l. 449-467, l. 272-273",
+   "evidence": "API arXiv '(signSGD OR normalized SGD OR steepest descent OR Muon) AND (mirror descent OR dual space OR Edgeworth OR skewness OR non-convergence)' : 21 entrees, aucune ne developpe le biais en la taille du lot."
+  },
+  {
+   "claim": "Table 1, row (C1)-(C3): each inequality evaluated along runs is added here",
+   "location": "l. 146-151",
+   "evidence": "1 requete sans travail mesurant les inegalites de la preuve de SAGA le long des trajectoires ; coherent avec bibliography/literature_review.md section 6.3 ('no paper computes per-inequality slack along trajectories')."
+  },
+  {
+   "claim": "Scope of the search as announced in Section 2.4 (earlier form / restricted norms / not found)",
+   "location": "l. 270-274",
+   "evidence": "Concorde avec archive/muon/report_spectral_muon_new.tex l. 288-291 et muon/literature_check.md l. 1285-1326 ; formulation prudente et honnete, reserves en N7 et N10."
+  }
+ ],
+ "findings": [
+  {
+   "id": "N1",
+   "severity": "minor",
+   "location": "l. 491-498 (M1), l. 532-540 (M5), tableau 1 l. 167-180, section 4.2 l. 657-663",
+   "claim": "at a constant length variance reduction does not remove the floor: with the SAGA estimator the iterates settle at a squared distance $3.8\\,\\eta^2$ [...] whereas the floor of minibatch Muon is linear in its learning rate ; With a table the cooldown converges; without one it freezes the iterate",
+   "problem": "La dichotomie (plancher quadratique en la longueur quand le bruit s'annule a l'optimum, plancher qui subsiste sous bruit additif, minimiseur atteint seulement si le taux tend vers zero) est publiee pour les pas de signe et normalises par Singh, Mishra et Raut (arXiv:2607.12360, 14 juillet 2026). Le papier ne les cite pas alors que la verification du depot les classe parmi les travaux les plus proches. La nouveaute reelle (table SAGA, pas polaire, taux lineaire) reste intacte.",
+   "evidence": "arXiv:2607.12360, resume (PDF) : 'sign-based and normalized methods [...] settle on a noise floor of order eta^2 and reach the minimizer only as the learning rate is driven to zero; any additive noise then reinstates a floor for every method [...] extend the floor to normalized SGD in dimension d > 1 by a scale-invariance argument' ; introduction : 'Cooldown is necessary'. Registres : muon/literature_check.md l. 1314 et 1345, muon/findings.md l. 174-175. Absent du .tex et du .bib (script novelty_close_works.py).",
+   "proposed_fix": "l. 658, after \\cite{ma2026preconditioning}; insert: sign and normalized steps under noise that vanishes at the optimum settle at a floor of order $\\mathrm{lr}^2$ and reach the minimizer only when the learning rate goes to zero \\cite{singh2026same}; [bib: S. Singh, A. Mishra, S. Raut, Same Loss, Same Noise, Opposite Schedules: Noise Structure and Optimizer Normalization Jointly Determine Whether Learning-Rate Cooldown Helps, arXiv:2607.12360, 2026]",
+   "confidence": "high"
+  },
+  {
+   "id": "N2",
+   "severity": "minor",
+   "location": "l. 655-656",
+   "claim": "a SAGA table in the nuclear-scaled polar step, the reading \\finding{M2} and a metric frozen from one polar decomposition were not found",
+   "problem": "Lue seule, la derniere clause affirme qu'aucune metrique figee issue d'une decomposition polaire n'a ete trouvee. CacheMuon reutilise sur plusieurs pas une transformee d'orthogonalisation deja calculee, appliquee lineairement. Ce qui n'a pas ete trouve, d'apres le registre du depot, c'est SAGA (ou SVRG) dans une telle metrique.",
+   "evidence": "Dev, Bohara, Takac, Horvath, arXiv:2606.16371 (15 juin 2026), introduction : 'we propose CacheMuon, a Muon variant that reuses a previously computed orthogonalization transform across optimization steps'. muon/literature_check.md l. 45 : 'CacheMuon reuses a polar transform but has no finite-sum estimator'.",
+   "proposed_fix": "and SAGA in a metric frozen from one polar decomposition were not found (Muon with a cached polar transform: \\cite{dev2026cachemuon}).  [variant without a new reference: and SAGA in a metric frozen from one polar decomposition were not found.]",
+   "confidence": "medium"
+  },
+  {
+   "id": "N3",
+   "severity": "minor",
+   "location": "l. 598, l. 606-609, tableau 1 l. 176-177",
+   "claim": "A permutation order was seen to help SAGA-type methods with Finito \\cite{defazio2014finito}, and linear rates are proved for reshuffled and cyclic orders \\cite{ying2017variance,park2020linear}",
+   "problem": "Ying, Yuan et Sayed observent que SAGA sous permutation converge plus vite que sous tirage uniforme et donnent le mecanisme que (M7) reprend ('refreshes every entry once per pass'). Le papier ne leur attribue que la preuve du taux lineaire et rattache l'observation a Finito seul. Le gain chiffre (rho_star, de e^-1 vers e^-2) n'est pas dans leur article.",
+   "evidence": "arXiv:1708.01383 : 'This is because random reshuffling updates every history variable during each run, while uniform sampling may leave some variables [...] untouched. As we are going to illustrate in later experiments, this difference helps explain why SAGA under random reshuffling tends to have faster convergence rate.'",
+   "proposed_fix": "A permutation order was seen to help Finito \\cite{defazio2014finito} and SAGA, where it refreshes every table entry in each pass \\cite{ying2017variance}; linear rates are proved for reshuffled and cyclic orders \\cite{ying2017variance,park2020linear},",
+   "confidence": "high"
+  },
+  {
+   "id": "N4",
+   "severity": "minor",
+   "location": "l. 442-447",
+   "claim": "for $K,d\\ge2$ (d) was not found",
+   "problem": "Exact mais muet sur K=1, d>=2 : pour une sortie scalaire, le gradient par echantillon tronque d'un modele lineaire generalise convexe est le gradient d'une perte Huberisee de pente B/||x|| ; la normalisation (limite B->0) donne |<theta,x>-y|/||x||, soit Lambda pour K=1. Le passage a la limite est ma lecture, pas un enonce de l'article.",
+   "evidence": "Song, Steinke, Thakkar, Thakurta, arXiv:2006.06783v2, section 5.1 'Characterizing Clipping in Convex GLMs', Lemme 5.1 : g_x affine de pente +-B/||x||_2 hors de [y1,y2] et 'd_theta l_g(theta;x) = { min{1, B/||u||_2} u : u in d_theta l_f(theta;x) }'.",
+   "proposed_fix": "for $K=1$ it is the zero-threshold limit of per-sample clipping, a Huberized loss \\cite[Lemma~5.1]{song2020evading}; for $K,d\\ge2$ (d) was not found.",
+   "confidence": "medium"
+  },
+  {
+   "id": "N5",
+   "severity": "minor",
+   "location": "l. 351-353, l. 331, l. 500-501, tableau 2 l. 627",
+   "claim": "any advantage of another norm is a property of the trajectory",
+   "problem": "Le complement positif du theoreme 1 est publie : Davis et Drusvyatskiy donnent une condition par couche et par pas comparant le rapport nucleaire/Frobenius au carre du gradient (le 'nuclear rank' utilise l. 500-501 sans attribution) au rang stable des activations. Cite dans les notes du depot, pas dans le papier.",
+   "evidence": "arXiv:2512.04299, resume (lu par l'outil de fetch, resume seul) : 'propose a simple layerwise condition that predicts when a spectral update yields a larger decrease in the loss', comparant 'the squared nuclear-to-Frobenius ratio of the gradient' a 'the stable rank of the incoming activations'. archive/muon/notes_spectral_theory.tex l. 290-291.",
+   "proposed_fix": "and any advantage of another norm is a property of the trajectory (a per-step criterion is in \\cite{davis2025when}).",
+   "confidence": "medium"
+  },
+  {
+   "id": "N6",
+   "severity": "minor",
+   "location": "l. 387 (titre du constat 2), tableau 1 l. 167-172, section 4.2 l. 654",
+   "claim": "finite-sum estimators in fixed-length polar steps \\cite{li2026implicit} [...] are published",
+   "problem": "Le message de tete 'variance reduction acts on the fixed point' a une forme publiee sur donnees separables : pour la descente la plus raide en lots (norme spectrale comprise), la reduction de variance supprime la dependance de la limite a la taille du lot. Le papier cite cet article trois fois sans dire ce resultat.",
+   "evidence": "arXiv:2602.11557v2, resume : 'we prove that variance reduction can recover the exact full-batch implicit bias for any batch size, albeit at a slower convergence rate' ; apres le Th. 4.7 : 'variance reduction removes the dependence of the implicit bias on algorithmic parameters such as the batch size and momentum'.",
+   "proposed_fix": "finite-sum estimators in fixed-length polar steps, where they restore the full-batch limit direction on separable data \\cite[Theorem~4.7]{li2026implicit},",
+   "confidence": "high"
+  },
+  {
+   "id": "N7",
+   "severity": "minor",
+   "location": "l. 274, l. 657-663",
+   "claim": "the version of Proposition~\\ref{prop:schedule} with a SAGA table, and its parts (a) and (c), were not found",
+   "problem": "Pour (a) le papier nomme les travaux proches (section 4.2) ; pour (c) aucun, alors que la verification du 18 novembre classe (c) 'CLOSE' : la normalisation de l'etat par le pas, donnant une chaine de Markov homogene pour un algorithme invariant d'echelle, est la technique d'Auger et Hansen ; Singh et al. ont un lemme d'invariance d'echelle.",
+   "evidence": "muon/literature_check.md l. 1312-1317 et 1351. Auger-Hansen, arXiv:1310.7697 (SIAM J. Optim. 2016), resume (outil de fetch, resume seul) : 'On scaling-invariant functions, we show the existence of a homogeneous Markov chain' ; convergence lineaire globale 'expressed in terms of different stability conditions of the normalised homogeneous Markov chain'.",
+   "proposed_fix": "l. 660, after 'are close to Proposition~\\ref{prop:schedule}(a)' insert: , and the normalization of (c) is that of scale-invariant randomized search \\cite{auger2016linear}",
+   "confidence": "medium"
+  },
+  {
+   "id": "N8",
+   "severity": "minor",
+   "location": "tableau 1 l. 162-163, l. 465-467",
+   "claim": "in dimension one Muon need not converge under skewed noise \\cite{do2026muon}",
+   "problem": "Le theoreme 1.2 de Do, Dereich et Jentzen porte sur des parametres matriciels (avec momentum et Newton-Schulz generalise) et borne l'erreur quadratique moyenne par C(1/M + gamma_n) : pendant publie de la Prop. 3(b) (ecart d'ordre 1/b) et borne que la Prop. 4 affine. Le papier ne retient d'eux que la dimension un.",
+   "evidence": "arXiv:2608.04607v1, Th. 1.2 : 'A = x_{i=1}^delta R^{d_i x d_i} [...] E||Theta_n - vartheta||^2 <= C(M^-1 + gamma_n)' (1.5) ; Th. 1.3 et Prop. 6.2 en dimension un seulement.",
+   "proposed_fix": "For Muon, \\cite{do2026muon} bound the mean-square error by $C(1/b+\\mathrm{lr}_t)$ for matrix parameters and, in dimension one, prove non-convergence under skewed bounded data and show that every limit is a zero of the mean field.",
+   "confidence": "high"
+  },
+  {
+   "id": "N9",
+   "severity": "nit",
+   "location": "tableau 1 l. 176-177, l. 608-609",
+   "claim": "reshuffled SAGA-type methods \\cite{ying2017variance,mokhtari2018surpassing} ; some beating $e^{-1}$ per pass for $\\kappa<4.08$ \\cite{mokhtari2018surpassing}",
+   "problem": "La methode de Mokhtari et al. (DIAG) est cyclique, pas a permutation aleatoire. Le seuil 4.08 n'est pas dans l'article : c'est un calcul du papier a partir du Corollaire 3 (rho^2 < e^-1).",
+   "evidence": "arXiv:1611.00347, resume : fonction 'chosen based on a cyclic scheme' ; Corollaire 3 : facteur rho=(kappa-1)/(kappa+1) par passe. bibliography/literature_review.md section 10.2 : 'a comparison not made in the papers'. Script : seuil 4.0830.",
+   "proposed_fix": "Table 1: reshuffled and cyclic SAGA-type methods \\cite{ying2017variance,mokhtari2018surpassing}.  l. 608-609: and the cyclic rate of \\cite[Corollary~3]{mokhtari2018surpassing} beats $e^{-1}$ per pass for $\\kappa<4.08$.",
+   "confidence": "high"
+  },
+  {
+   "id": "N10",
+   "severity": "nit",
+   "location": "l. 270-272",
+   "claim": "\\finding{M5}--\\finding{M7} are new. ``Not found'' refers to [...] automated checks of 12--18 November 2026 that opened the closest sources (about sixty papers)",
+   "problem": "'are new' se lit comme une revendication de nouveaute alors qu'il s'agit d'etiquettes absentes du rapport etendu. 'opened the closest sources' est un peu fort : une partie des sources a ete lue par resume ou balayage de mots-cles, et Goffin 1977 (cite au tableau 1) est note non lu.",
+   "evidence": "muon/literature_check.md l. 7 ('Long papers were often read through a summarizing fetch tool') et l. 1392-1397 ('Not read: Goffin 1977 (publisher page requires authentication)'). Non verifie si Goffin a ete ouvert depuis.",
+   "proposed_fix": "\\finding{M5}--\\finding{M7} are added here. [...] that opened the closest sources (about sixty papers, some by abstract only).",
+   "confidence": "medium"
+  },
+  {
+   "id": "N11",
+   "severity": "nit",
+   "location": "l. 654-656",
+   "claim": "finite-sum estimators [...] in general norms \\cite{allenzhu2018katyusha} [...] are published",
+   "problem": "Une table SAGA avec normes non euclidiennes est publiee (pas de Bregman, non des pas de plus forte pente) : plus proche que Katyusha du cote 'table'. La revendication du papier reste vraie.",
+   "evidence": "Xie, Jin, Zhou, Meng, Cheng, arXiv:2205.02273v2, resume : 'several novel adaptive variants of the popular SAGA algorithm [...] convergence guarantees under general settings that allow non-Euclidean norms in the definition of smoothness and the composite objectives'. muon/literature_check.md l. 1322 et 1350.",
+   "proposed_fix": "",
+   "confidence": "high"
+  }
+ ],
+ "not_checked": [
+  "Section 6 de Katyusha (normes generales), citee l. 654-655 : non rouverte.",
+  "Yang et al. arXiv:1408.3115 : remarque sur la regression logistique rapportee par un resume de moteur de recherche, non verifiee dans le texte ; aucun constat n'en est tire.",
+  "Negiar et al. arXiv:2002.11860 (table de type SAG dans un pas LMO d'apres le registre du depot) : resume seul, qui ne confirme pas la table ; Kereta et al. arXiv:2106.03172 et Freund-Grigas-Mazumder arXiv:1810.08727 non ouverts.",
+  "Goffin 1977 (cite au tableau 1) : non accessible ; non verifie s'il a ete lu depuis le 18 novembre.",
+  "Davis-Drusvyatskiy arXiv:2512.04299 et Auger-Hansen arXiv:1310.7697 : resumes seulement (constats N5 et N7).",
+  "Le decompte 'about sixty papers' et le detail des recherches des 16 et 17 novembre (pas de registre separe retrouve pour le 17).",
+  "Plein texte, OpenReview, ateliers, theses : non couverts ; 'rien trouve' = rien trouve par 11 requetes web et 6 requetes de resumes arXiv.",
+  "Lois a pas fixe de la note B4 citees dans (M7), l. 600-603 : aucune recherche dediee (ni par le depot, literature_review.md l. 233, ni par cet audit).",
+  "(C1)-(C3) et (M2) : recherche legere (une requete chacune au plus).",
+  "Exactitude mathematique des enonces : hors perimetre (autres auditeurs)."
+ ],
+ "report_path": "/users/eleves-b/2023/louis.darrigol/projetSTATS/paper/audit/evidence/novelty.md"
+}

@@ -1,0 +1,190 @@
+{
+ "scope_covered": "(M6) et (M7) du papier (l. 584-609) pour leurs chiffres experimentaux ; legende de la figure 4 (b)-(c) (l. 524-528) et image figP4_recipe.png confrontee a son script ; resume l. 105-107 ; tableau 2 lignes Geometry (renvoi M6) et Memory (l. 624-640) ; Limitations l. 667-669 ; phrase de protocole l. 262-265 (resolution 10 %, grilles 2^(1/4)). Sources : muon/results/M9_summary.json (A, B, D), M9b_summary.json (D, L), M5b_summary.json, results/B4b_summary.json, digest.md, muon/experiments/{exp_M9_schedule,families,common}.py. Tous les rapports recalcules depuis les lignes brutes des JSON ; petite reproduction sur grille plus fine de 5 des 8 cellules mini-lots de (M6) avec le code du depot (paper/audit/checks/num-m6m7_*.py).",
+ "checked_ok": [
+  {
+   "claim": "At batch one ... the fastest spectral variant needs 0.92--1.06 of the passes of the fastest control",
+   "location": "l. 584-586",
+   "evidence": "M9_summary.json A/<inst>/cells/1/rows, medianes a 1e-6 sur 10 graines : 0.937 (soft-cond, polar+N 7/10 / frob), 0.924, 1.055, 0.993 (num-m6m7_recompute_M6_partA.py). Reserve : constat F8."
+  },
+  {
+   "claim": "With 16 or 32 samples per batch the spectral maps need no momentum while the controls do",
+   "location": "l. 587-588",
+   "evidence": "Variante spectrale la plus rapide sans momentum dans 8 cellules sur 8 (polar ou ns5) ; controle le plus rapide = frob+N dans 8/8 ; frob sans momentum 1.3 a 3.7 fois plus lent que frob+N, ou cible non atteinte (ls-cond b=32)."
+  },
+  {
+   "claim": "the fastest spectral variant needs 0.58--0.93 of the passes of the fastest control on the four conditioning-limited instances (chiffres tels que mesures sur la grille du depot)",
+   "location": "l. 588-589",
+   "evidence": "Recalcul : 0.805, 0.843, 0.712, 0.579, 0.928, 0.894, 0.775, 0.826 ; les chiffres sont exacts sur la grille utilisee, mais non robustes a son raffinement (constats F1, F2)."
+  },
+  {
+   "claim": "0.41--0.89 of those of the faster of SAGA and B-SAGA at the same batch",
+   "location": "l. 589-590",
+   "evidence": "Recalcul : 0.722, 0.706, 0.542, 0.408, 0.885, 0.843, 0.808, 0.748 (B-SAGA dans les 8 cellules, grille 2^(1/4), theta hors bord). Robuste : en raffinant la grille le numerateur bouge de moins de 6 % (0.68, 0.69, 0.52, 0.41, 0.89 sur les 5 cellules refaites)."
+  },
+  {
+   "claim": "and 0.81--1.04 of those of the nuclear-scaled SAGA-Muon",
+   "location": "l. 590",
+   "evidence": "Recalcul : 0.964, 0.868, 0.991, 0.812, 1.012, 1.038, 1.014, 0.990."
+  },
+  {
+   "claim": "0.74 and 0.75 of their passes at b=4 and 16 on softmax, 0.74 and 0.55 on least squares, against 0.91 and 1.04 at batch one, but 1.30 and 1.11 at b=1, 4 on the square least-squares instance",
+   "location": "l. 591-593",
+   "evidence": "M5b_summary.json, grille fine, tirage 0 : 0.743, 0.749 ; 0.742, 0.547 ; 0.906, 1.044 ; 1.297, 1.111 (num-m6m7_recompute_M5b.py). Grille decalee : meme signe sauf egalite a b=1 sur ls-cond (0.96) ; autres tirages a b=16 : 0.727, 0.694, 0.618, 0.505."
+  },
+  {
+   "claim": "on grids of factor 2 it had appeared 1.7 to 2.7 times slower at b=16",
+   "location": "l. 593",
+   "evidence": "M5 (m5/rows) : 2.707 (soft-cond), 1.740 (ls-cond) ; controle facteur 2 recalcule dans M5b : 2.691, 1.780."
+  },
+  {
+   "claim": "rho_star = 0.27--0.43 per pass for b=5 to 50 with independent batches (four of five seeds)",
+   "location": "l. 596-597",
+   "evidence": "M9_summary.json D/<inst>/cells/<b>/schemes/iid/by_rho, recalcul du seuil a 4/5 : soft-mem 0.368, 0.32, 0.27 ; ls-mem 0.43, 0.368, 0.32 (num-m6m7_recompute_M7.py). Facteur memoire 0.358-0.368."
+  },
+  {
+   "claim": "a fresh permutation per pass ... at b=20 and 50, moves rho_star to 0.10--0.18 and the passes to 10^{-9} from 16.7--20.0 to 9.1--12.2",
+   "location": "l. 598-599",
+   "evidence": "Permutation : rho_star 0.10, 0.135, 0.18, 0.18 ; passes soft-mem 17.9 -> 9.1 (b=20), 16.7 -> 10.4 (b=50) ; ls-mem 20.0 -> 11.3, 19.1 -> 12.2. Etendues des 5 graines disjointes ([16.0, 22.6] contre [9.1, 12.2])."
+  },
+  {
+   "claim": "a fresh permutation per pass saves 36--49% of the passes where memory limits (batches of 20 and 50) ; tableau 2 : 36--49% fewer passes where memory limits (b=20, 50)",
+   "location": "l. 106-107, l. 640",
+   "evidence": "Cellule par cellule : 49.2 %, 37.7 % (soft-mem b=20, 50), 43.5 %, 36.1 % (ls-mem). Ecart de 3 a 5 crans de la grille de rho : hors bruit. Un tirage des donnees, 5 graines."
+  },
+  {
+   "claim": "single runs under independent sampling lose about 1.6 (measured, n=1000)",
+   "location": "l. 603",
+   "evidence": "results/B4b_summary.json typical/n=1000/2 : pooled 1.634 +- 0.012, mediane 1.635 [1.55, 1.71] sur 12 graines (maximum sur les pas essayes, cf. F9)."
+  },
+  {
+   "claim": "On such a sum the recipe follows 1.2--1.3 nats of lr^2 per pass with independent indices and 1.7--1.9 with a permutation",
+   "location": "l. 603-604",
+   "evidence": "M9b_summary.json L/cells/n=<n>/orders/*/level_end/x_star (lot un, 80 passes, 20 runs) : 1.2, 1.3, 1.3 et 1.9, 1.8, 1.7 pour n = 100, 1000, 10000."
+  },
+  {
+   "claim": "The instances need 1.7 to 2.7 times the passes of this model with independent batches but 1.0 to 1.3 times with a permutation at b=20 and 50",
+   "location": "l. 605-606",
+   "evidence": "Recalcul : independant 1.73, 2.22, 1.88, 2.20, 2.06, 2.30, 2.39, 2.73 (b = 1, 5, 20, 50) ; permutation b = 20, 50 : 0.97, 1.20, 1.14, 1.34. Denominateurs bruites (cf. F7)."
+  },
+  {
+   "claim": "Figure 4(b) : passes to 10^{-6} (median of ten seeds; k/10) ... fastest spectral variant, fastest control map, faster of SAGA and B-SAGA",
+   "location": "l. 523-526, figP4_recipe.png",
+   "evidence": "Image lue et confrontee a make_figP4_recipe.py (data_b lit A/<inst>/cells/<b>/compare, et M5b fine a b=1) : softmax 21.45 (7/10), 22.4, 25.7 / 22.9, 27.8, 30.5 / 27.1, 31.0, 36.4 ; moindres carres 26.8, 27.7 (9/10), 30.8 / 29.0, 38.9, 53.2 / 31.9, 51.2, 75.4. Conforme."
+  },
+  {
+   "claim": "Figure 4(c) : passes to 10^{-9} at the fastest cooldown that every seed follows to the target (median of five seeds)",
+   "location": "l. 526-528, figP4_recipe.png",
+   "evidence": "data_d lit 'fastest' (rho de plus petite mediane parmi ceux ou les 5 graines atteignent 1e-9) de M9 partie D et M9b ; les 24 points de l'image correspondent (ex. b=50 : 16.7 -> 10.4, 19.1 -> 12.2, modele 7.0 -> 9.1). 'four of five seeds' (rho_star, l. 596) et 'every seed' (passes) sont deux criteres distincts, tous deux conformes aux donnees."
+  },
+  {
+   "claim": "(M3)--(M7) rest on two to four instances and one to three draws of the data, and counts are in gradients, not factorizations",
+   "location": "l. 667-669",
+   "evidence": "(M6) partie A : 4 instances, 1 tirage ; M5b : 3 instances, 3 tirages a b = 16, 64 sur deux instances ; (M7) : 2 instances (+ 1 controle + modele), 1 tirage, 5 graines. Exact."
+  },
+  {
+   "claim": "a fresh permutation per pass lifts the memory ceiling : etabli au-dela du modele sur les deux instances limitees par la memoire a b = 20, 50",
+   "location": "l. 595",
+   "evidence": "Gains 36-49 % a b = 20, 50 hors bruit sur soft-mem et ls-mem ; 15-41 % a b = 1, 5 ; instance de controle soft-cond : 23.8 % (b=20), 0.9 % (b=50), coherent avec 'where memory limits'. Reserves : constat F7."
+  }
+ ],
+ "findings": [
+  {
+   "id": "F1-recipe-grid",
+   "severity": "major",
+   "location": "l. 262-265 (portee : l. 584-594)",
+   "claim": "differences below about $10\\%$ are not resolved. Section~\\ref{sec:recipe} uses the same protocol, with step grids of ratio $2^{1/4}$.",
+   "problem": "Faux pour les familles 'recette' de (M6) : seules les trois references a pas constant (SAGA, B-SAGA, SAGA-Muon) sont sur des grilles de raison 2^(1/4). Les huit recettes (polar, ns5, frob, sign, avec ou sans momentum) sont reglees sur q dans {0.5, 0.6, 0.7, 0.8, 0.9, 0.95} x demi-decades de lr_0. Un cran de lr_0 deplace les passes de 13 a 30 % (2.3 a 10.9 passes), un cran de q change le taux jusqu'a 60 % : la resolution de 10 % ne s'applique pas aux rapports entre cartes.",
+   "evidence": "muon/experiments/families.py l. 271 (COOLDOWNS) et l. 283-293 (recipe_lr_grid : half_decades) ; exp_M9_schedule.py l. 17-19 ('grid of q times half-decades of lr_0 ... Same-batch references with constant steps on 2^(1/4) grids') ; M9_summary.json A/<inst>/q_grid et cells/<b>/lr_grids ; paper/audit/checks/num-m6m7_grid_resolution_M6.py : scores de reglage 22.3, 25.6, 28.7 (soft-cond b=16, polar, q=0.7, lr_0 = 10, 30, 100), 26.6, 32.8, 36.9, 41.8 (frob+N, q=0.8) ; un cran de lr_0 = 14, 19, 20, 17, 19, 13, 17, 21, 19, 18, 30, 17, 17, 18, 17, 20 % de la mediane sur les 16 familles retenues.",
+   "proposed_fix": "Section~\\ref{sec:recipe} uses the same protocol; constant steps are on grids of ratio $2^{1/4}$, the schedules of \\eqref{eq:recipe} on $q\\in\\{0.5,0.6,0.7,0.8,0.9,0.95\\}$ and half-decades of $\\mathrm{lr}_0$ (one grid step of $\\mathrm{lr}_0$ moves the passes by $13$--$30\\%$).",
+   "confidence": "high"
+  },
+  {
+   "id": "F2-058-093-not-robust",
+   "severity": "major",
+   "location": "l. 105-106 (resume) ; l. 587-589 ((M6)) ; intitule l. 584 ; reprises l. 133, 179, 646, 680",
+   "claim": "With minibatches of $16$ or $32$ samples the spectral map needs $0.58$--$0.93$ of the passes of a normalized step",
+   "problem": "La fourchette est exacte sur la grille du depot mais ne survit pas a son raffinement. Avec le code du depot, les memes graines de confirmation (10..19) et une grille plus fine (q par pas de 0.025, lr_0 par pas de 10^(1/8)), le rapport passe de 0.579 a 0.690 (ls-cond, b=32 : le controle frob+N gagne 16 % a q=0.85, valeur absente de la grille) et de 0.843 a 0.952 (soft-cond, b=32 ; 0.997 avec la regle 'plus petite mediane' du bloc compare). Il tient sur soft-cond b=16 (0.805 -> 0.763), ls-cond b=16 (0.712 -> 0.713) et ls-orth b=16 (0.928). Sur les cinq cellules refaites : 0.69-0.95, dont deux dans la resolution de 10 %. La borne 0.58 du resume est un artefact de grille ; l'avantage sur un pas normalise n'est net que sur l'instance moindres carres non carree (0.69-0.71) et sur softmax a b=16.",
+   "evidence": "paper/audit/checks/num-m6m7_finer_grid_M6.py et num-m6m7_finer_grid_M6.out.txt. Le script reproduit d'abord exactement les medianes du papier (soft-cond b=32 : polar 25.72 [24.84, 27.08], frob+N 30.52 [29.80, 32.68]). Grille fine, regle 10/10 : soft-cond b=32 polar 25.24 (q=0.775, lr_0=4.0) / frob+N 26.52 (q=0.775, lr_0=7.5) = 0.952 ; ls-cond b=32 polar 30.68 / frob+N 44.44 (q=0.85, lr_0=4.0) = 0.690 ; soft-cond b=16 21.24 / 27.84 = 0.763 ; ls-cond b=16 26.76 / 37.52 = 0.713 ; ls-orth b=16 16.65 / 17.94 = 0.928 (raffinement reduit). Non refait : ls-orth b=32 (0.894), soft-sq b=16, 32 (0.775, 0.826).",
+   "proposed_fix": "Abstract: With minibatches of $16$ or $32$ samples the spectral map needs $0.41$--$0.89$ of the passes of SAGA and damped SAGA at the same batch, and a fresh permutation per pass saves [...]. (M6): [...] and the fastest spectral variant needs $0.58$--$0.93$ of the passes of the fastest control on the four conditioning-limited instances ($0.69$--$0.95$ on the five cells re-tuned on a four times finer grid of $q$ and $\\mathrm{lr}_0$, two of them within the $10\\%$ resolution), $0.41$--$0.89$ of those of the faster of SAGA and B-SAGA [...]",
+   "confidence": "high"
+  },
+  {
+   "id": "F3-euclid-minibatch-scope",
+   "severity": "major",
+   "location": "l. 627-628 (tableau 2, ligne Geometry) ; l. 645-646 ; l. 679-680",
+   "claim": "A change of norm buys trajectory properties, reproduced by Euclidean devices at batch one \\finding{M3} but not with minibatches \\finding{M6}.",
+   "problem": "En mini-lots, (M6) ne compare qu'a SAGA et B-SAGA (et aux cartes de controle frob, sign). Les dispositifs euclidiens qui egalaient ou battaient l'orthogonalisation a lot un dans (M3) et (M4), la metrique de covariance (15.1 / 16.1 passes, 'the best method on least squares for every draw'), l'echantillonnage preferentiel et la metrique polaire figee, n'ont pas ete lances a b > 1. 'Not with minibatches' n'est donc etabli que pour SAGA et B-SAGA sans preconditionneur ; (M6) l. 589 le dit correctement, le tableau 2 et la conclusion generalisent.",
+   "evidence": "M9_summary.json coverage/A/<inst>/<b>/references = ['B-SAGA', 'SAGA', 'SAGA-Muon (joint)'] pour b = 16, 32 (aucune reference a b = 1) ; M5b_summary.json about/families = SAGA, B-SAGA, SAGA-Muon ; families.resolved_references. A titre indicatif : recette spectrale la plus rapide a b = 16 : 22.4 (soft-cond), 27.7 (ls-cond) passes ; metrique de covariance a lot un : 15.1, 16.1 (digest.md l. 1115, 1126).",
+   "proposed_fix": "A change of norm buys trajectory properties, reproduced by Euclidean devices at batch one \\finding{M3}; with minibatches the spectral map is ahead of SAGA and damped SAGA \\finding{M6} (preconditioned Euclidean methods were not run).",
+   "confidence": "high"
+  },
+  {
+   "id": "F4-116-136-mixed-grids",
+   "severity": "minor",
+   "location": "l. 586-587",
+   "claim": "without momentum the exact polar factor needs $1.16$--$1.36$ times the passes of the Frobenius normalization",
+   "problem": "Le rapport divise le polar regle sur la grille fine de la partie B (q par pas de 0.05) par le frob regle sur la grille de la partie A (q par pas de 0.1). A grille egale (partie A pour les deux) : 1.22-1.39. L'ecart va contre le polar : la conclusion qualitative tient, le chiffre est biaise.",
+   "evidence": "num-m6m7_recompute_M6_partA.py : partie A polar/frob = 1.223, 1.245, 1.387, 1.322 ; partie B polar / partie A frob = 1.223, 1.245, 1.362, 1.159 (= bloc part_B/ratios/polar/control des cellules b = 1).",
+   "proposed_fix": "without momentum the exact polar factor needs $1.22$--$1.39$ times the passes of the Frobenius normalization",
+   "confidence": "high"
+  },
+  {
+   "id": "F5-same-cooldown",
+   "severity": "minor",
+   "location": "l. 585-586 ; legende l. 525",
+   "claim": "fastest control map on the same cooldown",
+   "problem": "Le controle n'est pas lance sur le meme horaire : chaque carte a son propre (q, lr_0) regle sur la meme grille. q coincide dans les 4 cellules b = 1 mais differe dans 5 des 8 cellules mini-lots (dont 2 des 4 tracees en figure 4(b) : softmax b = 16, 0.7 contre 0.8 ; moindres carres b = 32, 0.8 contre 0.9).",
+   "evidence": "M9_summary.json A/<inst>/cells/<b>/rows/<famille>/best : soft-cond b=16 polar q=0.7, frob+N q=0.8 ; ls-cond b=32 0.8 / 0.9 ; ls-orth b=32 0.8 / 0.7 ; soft-sq b=16 et 32 0.6 / 0.7.",
+   "proposed_fix": "l. 585-586: of the fastest control, tuned on the same grid of cooldowns ; l. 525: fastest control map (same grid of cooldowns),",
+   "confidence": "high"
+  },
+  {
+   "id": "F6-two-criteria",
+   "severity": "minor",
+   "location": "l. 596-599 ; l. 527",
+   "claim": "the fastest cooldown of $\\mathrm{lr}^2$ that four of five seeds follow is a factor $\\rho_\\star$ [...] and the passes to $10^{-9}$ from $16.7$--$20.0$ to $9.1$--$12.2$",
+   "problem": "Le texte laisse croire que les passes sont lues a rho_star. Elles sont lues au rho de plus petite mediane ou les cinq graines atteignent 1e-9 (legende : 'every seed'), alors que rho_star demande que 4 graines sur 5 restent sur l'horaire jusqu'au bout du parcours. Les deux coincident dans 7 des 8 cellules citees (exception : ls-mem b = 50 independant, rho_star = 0.32, passes lues a 0.368) ; dans 3 cellules independantes une graine sur cinq quitte l'horaire apres avoir atteint la cible. Coherent avec les donnees, mais non dit.",
+   "evidence": "M9_summary.json definitions/order ; num-m6m7_recompute_M7.py (colonnes rho_star(4/5), fastest rho, seeds on schedule there).",
+   "proposed_fix": "and the passes to $10^{-9}$, read at the fastest cooldown at which every seed reaches it, from $16.7$--$20.0$ to $9.1$--$12.2$",
+   "confidence": "high"
+  },
+  {
+   "id": "F7-permutation-scope",
+   "severity": "minor",
+   "location": "l. 598-606",
+   "claim": "a fresh permutation per pass refreshes every entry once per pass and, at $b=20$ and $50$, moves $\\rho_\\star$ to $0.10$--$0.18$ [...] Linear SAGA explains part of it",
+   "problem": "Deux reserves absentes du texte (visibles seulement en figure 4(c)). (i) Aux lots 1 et 5 le gain est de 15-41 % (ls-mem : 15.0 % et 19.3 %, rho_star inchange a b = 5 : 0.43 -> 0.43) ; l'en-tete de exp_M9_schedule.py dit 'b in {5, 1} ... where the order effect is not reliable'. (ii) Sur le modele a hessiennes identiques la permutation n'aide qu'aux petits lots (b = 1 : rho_star 0.32 -> 0.18, passes 10.5 -> 7.1 ; b = 5 : rho_star 0.32 -> 0.18, passes 9.4 -> 9.1) ; a b = 20 et 50, les lots ou le gain des instances est chiffre, elle n'apporte rien (rho_star 0.22 -> 0.22, passes 8.7 -> 9.4 et 7.0 -> 9.1) : l'explication par SAGA lineaire ne couvre pas ces lots. De plus les medianes du modele sont des minima sur une grille bruitee (b = 50 independant : 7.0, graines [15.2, 7.0, 14.7, 5.2, 6.5], voisins de grille 16.1 et 12.6), ce qui fragilise le '2.7' de '1.7 to 2.7'.",
+   "evidence": "num-m6m7_recompute_M7.py ; M9b_summary.json D/cells/<b>/schemes/{iid,reshuffle}/by_rho ; exp_M9_schedule.py l. 33-34.",
+   "proposed_fix": "[...] from $16.7$--$20.0$ to $9.1$--$12.2$ ($15$--$41\\%$ fewer passes at $b=1$, $5$). [...] On the model itself a permutation moves $\\rho_\\star$ at $b=1$ and $5$ only (from $0.32$ to $0.18$; unchanged at $0.22$ for $b=20$, $50$).",
+   "confidence": "high"
+  },
+  {
+   "id": "F8-b1-seeds-lost",
+   "severity": "minor",
+   "location": "l. 585",
+   "claim": "the fastest spectral variant needs $0.92$--$1.06$ of the passes of the fastest control",
+   "problem": "Sur soft-cond la variante retenue (polar+N, 0.94) n'atteint la cible que sur 7 graines sur 10 ; parmi les variantes qui l'atteignent sur les dix graines le rapport est 1.21 (ns5 / frob). La fourchette serait 0.92-1.21. Cela renforce 'nothing above is specific to Muon' mais la borne 0.92-1.06 depend de la regle 'plus petite mediane meme si des graines sont perdues' ; (M5) et la figure 4(b) signalent le 7/10, pas (M6).",
+   "evidence": "M9_summary.json A/soft-cond/cells/1/rows : polar+N 21.45 [19.6, inf] 7/10 ; ns5 27.60 10/10 ; frob 22.90 10/10.",
+   "proposed_fix": "the fastest spectral variant needs $0.92$--$1.06$ of the passes of the fastest control on the same grid of cooldowns ($1.21$ on softmax among the variants that reach the target on every seed),",
+   "confidence": "high"
+  },
+  {
+   "id": "F9-nats-wording",
+   "severity": "nit",
+   "location": "l. 603-604",
+   "claim": "single runs under independent sampling lose about $1.6$ (measured, $n=1000$). On such a sum the recipe follows $1.2$--$1.3$ nats [...] and $1.7$--$1.9$ with a permutation",
+   "problem": "1.6 est le maximum sur les pas essayes (c = 2 : 1.634 ; 0.95 a 1.61 aux autres pas). '1.7-1.9' reunit n = 100, 1000, 10000 a 80 passes ; pour n = 1000 seul (le n cite juste avant et dans la legende) : 1.7-1.8.",
+   "evidence": "results/B4b_summary.json typical/n=1000 ; M9b_summary.json L/cells/n=<n>/orders/reshuffle/{level_half,level_end}/x_star.",
+   "proposed_fix": "single runs under independent sampling lose up to about $1.6$ (measured, $n=1000$).",
+   "confidence": "high"
+  }
+ ],
+ "not_checked": [
+  "Raffinement de la grille (q, lr_0) pour ls-orth b = 32 (0.894), soft-sq b = 16 et 32 (0.775, 0.826) et pour les cellules b = 1 (0.92-1.06 ; 1.16-1.36) : budget CPU ; le script num-m6m7_finer_grid_M6.py les traite tel quel (--small pour n = 500).",
+  "Enonces theoriques de (M7) sur SAGA lineaire (min{2c,1}, min{2, log((2-g)/g)}, note B4) et la phrase de conclusion 'from e^{-1} to nearly e^{-2}' : hors perimetre numerique (seul 'about 1.6' et reshuffled_mean_square_best = 1.93-1.99 ont ete lus dans B4b_summary.json).",
+  "Pickles bruts (M9_*_confirm.pkl, M9_order.pkl, M9b_order.pkl) non rouverts : les JSON portent les valeurs par graine, et la reproduction directe de deux points de soft-cond b = 32 redonne les medianes du papier au centieme.",
+  "Robustesse de (M6) partie A et de (M7) a un second tirage des donnees : aucune donnee dans le depot (seul M5b a trois tirages).",
+  "Citations de (M7) (Finito, Ying et al., Park et Ryu, Mokhtari et al., seuil kappa < 4.08) : autre dimension de l'audit."
+ ],
+ "report_path": "/users/eleves-b/2023/louis.darrigol/projetSTATS/paper/audit/evidence/num-m6m7.md"
+}

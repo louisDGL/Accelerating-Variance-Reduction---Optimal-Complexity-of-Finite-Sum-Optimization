@@ -1,0 +1,155 @@
+{
+ "scope_covered": "Theoreme 1 et geometrie des pas polaires : (a) definitions l. 196-206, l. 117, l. 200-201 ; (b) Theoreme 1 l. 334-347 ; (c) remarques l. 349-354 ; (d) identite (2) l. 226-232 ; (e) paragraphe l. 309-315, resume l. 96-97, etiquette [p] du tableau 1 l. 151, conclusion l. 674-676 ; (f) (M4) l. 367-369 et metrique polaire l. 236-242. Demonstrations refaites a la main ; six scripts de controle dans paper/audit/checks/ (math-nfl_*.py) ; sources externes ouvertes : Sidford-Tian (PDF), Hird-Livingstone (PDF), Shulgin et al. et Jawanpuria et al. (HTML, partiel). Bilan : 0 blocker, 1 major (E2), 4 minor, 1 nit.",
+ "checked_ok": [
+  {
+   "claim": "Theorem 1 (statement, hypotheses, proof): mu_N(F) = lambda/c_N^2, L_N(g) >= L_F(g)/c_N^2 for every convex C^2 g, kappa_N(F) >= kappa_F(F), L_N(f_i)/mu_N(F) >= L_F(f_i)/mu_F(F)",
+   "location": "l. 334-347",
+   "evidence": "Preuve refaite ligne a ligne (plancher lam||D||_F^2 >= (lam/c_N^2)N(D)^2 ; limite le long de W_t en un maximiseur D_0 de N/||.||_F ; N <= c_N||.||_F et convexite de g ; quotients). Numerique paper/audit/checks/math-nfl_muN.py, six normes (spectrale, l_inf, ||D P^1/2||_F, Kronecker, spectrale preconditionnee, l_1), softmax K=4 d=6 n=30 et logistique K=1 : D2F(tW_1)[D_0,D_0]/N(D_0)^2 -> 1.000000 x lam/c_N^2 ; quotient jamais sous lam/c_N^2 (min 1.000000 a 1.0077) ; L_N(F) >= L_F(F)/c_N^2 et rapports par echantillon >= (c_i|x_i|^2+lam)/lam."
+  },
+  {
+   "claim": "(logistic and softmax losses with nonzero x_i: W_t = tW_1 for almost every W_1)",
+   "location": "l. 335-336",
+   "evidence": "Softmax : hess = diag(p)-pp^T -> 0 si W_1x_i a un maximum unique, vrai hors d'une reunion finie d'hyperplans (propres car x_i != 0) ; logistique : l'' -> 0 si W_1x_i != 0. La courbure de toutes les pertes tend vers 0. Numerique : max_i lmax = 4.6e-1, 3.4e-1, 6.2e-6, 1.3e-55 (softmax, t=1,10,100,1000) ; 2.5e-1, 1.5e-1, 2.9e-65, 0 (logistique, t=1,1e2,1e4,1e6). Contre-exemples confirmant les deux reserves : deux lignes egales de W_1 -> 0.50 ; x_1 = 0 -> 0.25."
+  },
+  {
+   "claim": "L_F(f_i) = c_i||x_i||^2 + lambda, approached along e x_i^T/||x_i||",
+   "location": "l. 345-346",
+   "evidence": "Majoration par ||D x_i|| <= ||D||_F||x_i|| ; quotient evalue en (W, e x_i^T/|x_i|) = 5.8880724672 = c_i|x_i|^2+lam (softmax, c_i=1/2) et 2.7098313407 (logistique, c_i=1/4), paper/audit/checks/math-nfl_muN.py."
+  },
+  {
+   "claim": "Theorem 1 against the repository data: on softmax no tested metric has kappa_P below the Euclidean kappa (M4: 'best ratio to the Euclidean one exactly 1')",
+   "location": "l. 368-369",
+   "evidence": "muon/results/M7_summary.json, bloc metric : min de kappa_P_global/kappa_euclid_global = 1.000000000000 sur soft-mem, soft-cond, soft-sq (16, 16, 64 metriques ; max 4.1 a 14) ; sur les moindres carres 0.131, 0.0061, 0.0090 (hypothese violee)."
+  },
+  {
+   "claim": "It covers the spectral norm and its preconditioned versions, the l_infty norm of sign descent and Kronecker-factored metrics",
+   "location": "l. 349-350",
+   "evidence": "Ce sont des normes ; c_N = 1, lmax(P)^1/2, 1, (lmax(S)lmax(P))^1/2 ; maximiseurs explicites verifies numeriquement (valeur atteinte, jamais depassee sur 20000 directions)."
+  },
+  {
+   "claim": "functions that no linear preconditioner improves exist in every dimension [Proposition 7, hird2025quantifying]",
+   "location": "l. 350-351",
+   "evidence": "JMLR 26 (2025), https://jmlr.org/papers/volume26/23-1633/23-1633.pdf, Proposition 7 : 'There exist distributions satisfying Assumption 6 with arbitrary condition number kappa >= 1 in arbitrary dimension d >= 1 for which any non-orthogonal linear preconditioner will cause the condition number to increase.'"
+  },
+  {
+   "claim": "The hypothesis is needed (for ridge least squares ||Delta Sigma^{1/2}||_F, Sigma the Hessian, has condition number one)",
+   "location": "l. 353-354",
+   "evidence": "D2F[D,D] = tr(D Sigma D^T) = ||D Sigma^1/2||_F^2 avec Sigma = Sigma_hat + lam I : mu_N = L_N = 1 alors que kappa_F = lmax(Sigma)/lmin(Sigma) ; l'hypothese est violee (hess l_i = I)."
+  },
+  {
+   "claim": "kappa_op >= min(K,d) (true for every F)",
+   "location": "l. 354",
+   "evidence": "Preuve par cadres refaite : h_k = q(u_k v_k^T) >= mu_op, E_eps q(sum eps_k u_k v_k^T) = sum h_k, donc L_op >= r mu_op ; seconde preuve sans C^2 par le Lemme A.1 de Sidford-Tian. Numerique paper/audit/checks/math-nfl_kop.py : 210 operateurs SPD (2x2 a 6x4, dont proches de l'identite), kappa_op/r >= 1.0000015 ; = 1 pour H = Id ; force brute 2x2 : min 1.0000088."
+  },
+  {
+   "claim": "Identity (2) for the nuclear-scaled polar step on a quadratic; J in [mu_op, L_op]; mu_PL in [mu_op, J]; certified factor 1 - 1/kappa_op at J = L_op, mu_PL = mu_op",
+   "location": "l. 226-232",
+   "evidence": "Calcul refait (developpement exact de F(W - eta O), PL duale pour mu_PL >= mu_op, recherche lineaire exacte pour mu_PL <= J, monotonie du membre de droite). Numerique paper/audit/checks/math-nfl_identity2.py : 720 cas (unilateral, Kronecker, SPD general ; six tailles ; rang plein et rang un), ecart max 2.8e-15, aucun encadrement viole (marges >= -1.2e-15)."
+  },
+  {
+   "claim": "(Eq. (17) of shulgin2026quadratic, Eq. (8) of jawanpuria2026constant)",
+   "location": "l. 231",
+   "evidence": "arXiv:2610.30280v1 (HTML) : Eq. (17) f(X+)/f(X) = 1 - alpha(2-alpha)p(X), alpha = gamma tr(H), p = ||HX||_*^2/(tr(H)tr(HXX^T)), soit (2) avec J = tr H. arXiv:2610.27747v1 (HTML) : Eq. (8) f(X_{t+1}) = f(X_t) - alpha||G||_*^2 + (alpha^2/2)||G||_*^2 tr(U^T H U). Lu a travers un outil qui resume la page."
+  },
+  {
+   "claim": "the exact exponent is, to first order, (mu_PL/mu_op)(2 - J/L_op) times the certified one; the smoothness slack 2 - J/L_op in [1,2) gains at most a factor 2, as I1-I2 at most 8/3; only the sharpness slack mu_PL/mu_op in [1, kappa_op] is unbounded",
+   "location": "l. 309-311",
+   "evidence": "Developpement de -log(1-x) ; J dans [mu_op, L_op] ; mu_PL dans [mu_op, J] ; dans (1) le facteur 1 - (L_eff/R^2)(r_sq/4+3/8) vaut 3/8 au pire et au plus 1. Numerique paper/audit/checks/math-nfl_ls_tail.py : produit des marges 4.00 contre rapport exact 4.02 (20x20, kappa_op = 461)."
+  },
+  {
+   "claim": "the gap is about a factor 4 [in the tail of generic least-squares runs]",
+   "location": "l. 313-314",
+   "evidence": "paper/audit/checks/math-nfl_ls_tail.py, 160 courses depuis des departs gaussiens : exposant exact/certifie dans la seconde moitie des courses, K >= d : min 4.01, mediane 4.05, max 5.42 ; K < d : min 3.22, mediane 3.79, max 5.31. (Le chiffre est correct pour la queue ; voir le constat E2 pour le statut de l'attraction et pour la tete des courses.)"
+  },
+  {
+   "claim": "Polar metric omega -> omega(V diag(g) V^T + r(I - VV^T)), g_k = ||G_0||_*/max(s_k, f s_1); R_P^2 = max_i c_i x_i^T P^{-1} x_i + lam||P^{-1}||_op",
+   "location": "l. 236-242",
+   "evidence": "Identique a muon/lab/vrmuon.py (fonction polar_metric, l. 651-671) et a F10 ; G_0 C = ||G_0||_* polar(G_0) sans plancher (ecart 1.4e-16, 1.9e-15) ; R_P^2 majore max_i L_N(f_i) exact (32.6003 >= 32.4917, etc.), paper/audit/checks/math-nfl_polar_metric.py."
+  },
+  {
+   "claim": "(M4) Computed once, the polar metric makes the method SAGA in a fixed metric, certified with R_P^2, mu_P",
+   "location": "l. 367-368",
+   "evidence": "Preuve de F11 (muon/notes_theory.md) refaite etape par etape ; facteur 1 - min{1/(3n), 3mu_P/(16R_P^2)} pour gamma = 1/(4R_P^2). Numerique : esperance conditionnelle exacte de V le long de 600 etats, softmax et moindres carres, planchers 0, 0.1, 0.3, 1 : max E[V+]/(rho V) entre 0.9949 et 0.9972. Reserve (dans F11) : la distance contractee est ponderee par C^-1 et le certificat vaut pour gamma <= 1/(2R_P^2)."
+  },
+  {
+   "claim": "(C5) for ridge logistic regression every P has kappa_P >= kappa",
+   "location": "l. 327",
+   "evidence": "Theoreme 1 avec N = ||. P^1/2||_F et R_P^2 >= max_i L_N(f_i) ; ou directement x^T P^-1 x >= lmin(P^-1)|x|^2 et mu_P = lam lmin(P^-1)."
+  },
+  {
+   "claim": "without momentum this is steepest descent for the spectral norm",
+   "location": "l. 117",
+   "evidence": "argmin_D <G,D> + (L/2)||D||_op^2 = -(||G||_*/L) polar(G) : meme direction que Muon sans moment ; la longueur fixe de Muon en fait la version normalisee, distinction faite l. 204-205. Contenu des deux references non rouvert."
+  }
+ ],
+ "findings": [
+  {
+   "id": "E1",
+   "severity": "minor",
+   "location": "l. 96-97, 151 (and 674-675)",
+   "claim": "the nuclear-scaled polar step has the same anatomy. / the same anatomy for the polar step [p]",
+   "problem": "L'etiquette [p] et la phrase du resume couvrent en realite : l'identite (2), valable sur les quadratiques et publiee (Shulgin et al. Eq. (17), Jawanpuria et al. Eq. (8)), plus deux encadrements elementaires. Dans le resume la phrase suit les mesures faites pour SAGA sur la logistique (3.2-220, 77-96 %) et laisse entendre que la meme repartition de l'ecart est etablie pour le pas polaire ; rien n'est mesure pour le pas polaire sur logistique ou softmax (le corps du texte le dit l. 315) et l'identite n'est enoncee que pour une quadratique.",
+   "evidence": "l. 226 'For a quadratic with Hessian H' ; l. 315 '(not measured for the polar step)' ; archive/muon/notes_spectral_theory.tex l. 355 : Proposition 'exact one-step representation' classee '[K] for (LS); immediate in general'. L'extension a toute F de classe C^2 est vraie et tient en une ligne (Taylor avec reste integral) : avec J = 2 int_0^1 (1-s) D2F(W - s eta O)[O,O] ds dans [mu_op, L_op] et mu_PL dans [mu_op, L_op], (2) est exacte ; verifiee sur un softmax ridge, paper/audit/checks/math-nfl_identity2.py (iv), ecart max 4.0e-15.",
+   "proposed_fix": "Abstract (l. 96-97): replace ``the nuclear-scaled polar step has the same anatomy'' by ``on quadratics, the exact one-step formula of the nuclear-scaled polar step has the same structure''. Table 1 (l. 151): ``the same structure for the polar step on quadratics \\nat{p}''. Optional strengthening, which makes the statement hold for the models of Finding 1 (l. 226-227): ``For $F$ of class $C^2$, $G=\\nabla F(W)\\ne0$, $O=\\polar(G)$, $\\eta=\\nnuc G/L$, $J=2\\int_0^1(1-s)D^2F(W-s\\eta O)[O,O]\\,ds\\in[\\muop,\\Lop]$ ($=\\inner{O}{HO}$ for a quadratic with Hessian $H$) and $\\muPL=\\nnuc G^2/(2(F(W)-F_\\ast))\\in[\\muop,\\Lop]$ (in $[\\muop,J]$ for a quadratic), the nuclear-scaled step $W^+=W-\\eta O$ satisfies exactly''.",
+   "confidence": "high"
+  },
+  {
+   "id": "E2",
+   "severity": "major",
+   "location": "l. 313-315",
+   "claim": "On least squares the curvature is constant and the gap is about a factor $4$ on the ray that attracts generic runs \\cite{shulgin2026quadratic}; a large gap needs a global constant far below the curvature met",
+   "problem": "(i) Que les courses generiques soient attirees par ce rayon n'est pas demontre : les notes du depot le classent numerique [N], demontrent que ces rayons sont lineairement instables pour l'application commutante des que d >= 3 et posent l'attraction comme question ouverte ; la reference placee en fin de phrase n'etablit que le facteur sur une configuration construite. Le paragraphe est pourtant etiquete [p] dans le tableau 1. (ii) Le facteur 4 ne vaut que dans la queue : sur une course entiere depuis un depart generique l'ecart exact/certifie est de 7 a 14 jusqu'a 1e-6 (la cible du papier) et de l'ordre de kappa_op au debut, a hessienne constante ; la suite de la phrase n'est donc juste que si 'curvature met' designe mu_PL (qui depend de la direction), alors que la phrase vient de dire que la courbure est constante. Classe major au titre de l'attribution et de la sur-affirmation (statut numerique presente comme un fait dans un paragraphe etiquete [p]) ; le chiffre 4 lui-meme est correct pour la queue des courses.",
+   "evidence": "archive/muon/notes_spectral_theory.tex l. 699-701 ('For d >= 3 these rays are linearly unstable'), l. 800-801 ('Which of these rates a run follows is a numerical matter [N], because the rays are unstable'), l. 1210-1214 ('Is the flattest ray attracting for the non-commuting iteration, and why?'). arXiv:2610.30280v1 (HTML, 100 000 premiers caracteres) : aucun enonce d'attraction depuis des departs generiques ; Corollaire 5 : facteur (((d-1)kappa-1)/((d-1)kappa+1))^2 = (1-2p_d)^2 pour une instance construite. paper/audit/checks/math-nfl_ls_tail.py : queue, 3.2 a 5.4 fois le certifie (mediane 4.05 pour K >= d), cosinus median avec la direction la plus plate 0.71 pour 20x20 spectre 1/k. paper/audit/checks/math-nfl_ls_head.py : exposant moyen exact/certifie 33 a 541 jusqu'a 1e-2, 6.9 a 13.9 jusqu'a 1e-6, 5.2 a 6.9 jusqu'a 1e-12 ; mu_PL/mu_op au premier pas 21 a 3343 (kappa_op de 22 a 3874).",
+   "proposed_fix": "On least squares the Hessian is constant and the gap tends to about a factor $4$ in the tail of generic runs, its value on the invariant ray of the flattest direction \\cite{shulgin2026quadratic} (observed, not proved; the head gains more, $\\muPL/\\muop$ starting near $\\kop$); a lasting large gap needs a global constant far below the curvature met, as for logistic and softmax losses (not measured for the polar step).",
+   "confidence": "high"
+  },
+  {
+   "id": "C1",
+   "severity": "minor",
+   "location": "l. 354",
+   "claim": "the spectral geometry has its own cost, $\\kop\\ge\\min(K,d)$ \\cite{sidford2018coordinate}",
+   "problem": "La borne est vraie pour toute F, mais la source citee ne la contient pas : elle contient l'analogue l_infini sur l'etendue (toute fonction 1-fortement convexe pour l_infini sur [-1,1]^n a une etendue >= n/2), sans conditionnement ni norme spectrale. La borne spectrale s'en deduit en trois lignes (restriction a W* + U diag(s) V^T, regularite au minimiseur). Le rapport etendu disait correctement 'the matrix form of a folklore fact on l_infty' ; la condensation a perdu la nuance.",
+   "evidence": "arXiv:1808.01278v2, introduction : 'it is a folklore result that any function strongly-convex over [-1,1]^n in the l_infty norm has range at least n/2, which we show in Appendix A.1' ; Lemma A.1 : 'Suppose psi is 1-strongly convex with respect to the l_infty norm on [-1,1]^n. Then max psi - min psi >= n/2.' archive/muon/report_spectral_muon_new.tex l. 433-434.",
+   "proposed_fix": "and the spectral geometry has its own cost, $\\kop\\ge\\min(K,d)$ for every $F$ (the matrix form of a folklore fact on $\\ell_\\infty$ \\cite[Lemma~A.1]{sidford2018coordinate}).",
+   "confidence": "high"
+  },
+  {
+   "id": "B1",
+   "severity": "minor",
+   "location": "l. 675-676 (and row title l. 152)",
+   "claim": "no fixed change of geometry repairs the worst case on ridge logistic and softmax models",
+   "problem": "Le Theoreme 1 porte sur les normes (titre et resume disent bien 'no norm'). Une geometrie de Bregman fixe (regularite et forte convexite relatives a une fonction de reference h) n'est pas couverte et la conclusion y est fausse : avec h = F, F est 1-reguliere et 1-fortement convexe relativement a h, conditionnement relatif 1. Le SAGA de Bregman de dragomir2021fast, cite l. 153 et 326, travaille precisement dans ce cadre : un jury le relevera.",
+   "evidence": "Definition de la regularite relative (L h - F convexe) et de la forte convexite relative (F - mu h convexe) : h = F donne L = mu = 1. L'enonce du Theoreme 1 (l. 336) suppose 'N any norm'.",
+   "proposed_fix": "no fixed norm repairs the worst case on ridge logistic and softmax models",
+   "confidence": "high"
+  },
+  {
+   "id": "A1",
+   "severity": "minor",
+   "location": "l. 200-201",
+   "claim": "variance-reduced methods are governed by the per-sample ratios $L_N(f_i)/\\mu_N(F)$",
+   "problem": "Etabli pour les normes euclidiennes (Proposition 5.9 dans une metrique P, avec R_P^2 >= max_i L_N(f_i)). Pour une norme N quelconque (spectrale, l_infini) ni le papier ni une reference citee ne donnent un taux de methode a variance reduite en max_i L_N(f_i)/mu_N(F) ; la Proposition 5 du papier certifie d'ailleurs avec mu_op/(L_op + 10 A L_max). Tel qu'ecrit, l'enonce est general.",
+   "evidence": "l. 236-238 (constantes de SAGA dans une metrique quadratique) ; l. 556-557 (constante de la Proposition 5) ; muon/notes_theory.md F11 (preuve dans une metrique fixe, seule preuve du depot avec ces rapports).",
+   "proposed_fix": "in a Euclidean norm, variance-reduced methods are governed by the per-sample ratios $L_N(f_i)/\\mu_N(F)$, which we compare for every norm",
+   "confidence": "medium"
+  },
+  {
+   "id": "D1",
+   "severity": "nit",
+   "location": "l. 232",
+   "claim": "give the certified factor $1-1/\\kop$ \\cite[Theorem~3]{jawanpuria2026constant}",
+   "problem": "Le Theoreme 3 de la source donne 1 - u(2-u) lmin/tr(H) pour la quadratique unilaterale ; c'est 1 - 1/kappa_op quand L_op = tr(H) (K >= d dans l'orientation du papier). Pour K < d (cas des deux instances non carrees, 8x40 et 10x50) L_op est la somme des K plus grandes valeurs propres et le facteur 1 - 1/kappa_op releve de leur annexe C (Remarque 2) ; pour une quadratique generale il n'est pas dans la source.",
+   "evidence": "arXiv:2610.27747v1 (HTML, lu a travers un outil qui resume) : Theorem 3, facteur 1 - u(2-u) lambda_min/tr(H), u = alpha tr(H) ; Appendix C, Remark 2 : tr_n(H), 'the smoothness constant of f in the geometry of the spectral norm'.",
+   "proposed_fix": "\\cite[Theorem~3 and Appendix~C]{jawanpuria2026constant}",
+   "confidence": "medium"
+  }
+ ],
+ "not_checked": [
+  "Shulgin et al. arXiv:2610.30280 au-dela des 100 000 premiers caracteres du HTML (annexes, enonce complet du Corollaire 5) : l'absence d'enonce d'attraction n'est etablie que sur la partie lue et sur les notes du depot.",
+  "Numeros exacts d'equations et de theoremes de Shulgin et al. et de Jawanpuria et al. : lus a travers un outil qui resume la page, pas sur le texte brut.",
+  "Contenu de carlson2015stochastic, bernstein2024old, lau2025polargrad (l. 117, 205-206) : non rouverts ; seul l'enonce mathematique (plus forte pente spectrale, longueur nucleaire) est verifie.",
+  "Chiffres de (M4) autres que le rapport global sur softmax (1.6-103, 7.6-163, 42 contre 4364, passes) : hors perimetre, sauf 42.42 et 4363.6 lus au passage dans M7_summary.json.",
+  "Hors perimetre, pour l'auditeur de la bibliographie : (M1) l. 491-492 cite [Lemma 4, jawanpuria2026constant] pour max(F(W_t),F(W_{t+1})) - F* >= mu_op eta^2/8 ; d'apres la lecture du HTML le Lemme 4 borne max(||E_t||_F, ||E_{t+1}||_F) par la demi-longueur du pas (enonce sur les distances), la forme en valeurs de F s'en deduisant par forte convexite. A confirmer sur le texte."
+ ],
+ "report_path": "/users/eleves-b/2023/louis.darrigol/projetSTATS/paper/audit/evidence/math-nfl.md"
+}

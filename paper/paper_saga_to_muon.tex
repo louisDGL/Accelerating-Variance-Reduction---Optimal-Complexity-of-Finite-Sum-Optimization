@@ -697,4 +697,9 @@ scripts and review the mathematics and the literature.
 \end{multicols}
 }
 
+% Appendix of explanatory figures (appendix_explanatory_figures.tex), off by default: the paper keeps its 12 pages.
+% Version with the appendix (from paper/; then bibtex paper_saga_to_muon_with_appendix and the same command twice):
+%   pdflatex -jobname=paper_saga_to_muon_with_appendix "\def\WithExplanatoryFigures{}\input{paper_saga_to_muon}"
+\ifdefined\WithExplanatoryFigures\input{appendix_explanatory_figures}\fi
+
 \end{document}
