@@ -1,0 +1,39 @@
+\section{Details of the numerical experiments}\label{app:exp}
+
+\paragraph{Constants.} $q_{K,d}=K+d-m_3/m_1$ with $m_p=\E\tr(ZZ^\top)^{p/2}$ evaluated by the Pfaffian formula for
+moments of real Wishart matrices, in multiprecision arithmetic, the working precision being raised until the known
+value $\E\tr(ZZ^\top)^2=Kd(K+d+1)$ is reproduced to $10^{-25}$; $q_{2,2}$ agrees with $(3\sqrt2-2)/7$ to $16$ digits and
+all values agree with direct Monte Carlo.
+
+\paragraph{Zeros of mean fields.} For a noise law and a batch size $b$, batch means are sampled exactly and the zero of
+the sampled field $G\mapsto\frac1S\sum_s\polar(G+\xi^{(s)})$ is computed with common random numbers; standard errors
+come from independent blocks. For momentum the filtered noise is sampled from its stationary law (truncated
+geometric series). The five laws of \cref{fig:law}(a) are on $\R^{2\times3}$: (1) independent entries
+$\mathrm{Exp}(1)-1$; (2) a law with $\E\zeta_{ij}^3=0$ for all entries and $\E[\zeta_{11}\zeta_{12}^2]\ne0$; (3)
+$\zeta=\epsilon M+\zeta'$ with a skewed scalar $\epsilon$; (4), (5) rank-one $\delta x^\top$ with skewed $\delta$,
+whitened to covariance $I$, respectively with a Kronecker covariance. Two deviations at the level of three standard
+errors remain unexplained at the largest batch sizes (law (3): $0.94\pm0.02$; law (1): $0.990\pm0.003$); we
+report them as they are.
+
+\paragraph{The \texttt{digits} problem.} Features: the first $16$ principal components of the standardized pixels
+(centred, not whitened; the eigenvalues of $H$ range from $1.17$ to $7.34$). Targets: $K=4$ fixed random orthonormal
+projections of the centred one-hot labels. With all ten classes the covariance of the per-sample gradients is
+singular, and with nine it is ill conditioned (eigenvalue ratio $10^{-4}$); the projection was chosen before any
+simulation. $F(W)=\frac1{2n}\sum_i|Wx_i-y_i|^2+\frac\lambda2\nF W^2$, $\lambda=10^{-3}$. The coefficient $\gs$ is computed
+from \eqref{eq:gs} with $J_\Sigma$ and $T_\Sigma[K_3]$ estimated by Monte Carlo ($8$ independent evaluations of
+$2\cdot10^6$ Gaussian samples; relative standard deviation of $\nnuc{\gs}$ across evaluations $0.3\%$). Iteration for
+$b\le512$: $\eta_t=0.02\,(1+t/300)^{-3/4}$, $3\cdot10^5$ steps, $64$ runs ($32$ at $b=512$), average of $W_t$ over the last third; the two
+halves of the averaging window agree within $1\%$ in gradient norm ($\beta=0$) and within two standard errors
+($\beta=0.9$); dividing $\eta_0$ by $4$ changes nothing for $\beta=0$ ($b=128$) and lowers the gradient norm by $3\%$ and
+the excess loss by $7\%$ for $\beta=0.9$ ($b=16$). For $b\ge2048$ ($\beta=0$) minibatches are sampled through
+multinomial counts, with steps $\eta_t=\eta_0(1+t/200)^{-0.6}$, $\eta_0=0.5\,\bar\sigma/(\sqrt b\,\lambda_{\max}(H))$
+($\bar\sigma^2$ the mean entrywise noise variance), Polyak averaging over the second half of $2\cdot10^4$ steps, and
+$16$ runs started at $W_\ast$; at $b=128$ this protocol reproduces the other one ($2.16$ against $2.18$). Frozen noise: the zero of $G\mapsto\E\polar(G+\xi_b)$ for batch means of the per-sample gradients at
+$W_\ast$, by the same stochastic approximation ($32$ runs). At the largest batch sizes the signal is of order $1/b$ and
+the Monte-Carlo error dominates, which is the cause of the decrease of the cosine in \cref{fig:digits}(c) beyond
+$b=2048$.
+
+\paragraph{Coupled dynamics.} On $F(W)=\frac12\inner W{WH}$ with $H=\operatorname{diag}(1,2,\frac12)$ and independent
+$\mathrm{Exp}(1)-1$ entries ($2\times3$), the tail-averaged gradient of the iteration \eqref{eq:muon} agrees with the
+zero of the mean field of the stationary filtered noise within $0.5\%$ to $3\%$ for $\beta\in\{0.5,0.9\}$, $b=1$
+(log \texttt{c04\_coupled.log} in the supplementary material).

@@ -54,18 +54,12 @@ Thumbs.db
 desktop.ini
 .DS_Store
 
-# polar_bias/: the .log and .out files of the checks are results quoted in the notes, and the .bbl files let the
-# papers compile without bibtex; LaTeX build logs in the paper folders stay ignored
-!polar_bias/**/*.log
-!polar_bias/**/*.out
-!polar_bias/**/*.bbl
-polar_bias/paper/*.log
-polar_bias/paper/*.out
-polar_bias/note2/paper/*.log
-polar_bias/note2/paper/*.out
-polar_bias/master/*.log
-polar_bias/master/*.out
-polar_bias/papers/colt/*.log
-polar_bias/papers/colt/*.out
-polar_bias/papers/icml/*.log
-polar_bias/papers/icml/*.out
+# bias-law study (*/bias_law/): the .log and .out files of the checks and experiments are results quoted in the
+# notes, and the .bbl files let the papers compile without bibtex; LaTeX build logs stay ignored
+!results/bias_law/**/*.log
+!results/bias_law/**/*.pkl
+!experiments/bias_law/**/*.log
+!experiments/bias_law/**/*.out
+!experiments/bias_law/**/*.pkl
+!paper/bias_law/**/*.bbl
+!theory/bias_law/*.bbl

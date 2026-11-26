@@ -1,0 +1,189 @@
+% Module: mechanism II, Fourier decay of the Laplacian of the norm.
+% Labels: prop:value, lem:upgrade, proof of thm:laplace, lem:orbit, lem:matrices, lem:twobytwo
+Throughout this part $\chi\in C_c^\infty(B(0,2))$ is a fixed radial function with $0\le\chi\le1$ and $\chi=1$ on $B(0,1)$,
+$\mu=\Delta\nu$ and $\lambda_\nu=\Delta(\chi\nu)$ in the sense of distributions.
+
+\begin{lemma}[the Laplacian of a norm]\label{lem:lapmeasure}
+$\mu$ is a nonnegative Radon measure with $\mu(B(0,s))=s^{N-1}\mu(B(0,1))$, and
+$\lambda_\nu=\chi\mu+(2\inner{\nabla\chi}{\nabla\nu}+\nu\Delta\chi)\,dz$ is a finite signed measure supported in
+$\overline{B(0,2)}$ with $|\lambda_\nu|(B(0,s))\le Cs^{N-1}$ for $s>0$. With $F_R(z)=\chi(z/R)\nu(z)$, $R\ge1$,
+\[
+\widehat{F_R}(t)=R^{N+1}\widehat{F_1}(Rt),\qquad|t|^2\widehat{F_1}(t)=-\widehat{\lambda_\nu}(t),\qquad
+\|F_R\|_{L^1}\le CR^{N+1}.
+\]
+Consequently, under Assumption~\ref{ass:L}, $|\widehat{F_R}(t)|\le CR^{N+1}(1+R|t|)^{-2-\kappa}$.
+\end{lemma}
+\begin{proof}
+A convex function has a distributional Hessian which is a nonnegative matrix-valued measure (mollify: the Hessians of
+$\nu*h_s$ are nonnegative and converge weakly); its trace is $\mu$. Since $\nu(sz)=s\nu(z)$, the distribution $\mu$ is
+homogeneous of degree $-1$, which gives the scaling. The product rule gives the formula for $\lambda_\nu$; the two
+last terms are bounded and supported in $\{1\le|z|\le2\}$. The identities for $F_R$ are the dilation rule
+$F_R(z)=RF_1(z/R)$ and $\widehat{\Delta f}=-|t|^2\widehat f$. Finally $|\widehat{F_1}(t)|\le\|F_1\|_{L^1}$ for $|t|\le1$
+and $|\widehat{F_1}(t)|=|t|^{-2}|\widehat{\lambda_\nu}(t)|$ for $|t|\ge1$.
+\end{proof}
+
+\begin{proposition}[comparison of potentials]\label{prop:value}
+Let Assumption~\ref{ass:L} hold and $X\in\mathcal X(\varepsilon)$, $\varepsilon\le\varepsilon_0$, with comparison density
+$\psie$. Let $H(x)=\E[\nu(x+X)-\nu(X)]$ and $\Psi(x)=\int(\nu(x+y)-\nu(y))\psie(y)\,dy$. Then, with
+$q=N/(N-\kappa)$ and $\Le=\log(e/\varepsilon)$,
+\[
+\sup_{|x|\le2}|H(x)-\Psi(x)|\le C\,\varepsilon^{2q}\,\Le^{(N+1)/2}.
+\]
+\end{proposition}
+\begin{proof}
+Let $h\in C_c^\infty(B(0,1))$ be even, nonnegative, of integral one, $h_s=s^{-N}h(\cdot/s)$, $\delta=\varepsilon^q$
+(so $\varepsilon\ge\delta$) and $R=C'\sqrt{\Le}$.
+
+\emph{Step 1: smoothed, truncated norm.} Let $f=F_R*h_s$ with $s\in\{\delta,2\delta\}$. Then $f\in C_c^\infty$,
+$\|f\|_{L^1}\le CR^{N+1}$ and $|\widehat f(t)|=|\widehat{F_R}(t)||\widehat h(st)|\le C_DR^{N+1}(1+R|t|)^{-2-\kappa}(1+s|t|)^{-D}$
+for any $D$, by Lemma~\ref{lem:lapmeasure}. On $Q_j$, $j\ne0$, we have $|t|\ge c_\ast|j|_\infty/\varepsilon$, so by
+Lemma~\ref{lem:test}
+\[
+\Big|\E f(x+X)-\!\int\! f(x+y)\psie(y)dy\Big|\le C\varepsilon^3R^{N+1}+CR^{N-1-\kappa}\varepsilon^{2+\kappa}\sum_{j\ne0}\frac{(1+s|j|/\varepsilon)^{-D}}{|j|^{2+\kappa}}.
+\]
+Since $2+\kappa<N$, the sum over $|j|\le\varepsilon/s$ is at most $C(\varepsilon/s)^{N-2-\kappa}$, and so is the sum over
+$|j|>\varepsilon/s$ when $D>N$. The second term is therefore at most
+$CR^{N-1-\kappa}\varepsilon^{N}s^{-(N-2-\kappa)}\le CR^{N-1-\kappa}\delta^{N-\kappa}\delta^{-(N-2-\kappa)}=CR^{N-1-\kappa}\delta^2$,
+because $\varepsilon^N=\delta^{N-\kappa}$. Also $\varepsilon^3\le\delta^2$, since $2q\le3$ is equivalent to $N\ge3\kappa$.
+
+\emph{Step 2: removing the truncation.} For $|x|\le2$,
+$|(\nu*h_s-F_R*h_s)(z)|\le C(1+|z|)\mathbf 1\{|z|\ge R-1\}$; by \textup{(E3)} and the Gaussian tails of $\psie$, both
+$\E$ and $\int\cdot\,|\psie|$ of this function at $x+\cdot$ are at most $\varepsilon^3$ if $C'$ is large. Hence
+\begin{align*}
+\E(\nu*h_s)(x+X)&=\int(\nu*h_s)(x+y)\psie(y)\,dy+O(R^{N+1}\delta^2)\\&=(\Pi*h_s)(x)+O(R^{N+1}\delta^2),
+\end{align*}
+where $\Pi(x)=\int\nu(x+y)\psie(y)dy$. $\Pi$ is smooth with bounded second derivatives (Lemma~\ref{lem:locate}) and
+$h_s$ is even, so $(\Pi*h_s)(x)=\Pi(x)+O(s^2)$.
+
+\emph{Step 3: convexity removes the smoothing.} For every $z\in E$,
+\begin{equation}\label{eq:sandwich}
+2(\nu*h_\delta)(z)-(\nu*h_{2\delta})(z)\ \le\ \nu(z)\ \le\ (\nu*h_\delta)(z).
+\end{equation}
+The right inequality is Jensen's ($h_\delta$ is even with integral one). The left one: $2\nu(z-u)\le\nu(z)+\nu(z-2u)$
+by convexity; integrate against $h_\delta(u)\,du$ and note $\int\nu(z-2u)h_\delta(u)du=(\nu*h_{2\delta})(z)$. Taking the
+expectation of \eqref{eq:sandwich} at $z=x+X$ under the \emph{true} law of $X$, and using Step 2 for both
+$s=\delta$ and $s=2\delta$,
+$\E\nu(x+X)=\Pi(x)+O(R^{N+1}\delta^2)$ for $|x|\le2$. Subtract the same identity at $x=0$.
+\end{proof}
+
+Step 3 is the point where atoms cease to matter: no smoothness of the law of $X$ and no positivity of the signed
+density $\psie$ are used, only the convexity of $\nu$.
+
+\begin{lemma}[from values to subgradients]\label{lem:upgrade}
+Let $H$ be convex on $B(0,2)\subset E$, $\Psi\in C^2$ with $\|D^2\Psi\|\le C_2$ there, and
+$\sup_{B(0,2)}|H-\Psi|\le\eta\le1$. Then for every $|x|\le1$ and every $v\in\partial H(x)$,
+$|v-\nabla\Psi(x)|\le(2+C_2/2)\sqrt\eta$.
+\end{lemma}
+\begin{proof}
+For $|u|=1$ and $d=\sqrt\eta$: $\inner vu\le(H(x+du)-H(x))/d\le(\Psi(x+du)-\Psi(x))/d+2\eta/d\le
+\inner{\nabla\Psi(x)}u+C_2d/2+2\eta/d$. Apply this to $u$ and $-u$.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:laplace}]
+By Proposition~\ref{prop:value} and Lemma~\ref{lem:upgrade}, with $d_\varepsilon=\varepsilon^q\Le^{(N+1)/4}$,
+\begin{equation}\label{eq:allsub}
+\sup_{|x|\le1}\ \sup_{v\in\partial H(x)}|v-\nabla\Psi(x)|\le C_1d_\varepsilon .
+\end{equation}
+By Lemma~\ref{lem:locate}, $\nabla\Psi(x)=J_\Sigma(x-\hat x)+O(\varepsilon^3)$ for $|x|\le A\varepsilon$, and
+$\varepsilon^3\le d_\varepsilon\le\varepsilon$ for $\varepsilon$ small because $1<q\le\frac32$. Let
+$\varrho=3C_1d_\varepsilon/\lambda_{\min}(J_\Sigma)$. For $|u|=1$, every $v\in\partial H(\hat x+\varrho u)$ has
+$\inner vu\ge\lambda_{\min}(J_\Sigma)\varrho-2C_1d_\varepsilon>0$. A minimizer $x'$ of $H$ with $|x'-\hat x|>\varrho$ would
+contradict the subgradient inequality at $y=\hat x+\varrho u$, $u=(x'-\hat x)/|x'-\hat x|$:
+$H(x')\ge H(y)+(|x'-\hat x|-\varrho)\inner vu>H(y)$. Minimizers exist since $H(x)\ge\nu(x)-2\E\nu(X)$. The statement for
+weighted sums follows from Proposition~\ref{prop:sums} as in the proof of Theorem~\ref{thm:codim}.
+\end{proof}
+
+\begin{lemma}[symmetry gives decay]\label{lem:orbit}
+Let $N\ge3$ and let $\mathcal G\subset O(E)$ be a compact group, with normalized Haar measure $dg$, such that $\nu\circ g=\nu$
+for $g\in\mathcal G$ and, for some $0<\kappa\le1$,
+\begin{equation}\label{eq:orbital}
+\sup_{|e|=|y|=1}\Big|\int_{\mathcal G}e^{iu\inner e{gy}}dg\Big|\le C(1+u)^{-\kappa}\qquad(u\ge0).
+\end{equation}
+Then $|\widehat{\lambda_\nu}(t)|\le C'(1+|t|)^{-\kappa}$.
+\end{lemma}
+\begin{proof}
+$\nu$, $\chi$ and the Laplacian are $\mathcal G$-invariant, hence so is $\lambda_\nu$, and
+$\widehat{\lambda_\nu}(t)=\int\!\int_{\mathcal G}e^{-i\inner t{gz}}dg\,d\lambda_\nu(z)$. By \eqref{eq:orbital} and
+Lemma~\ref{lem:lapmeasure},
+\[
+|\widehat{\lambda_\nu}(t)|\le C\int(1+|t||z|)^{-\kappa}d|\lambda_\nu|(z)\le C\sum_{i\ge-1}(1+|t|2^{-i-1})^{-\kappa}2^{-i(N-1)}
+\le C'(1+|t|)^{-\kappa},
+\]
+summing over the annuli $\{2^{-i-1}<|z|\le2^{-i}\}$ and using $N-1>\kappa$.
+\end{proof}
+
+\begin{lemma}[left and right rotations]\label{lem:matrices}
+Let $k,l\ge3$. The group $\mathcal G=\SO(k)\times\SO(l)$ acting on $\R^{k\times l}$ by $y\mapsto Uy V^\top$ satisfies
+\eqref{eq:orbital} with $\kappa=\frac12$. Consequently every norm on $\R^{k\times l}$ that is invariant under left and
+right rotations (the nuclear norm, the operator norm, all Schatten and Ky Fan norms) satisfies
+Assumption~\ref{ass:L} with $\kappa=\frac12$.
+\end{lemma}
+\begin{proof}
+Fix unit $e,y$ and a point $g_0=(U_0,V_0)$, and consider the phase $\phi(g)=\inner e{gy}$ in the chart
+$(A,B)\mapsto(U_0e^{A},V_0e^{B})$, $A\in\mathfrak{so}(k)$, $B\in\mathfrak{so}(l)$. Replacing $e$ by $U_0^\top eV_0$ we may
+take $g_0$ to be the identity. The first and second derivatives of $\phi$ at the origin of the chart are the numbers
+$\inner e{\mathcal Dy}$, where $\mathcal D$ ranges over the linear span $\mathfrak D$ of the maps
+\[
+y\mapsto Ay,\quad y\mapsto yB,\quad y\mapsto(A_1A_2+A_2A_1)y,\quad y\mapsto y(B_1B_2+B_2B_1),\quad y\mapsto AyB,
+\]
+with $A,A_i\in\mathfrak{so}(k)$ and $B,B_i\in\mathfrak{so}(l)$ (the second derivatives in the chart are the symmetrized products).
+We claim that $\{\mathcal Dy:\mathcal D\in\mathfrak D\}=\R^{k\times l}$ for every $y\ne0$. With the matrix units
+$E_{ij}$ and $A_{ij}=E_{ij}-E_{ji}$, one has $A_{ih}A_{hj}+A_{hj}A_{ih}=E_{ij}+E_{ji}$ for distinct $i,h,j$ and
+$A_{ij}^2=-(E_{ii}+E_{jj})$; as the size is at least $3$, the symmetrized products of two skew matrices span all
+symmetric matrices, and with the skew matrices themselves (first derivatives) all square matrices. So the
+span contains $Cy$ and $yD$ for all $C\in\R^{k\times k}$, $D\in\R^{l\times l}$. Choose orthonormal bases in which
+$y=\sum_{i\le r}s_iE_{ii}$, $s_i>0$ (conjugation preserves the skew matrices). Then $Cy$ and $yD$ give every $E_{pq}$
+with $q\le r$ or $p\le r$; and for $p,q>r$ and any $i\le r$, $A_{pi}\,y\,A_{iq}=s_iE_{pi}A_{iq}=s_iE_{pq}$. This proves the
+claim, so for every unit $e$ some derivative of $\phi$ of order one or two at $g_0$ is nonzero. By continuity and
+compactness of $\{|e|=1\}\times\{|y|=1\}\times\mathcal G$ there are $\eta>0$ and a finite atlas such that at every point
+some coordinate derivative of order one or two has modulus at least $\eta$ on a coordinate ball of fixed radius, while
+the $C^3$ norms of $\phi$ in the charts are bounded uniformly in $(e,y)$. With a partition of unity subordinate to the
+atlas, the van der Corput estimate in several variables \citep[Ch.~VIII, \S2.2, Prop.~5]{stein}, whose constant depends
+only on the lower bound $\eta$, the order of the derivative and the $C^{3}$ norm of the phase, gives
+$|\int_{\mathcal G}e^{iu\phi}dg|\le Cu^{-1/2}$ uniformly. The consequence is Lemma~\ref{lem:orbit}.
+\end{proof}
+
+The exponent $\frac12$ of Lemma~\ref{lem:matrices} cannot be improved in general: for $k=l=3$ and $e=y=I/\sqrt3$ the
+orbital integral is $\E e^{iu\tr(U)/3}$ for a Haar rotation $U$, and $\tr U=1+2\cos\theta$ has a density with a
+non-degenerate critical value, so the integral is of exact order $u^{-1/2}$. For size $2$ the lemma fails
+($\SO(2)\times\SO(2)$ fixes the two planes of $2\times2$ matrices described next, and for $e$ in one and $y$ in the other the
+orbital integral is identically $1$), but Assumption~\ref{ass:L} still holds:
+
+\begin{lemma}[$2\times2$ matrices]\label{lem:twobytwo}
+For $M=\begin{psmallmatrix}p&q\\r&s\end{psmallmatrix}$ let $y_+=\frac1{\sqrt2}(p+s,\,q-r)$ and
+$y_-=\frac1{\sqrt2}(p-s,\,q+r)$. Then $M\mapsto(y_+,y_-)$ is an isometry of $(\R^{2\times2},\nF\cdot)$ onto
+$\R^2\times\R^2$, $\det M=\frac12(|y_+|^2-|y_-|^2)$,
+\[
+\nnuc M=\sqrt2\max(|y_+|,|y_-|),\qquad
+\polar(M)=\begin{cases}\sqrt2\,\big(y_+/|y_+|,\,0\big)&\text{if }|y_+|>|y_-|,\\[2pt]
+\sqrt2\,\big(0,\,y_-/|y_-|\big)&\text{if }|y_-|>|y_+|,\end{cases}
+\]
+and the nuclear norm on $\R^{2\times2}$ satisfies Assumption~\ref{ass:L} with $N=4$, $\kappa=\frac12$.
+\end{lemma}
+\begin{proof}
+The first three assertions are direct computations: $|y_+|^2+|y_-|^2=p^2+q^2+r^2+s^2$,
+$|y_+|^2-|y_-|^2=2(ps-qr)$, and $\nnuc M^2=\nF M^2+2|\det M|=2\max(|y_+|^2,|y_-|^2)$; the formula for the polar factor
+is the gradient of $\nnuc\cdot$ on the open sets $\Omega_\pm=\{\pm\det>0\}$. Let $V=\{|y_+|=|y_-|\}$; $V\setminus\{0\}$ is a
+smooth hypersurface with unit normal $n=(y_+,-y_-)/|y|$ pointing into $\Omega_+$. On $\Omega_\pm$,
+$\nu=\sqrt2|y_\pm|$ is smooth with $\Delta\nu=\sqrt2/|y_\pm|\le2/|y|$, and across $V$ the gradient jumps by
+$\sqrt2(\hat y_+,-\hat y_-)$, so that (Green's formula on $E\setminus B(0,\varrho)$, $\varrho\to0$)
+\[
+\mu=\Delta\nu=\sqrt2\Big(\frac{\mathbf 1_{\Omega_+}}{|y_+|}+\frac{\mathbf 1_{\Omega_-}}{|y_-|}\Big)dy+2\,dS_V .
+\]
+The rotations of $y_+$ alone and of $y_-$ alone are isometries of $E$ preserving $\nu$, $\chi$, $V$ and $dS_V$, hence
+$\lambda_\nu$. Averaging over both,
+$\widehat{\lambda_\nu}(t)=\int J_0(|t_+||y_+|)\,J_0(|t_-||y_-|)\,d\lambda_\nu(y)$ with $J_0$ the Bessel function,
+$|J_0(u)|\le C(1+u)^{-1/2}$. Choose $\varsigma\in\{+,-\}$ with $|t_\varsigma|\ge|t|/\sqrt2$ and let $\varsigma'$ be the other
+sign; then $|\widehat{\lambda_\nu}(t)|\le C\int(1+|t||y_\varsigma|)^{-1/2}d|\lambda_\nu|(y)$, where
+$|\lambda_\nu|\le C\mathbf 1_{\{|y|\le2\}}\big[(1+|y_+|^{-1}+|y_-|^{-1})dy+dS_V\big]$. The four contributions are at most
+$C|t|^{-1/2}$: the bounded density and the term $|y_{\varsigma'}|^{-1}$ because
+$\int_{|y_\varsigma|\le2}(|t||y_\varsigma|)^{-1/2}d^2y_\varsigma\le C|t|^{-1/2}$ and
+$\int_{|y_{\varsigma'}|\le2}(1+|y_{\varsigma'}|^{-1})d^2y_{\varsigma'}<\infty$; the term $|y_\varsigma|^{-1}$ because
+$\int_{|y_\varsigma|\le2}|y_\varsigma|^{-1}(|t||y_\varsigma|)^{-1/2}d^2y_\varsigma\le C|t|^{-1/2}$; and the surface term because
+$|y_\varsigma|=|y|/\sqrt2$ on $V$ and $dS_V=c\,\varrho^2d\varrho\,d\theta_+d\theta_-$ in the coordinates
+$y_\pm=\frac{\varrho}{\sqrt2}(\cos\theta_\pm,\sin\theta_\pm)$. Since also $|\widehat{\lambda_\nu}|\le|\lambda_\nu|(E)<\infty$,
+$|\widehat{\lambda_\nu}(t)|\le C(1+|t|)^{-1/2}$, and $2+\frac12<4$.
+\end{proof}
+
+So a Muon-type step on a $2\times2$ matrix normalizes the larger of the conformal and anticonformal parts of its
+argument, and the singular set $\{\det=0\}$ is the cone over a Clifford torus.

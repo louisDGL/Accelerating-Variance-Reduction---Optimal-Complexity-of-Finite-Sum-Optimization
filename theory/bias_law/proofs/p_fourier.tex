@@ -1,0 +1,135 @@
+% Module: Edgeworth comparison without Cramer's condition.
+% Labels: lem:test, lem:ball, lem:cube, lem:near, prop:sums, lem:locate
+\begin{lemma}[test functions]\label{lem:test}
+Let $X\in\mathcal X(\varepsilon)$ with comparison density $\psie$, and $Q_j=2aj+[-a,a]^N$, $j\in\Z^N$, $a=c_\ast/\varepsilon$.
+For every $f\in C_c^\infty(E)$ and every $x\in E$,
+\begin{equation}\label{eq:test}
+\Big|\E f(x+X)-\int f(x+y)\psie(y)\,dy\Big|\le C\Big(\varepsilon^3\|f\|_{L^1}+\sum_{j\ne0}\sup_{t\in Q_j}|\widehat f(t)|\Big),
+\end{equation}
+where $\widehat f(t)=\int f(z)e^{-i\inner tz}dz$. Consequently, for every integer $m>N$,
+the right-hand side is at most $C_m(\varepsilon^3\|f\|_{L^1}+\varepsilon^m\|D^mf\|_{L^1})$.
+\end{lemma}
+\begin{proof}
+By Fourier inversion, $\E f(x+X)=(2\pi)^{-N}\int\widehat f(t)e^{i\inner tx}\chi_X(t)\,dt$ and likewise for $\psie$ with
+$\widehat\psie$ in place of $\chi_X$ ($\widehat f$ is a Schwartz function, $\chi_X$ and $\widehat\psie$ are bounded). On
+$Q_0$, $|\widehat f|\le\|f\|_{L^1}$ and \textup{(E2)} bound the difference by $C_\ast\varepsilon^3\|f\|_{L^1}$. Outside
+$Q_0$, $|t|\ge c_\ast/\varepsilon$ and $|\widehat\psie(t)|\le C(1+|t|^6)e^{-\lambda|t|^2/2}$, so
+$\int_{E\setminus Q_0}|\widehat f||\widehat\psie|\le C\|f\|_{L^1}e^{-c/\varepsilon^2}$; and
+$\int_{Q_j}|\widehat f||\chi_X|\le C_\ast\sup_{Q_j}|\widehat f|$ by \textup{(E1)}. For the last claim, $|t|\ge a|j|_\infty$
+on $Q_j$ and $|\widehat f(t)|\le N^{m/2}|t|^{-m}\|D^mf\|_{L^1}$ (integrate by parts $m$ times in a coordinate with
+$|t_k|\ge|t|/\sqrt N$); $\sum_{j\ne0}|j|_\infty^{-m}<\infty$ for $m>N$.
+\end{proof}
+
+\begin{lemma}[small balls and thin neighbourhoods of cones]\label{lem:ball}
+Let $X\in\mathcal X(\varepsilon)$. \textup{(i)} $\Prob(X\in B(y,r))\le C\max(r,\varepsilon)^N$ for all $y\in E$, $r>0$.
+\textup{(ii)} Let $V\subset E$ be a closed cone with $\vol\{y\in B(0,1):\dist(y,V)\le r\}\le C_Vr^c$ for $r\le1$. Then for
+all $x\in E$, $R\ge1$ and $0<r\le R$,
+$\Prob\big(|x+X|\le R,\ \dist(x+X,V)\le r\big)\le C\,R^{N-c}\max(r,\varepsilon)^c$.
+\end{lemma}
+\begin{proof}
+(i) Let $k(z)=\prod_{j\le N}(\sin(z_j/2)/(z_j/2))^2$. Then $k\ge(2/\pi)^{2N}$ on $[-\pi,\pi]^N$, and $\widehat k$ is
+bounded and supported in $[-1,1]^N$. For $r\ge\varepsilon$,
+$\Prob(X\in B(y,r))\le(\pi/2)^{2N}\E\,k((X-y)/r)\le Cr^N\int_{|t|_\infty\le1/r}|\chi_X(t)|\,dt$, and the cube
+$[-1/r,1/r]^N$ is covered by at most $(1+\varepsilon/(c_\ast r))^N\le C$ cubes of side $2c_\ast/\varepsilon$; apply
+\textup{(E1)}. For $r<\varepsilon$ use monotonicity in $r$.
+(ii) Let $\varrho=\max(r,\varepsilon)$ and $\{z_i\}$ a maximal $\varrho$-separated subset of
+$A=\{z\in B(0,R):\dist(z,V)\le r\}$. The balls $B(z_i,\varrho/2)$ are disjoint and contained in
+$\{z\in B(0,2R):\dist(z,V)\le2\varrho\}$, whose volume is at most $C_V(2R)^{N-c}(2\varrho)^c$ by homogeneity; so there are
+at most $CR^{N-c}\varrho^{c-N}$ of them. $A$ is covered by the balls $B(z_i,\varrho)$; apply (i).
+\end{proof}
+
+\begin{lemma}[where the comparison field vanishes]\label{lem:locate}
+Let $\psie$ be a comparison density as in Definition~\ref{def:class} and
+$\Psi(x)=\int(\nu(x+y)-\nu(y))\psie(y)\,dy$. Then $\Psi\in C^\infty$,
+$\nabla\Psi(x)=\int o(x+y)\psie(y)\,dy$, the derivatives of $\nabla\Psi$ of every order are bounded on $E$, and
+\[
+\nabla\Psi(x)=J_\Sigma(x-\hat x)+e(x),\qquad\hat x=-\tfrac16J_\Sigma^{-1}T_\Sigma[\cK],\qquad
+|e(x)|\le C_A\varepsilon^3\quad\text{for }|x|\le A\varepsilon,
+\]
+for every $A\ge1$, with $C_A$ depending only on $A$, $\nu$, $\lambda$, $\Lambda$, $C_\ast$; and $|\hat x|\le C\varepsilon$.
+\end{lemma}
+\begin{proof}
+Write $\widehat r(t)=\sum_\alpha c_\alpha(it)^\alpha$ (even multi-indices, $2\le|\alpha|\le6$, $|c_\alpha|\le C\varepsilon^2$).
+Then $\psie=\varphi_\Sigma+\frac16\inner{\cK}{\He^\Sigma_3}\varphi_\Sigma+\sum_\alpha c_\alpha(-\partial)^\alpha\varphi_\Sigma$, and
+Lemma~\ref{lem:gauss}(2) gives
+$\nabla\Psi=\Phi_\Sigma+\frac16D^3\Phi_\Sigma[\cK]+\sum_\alpha c_\alpha\partial^\alpha\Phi_\Sigma$. By
+Lemma~\ref{lem:gauss}(1),(3), for $|x|\le A\varepsilon$: $\Phi_\Sigma(x)=J_\Sigma x+O(|x|^3)$;
+$D^3\Phi_\Sigma(x)[\cK]=T_\Sigma[\cK]+O(|\cK||x|^2)$ because $D^4\Phi_\Sigma(0)=0$; and
+$\partial^\alpha\Phi_\Sigma(x)=O(|x|)$ for even $\alpha$. With $|\cK|\le C_\ast\varepsilon$ all the remainders are $O(\varepsilon^3)$.
+\end{proof}
+
+\paragraph{Weighted sums of bounded vectors.} We now verify that the normalized weighted sums of
+Assumption~\ref{ass:B} belong to the class, with no condition on the characteristic function
+$\varphi(s)=\E e^{i\inner s\zeta}$.
+
+\begin{lemma}[mass of the characteristic function in cubes]\label{lem:cube}
+Under Assumption~\ref{ass:B} there are $c_1,C_1>0$, depending only on $N$, $M$ and $\lambda$, such that if $\ew\le\frac12$,
+\[
+\int_{t_0+[-a,a]^N}\big|\E e^{i\inner t{X_w}}\big|\,dt\ \le\ C_1\qquad\text{for every }t_0\in E,\qquad a=\frac{c_1}{\ew}.
+\]
+\end{lemma}
+\begin{proof}
+With $\zeta'$ an independent copy of $\zeta$,
+$|\varphi(u)|^2=\E\cos\inner u{\zeta-\zeta'}\le1-\inner u{\Sigma u}+\frac23M^4|u|^4\le e^{-\lambda|u|^2/2}$ for
+$|u|\le u_0:=(3\lambda/4)^{1/2}M^{-2}$ (use $\cos\theta\le1-\theta^2/2+\theta^4/24$ and $|\zeta-\zeta'|\le2M$). Since
+$\max_kw_k^2\le\rho_2/4$, the indices can be split into two sets $A,B$ with $\sum_{k\in A}w_k^2\ge\rho_2/4$ and
+$\sum_{k\in B}w_k^2\ge\rho_2/4$: fill $A$ until its sum first reaches $\rho_2/4$; it is then at most $\rho_2/2$. With
+$s=t/\sqrt{\rho_2}$,
+\begin{gather*}
+\big|\E e^{i\inner t{X_w}}\big|=\prod_k|\varphi(w_ks)|\le\tfrac12\big(g_A(s)+g_B(s)\big),\\
+g_A(s)=\prod_{k\in A}|\varphi(w_ks)|^2=\E e^{i\inner s{Y_A}},\qquad Y_A=\sum_{k\in A}w_k(\zeta_k-\zeta'_k)
+\end{gather*}
+(the series converges in $L^2$ when there are infinitely many weights). Let $\Delta(s)=\prod_{j\le N}(1-|s_j|/\alpha)_+$
+with $\alpha=u_0/(\sqrt N\max_kw_k)$; its Fourier transform
+$\check\Delta(y)=\int\Delta(s)e^{i\inner sy}ds=\prod_j\alpha\big(\frac{\sin(\alpha y_j/2)}{\alpha y_j/2}\big)^2$ is
+nonnegative. Hence, for every $s_0$, by Fubini,
+\begin{align*}
+\int g_A(s)\Delta(s-s_0)\,ds&=\E\big[e^{i\inner{s_0}{Y_A}}\check\Delta(Y_A)\big]\le\E\,\check\Delta(Y_A)=\int g_A(s)\Delta(s)\,ds\\
+&\le\int e^{-\lambda\rho_2|s|^2/8}ds=\Big(\frac{8\pi}{\lambda\rho_2}\Big)^{N/2},
+\end{align*}
+because $|w_ks|\le u_0$ on the support of $\Delta$. As $g_A\ge0$ and $\Delta(\cdot-s_0)\ge2^{-N}$ on
+$s_0+[-\alpha/2,\alpha/2]^N$, we get $\int_{s_0+[-\alpha/2,\alpha/2]^N}g_A\le2^N(8\pi/\lambda\rho_2)^{N/2}$, and the same for
+$g_B$. The change of variables $t=\sqrt{\rho_2}\,s$ gives the claim with $c_1=u_0/(2\sqrt N)$.
+\end{proof}
+
+The lemma says that the mass of $|\chi_{X_w}|$ near \emph{any} frequency is at most a constant multiple of its mass near
+the origin. The resonances of a lattice law are the worst case, and they are harmless against test functions whose
+Fourier transform is summable over a lattice of mesh $1/\ew$.
+
+\begin{lemma}[small frequencies]\label{lem:near}
+Under Assumption~\ref{ass:B} let
+$\widehat\psie_w(t)=e^{-\inner t{\Sigma t}/2}\big(1+\varepsilon_3p_1(t)+\varepsilon_4p_2(t)+\frac12\varepsilon_3^2p_1(t)^2\big)$ with
+$p_1(t)=\frac16K_3[(it)^{\otimes3}]$, $p_2(t)=\frac1{24}K_4[(it)^{\otimes4}]$, where $K_4$ is the fourth cumulant tensor of $\zeta$, $\varepsilon_3=\rho_3\rho_2^{-3/2}$,
+$\varepsilon_4=\rho_4\rho_2^{-2}$. There are $c_2\le c_1$ and $C_2$ such that for $|t|_\infty\le c_2/\ew$,
+\[
+\big|\E e^{i\inner t{X_w}}-\widehat\psie_w(t)\big|\le C_2\,\ew^3\big(|t|^5+|t|^{9}\big)e^{-\lambda|t|^2/4}.
+\]
+\end{lemma}
+\begin{proof}
+$|\varphi(u)-1|\le M^2|u|^2/2$, so on $|u|\le1/M$ the function $\log\varphi$ is $C^\infty$ with derivatives bounded in
+terms of $M$, and $\log\varphi(u)=-\frac12\inner u{\Sigma u}+\frac16K_3[(iu)^{\otimes3}]+\frac1{24}K_4[(iu)^{\otimes4}]+\varrho(u)$,
+$|\varrho(u)|\le C|u|^5$. Summing over $u=w_kt/\sqrt{\rho_2}$ (all of norm at most $\ew|t|$) and using
+$\rho_p\rho_2^{-p/2}\le\ew^{p-2}$,
+\[
+\log\E e^{i\inner t{X_w}}=-\tfrac12\inner t{\Sigma t}+A,\qquad A=\varepsilon_3p_1+\varepsilon_4p_2+R,\qquad
+|R|\le C\ew^3|t|^5 .
+\]
+If $\ew|t|\le\sqrt Nc_2$ with $c_2$ small, then $|A|\le\lambda|t|^2/4$. Now $|e^A-1-A-\frac12A^2|\le\frac16|A|^3e^{|A|}$,
+$|A|^3\le C\ew^3|t|^9$, and
+$A+\frac12A^2=\varepsilon_3p_1+\varepsilon_4p_2+\frac12\varepsilon_3^2p_1^2+O(\ew^3(|t|^5+|t|^8))$. Multiply by
+$e^{-\inner t{\Sigma t}/2}\le e^{-\lambda|t|^2/2}$.
+\end{proof}
+
+\begin{proposition}[weighted sums belong to the class]\label{prop:sums}
+Under Assumption~\ref{ass:B} there is $\varepsilon_0>0$ such that for every weight sequence with $\ew\le\varepsilon_0$,
+$X_w\in\mathcal X(\ew)$ with covariance $\Sigma$, cubic tensor $\cK=\varepsilon_3K_3$, even part
+$\widehat r=\varepsilon_4p_2+\frac12\varepsilon_3^2p_1^2$, and constants $C_\ast,c_\ast$ depending only on $N$, $M$,
+$\lambda$. Here $\varepsilon_3=\rho_3\rho_2^{-3/2}\le\ew$ and $\varepsilon_4=\rho_4\rho_2^{-2}\le\ew^2$.
+\end{proposition}
+\begin{proof}
+\textup{(E1)} is Lemma~\ref{lem:cube} (cubes of half-side $c_2/\ew\le c_1/\ew$ are contained in cubes of half-side
+$c_1/\ew$). \textup{(E2)}: integrate the bound of Lemma~\ref{lem:near} over $|t|_\infty\le c_2/\ew$. \textup{(E3)}:
+Hoeffding's inequality for each coordinate of $X_w=\sum_k(w_k/\sqrt{\rho_2})\zeta_k$, since
+$\sum_kw_k^2/\rho_2=1$, gives $\Prob(|X_w|>u)\le2Ne^{-u^2/(2NM^2)}$. The bounds on $\cK$ and $\widehat r$ follow from
+$|K_3|\le M^3$, $|K_4|\le CM^4$.
+\end{proof}
