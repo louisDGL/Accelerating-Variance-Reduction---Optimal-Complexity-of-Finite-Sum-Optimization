@@ -1,0 +1,38 @@
+% Module: Gaussian side (used by both papers). Labels: lem:gauss
+\begin{lemma}[Gaussian side]\label{lem:gauss}
+Let $\nu$ be a norm on $E$ with direction map $o$, and $\Sigma\succ0$. Write $\varphi_\Sigma$ for the density of
+$Z_\Sigma\sim N(0,\Sigma)$ and $\He^\Sigma_k=(-1)^k\varphi_\Sigma^{-1}D^k\varphi_\Sigma$ for the Hermite tensors.
+\begin{enumerate}
+\item $\psi_\Sigma$ is $C^\infty$, $\Phi_\Sigma=\nabla\psi_\Sigma$ is odd, and the derivatives of $\Phi_\Sigma$ of every
+order are bounded on $E$, uniformly for $\Sigma$ in a compact set of positive definite matrices.
+\item For every symmetric $k$-tensor $\cK$ and every $x\in E$,
+$\int o(x+y)\inner{\cK}{\He^\Sigma_k(y)}\varphi_\Sigma(y)\,dy=D^k\Phi_\Sigma(x)[\cK]$. In particular
+$J_\Sigma=\E[o(Z_\Sigma)\otimes\Sigma^{-1}Z_\Sigma]$ and $T_\Sigma[\cK]=\E[o(Z_\Sigma)\inner{\cK}{\He_3^\Sigma(Z_\Sigma)}]$.
+\item The even-order derivatives of $\Phi_\Sigma$ vanish at $0$.
+\item $J_\Sigma$ is symmetric positive definite, and $\lambda_{\min}(J_\Sigma)$ is bounded below on compact sets of
+positive definite $\Sigma$.
+\item $J_{c\Sigma}=c^{-1/2}J_\Sigma$ and $T_{c\Sigma}=c^{-3/2}T_\Sigma$ for $c>0$; hence $\gs(c\Sigma,cK_3)=\gs(\Sigma,K_3)$
+and $\gs$ is linear in $K_3$.
+\item There is $c_0>0$, uniform on compact sets of $\Sigma$, with $|\Phi_\Sigma(h)|\ge c_0\min(|h|,1)$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+A norm is Lipschitz, hence differentiable almost everywhere, with gradient $o$ wherever it is differentiable; so
+$\nabla\psi_\Sigma(h)=\E\,o(h+Z_\Sigma)=\int o(y)\varphi_\Sigma(y-h)\,dy$ by dominated convergence, and one may
+differentiate under the integral any number of times because $o$ is bounded: the $k$-th derivative is bounded by
+$\sup|o|\int|D^k\varphi_\Sigma|$. This is (1), and $D_h^k[\varphi_\Sigma(y-h)]=(-1)^kD^k\varphi_\Sigma(y-h)
+=\He_k^\Sigma(y-h)\varphi_\Sigma(y-h)$ gives (2) after the change of variable $y\mapsto x+y$. Oddness of $o$ and the
+symmetry of $Z_\Sigma$ make $\Phi_\Sigma$ odd, whence (3). (5) follows from $o(tx)=o(x)$:
+$\Phi_{c\Sigma}(h)=\Phi_\Sigma(h/\sqrt c)$.
+
+(4) $J_\Sigma=\nabla^2\psi_\Sigma(0)$ is symmetric. Fix $v\ne0$, let
+$s=\inner{\Sigma^{-1}v}{Z}/\inner v{\Sigma^{-1}v}$ and $Z'=Z-sv$; these are independent and $s\sim N(0,\tau^2)$ with
+$\tau^{-2}=\inner v{\Sigma^{-1}v}$. Then $\psi_\Sigma(tv)+\E\nu(Z)=\E\,\hbar(s+t)$ with $\hbar(\varrho)=\E\nu(Z'+\varrho v)$
+convex and $|\varrho|\nu(v)-\E\nu(Z')\le\hbar(\varrho)\le\E\nu(Z')+|\varrho|\nu(v)$. Hence the nondecreasing function
+$\hbar'$ goes from $-\nu(v)$ to $\nu(v)$, the measure $d\hbar'$ has total mass $2\nu(v)>0$, and
+$\inner{J_\Sigma v}v=\int\varphi_{\tau}\,d\hbar'>0$ because the Gaussian density $\varphi_\tau$ is positive. The lower
+bound is uniform by continuity of $\Sigma\mapsto J_\Sigma$ and compactness.
+
+(6) For a unit vector $\hat h$, $t\mapsto\inner{\Phi_\Sigma(t\hat h)}{\hat h}$ is nondecreasing by convexity of
+$\psi_\Sigma$, and equals $t\inner{J_\Sigma\hat h}{\hat h}+O(t^3)$ near $0$ by (1) and (3), with uniform constants.
+\end{proof}

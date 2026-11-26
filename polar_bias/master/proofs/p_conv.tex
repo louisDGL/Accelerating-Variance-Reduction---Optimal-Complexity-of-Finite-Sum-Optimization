@@ -1,0 +1,81 @@
+% Module: convergence of norm-steepest descent with momentum, arbitrary square-integrable noise.
+% Label: proof of thm:conv
+\begin{proof}[Proof of Theorem~\ref{thm:conv}]
+Let $K_\nu$ be the Lipschitz constant of $\nu$ for the Euclidean norm, so that $|O_t|\le K_\nu$, and let $L$, $\mu$ be
+the smoothness and strong convexity constants of $F$. Extend the innovations to an i.i.d.\ sequence $(\xi_t)_{t\in\Z}$
+and put $N_t=(1-\beta)\sum_{j\ge0}\beta^j\xi_{t-j}$: a stationary, square-integrable Markov chain with
+$N_t=\beta N_{t-1}+(1-\beta)\xi_t$ and marginal law $\pi$, the law of $N_\beta$. Let $\mathcal F_t=\sigma(\xi_s,s\le t)$.
+By induction $W_t$ and $G_t=\nabla F(W_t)$ are $\mathcal F_{t-1}$-measurable.
+
+\emph{Step 1: the buffer tracks $G_t+N_t$.} Let $e_t=M_t-G_t-N_t$. Then $e_1=\beta(M_0-G_1-N_0)$ and, for $t\ge2$,
+$e_t=\beta e_{t-1}+\beta(G_{t-1}-G_t)$ with $|G_t-G_{t-1}|\le LK_\nu\eta_{t-1}$. Hence
+$|e_t|\le\beta^{t-1}|e_1|+LK_\nu\sum_{s<t}\beta^{t-s}\eta_s$ and, the lengths being nonincreasing,
+\begin{equation}\label{eq:esum}
+\sum_t\eta_t|e_t|\le|e_1|\,\eta_1\sum_t\beta^{t-1}+LK_\nu\sum_s\eta_s^2\sum_{t>s}\beta^{t-s}<\infty\qquad\text{almost surely.}
+\end{equation}
+
+\emph{Step 2: a pathwise inequality on loss differences.} Fix $a\in\mathcal A:=\arg\min\psi_{N_\beta}$, a nonempty convex
+compact set, and let
+\[
+f_g(n)=\nu(g+n)-\nu(a+n),\qquad\hbar(g)=\int f_g\,d\pi=\psi_{N_\beta}(g)-\psi_{N_\beta}(a)\ \ge0 .
+\]
+The subgradient inequality for $\nu$ at the \emph{actual} argument $M_t=G_t+N_t+e_t$, tested against $a+N_t$, reads
+$\nu(a+N_t)\ge\nu(M_t)+\inner{O_t}{a-G_t-e_t}$, whence
+\begin{equation}\label{eq:path}
+\inner{O_t}{G_t-a}\ \ge\ \nu(M_t)-\nu(a+N_t)-K_\nu|e_t|\ \ge\ f_{G_t}(N_t)-2K_\nu|e_t| .
+\end{equation}
+No regularity of the law of the noise and no choice of the subgradient enter here.
+
+\emph{Step 3: Poisson equation.} Let $Q$ be the transition operator of $(N_t)$. For $j\ge0$,
+$Q^jf_g(n)=\E f_g(\beta^jn+N^{(j)})$ with $N^{(j)}=(1-\beta)\sum_{i<j}\beta^i\xi_i$, and
+$\hbar(g)=\E f_g(\beta^jN'+N^{(j)})$ with $N'\sim\pi$ independent. The function $n\mapsto f_g(n)$ is $2K_\nu$-Lipschitz
+and $g\mapsto f_g(n)$ is $K_\nu$-Lipschitz, uniformly. Therefore, with $m_1=\E|N_\beta|$,
+\[
+\big|Q^jf_g(n)-\hbar(g)\big|\le2K_\nu\beta^j(|n|+m_1),\qquad
+\big|[Q^jf_g(n)-\hbar(g)]-[Q^jf_{g'}(n)-\hbar(g')]\big|\le2K_\nu|g-g'| .
+\]
+Define $U_g(n)=\sum_{j\ge0}(Q^jf_g(n)-\hbar(g))$ and $V_g=QU_g=\sum_{j\ge1}(Q^jf_g-\hbar(g))$. The series converge
+absolutely, $U_g-V_g=f_g-\hbar(g)$, both are jointly continuous in $(g,n)$, and, using
+$\min(x,y)\le x^\alpha y^{1-\alpha}$ termwise, for every $\alpha\in(0,1)$,
+\begin{equation}\label{eq:UV}
+|U_g(n)|+|V_g(n)|\le C(1+|n|),\qquad|V_g(n)-V_{g'}(n)|\le C_\alpha|g-g'|^\alpha(1+|n|)^{1-\alpha},
+\end{equation}
+with constants depending on $K_\nu,\beta,m_1,\alpha$ but not on $g,g'$.
+
+\emph{Step 4: the noise terms are summable.} We claim that $\sum_t\eta_t\big(f_{G_t}(N_t)-\hbar(G_t)\big)$ converges almost
+surely. Write the summand, before multiplication by $\eta_t$, as
+\[
+\big[U_{G_t}(N_t)-V_{G_t}(N_{t-1})\big]+\big[V_{G_t}(N_{t-1})-V_{G_t}(N_t)\big].
+\]
+Since $G_t$ is $\mathcal F_{t-1}$-measurable and $\xi_t$ is independent of $\mathcal F_{t-1}$,
+$\E[U_{G_t}(N_t)\mid\mathcal F_{t-1}]=V_{G_t}(N_{t-1})$: the first brackets are martingale differences, with second
+moments bounded by $C\,\E(1+|N_\beta|)^2$ uniformly in $t$ by \eqref{eq:UV} (no bound on $G_t$ is needed). As
+$\sum_t\eta_t^2<\infty$, their weighted sum converges almost surely. For the second brackets, summation by parts gives
+\[
+\sum_{t=1}^T\eta_t\big[V_{G_t}(N_{t-1})-V_{G_t}(N_t)\big]=\eta_1V_{G_1}(N_0)-\eta_TV_{G_T}(N_T)
++\sum_{t=1}^{T-1}\big[\eta_{t+1}V_{G_{t+1}}(N_t)-\eta_tV_{G_t}(N_t)\big].
+\]
+The boundary term $\eta_TV_{G_T}(N_T)$ tends to $0$ almost surely because $\sum_T\eta_T^2\E(1+|N_T|)^2<\infty$. By
+\eqref{eq:UV} and $|G_{t+1}-G_t|\le LK_\nu\eta_t$, the $t$-th internal difference is at most
+$C(\eta_t-\eta_{t+1})(1+|N_t|)+C_\alpha\eta_t^{1+\alpha}(1+|N_t|)^{1-\alpha}$ in absolute value; choosing
+$\alpha\in(\frac1\theta-1,1)$, which is possible because $\theta>\frac12$, the expectations are summable. This proves the
+claim.
+
+\emph{Step 5: Lyapunov function.} Let $W^a=(\nabla F)^{-1}(a)$ (strong convexity makes $\nabla F$ a bijection of $E$ with
+a $\frac1\mu$-Lipschitz inverse) and $B_t(a)=F(W_t)-F(W^a)-\inner a{W_t-W^a}\ge\frac\mu2|W_t-W^a|^2$. Smoothness of $F$ and
+\eqref{eq:path} give
+\[
+B_{t+1}(a)\le B_t(a)-\eta_t\inner{O_t}{G_t-a}+\tfrac L2K_\nu^2\eta_t^2
+\le B_t(a)-\eta_t\hbar(G_t)-\eta_t\big(f_{G_t}(N_t)-\hbar(G_t)\big)+2K_\nu\eta_t|e_t|+\tfrac L2K_\nu^2\eta_t^2 .
+\]
+By \eqref{eq:esum} and Step 4 the series of the last three terms converges almost surely; subtracting its partial sums
+from $B_t(a)+\sum_{s<t}\eta_s\hbar(G_s)$ gives a nonincreasing sequence bounded below. Hence $B_t(a)$ converges and
+$\sum_t\eta_t\hbar(G_t)<\infty$. In particular $(W_t)$ and $(G_t)$ are bounded and, as $\sum_t\eta_t=\infty$, there is a
+cluster point $\widehat G$ of $(G_t)$ with $\hbar(\widehat G)=0$, i.e.\ $\widehat G\in\mathcal A$.
+
+\emph{Step 6: a single limit.} Almost surely the above holds simultaneously for all $a$ in a countable dense subset of
+$\mathcal A$. On bounded sets of $W$ the maps $a\mapsto F(W)-F(W^a)-\inner a{W-W^a}$, $a\in\mathcal A$, are equicontinuous,
+so $B_t(a)$ converges for every $a\in\mathcal A$, in particular for $a=\widehat G$. Along the subsequence defining
+$\widehat G$, $W_t\to W^{\widehat G}$ and $B_t(\widehat G)\to0$; hence $B_t(\widehat G)\to0$ along the whole sequence, and
+$W_t\to W^{\widehat G}$, $G_t\to\widehat G$.
+\end{proof}

@@ -1,0 +1,9 @@
+g* per entry = 0.18934
+(i) frozen iterate:  beta  nesterov  b   b*G(mean entry)   first-order g*rho3/rho2   variance-based g*rho2    ratio measured/first-order
+   0.50  False   1   0.07443 (+-0.00016)   0.08115   0.06311   0.917   [b_eff = b*rho2/rho3 = 2.33]
+   0.50  False   8   0.08091 (+-0.00044)   0.08115   0.06311   0.997   [b_eff = b*rho2/rho3 = 18.67]
+   0.90  False   1   0.01293 (+-0.00008)   0.01327   0.00997   0.974   [b_eff = b*rho2/rho3 = 14.26]
+   0.90  False   4   0.01351 (+-0.00015)   0.01327   0.00997   1.017   [b_eff = b*rho2/rho3 = 57.05]
+   0.95  False   1   0.00652 (+-0.00005)   0.00647   0.00485   1.008   [b_eff = b*rho2/rho3 = 29.26]
+   0.90  True    1   0.02119 (+-0.00009)   0.02364   0.01337   0.896   [b_eff = b*rho2/rho3 = 8.01]
+   0.95  True    1   0.00912 (+-0.00006)   0.00979   0.00575   0.931   [b_eff = b*rho2/rho3 = 19.34]

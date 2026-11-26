@@ -1,0 +1,11 @@
+K=2 d=3: q=0.3934 a1=-0.2040 a2=0.7721 a1+a2=0.5680
+
+== law kron: isotropic=False; |A|=99.348 |B|=99.349
+   general MC g* = [0.9924 0.6086 0.1176 0.5855 0.382  0.0899]
+   b=  4: b*G = [ 0.0125  0.0002 -0.0047 -0.0046 -0.0064 -0.0033]  |b G - g*|_F/|g*|_F = 0.997  cos = 0.3033  (MC se of b*G ~ 0.005; resid 4e-17; 140s)
+          sign descent, b * limit gradient per coordinate = [0.038 0.015 0.007 0.012 0.005 0.003]
+   b= 16: b*G = [0.3845 0.225  0.0409 0.2123 0.1356 0.0298]  |b G - g*|_F/|g*|_F = 0.624  cos = 0.9994  (MC se of b*G ~ 0.010; resid 5e-18; 137s)
+          sign descent, b * limit gradient per coordinate = [0.557 0.251 0.112 0.202 0.094 0.042]
+   b= 64: b*G = [0.7341 0.4511 0.098  0.4383 0.2809 0.0664]  |b G - g*|_F/|g*|_F = 0.258  cos = 0.9999  (MC se of b*G ~ 0.025; resid 2e-17; 82s)
+          sign descent, b * limit gradient per coordinate = [1.034 0.479 0.221 0.386 0.169 0.078]
+(run stopped here by a wrong output path, fixed since; the remaining laws are in c03_d..g)

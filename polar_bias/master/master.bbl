@@ -1,0 +1,74 @@
+\begin{thebibliography}{11}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Babu and Singh(1985)]{bs}
+G.~Jogesh Babu and Kesar Singh.
+\newblock Edgeworth expansions for sampling without replacement from finite
+  populations.
+\newblock \emph{Journal of Multivariate Analysis}, 17:\penalty0 261--278, 1985.
+
+\bibitem[Bhattacharya and Rao(1976)]{br}
+R.~N. Bhattacharya and R.~Ranga Rao.
+\newblock \emph{Normal Approximation and Asymptotic Expansions}.
+\newblock Wiley, 1976.
+\newblock Reprinted as SIAM Classics in Applied Mathematics 64, 2010.
+
+\bibitem[Cand{\`e}s et~al.(2013)Cand{\`e}s, Sing-Long, and Trzasko]{candes}
+Emmanuel~J. Cand{\`e}s, Carlos~A. Sing-Long, and Joshua~D. Trzasko.
+\newblock Unbiased risk estimates for singular value thresholding and spectral
+  estimators.
+\newblock \emph{IEEE Transactions on Signal Processing}, 61\penalty0
+  (19):\penalty0 4643--4657, 2013.
+
+\bibitem[Chen et~al.(2026)Chen, Li, Wang, and Lu]{chen2026when}
+Xiaoran Chen, Binghui Li, Liwei Wang, and Pinyan Lu.
+\newblock When and how does {Muon} precondition? {T}he role of structured
+  gradient noise, 2026.
+\newblock arXiv:2610.31728.
+
+\bibitem[Erd{\H o}s and R{\'e}nyi(1959)]{erdosrenyi}
+Paul Erd{\H o}s and Alfr{\'e}d R{\'e}nyi.
+\newblock On the central limit theorem for samples from a finite population.
+\newblock \emph{Publications of the Mathematical Institute of the Hungarian
+  Academy of Sciences}, 4:\penalty0 49--61, 1959.
+
+\bibitem[Esseen(1945)]{esseen}
+Carl-Gustav Esseen.
+\newblock Fourier analysis of distribution functions. {A} mathematical study of
+  the {Laplace--Gaussian} law.
+\newblock \emph{Acta Mathematica}, 77:\penalty0 1--125, 1945.
+
+\bibitem[Gnedenko and Kolmogorov(1954)]{gk}
+B.~V. Gnedenko and A.~N. Kolmogorov.
+\newblock \emph{Limit Distributions for Sums of Independent Random Variables}.
+\newblock Addison--Wesley, 1954.
+
+\bibitem[Hoeffding(1963)]{hoeffding}
+Wassily Hoeffding.
+\newblock Probability inequalities for sums of bounded random variables.
+\newblock \emph{Journal of the American Statistical Association}, 58:\penalty0
+  13--30, 1963.
+
+\bibitem[Li and Sun(2002)]{lisun}
+Wen Li and Weiwei Sun.
+\newblock Perturbation bounds of unitary and subunitary polar factors.
+\newblock \emph{SIAM Journal on Matrix Analysis and Applications}, 23:\penalty0
+  1183--1193, 2002.
+
+\bibitem[Stein(1993)]{stein}
+Elias~M. Stein.
+\newblock \emph{Harmonic Analysis: Real-Variable Methods, Orthogonality, and
+  Oscillatory Integrals}.
+\newblock Princeton University Press, 1993.
+
+\bibitem[Xie(2026)]{xie2026muon}
+Xiaohui Xie.
+\newblock {Muon} under gradient noise and the limits of orthogonalization near
+  optima, 2026.
+\newblock arXiv:2609.32861.
+
+\end{thebibliography}

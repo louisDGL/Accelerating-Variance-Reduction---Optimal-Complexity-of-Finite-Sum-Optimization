@@ -1,0 +1,21 @@
+% Module: proofs of thm:nuclear, cor:mom (uniform in beta), cor:fs
+\begin{proof}[Proof of Theorem~\ref{thm:nuclear}]
+If $K\ne d$, Lemma~\ref{lem:examples}(c) gives Assumption~\ref{ass:R} with $c=|K-d|+1\ge2$ (for $K=1$ or $d=1$ the nuclear
+norm is the Euclidean norm of $\R^N$, $N\ge2$, and $c=N=|K-d|+1$), and Theorem~\ref{thm:codim} applies:
+$\min(c,3)-1=2\gamma$. If $K=d=2$, Lemma~\ref{lem:twobytwo} gives Assumption~\ref{ass:L} with $N=4$, $\kappa=\frac12$; if
+$K=d\ge3$, Lemma~\ref{lem:matrices} gives it with $N=K^2$, $\kappa=\frac12$; in both cases Theorem~\ref{thm:laplace}
+applies and $q-1=\frac{\kappa}{N-\kappa}=2\gamma$. Finally $\sqrt{\rho_2}\,\ew=\max_kw_k$, which is $1/b$ for a batch mean.
+\end{proof}
+
+\begin{proof}[Proof of Corollary~\ref{cor:mom}]
+$N_\beta=\xi_w$ for the weights $(1-\beta)\beta^k/b$, each repeated $b$ times: $\rho_p=(1-\beta)^pb^{1-p}/(1-\beta^p)$,
+so $\rho_3/\rho_2=1/\beff$, $\ew^2=(1-\beta^2)/b=\theta$ and $\max_kw_k=(1-\beta)/b\le3/\beff$. Apply
+\eqref{eq:codimw} or \eqref{eq:laplacew}.
+\end{proof}
+
+\begin{proof}[Proof of Corollary~\ref{cor:fs}]
+Theorem~\ref{thm:nuclear} applied to $\zeta=\nabla f_I(W)-\nabla F(W)$, which is bounded, centred, with covariance
+positive definite exactly when the $n$ gradients affinely span $E$. If $n=N+1$, the differences
+$\nabla f_i(W)-\nabla f_1(W)$, $i\ge2$, form a basis of $E$ and generate a lattice that contains the support of
+$\zeta-\zeta'$: the law of $\zeta$ is a lattice law.
+\end{proof}

@@ -1,0 +1,3 @@
+REF beta=0.8 b=1: argmin_g E||g+N_beta||_* from 16 independent batches of 2000000 samples (4 free coordinates)
+  mean = [0.01866 0.01866 0.01854 0.01846]  SE = [1.2e-04 1.0e-04 9.0e-05 1.1e-04]  (max |grad| at optimum 1.1e-06)
+  pooled over the 4 entries: 0.01858 +- 0.00005

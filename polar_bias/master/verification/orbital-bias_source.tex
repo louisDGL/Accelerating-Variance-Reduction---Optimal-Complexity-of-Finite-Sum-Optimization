@@ -1,0 +1,368 @@
+\documentclass[10pt,letterpaper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,amsmath,amssymb,amsthm,mathtools}
+\usepackage[left=1.05in,right=1.05in,top=.87in,bottom=.90in]{geometry}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[colorlinks=true,linkcolor=MidnightBlue,citecolor=MidnightBlue,urlcolor=MidnightBlue,pdftitle={Lattice bias for square polar descent}]{hyperref}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newcommand{\E}{\mathbb E}
+\newcommand{\R}{\mathbb R}
+\newcommand{\Prob}{\mathbb P}
+\newcommand{\ip}[2]{\langle #1,#2\rangle}
+\newcommand{\norm}[1]{\lVert#1\rVert}
+\newcommand{\Med}{\operatorname{Med}}
+\newcommand{\argmin}{\operatorname*{argmin}}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\SO}{\mathrm{SO}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\id}{\mathrm{Id}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\gstar}{g_{\!*}}
+\newcommand{\dd}{\,\mathrm d}
+\setlength{\emergencystretch}{1.8em}
+\allowdisplaybreaks
+\begin{document}
+\begin{center}
+{\LARGE\bfseries Lattice bias for square polar descent}\par\vspace{5pt}
+{\large Invariant norms, weighted sums, and convergence with discrete momentum noise}
+\end{center}
+\begin{abstract}
+For a bounded centered random real $k\times k$ matrix with positive definite covariance, every nuclear median of the mean of $b$ independent copies equals $-\gstar/b+o(b^{-1})$, for every $k\ge3$, including lattice laws. The error admits a power saving of $1/(4k^2-2)$ up to a logarithm. This proves Conjecture 18 of the supplied discrete-bias note. The argument applies to every norm invariant under left and right rotations in these sizes. It controls the Fourier transform of a localized norm through its distributional Laplacian and uses convexity to recover all subgradients, including at atoms. Conditioning on a finite-population sample count also proves the predicted reversal of the first-order bias beyond half sampling, including for lattice populations. A separate convergence theorem identifies the almost-sure limit gradient of exact polar descent with fixed momentum and square-integrable additive noise. It allows finite support, singular covariance and set-valued subgradients. Together the results give the large-batch bias of the actual momentum iteration under discrete square-matrix noise.
+\end{abstract}
+
+\section{The square-matrix theorem}
+
+Let $E$ be a Euclidean space, $N=\dim E$, with Euclidean norm $|\cdot|$ (Frobenius norm on matrices). For a norm $\nu$ on $E$, put
+\[
+ \Med_\nu(Y)=\argmin_{m\in E}\E\nu(Y-m),\qquad
+ P(x)=\E\nu(x+Z),\quad Z\sim\mathcal N(0,\Sigma).
+\]
+Throughout the bias results, $\zeta$ is centered, $|\zeta|\le M$ almost surely, $\Sigma=\operatorname{Cov}(\zeta)\succ0$, $K_3=\E\zeta^{\otimes3}$, and the copies of $\zeta$ are independent. The coefficient inherited from the first extension is
+\begin{equation}
+ J=D^2P(0),\qquad
+ \gstar=-\tfrac16 J^{-1}D^4P(0)[K_3,\cdot].
+ \label{eq:coefficient}
+\end{equation}
+The contraction uses the Euclidean identification of a covector with a vector. For the nuclear norm, $\nabla P(x)=\E\operatorname{polar}(x+Z)$.
+
+\begin{theorem}[Square-matrix bias]\label{th:square}
+Let $E=\R^{k\times k}$, $k\ge3$, $N=k^2$, and suppose $\nu(UMV^\top)=\nu(M)$ for $U,V\in\SO(k)$. Write $\xi_b=b^{-1}\sum_{i=1}^b\zeta_i$. Then, as $b\to\infty$,
+\begin{equation}
+ \sup_{m\in\Med_\nu(\xi_b)}
+ \left|m+\frac{\gstar}{b}\right|
+ \le C b^{-1-1/(4N-2)}(\log(eb))^{(N+1)/4}.
+ \label{eq:square}
+\end{equation}
+The constant $C$ can depend on $k$, the norm and the noise law. The noise may have any bounded law with the stated covariance. In particular, $\nu$ can be the nuclear norm, the operator norm or any Ky Fan norm.
+\end{theorem}
+
+For example, take independent entries equal to $-1$ and $2$ with probabilities $2/3$ and $1/3$. Under the nuclear norm, the two-moment formula of \cite[Corollary 8]{pb} gives
+\[
+ (\gstar)_{ij}=\frac{3+2q_{k,k}}{2(k+2)^2}>0,\qquad
+ q_{k,k}=\frac{\E\sum_{i\ne j}s_i s_j/(s_i+s_j)}{\E\sum_i s_i},
+\]
+where $s_i$ are the singular values of a standard Gaussian matrix. Thus every entry of the negative median, multiplied by $b$, has the same strictly positive limit along all three residue classes of $b$. For entrywise sign descent on the same data, the scaled negative medians along these classes are eventually $0,1,-1$, respectively \cite[Theorem 12]{db}. The square polar conclusion in sizes $k\ge3$ is the new part of this comparison. The rate in \eqref{eq:square} is an upper bound.
+
+\section{A criterion from rotations}
+
+Let $G\le O(E)$ be a compact Lie group, equipped with normalized Haar measure. Suppose that for some $0<\kappa\le1/2$ its orbits satisfy the Fourier bound
+\begin{equation}
+ \sup_{|y|=|e|=1}
+ \left|\int_G \exp(iu\ip{e}{g y})\dd g\right|
+ \le C(1+u)^{-\kappa}\qquad(u\ge0).
+ \label{eq:orbits}
+\end{equation}
+This is a hypothesis on the norm's symmetries. The covariance and all higher cumulants may break those symmetries.
+
+For nonnegative weights with $\sum_i w_i=1$, finite or countable, put
+\[
+ \rho_j=\sum_i w_i^j,\quad a_i=w_i/\sqrt{\rho_2},\quad
+ \eps=\sup_i a_i,\quad \tau_j=\sum_i a_i^j,\quad
+ X=\sum_i a_i\zeta_i,\quad \xi_w=\sqrt{\rho_2}\,X .
+\]
+Thus $\sum a_i^2=1$ and $\tau_j\le\eps^{j-2}$ for $j\ge2$. Define
+\[
+ q=\frac{N}{N-\kappa},\qquad
+ L=\log(e/\eps),\qquad d_\eps=\eps^q L^{(N+1)/4}.
+\]
+Let $H(x)=\E\nu(x+X)$ and set $K_4$ equal to the fourth cumulant tensor of $\zeta$. With $D^jP[K]$ denoting full contraction in $j$ slots, define the smooth signed Edgeworth approximation
+\begin{equation}
+ P_w=P+\frac{\tau_3}{6}D^3P[K_3]
+       +\frac{\tau_4}{24}D^4P[K_4]
+       +\frac{\tau_3^2}{72}D^6P[K_3\otimes K_3].
+ \label{eq:P}
+\end{equation}
+
+\begin{theorem}[Invariant norms and arbitrary weights]\label{th:group}
+Suppose $N\ge3$, $\nu$ is $G$-invariant and \eqref{eq:orbits} holds. Uniformly over the weights for $\eps$ sufficiently small,
+\begin{align}
+ \sup_{|x|\le2}|H(x)-P_w(x)|&\le C d_\eps^2,\label{eq:value}\\
+ \sup_{|x|\le1}\sup_{v\in\partial H(x)}
+       |v-\nabla P_w(x)|&\le C d_\eps,\label{eq:field}\\
+ \sup_{m\in\Med_\nu(\xi_w)}
+       \left|m+\frac{\rho_3}{\rho_2}\gstar\right|
+       &\le C\sqrt{\rho_2}\,d_\eps.\label{eq:median}
+\end{align}
+In particular \eqref{eq:field} holds for the expectation of every measurable selection of the sample subgradient. Any compact connected group acting irreducibly on $E$ satisfies the hypothesis with $\kappa=1/N$. Left and right rotations on $\R^{k\times l}$, $k,l\ge3$, satisfy it with $\kappa=1/2$.
+\end{theorem}
+
+The weighted bound is additive. For equal weights, $\sqrt{\rho_2}=\eps=b^{-1/2}$ and $\rho_3/\rho_2=b^{-1}$. In the square case $(1+q)/2=1+1/(4N-2)$, so Theorem~\ref{th:group} gives Theorem~\ref{th:square}. Theorem 8 of \cite{db} already gives stronger rates for rectangular nuclear norms. The new criterion also accommodates invariant norms whose singular sets have no prescribed stratification.
+
+\subsection{Oscillation on the group}
+\begin{proof}[Proof of the orbital assertions]
+For a unit pair $e,y$, consider $\phi(g)=\ip e{gy}$. If in local coordinates some positive-order derivative of order at most $s$ is nonzero at every triple $(e,y,g)$, a pure directional derivative of an order $j\le s$ is nonzero there, by polarization. Use small coordinate boxes and parameter neighborhoods on which that derivative is bounded away from zero. Compactness of the two spheres times the group gives a finite cover and a smooth partition subordinate to it. For each fixed pair, integrate in the selected direction. One integration by parts applies when $j=1$ (second derivatives and cutoff derivatives are uniformly bounded). For $j\ge2$, the one-dimensional van der Corput lemma on slices, with the smooth amplitude incorporated by partial integration, gives $C(1+u)^{-1/j}$ \cite[Lemma 1.1]{ccw}. This proves \eqref{eq:orbits} with $1/s$. All coordinate and amplitude bounds can be chosen on the finite cover, including when the orbit dimension changes.
+
+For the irreducible assertion let $\mathfrak g$ be the infinitesimal action. For $y\ne0$ let $V_j$ be the span of $A_1\cdots A_i y$ for $1\le i\le j$, $A_h\in\mathfrak g$. We have $V_1\ne0$, since a fixed vector would span a proper invariant line. Also $V_{j+1}=V_j+\mathfrak gV_j$. Equality at a proper subspace contradicts irreducibility because $G$ is connected. Thus $V_N=E$. These products are iterated invariant derivatives of the orbit map at the identity. Each positive-order operator is a combination of coordinate derivatives of positive orders up to its order. Translation gives the assertion everywhere.
+
+For matrices, it suffices to use orders one and two. Let $M\ne0$. Products of two skew matrices span all $s\times s$ matrices when $s\ge3$. Indeed, with $A_{ij}=E_{ij}-E_{ji}$, $A_{ih}A_{hj}=E_{ij}$ for $i,h,j$ distinct, and $-A_{ij}^2=E_{ii}+E_{jj}$ spans the diagonals as $i,j$ vary. Hence the span of the positive-order derivatives through order two contains $CM$ and $MD$ for all matrices $C,D$ of the appropriate sizes. In singular-vector bases these give all matrix units with a row or column index at most $r=\operatorname{rank}M$. Conjugating coordinate rotations by an orthogonal change of basis preserves the skew algebra. For the remaining $p>r$, $q'>r$ and any $i\le r$, the mixed left-right derivative $A_{pi}M A_{iq'}$ gives the single unit $s_i E_{pq'}$, up to sign. The derivatives span the full matrix space at every nonzero $M$. Pairing them with any nonzero frequency proves the assertion with $s=2$.
+\end{proof}
+
+The exponent $1/2$ at the orbital step can be attained. In size three, take $M$ and the frequency proportional to the identity. Up to a constant rescaling of frequency, the integral is $\E e^{iu\tr U}$ for Haar $U\in\SO(3)$. The double cover by unit quaternions gives $\tr U=4s^2-1$, where the first coordinate $s$ of a uniform point on $S^3$ has density $(2/\pi)\sqrt{1-s^2}$. Stationary phase at $s=0$ gives $e^{-iu+i\pi/4}/\sqrt{\pi u}+o(u^{-1/2})$. Away from zero, one integration by parts is valid since the amplitude has integrable derivative. Thus a faster uniform orbital estimate would already fail in size three.
+
+\subsection{Fourier decay of the norm}
+
+\begin{lemma}\label{lem:laplace}
+Let $0\le\chi\le1$ be smooth and radial, supported in $B(0,2)$ and equal to one on $B(0,1)$. Write $F_R(z)=\chi(z/R)\nu(z)$ for $R\ge1$. Under \eqref{eq:orbits}, with Fourier convention $\widehat f(t)=\int e^{-i\ip tz}f(z)\dd z$,
+\[
+ |\widehat F_R(t)|\le C R^{N+1}(1+R|t|)^{-2-\kappa}.
+\]
+\end{lemma}
+\begin{proof}
+The distributional Laplacian $\mu=\Delta\nu$ is a positive locally finite measure by convexity, as can be seen by mollification. Its scaling is $\mu(B(0,s))=s^{N-1}\mu(B(0,1))$ by homogeneity. The signed measure
+\[
+ \lambda=\Delta F_1=\chi\mu+(2\nabla\chi\cdot\nabla\nu+\nu\Delta\chi)\dd z
+\]
+is $G$-invariant, as are the norm, cutoff and Laplacian. The last two terms are bounded densities on the outer annulus. Thus $|\lambda|(B(0,s))\le C s^{N-1}$ for $0<s\le2$. Averaging the Fourier integral over the group yields
+\[
+ |\widehat\lambda(t)|\le C\int(1+|t||z|)^{-\kappa}\dd|\lambda|(z)
+ \le C(1+|t|)^{-\kappa}.
+\]
+The last inequality follows by summing over dyadic annuli, since $N-1>\kappa$. Now $-|t|^2\widehat F_1(t)=\widehat\lambda(t)$, while $F_1$ is integrable at zero frequency. Dilation gives the claim. In particular, this proof integrates the entire singular part of the Laplacian, even on lower-rank strata.
+\end{proof}
+
+\subsection{Comparison of convex potentials}
+
+Let $p_w$ be the signed Gaussian-polynomial density such that $P_w(x)=\int\nu(x+y)p_w(y)\dd y$. Explicitly, apply to the Gaussian density the differential operators in \eqref{eq:P}, replacing $D$ by $-D$. The absolute density has a uniform polynomial-Gaussian majorant, and the first two derivatives of $P_w$ are uniformly bounded on bounded sets. We use the Fourier comparison of \cite[Lemmas 1--3]{db}. For completeness, its precise form and a proof are in the appendix. There are cubes $Q_j=2a j+[-a,a]^N$, $a=c/\eps$, $j\in\mathbb Z^N$, such that for smooth compactly supported $f$,
+\begin{equation}
+ \left|\E f(x+X)-\int f(x+y)p_w(y)\dd y\right|
+ \le C\left(\eps^3\norm f_1+\sum_{j\ne0}\sup_{t\in Q_j}|\widehat f(t)|\right).
+ \label{eq:cubes}
+\end{equation}
+
+\begin{proof}[Proof of Theorem~\ref{th:group}, estimates \eqref{eq:value}--\eqref{eq:median}]
+Take an even, nonnegative, smooth unit-mass kernel $h$ supported in $B(0,1)$ and set $h_s(z)=s^{-N}h(z/s)$. Let $\delta=\eps^q$ and $R=C_0\sqrt L$ with $C_0$ sufficiently large. Use \eqref{eq:cubes} for $f=F_R*h_s$, at $s=\delta,2\delta$. Since $|t|\asymp |j|/\eps$ on $Q_j$ for $j\ne0$, Lemma~\ref{lem:laplace} and rapid decay give, for $D>N$,
+\begin{align*}
+ \sum_{j\ne0}\sup_{Q_j}|\widehat f|
+ &\le C R^{N-1-\kappa}\eps^{2+\kappa}
+  \sum_{j\ne0}|j|^{-2-\kappa}(1+s|j|/\eps)^{-D}\\
+ &\le C R^{N-1-\kappa}\eps^N\delta^{-(N-2-\kappa)}
+ = C R^{N-1-\kappa}\delta^2 .
+\end{align*}
+Indeed $2+\kappa<N$, and splitting the sum at $|j|=\eps/\delta$ gives the second line. Also $\norm f_1\le C R^{N+1}$. For $|x|\le2$ replacing $F_R*h_s$ by $\nu*h_s$ costs $O(\eps^4)$ under either integration. To see this, the pointwise error is at most $C(1+|X|)\mathbf1_{\{|X|>R-4\}}$ at $x+X$. Coordinatewise Hoeffding bounds, $\sum a_i^2=1$, give a uniform Gaussian tail. The signed comparison follows by integrating against $|p_w|$. Enlarging $C_0$ gives the asserted bound. Finally
+\[
+ \int (\nu*h_s)(x+y)p_w(y)\dd y=(P_w*h_s)(x)
+ =P_w(x)+O(\delta^2)
+\]
+by evenness of $h$ and the uniform Hessian bound. Both smoothed expectations consequently differ from $P_w(x)$ by at most $C R^{N+1}\delta^2$, since $2q<3$.
+
+Convexity now recovers the unsmoothed potential at atoms. For every $z$,
+\[
+ 2(\nu*h_\delta)(z)-(\nu*h_{2\delta})(z)
+ \ \le\ \nu(z)\ \le\ (\nu*h_\delta)(z).
+\]
+The first inequality integrates $2\nu(z-u)\le\nu(z)+\nu(z-2u)$, and the second is Jensen's inequality. Applying this sandwich only to the genuine law of $X$ proves \eqref{eq:value}. In particular, positivity of the Edgeworth density was never required.
+
+For $v\in\partial H(x)$, $|x|\le1$, bound $\ip vu$ from both sides by the finite differences of $H$ at $x\pm d_\eps u$, $|u|=1$. Substitution of \eqref{eq:value} costs $O(d_\eps)$ after division by $d_\eps$, and Taylor's theorem for $P_w$ costs the same. This proves \eqref{eq:field}.
+
+For localization, $J\succ0$. In fact, in every nonzero direction $v$, $\partial_{vv}\nu$ is a nonzero positive measure. If it vanished, the convolution of the norm with a smooth compactly supported probability kernel would be affine on every line parallel to $v$. The convolution differs from the norm by a bounded amount. Growth as $|t|\nu(v)$ at both ends precludes this. Pairing that measure with the strictly positive Gaussian density gives $\ip v{Jv}>0$. Smoothness of $P$ follows by differentiating the Gaussian density, using the linear growth of $\nu$. For a fixed small ball about zero, $D^2P_w\succeq c\id$ when $\eps$ is small. Set $x_0=\tau_3\gstar$. Evenness of $P$, \eqref{eq:coefficient}, and $\tau_j\le\eps^{j-2}$ give $\nabla P_w(x_0)=O(\eps^3)$. Indeed $\nabla P(x_0)=Jx_0+O(|x_0|^3)$, the cubic-cumulant term has gradient $-\tau_3J\gstar+O(\tau_3|x_0|^2)$, and the other two gradients are $O(\eps^2|x_0|)$.
+
+On the sphere $x=x_0+A d_\eps u$, $|u|=1$, every subgradient of $H$ has strictly positive inner product with $u$ once $A$ is sufficiently large, by \eqref{eq:field} and the Hessian lower bound. An exterior minimizer would contradict the subgradient inequality at the point on this sphere in its direction. Minima exist by coercivity. Returning to $\xi_w$ gives \eqref{eq:median}, because $\sqrt{\rho_2}\,\tau_3=\rho_3/\rho_2$.
+\end{proof}
+
+\section{Sampling without replacement}
+
+Fix $N\ge3$, a norm $\nu$, and an action satisfying \eqref{eq:orbits} under which $\nu$ is invariant. For a deterministic population $z_1,\dots,z_n\in E$ with $\sum_i z_i=0$, let $\Sigma_n=n^{-1}\sum_i z_i z_i^\top$, $K_{3,n}=n^{-1}\sum_i z_i^{\otimes3}$ and let $\gstar^{(n)}$ be \eqref{eq:coefficient} evaluated at these moments. A batch is a uniformly chosen subset $S$ of cardinality $b$, with $\xi_{n,b}=b^{-1}\sum_{i\in S}z_i$.
+
+\begin{theorem}[Finite-population bias]\label{th:population}
+Suppose $|z_i|\le M$ and $\Sigma_n\succeq\lambda\id$ for fixed $M,\lambda>0$. Write $p=b/n$, $v=np(1-p)$ and $\gamma=\kappa/(2(N-\kappa))$. Uniformly over such populations and all $b$ with $v$ sufficiently large,
+\begin{equation}
+ \sup_{m\in\Med_\nu(\xi_{n,b})}
+ \left| b m + \frac{n-2b}{n-2}\gstar^{(n)}\right|
+ \le C v^{-\gamma}(\log(ev))^{(N+1)/4}.
+ \label{eq:fp}
+\end{equation}
+In particular $b\to\infty$ and $n-b\to\infty$ suffice, even on a fixed lattice and with varying sampling fraction. For the square nuclear norm in sizes $k\ge3$, take $\gamma=1/(4k^2-2)$.
+\end{theorem}
+
+The coefficient in \eqref{eq:fp} appeared as a formal prediction in \cite[Proposition 18]{pb}, alongside an exact complement identity. For a concrete sign reversal, realize the independent-entry law on page~1 as a population by repeating each possible matrix according to its rational probability. Along multiples of $4\cdot 3^{k^2}$, sampling fractions $1/4$ and $3/4$ give scaled negative medians tending entrywise to $+\gstar/2$ and $-\gstar/2$, respectively. At half sampling, symmetry makes zero a median exactly. Near half sampling \eqref{eq:fp} is an additive estimate.
+
+\begin{proof}
+Set $h=\sqrt v$, $\eps=1/h$, $r=p(1-p)$, and let $I_i$ be independent Bernoulli variables of parameter $p$. Define
+\[
+ T=h^{-1}\sum_i(I_i-p)z_i,\qquad C_0=h^{-1}\sum_i(I_i-p).
+\]
+Conditionally on $C_0=0$, $T$ has the law of $b\xi_{n,b}/h$. For $a_i(t)=\ip t{z_i}$ let
+\[
+ H_0(t,u)=\E e^{i(\ip tT+uC_0)}
+ =\prod_i \E e^{i(I_i-p)(a_i(t)+u)/h}.
+\]
+Since $np=b$ is integral, Fourier inversion in the count coordinate gives the exact conditional characteristic function
+\[
+ \Psi_0(t)=
+ \frac{\int_{-\pi h}^{\pi h} H_0(t,u)\dd u}
+      {\int_{-\pi h}^{\pi h} H_0(0,u)\dd u}.
+\]
+This is the Bernoulli conditioning formula used in classical finite-population expansions \cite{bs}.
+
+\emph{Large frequencies.}
+For $s_i=(a_i(t)+u)/h$, the Bernoulli factor has squared modulus $1-2r(1-\cos s_i)$. Hence $|H_0|$ is bounded by
+\[
+ D(t,u)=\exp\bigl(-r\textstyle\sum_i(1-\cos s_i)\bigr).
+\]
+Besides being nonnegative, $D$ is the characteristic function of a sum of symmetric compound Poisson vectors with jump directions $(z_i,1)/h$ and rate $r$ per index. On a cube about the origin of side $c h$, with $c$ small enough, $1-\cos s_i\ge c' s_i^2$. Since $r\sum_i s_i^2=t^\top\Sigma_n t+u^2$, there $D\le e^{-c''(|t|^2+u^2)}$. Applying the translated product-tent inequality of the appendix directly to $D$ in $N+1$ dimensions bounds its integral on every cube of side $c h/2$ by a constant. Each $Q_j\times[-\pi h,\pi h]$, for $Q_j$ of side a fixed sufficiently small multiple of $h$, is covered by a bounded number of these cubes. This controls the numerator in $L^1(Q_j)$ uniformly in $j$. The denominator tends uniformly to $\sqrt{2\pi}$, as the next calculation shows.
+
+\emph{Small frequencies and conditioning.}
+Let $d=1-2p$ and $d_4=1-6r$. For small real $s$,
+\[
+ \log\E e^{is(I_i-p)}
+ =r(is)^2/2+r d(is)^3/6+r d_4(is)^4/24+O(r|s|^5).
+\]
+The remainder is uniform in $0<p<1$. On a fixed small complex disc the logarithm $\log(1+p(e^z-1))-pz$ is analytic in $z$ and smooth in $p\in[0,1]$ and vanishes identically at both endpoints. Division by $p(1-p)$ therefore leaves a uniformly bounded analytic family on a smaller disc. Define $A_j=n^{-1}\sum_{l=1}^n(\mathrm{i}(a_l(t)+u))^j$, where $\mathrm{i}^2=-1$. Exponentiating the sum of the logarithms on $|t|\le c_1 h$, $|u|\le c_2 h$ gives
+\[
+ e^{-(t^\top\Sigma_n t+u^2)/2}
+ \left(1+\eps d A_3/6+\eps^2\{d_4 A_4/24+d^2 A_3^2/72\}\right)
+\]
+with absolute remainder at most
+$C\eps^3(1+|t|+|u|)^{15}e^{-c_3(|t|^2+u^2)}$. Indeed the summed log remainder is at most $C\eps^3(|t|+|u|)^5$, and the exponential Taylor estimate in the appendix applies to the joint nondegenerate quadratic form. Choose $c_2$ small and then $c_1$ small enough that $M c_1<c_2/2$. For $c_2 h\le |u|\le\pi h$ and $|t|\le c_1h$, every $s_i$ has distance bounded below from $2\pi\mathbb Z$, so $|H_0|\le e^{-c_4h^2}$. Thus we may integrate the displayed Gaussian polynomial over the whole real $u$-axis with an $O(\eps^3)$ integrated error in $t$ on $Q_0$, and an $O(\eps^3)$ error also at $t=0$.
+
+The integral of the cubic term against the standard Gaussian law in $u$ retains only $n^{-1}\sum_l(\mathrm{i}a_l(t))^3$. Odd powers of $u$ integrate to zero and $\sum_i a_i(t)=0$. The second-order term gives an even real polynomial of degree at most six in $t$, with uniformly bounded coefficients. In particular the denominator is $\sqrt{2\pi}(1+O(\eps^2))$. Dividing and expanding it through order two gives the comparison characteristic transform
+\[
+ \Gamma_n(t)=e^{-t^\top\Sigma_n t/2}
+ \bigl(1+\eps d K_{3,n}[(it)^{\otimes3}]/6+\eps^2 Q_n(t)\bigr),
+\]
+where $Q_n$ is even, has uniformly bounded coefficients and $Q_n(0)=0$. The integrated error on $Q_0$ remains $O(\eps^3)$ because the comparison transforms are uniformly integrable. The large-frequency bound and Fourier inversion now prove \eqref{eq:cubes} for the conditional law and the signed density with characteristic transform $\Gamma_n$.
+
+\emph{Transfer to the median.}
+The conditional law has uniform sub-Gaussian coordinate tails. Indeed, replace the sample by its complement with a minus sign if needed, so that the unscaled sum uses $m_0=\min(b,n-b)\le2h^2$ terms. For a centered coordinate population $y_i$, the exponential moment of its sampled sum at argument $s$ is the normalized elementary symmetric polynomial of degree $m_0$ in the positive numbers $e^{sy_i}$. Maclaurin's inequality bounds it by $(n^{-1}\sum_i e^{sy_i})^{m_0}\le e^{C M^2 m_0s^2}$. Dividing the sum by $h$ gives the claim. The comparison densities have uniform polynomial-Gaussian tails since $\lambda\id\preceq\Sigma_n\preceq M^2\id$.
+
+The potential comparison and convex sandwich proving \eqref{eq:value}--\eqref{eq:field} therefore apply with the same $q,L,d_\eps$. The first correction to the potential is $\eps d D^3P[K_{3,n}]/6$, and the order-$\eps^2$ term is even with uniformly bounded first two derivatives on bounded sets. Here $P$ is formed with $\Sigma_n$. Its Hessian at zero has smallest eigenvalue uniformly bounded below, by positivity and continuity on the compact covariance range. The same sphere argument thus locates every negative median of $T\mid C_0=0$ within $C d_\eps$ of $\eps d\gstar^{(n)}$. Multiplication by $h$ yields the bound in \eqref{eq:fp} with coefficient $1-2p$. Replacing this by $(n-2b)/(n-2)$ costs $O(n^{-1})$, since $\gstar^{(n)}$ is uniformly bounded. This is absorbed by the stated remainder. The finite-$n$ choice of coefficient agrees with the exact conditional cumulants. Indeed, expanding the sampled sum using the one-, two- and three-index inclusion probabilities gives
+\[
+ \operatorname{Cov}(T\mid C_0=0)=\frac{n}{n-1}\Sigma_n,\qquad
+ \E[T^{\otimes3}\mid C_0=0]
+   =\frac{1-2p}{h}\frac{n^2}{(n-1)(n-2)}K_{3,n}.
+\]
+Their scalar multipliers have ratio $(n-2b)/(h(n-2))$.
+\end{proof}
+\section{The coupled momentum iteration}
+
+The remaining issue is whether discrete innovations actually lead the iterates to one of the medians. A comparison of polar factors is delicate when a singular matrix has positive probability. A comparison of loss values works even when both subgradient sets contain jumps.
+
+\begin{theorem}[Convergence with atomic innovations]\label{th:momentum}
+Let $F:E\to\R$ be differentiable, strongly convex, with globally Lipschitz gradient. Let $\nu$ be any norm in finite dimension and let $\xi_t$ be i.i.d. with $\E|\xi_t|^2<\infty$. From deterministic initial data run
+\[
+ G_t=\nabla F(W_t),\qquad
+ M_t=\beta M_{t-1}+(1-\beta)(G_t+\xi_t),\qquad
+ W_{t+1}=W_t-\eta_t O_t,\quad O_t\in\partial\nu(M_t),
+\]
+where $0\le\beta<1$ is fixed and $O_t$ is selected measurably from the observations through time $t$. Take $\eta_t=\eta_0'(t+t_0)^{-\theta}$ with $\eta_0',t_0>0$, $1/2<\theta\le1$. Write $\pi$ for the law of $N_\beta=(1-\beta)\sum_{j\ge0}\beta^j\xi_j$. Then $G_t$ converges almost surely to a single random point $G_\infty\in-\Med_\nu(N_\beta)$ and $W_t\to(\nabla F)^{-1}(G_\infty)$. This includes discrete innovations and distributions supported on proper subspaces.
+\end{theorem}
+
+\begin{proof}
+Let $K$ be a Euclidean Lipschitz constant of $\nu$, so $|O_t|\le K$. Extend the innovations independently to negative times and put $N_t=(1-\beta)\sum_{j\ge0}\beta^j\xi_{t-j}$, a stationary square-integrable Markov chain. For $e_t=M_t-G_t-N_t$ we have, for $t\ge1$,
+\[
+ e_t=\beta e_{t-1}+\beta(G_{t-1}-G_t),\qquad |G_t-G_{t-1}|\le C\eta_{t-1}.
+\]
+Thus $\sum_t\eta_t|e_t|<\infty$ almost surely. Indeed, the initial error gives a geometric series, and the double sum is bounded by $C(1-\beta)^{-1}\sum_t\eta_t^2$ by monotonicity.
+
+Fix $a\in-\Med_\nu(N_\beta)$, and define the sample loss difference $f_g(n)=\nu(g+n)-\nu(a+n)$ and $h(g)=\int f_g\dd\pi\ge0$. The subgradient inequality at the \emph{actual} argument $M_t$ gives
+\begin{equation}
+ \ip{O_t}{G_t-a}\ \ge\ f_{G_t}(N_t)-2K|e_t|.
+ \label{eq:path}
+\end{equation}
+Indeed one tests the inequality against $a+N_t$ and uses Lipschitz continuity once for the value and once for the linear term. The dependence on the noise in $f_g$ is $2K$-Lipschitz, uniformly over $g$ and $a$.
+
+Let $Q$ be the transition operator of $N_t$ and define the Poisson solution for these \emph{scalar loss differences},
+\[
+ U_g(n)=\sum_{j\ge0}(Q^jf_g(n)-h(g)),\qquad V_g=QU_g.
+\]
+Couple the chains started at $n$ and at $N\sim\pi$ by common future innovations. Their difference at $j$ is $\beta^j(n-N)$. Hence each summand is bounded in absolute value by $C\beta^j(1+|n|)$, and also its change under $g\mapsto g'$ is bounded by $2K|g-g'|$. Taking the minimum of the two bounds for the change and summing gives, for $0<\alpha<1$,
+\begin{align*}
+ |U_g(n)|+|V_g(n)|&\le C(1+|n|),\\
+ |V_g(n)-V_{g'}(n)|&\le C_\alpha |g-g'|^\alpha(1+|n|)^{1-\alpha}.
+\end{align*}
+For the second bound first use $\min(A,B)\le A^\alpha B^{1-\alpha}$ for $U$, then apply $Q$. Constants here may depend on $\beta$. The absolute convergence and growth bound justify $U_g-QU_g=f_g-h(g)$.
+
+We claim that $\sum_t\eta_t(f_{G_t}(N_t)-h(G_t))$ converges almost surely. Decompose its summand before multiplication by $\eta_t$ as
+\[
+ [U_{G_t}(N_t)-V_{G_t}(N_{t-1})]
+ +[V_{G_t}(N_{t-1})-V_{G_t}(N_t)].
+\]
+The first brackets are martingale differences for the two-sided innovation filtration because $G_t$ is predictable. Their second moments are uniformly bounded, even for unbounded $G_t$, by stationarity and the first growth bound. The weighted series converges. In the second series, summation by parts leaves two boundary terms and internal differences
+\[
+ \eta_{t+1}V_{G_{t+1}}(N_t)-\eta_t V_{G_t}(N_t).
+\]
+The terminal boundary tends to zero almost surely since $\sum_t\eta_t^2\E(1+|N_t|)^2<\infty$. Changes of the coefficient have summable absolute expectations by monotonicity. For the remaining changes choose $\alpha<1$ with $\theta(1+\alpha)>1$. Their absolute expectations sum to at most $C\sum_t\eta_{t+1}\eta_t^\alpha<\infty$. This proves the claim.
+
+Let $W^a=(\nabla F)^{-1}(a)$, which exists uniquely by strong convexity, and let
+$B_t(a)=F(W_t)-F(W^a)-\ip a{W_t-W^a}$. Smoothness of $F$ and \eqref{eq:path} give
+\[
+ B_{t+1}(a)\le B_t(a)-\eta_t h(G_t)
+ -\eta_t(f_{G_t}(N_t)-h(G_t))+2K\eta_t|e_t|+C\eta_t^2 .
+\]
+The sum of the last three terms converges almost surely. Subtracting its running sum from $B_t(a)+\sum_{s<t}\eta_s h(G_s)$ gives a nonincreasing sequence bounded below. Consequently $B_t(a)$ converges and $\sum_t\eta_t h(G_t)<\infty$. Strong convexity bounds $W_t$, hence also $G_t$. Since $\sum_t\eta_t=\infty$, a cluster point $\widehat G$ has $h(\widehat G)=0$. Run the argument for a countable dense subset of the compact minimizer set. On bounded iterates $B_t(a)$ is equicontinuous in $a$ on that set, by continuity of $(\nabla F)^{-1}$ and its explicit formula above. Thus $B_t(\widehat G)$ converges on the same probability-one event, and it tends to zero along the defining subsequence. Strong convexity then forces the full sequence $W_t\to W^{\widehat G}$ and $G_t\to\widehat G$.
+\end{proof}
+
+\begin{corollary}[Discrete square polar descent with momentum]\label{cor:joint}
+In Theorem~\ref{th:momentum}, let $\nu$ be the nuclear norm of a real $k\times k$ matrix, $k\ge3$, and let each $\xi_t$ be an independent mean of $b$ samples satisfying the hypotheses of Theorem~\ref{th:square}. Use the exact polar factor, with the partial polar factor at deficient rank. Put
+\[
+ B=b\,\frac{1+\beta+\beta^2}{1-\beta^2},\qquad N=k^2 .
+\]
+For every fixed pair $(b,\beta)$ the gradient has an almost-sure limit. For all sufficiently large $B$ the deterministic bound on that limit is
+\[
+ \left|G_\infty-\frac{\gstar}{B}\right|
+ \le C B^{-1-1/(4N-2)}(\log(eB))^{(N+1)/4}
+ \qquad\text{almost surely}.
+\]
+The constant is uniform over the pairs $(b,\beta)$. Thus one may take large batches at fixed momentum or let $\beta\uparrow1$ at fixed batch size, after taking the iteration limit for each pair.
+\end{corollary}
+\begin{proof}
+In the stationary buffer the weights are $(1-\beta)\beta^j/b$, each repeated $b$ times. Summing the geometric series gives $\rho_3/\rho_2=1/B$, $\eps^2=(1-\beta^2)/b$ and $\sqrt{\rho_2}=\eps/(1+\beta)$. As $1\le B\eps^2\le3$, \eqref{eq:median} gives the bound simultaneously for every possible limit point in Theorem~\ref{th:momentum}. The uniform estimate concerns the location of the limit gradient.
+\end{proof}
+
+\section{What the closest earlier theorems establish}
+
+The original manuscript \cite[Theorem 2]{saga} identifies the nuclear median for the iteration without momentum. The first extension \cite[Theorems 4, 15 and 16]{pb} supplies \eqref{eq:coefficient}, the effective batch factor and a momentum convergence theorem with a small-ball condition on the innovations. The second extension \cite[Theorems 8, 12 and 16]{db} distinguishes codimension two, scalar lattice jumps and the curved $2\times2$ case. Its Fourier cube estimate is restated below with attribution. The invariant-Laplacian estimate and convex recovery of the field at atoms yield the all-square result. The conditional cube bound in Theorem~\ref{th:population} gives the finite-population expansion, and the loss-difference estimate in Theorem~\ref{th:momentum} treats the coupled discrete iteration.
+
+Babu and Singh \cite[Theorem 1]{bs} derive a multivariate expansion for sampling without replacement under a nonlattice limit condition. Their count-conditioning identity is used here. Theorem~\ref{th:population} supplies the additional large-frequency control for invariant norms on arbitrary bounded populations of uniformly positive covariance. G\"otze and Zaitsev \cite[Theorems 1.1 and 2.2]{gz} estimate fluctuations and Edgeworth corrections on sublevel sets of nondegenerate quadratic forms. Their proof uses Fourier bounds for the distribution of a quadratic form in a sum. Here the Fourier transform is taken on the full matrix space, and the function tested is a translated invariant norm. R\"osler \cite[Theorem 4.1]{rosler} constructs the convolution of singular spectra by averaging over group orbits. Lewis \cite[Theorem 2.4 and Corollary 2.5]{lewis} characterizes conjugates and subgradients of invariant matrix functions. These results concern orbital harmonic analysis and convex structure, respectively. Neither comparison gives an estimate for the minimizers of a lattice-perturbed nuclear norm. The directional oscillatory-integral estimate used above is classical \cite{ccw}.
+
+For stochastic approximation, Duchi, Agarwal, Johansson and Jordan \cite[Theorems 1--2]{duchi} bound averaged mirror-descent objectives using mixing of conditional sampling laws. For finite-valued innovations, total-variation convergence can fail at every finite time. For instance, with $\beta=1/2$ and equiprobable signs, the stationary buffer is uniform on $[-1,1]$ by the binary expansion, whereas the transition law at any finite time from a point has finite support. Paul and Bhatnagar \cite[Sections 2--3]{paul} analyze Markov mirror descent on a compact decision set via a differential inclusion. Theorem~\ref{th:momentum} establishes boundedness and convergence to a \emph{point} for the unprojected iteration, including the lag of the gradients inside the momentum buffer. Do, Dereich and Jentzen \cite[Proposition 6.2]{ddj} give a necessary mean-field condition assuming convergence on a scalar quadratic. Xie \cite[Appendices A--B]{xie} studies Gaussian polar response and lag covariance. The search identified these antecedents. Priority over the entire literature remains unverified.
+
+\appendix
+\section{The Fourier cube estimate from the second note}
+Write $\varphi(u)=\E e^{i\ip u\zeta}$ and $\Psi(t)=\prod_i\varphi(a_it)$. Nondegenerate covariance and boundedness give $|\varphi(u)|\le e^{-c_1|u|^2}$ for $|u|\le u_0$. Partition the indices into $A,B$ with $\sum_{i\in A}a_i^2,\sum_{i\in B}a_i^2\ge1/4$ by filling the first block to $1/4$, taking $\eps\le1/2$. Each $g_A(t)=\prod_{i\in A}|\varphi(a_it)|^2$ is the nonnegative characteristic function of a difference of independent copies. The arithmetic-geometric mean inequality gives $|\Psi|\le(g_A+g_B)/2$.
+
+Let $D$ be the product of one-dimensional tents $\prod_{m=1}^N(1-|t_m|/(2a))_+$, with $a=c_0/\eps$ sufficiently small in its constant $c_0$. Its inverse Fourier transform is nonnegative. For every $t_0$,
+\[
+ \int g_A(t)D(t-t_0)\dd t\le \int g_A(t)D(t)\dd t \le C.
+\]
+The first inequality follows because translation inserts a phase of modulus one in the integral of the nonnegative inverse transform of the tent against the difference law. On the support of the centered tent, every $a_it$ is in the small-frequency ball and $g_A(t)\le e^{-c_2|t|^2}$. The shifted tent is at least $2^{-N}$ on $t_0+[-a,a]^N$. This bounds the integral of $|\Psi|$ on every $Q_j$, irrespective of high-frequency resonances.
+
+On $Q_0$, expand $\log\varphi$ to order four. The remainder in the sum of the logarithms is bounded by $C\sum a_i^5|t|^5\le C\eps^3|t|^5$. After the Gaussian exponent, the cubic and quartic terms are bounded by $C(\eps|t|^3+\eps^2|t|^4)$. Reducing $c_0$ bounds the entire nonquadratic exponent by $\lambda_{\min}(\Sigma)|t|^2/4$. Taylor expansion of its exponential retains the cubic term, the quartic term and half the square of the cubic term. The other terms are bounded by $C\eps^3(1+|t|^{15})e^{-c_3|t|^2}$ after multiplication by the Gaussian. For example, the cubic Taylor remainder is controlled by the cube of $C\eps|t|^3$ times the exponential majorant, using $\eps|t|\le Cc_0$. The retained terms give the positive-sign characteristic transform of $p_w$. This proves an integrated $O(\eps^3)$ error on $Q_0$. Outside $Q_0$ the Gaussian-polynomial transform has exponentially small integral. Fourier inversion, $|\widehat f|\le\norm f_1$ and the cube mass bound give \eqref{eq:cubes}. All products and independent blocks extend to countably many weights by square summability (here also $\sum_i a_i<\infty$). This is the argument of \cite[Lemmas 1--3]{db}.
+
+\begin{thebibliography}{10}
+\bibitem{saga} Project manuscript. \emph{From SAGA to Muon-type steps}. Original manuscript and explanatory appendix, November 2026.
+\bibitem{pb} Project research note. \emph{The first-order bias law of stochastic orthogonalized steps}. Supplied as \texttt{polar\_bias.pdf}, November 2026.
+\bibitem{db} Project research note. \emph{Discrete noise and the rank-deficient variety}. Supplied as \texttt{discrete\_bias.pdf}, November 2026.
+\bibitem{ccw} A. Carbery, M. Christ and J. Wright. \href{https://math.berkeley.edu/~mchrist/Papers/ccw.pdf}{Multidimensional van der Corput and sublevel set estimates}. J. Amer. Math. Soc. 12 (1999), 981--1015.
+\bibitem{bs} G. J. Babu and K. Singh. \href{https://doi.org/10.1016/0047-259X(85)90084-3}{Edgeworth expansions for sampling without replacement from finite populations}. J. Multivariate Anal. 17 (1985), 261--278.
+\bibitem{gz} F. G\"otze and A. Yu. Zaitsev. \href{https://arxiv.org/abs/1104.0519}{Explicit rates of approximation in the CLT for quadratic forms}. Ann. Probab. 42 (2014), 354--397.
+\bibitem{rosler} M. R\"osler. \href{https://arxiv.org/abs/math/0512474}{Bessel convolutions on matrix cones}. Compos. Math. 143 (2007), 749--779.
+\bibitem{lewis} A. S. Lewis. \href{https://people.orie.cornell.edu/aslewis/publications/95-convex.pdf}{The convex analysis of unitarily invariant matrix functions}. J. Convex Anal. 2 (1995), 173--183.
+\bibitem{duchi} J. C. Duchi, A. Agarwal, M. Johansson and M. I. Jordan. \href{https://arxiv.org/abs/1105.4681}{Ergodic mirror descent}. SIAM J. Optim. 22 (2012), 1549--1578.
+\bibitem{paul} A. K. Paul and S. Bhatnagar. \href{https://arxiv.org/abs/2605.15538}{Stochastic mirror descent under iterate-dependent Markov noise}. 2026.
+\bibitem{ddj} T. Do, S. Dereich and A. Jentzen. \href{https://arxiv.org/abs/2608.04607}{On MUON optimization}. 2026.
+\bibitem{xie} X. Xie. \href{https://arxiv.org/abs/2609.32861}{Muon under gradient noise and the limits of orthogonalization near optima}. 2026.
+\end{thebibliography}
+\end{document}

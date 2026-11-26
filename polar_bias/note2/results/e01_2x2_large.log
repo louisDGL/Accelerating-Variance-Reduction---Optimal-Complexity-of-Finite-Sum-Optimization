@@ -1,0 +1,3 @@
+2x2: continuous-law prediction for b*G_b (each entry): g* = 0.113774
+b=  768 mod3=0  b*G_b=+0.031014  err=-0.082759  sqrt(b)*err=-2.2935  b*err=-63.559
+b= 1026 mod3=0  b*G_b=+0.050720  err=-0.063054  sqrt(b)*err=-2.0197  b*err=-64.693

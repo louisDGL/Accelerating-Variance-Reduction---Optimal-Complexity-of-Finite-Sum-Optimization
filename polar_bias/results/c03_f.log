@@ -1,0 +1,8 @@
+K=2 d=3: q=0.3934 a1=-0.2040 a2=0.7721 a1+a2=0.5680
+
+== law kron: isotropic=False; |A|=99.348 |B|=99.349
+   general MC g* = [0.9924 0.6086 0.1176 0.5855 0.382  0.0899]
+   b=256: b*G = [0.9944 0.5773 0.0917 0.5464 0.3505 0.0796]  |b G - g*|_F/|g*|_F = 0.048  cos = 0.9993  (MC se of b*G ~ 0.072; resid 9e-18; 57s)
+          sign descent, b * limit gradient per coordinate = [1.399 0.601 0.27  0.462 0.214 0.093]
+   b=1024: b*G = [1.0635 0.5189 0.1161 0.5259 0.2797 0.0692]  |b G - g*|_F/|g*|_F = 0.122  cos = 0.9927  (MC se of b*G ~ 0.185; resid 5e-18; 87s)
+          sign descent, b * limit gradient per coordinate = [1.33  0.597 0.267 0.401 0.146 0.09 ]

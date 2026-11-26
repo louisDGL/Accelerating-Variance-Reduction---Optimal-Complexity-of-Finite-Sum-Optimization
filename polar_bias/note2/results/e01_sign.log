@@ -1,0 +1,13 @@
+sign: continuous-law prediction for b*G_b (each entry): g* = 0.166667
+b=    3  b mod 3=0  median of S_b=+0  b*G_b=-0   nearest pt of (-b+3Z) to -1/6: +0
+b=    4  b mod 3=1  median of S_b=-1  b*G_b=+1   nearest pt of (-b+3Z) to -1/6: -1
+b=    5  b mod 3=2  median of S_b=+1  b*G_b=-1   nearest pt of (-b+3Z) to -1/6: +1
+b=   30  b mod 3=0  median of S_b=+0  b*G_b=-0   nearest pt of (-b+3Z) to -1/6: +0
+b=   31  b mod 3=1  median of S_b=-1  b*G_b=+1   nearest pt of (-b+3Z) to -1/6: -1
+b=   32  b mod 3=2  median of S_b=+1  b*G_b=-1   nearest pt of (-b+3Z) to -1/6: +1
+b=  300  b mod 3=0  median of S_b=+0  b*G_b=-0   nearest pt of (-b+3Z) to -1/6: +0
+b=  301  b mod 3=1  median of S_b=-1  b*G_b=+1   nearest pt of (-b+3Z) to -1/6: -1
+b=  302  b mod 3=2  median of S_b=+1  b*G_b=-1   nearest pt of (-b+3Z) to -1/6: +1
+b= 3000  b mod 3=0  median of S_b=+0  b*G_b=-0   nearest pt of (-b+3Z) to -1/6: +0
+b= 3001  b mod 3=1  median of S_b=-1  b*G_b=+1   nearest pt of (-b+3Z) to -1/6: -1
+b= 3002  b mod 3=2  median of S_b=+1  b*G_b=-1   nearest pt of (-b+3Z) to -1/6: +1

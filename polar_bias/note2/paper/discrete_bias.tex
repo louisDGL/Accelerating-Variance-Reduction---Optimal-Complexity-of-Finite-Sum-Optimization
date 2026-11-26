@@ -1,0 +1,766 @@
+% polar_bias/note2/paper/discrete_bias.tex -- second research note (finite sums / discrete noise), separate from polar_bias/paper/polar_bias.tex
+% Build (from polar_bias/note2/paper/):  pdflatex discrete_bias && pdflatex discrete_bias
+% Numbers: polar_bias/note2/checks (logs in polar_bias/note2/results).  Log of failed routes: polar_bias/note2/research_log.md.
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[margin=1in]{geometry}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black]{hyperref}
+\usepackage{xcolor}
+\setlength{\emergencystretch}{2em}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{assumption}{Assumption}
+\renewcommand{\theassumption}{\Alph{assumption}}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\nnuc}[1]{\|#1\|_{*}}
+\newcommand{\nF}[1]{\|#1\|_{F}}
+\newcommand{\inner}[2]{\langle #1, #2\rangle}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\polar}{\operatorname{polar}}
+\newcommand{\Med}{\operatorname{Med}}
+\newcommand{\dist}{\operatorname{dist}}
+\newcommand{\vol}{\operatorname{vol}}
+\newcommand{\He}{\mathrm{He}}
+\newcommand{\cA}{\mathsf{A}}
+\newcommand{\cB}{\mathsf{B}}
+\newcommand{\ones}{\mathbf{1}}
+\newcommand{\st}{\dagger}
+\newcommand{\ew}{\varepsilon_w}
+\newcommand{\Lw}{L_w}
+\newcommand{\PB}{\textup{[PB]}}
+
+\title{\vspace{-2em}Discrete noise and the rank-deficient variety:\\
+when the bias law of orthogonalized steps survives finite sums,\\ when it fails, and the sign of $a_1$}
+\author{Second research note (folder \texttt{polar\_bias/note2/}); sequel to \texttt{polar\_bias/paper/polar\_bias.pdf}}
+\date{25 November 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The first note (\PB) proved the first-order bias law $G^\st_b=g_\ast/b+o(1/b)$,
+$g_\ast=-\frac16J_\Sigma^{-1}T_\Sigma[K_3]$, for the limit gradient of stochastic norm-steepest steps, under Cram\'er's
+condition; this excludes the gradient noise of every finite sum. We determine what happens without it, for minibatches drawn with replacement at a fixed parameter value, when the noise has nondegenerate covariance (which for a finite sum requires $n\ge Kd+1$ terms). All statements concern the medians $\arg\min\psi$, i.e.\ the destination of the iteration, not its convergence.
+\emph{(1)~A codimension principle.} If the direction map $o=\nabla\nu$ is singular only on a cone of codimension
+$c\ge2$ (polar factor of $K\times d$ matrices with $K\ne d$, where $c=|d-K|+1$; normalized steps in dimension $\ge2$;
+block-normalized steps), the law holds for \emph{every} bounded noise law with nondegenerate covariance, lattice or not,
+with remainder $O(b^{-3/2}\log^{N/2}b)$ if $c=2$ and $O(b^{-2}\log^{N/2}b)$ if $c\ge3$, and for arbitrary averaging weights
+(batch and momentum at once, uniformly as $\beta\to1$ at fixed batch size). The proof replaces Cram\'er's condition by a
+Fourier lemma in which test functions are measured in $W^{m,1}$, and by a positive-definiteness bound on the mass of
+$|\varphi_\zeta|^b$ in cubes. \emph{(2)~Failure for sign descent.} For a lattice coordinate with span $h$, $b\,G^\st_b$
+is the point of a shifted lattice nearest to the Cornish--Fisher value: it oscillates in a window of width $h$ around
+$g_\ast$, does not converge to it unless $g_\ast$ itself lies on the lattice, and can be identically $0$ (sign descent exactly unbiased while the continuous law
+predicts a bias). \emph{(3)~Curvature.} For $2\times2$ matrices the singular set $\{\det=0\}$ has codimension one, as for
+sign descent, but is curved; the law holds for every bounded law, with remainder $O(b^{-15/14}\log^2b)$.
+We conjecture the same for all square sizes. \emph{(4)~Sharpness.} For lattice noise and $c=2$ we identify (formally) the
+$b^{-3/2}$ term, a lattice sum depending on $b$ modulo the lattice index, and confirm it against exact computations to
+within $1$--$3\%$ at the batch sizes reached. \emph{(5)~The sign of $a_1$.} The conjecture $a_1<0$ of \PB\ is proved for all $K,d\ge2$: it is equivalent
+to a three-point concavity of the moment ratio $p\mapsto\E\tr W^{(p+2)/2}/\E\tr W^{p/2}$ of a real Wishart matrix, with
+equality for Gamma laws (the case $K=1$); the proof is by hand for $K=2$ and by exact polynomial certificates for
+$K\ge3$. An audit of \PB\ found no false statement, some hypotheses to restate, and a simplification of one of its theorems.
+\end{abstract}
+
+\section{Introduction}
+
+\paragraph{The question.} Let $\nu$ be a norm on $E=\R^{K\times d}\cong\R^N$, $o(x)\in\partial\nu(x)$ its direction map
+(odd, $0$-homogeneous), $\xi$ a centered random element of $E$, $\psi_\xi(G)=\E[\nu(G+\xi)-\nu(\xi)]$ and
+$\Med_\nu(\xi)=-\arg\min\psi_\xi$. The iteration $W^+=W-\eta\,o(\nabla F(W)+\xi)$ drives the gradient to
+$\arg\min\psi_\xi$ (\cite[Theorem~2]{manuscript} for the spectral geometry). For the mean $\xi_b$ of $b$ i.i.d.\ copies of
+$\zeta$ with covariance $\Sigma\succ0$ and third cumulant $K_3$, \PB\ (Theorem~4) proves
+$\arg\min\psi_{\xi_b}\subset B(g_\ast/b,o(1/b))$ with $g_\ast=-\frac16J_\Sigma^{-1}T_\Sigma[K_3]$, under Cram\'er's condition
+$\limsup_{|t|\to\infty}|\E e^{i\inner t\zeta}|<1$, through Theorem~20.1 of \cite{br}. A minibatch drawn (with
+replacement) from a finite data set has finitely supported noise: Cram\'er's condition fails, and so does every ``weak
+Cram\'er'' condition when the support is a lattice coset, which is always the case when $n=N+1$ and for quantized data.
+In dimension one the median of a lattice sum is known to oscillate. The question is whether the bias law is an
+artefact of continuous noise.
+
+\paragraph{Answer.} It depends on the geometry of the set where $o$ is singular, not on the arithmetic of the noise,
+except in the one case where that set is a rational hyperplane:
+
+\begin{center}\footnotesize
+\begin{tabular}{@{}llll@{}}
+\toprule
+geometry & singular set of $o$ & discrete (even lattice) noise & status\\
+\midrule
+sign descent & flat hyperplane, codim.\ 1 & fails for lattice coordinates (sawtooth) & Thm.~\ref{thm:sign}\\
+polar, $K\ne d$ & rank $<\min(K,d)$, codim.\ $|d-K|+1$ & holds; remainder $b^{-3/2}$ or $b^{-2}$ (logs) & Thm.~\ref{thm:codim}\\
+normalized, $N\ge2$ & $\{0\}$, codim.\ $N$ & idem & Thm.~\ref{thm:codim}\\
+polar, $K=d=2$ & $\{\det=0\}$, curved, codim.\ 1 & holds; remainder $b^{-15/14}\log^2b$ & Thm.~\ref{thm:square}\\
+polar, $K=d\ge3$ & $\{\det=0\}$, curved, codim.\ 1 & holds (conjecture) & Conj.~\ref{conj:square}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Status convention.} Theorems~\ref{thm:codim}, \ref{thm:sign}, \ref{thm:square} and \ref{thm:a1} are proved in
+full, up to quoted classical results named where used (Esseen's lattice expansion \cite{esseen,gk}; van der Corput's
+lemma \cite{stein}; the density of singular values). The proof of Theorem~\ref{thm:a1} for $K\ge3$ is
+computer-assisted: it rests on exact integer arithmetic (scripts in \texttt{note2/a1}, independently re-verified in
+\texttt{note2/checks/v01,v02}). Proposition~\ref{prop:lattice2} is a formal derivation confirmed numerically and is
+labelled as such. Results of \PB, of the manuscript \cite{manuscript} and of the archived notes are used as known and
+are not claimed here. The originality assessment is in Section~\ref{sec:ledger}.
+
+\section{Setting}\label{sec:setting}
+
+Notation of \PB: a \emph{geometry} is a norm $\nu$ on $E$ with a Borel map $o$, $o(x)\in\partial\nu(x)$,
+$o(tx)=o(x)$ ($t>0$), $o(-x)=-o(x)$, $|o|\le C_o$; $\Phi_\xi(G)=\E\,o(G+\xi)\in\partial\psi_\xi(G)$. For $\Sigma\succ0$,
+$\Phi_\Sigma(h)=\E\,o(h+Z_\Sigma)$, $J_\Sigma=D\Phi_\Sigma(0)$, $T_\Sigma[K_3]=D^3\Phi_\Sigma(0)[K_3]$, and
+$g_\ast=-\frac16J_\Sigma^{-1}T_\Sigma[K_3]$. We use from \PB\ (Lemma~1 there): $\Phi_\Sigma$ is odd and $C^\infty$ with
+bounded derivatives, $J_\Sigma\succ0$, and $\int o(x+y)\inner{K}{\He^\Sigma_k(y)}\varphi_\Sigma(y)\,dy=D^k\Phi_\Sigma(x)[K]$.
+
+\begin{assumption}[bounded noise, weights]\label{ass:B}
+$\zeta,\zeta_1,\zeta_2,\dots$ are i.i.d.\ in $E$ with $|\zeta|\le M$, $\E\zeta=0$, covariance $\Sigma\succ0$ with smallest
+eigenvalue $\lambda$, cumulant tensors $K_3,K_4$. A \emph{weight sequence} is $w=(w_k)_{k\ge1}$, $w_k\ge0$,
+$\sum_kw_k=1$; we set
+\[
+\rho_p=\sum_kw_k^p,\qquad \xi_w=\sum_kw_k\zeta_k,\qquad X_w=\rho_2^{-1/2}\xi_w,\qquad
+\ew=\frac{\max_kw_k}{\sqrt{\rho_2}},\qquad \Lw=\log(e/\ew).
+\]
+\end{assumption}
+No condition is imposed on the characteristic function $\varphi(s)=\E e^{i\inner s\zeta}$. Uniform sampling with
+replacement from $\{z_1,\dots,z_n\}$ ($\zeta=z_I-\bar z$) satisfies Assumption~\ref{ass:B} as soon as the $z_i$ affinely
+span $E$, which requires $n\ge N+1$. The batch mean is $w=(1/b,\dots,1/b)$: $\rho_2=1/b$, $\rho_3/\rho_2=1/b$,
+$\ew=b^{-1/2}$. An exponential moving average with parameter $\beta$ of batch means has the weights
+$(1-\beta)\beta^k/b$, each repeated $b$ times: $\rho_3/\rho_2=\frac{1-\beta^2}{(1+\beta+\beta^2)b}$ and
+$\ew^2=(1-\beta^2)/b$. $X_w$ has covariance $\Sigma$, third cumulant $\varepsilon_3K_3$ and fourth cumulant
+$\varepsilon_4K_4$ with $\varepsilon_3=\rho_3\rho_2^{-3/2}\le\ew$, $\varepsilon_4=\rho_4\rho_2^{-2}\le\ew^2$. The
+Edgeworth density of order two is
+\[
+\psi_w=\varphi_\Sigma\Big(1+\tfrac{\varepsilon_3}{6}\inner{K_3}{\He_3^\Sigma}+\tfrac{\varepsilon_4}{24}\inner{K_4}{\He^\Sigma_4}
++\tfrac{\varepsilon_3^2}{72}\inner{K_3\otimes K_3}{\He_6^\Sigma}\Big),
+\]
+whose Fourier transform is $\widehat\psi_w(t)=\int e^{i\inner ty}\psi_w=e^{-\inner t{\Sigma t}/2}\big(1+\varepsilon_3p_1(t)+\varepsilon_4p_2(t)+\frac12\varepsilon_3^2p_1(t)^2\big)$,
+$p_1(t)=\frac16K_3[(it)^{\otimes3}]$, $p_2(t)=\frac1{24}K_4[(it)^{\otimes4}]$. Constants $C,c$ below depend only on the
+law of $\zeta$, on the geometry and on explicitly named parameters, never on $w$.
+
+\section{Edgeworth expansion without Cram\'er's condition, for integrable test functions}\label{sec:fourier}
+
+\begin{lemma}[mass of the characteristic function in cubes]\label{lem:cube}
+Under Assumption~\ref{ass:B} there are $c_1,C_1>0$ such that, if $\ew\le\frac12$, for every $t_0\in E$
+\[
+\int_{t_0+[-a,a]^N}\Big|\E e^{i\inner t{X_w}}\Big|\,dt\ \le\ C_1,\qquad a=\frac{c_1}{\ew}.
+\]
+\end{lemma}
+\begin{proof}
+$|\varphi(u)|^2=\E\cos\inner u{\zeta-\zeta'}\le1-\inner u{\Sigma u}+\frac23M^4|u|^4\le e^{-\lambda|u|^2/2}$ for
+$|u|\le u_0:=(3\lambda/4)^{1/2}M^{-2}$. Since $\max_kw_k^2\le\rho_2/4$, the indices can be split into two sets $A,B$
+with $\sum_{k\in A}w_k^2\ge\rho_2/4$ and $\sum_{k\in B}w_k^2\ge\rho_2/4$ (fill $A$ until its sum first exceeds $\rho_2/4$;
+it is then at most $\rho_2/2$). With $s=t/\sqrt{\rho_2}$, $|\E e^{i\inner t{X_w}}|=\prod_k|\varphi(w_ks)|\le\frac12(g_A(s)+g_B(s))$,
+$g_A(s)=\prod_{k\in A}|\varphi(w_ks)|^2=\E e^{i\inner s{Y_A}}$, $Y_A=\sum_{k\in A}w_k(\zeta_k-\zeta'_k)$. Let
+$\Delta(s)=\prod_{j\le N}(1-|s_j|/\alpha)_+$ with $\alpha=u_0/(\sqrt N\max_kw_k)$; its Fourier transform
+$\check\Delta(y)=\prod_j\alpha\big(\frac{\sin(\alpha y_j/2)}{\alpha y_j/2}\big)^2$ is nonnegative. Hence, for every $s_0$,
+\[
+\int g_A(s)\Delta(s-s_0)\,ds=\E\big[e^{i\inner{s_0}{Y_A}}\check\Delta(Y_A)\big]\le\E\,\check\Delta(Y_A)=\int g_A(s)\Delta(s)\,ds
+\le\int e^{-\lambda\rho_2|s|^2/8}ds=\Big(\frac{8\pi}{\lambda\rho_2}\Big)^{N/2},
+\]
+because $|w_ks|\le u_0$ on the support of $\Delta$. As $g_A\ge0$ and $\Delta(\cdot-s_0)\ge2^{-N}$ on
+$s_0+[-\alpha/2,\alpha/2]^N$, $\int_{s_0+[-\alpha/2,\alpha/2]^N}g_A\le2^N(8\pi/\lambda\rho_2)^{N/2}$; the same for $g_B$.
+Changing variables $t=\sqrt{\rho_2}\,s$ gives the claim with $c_1=u_0/(2\sqrt N)$.
+\end{proof}
+
+The point of the lemma is that the mass of $|\varphi|^b$ near \emph{any} frequency is at most its mass near the
+origin: resonances of a lattice law are the worst case, and they are harmless for test functions whose Fourier
+transform is summable over a lattice of mesh $1/\ew$.
+
+\begin{lemma}[small frequencies]\label{lem:near}
+There are $c_2\le c_1$ and $C_2$ such that for $|t|_\infty\le c_2/\ew$,
+$|\E e^{i\inner t{X_w}}-\widehat\psi_w(t)|\le C_2\,\ew^3(|t|^5+|t|^{9})e^{-\lambda|t|^2/4}$.
+\end{lemma}
+\begin{proof}
+$|\varphi(u)-1|\le M^2|u|^2/2$, so $\log\varphi$ is analytic on $|u|\le1/M$ and
+$\log\varphi(u)=-\frac12\inner u{\Sigma u}+\frac16K_3[(iu)^{\otimes3}]+\frac1{24}K_4[(iu)^{\otimes4}]+r(u)$, $|r(u)|\le C|u|^5$.
+Summing over $u=w_kt/\sqrt{\rho_2}$ (all of norm at most $\ew|t|$),
+$\log\E e^{i\inner t{X_w}}=-\frac12\inner t{\Sigma t}+A$, $A=\varepsilon_3p_1+\varepsilon_4p_2+R$,
+$|R|\le C\rho_5\rho_2^{-5/2}|t|^5\le C\ew^3|t|^5$. For $\ew|t|\le\sqrt Nc_2$ small, $|A|\le\lambda|t|^2/4$, and
+$e^A=1+A+\frac12A^2+O(|A|^3e^{|A|})$ with $A+\frac12A^2=\varepsilon_3p_1+\varepsilon_4p_2+\frac12\varepsilon_3^2p_1^2
++O(\ew^3(|t|^5+|t|^8))$ and $|A|^3\le C\ew^3|t|^9$.
+\end{proof}
+
+\begin{lemma}[Edgeworth expansion in $W^{m,1}$]\label{lem:sobolev}
+Let $Q_j=2aj+[-a,a]^N$, $j\in\Z^N$, with $a=c_2/\ew$. Under Assumption~\ref{ass:B}, for $\ew\le\varepsilon_0$, every
+$F\in C_c^\infty(E)$ and every $x\in E$,
+\begin{equation}\label{eq:sob}
+\Big|\E F(x+X_w)-\int F(x+y)\psi_w(y)\,dy\Big|\le C_3\Big(\ew^3\|F\|_{L^1}+\sum_{j\ne0}\sup_{t\in Q_j}|\widehat F(t)|\Big)
+\le C_{3,m}\big(\ew^3\|F\|_{L^1}+\ew^m\|D^mF\|_{L^1}\big)
+\end{equation}
+for every integer $m>N$, where $\widehat F(t)=\int F(z)e^{-i\inner tz}dz$ and
+$\|D^mF\|_{L^1}=\sum_{|\alpha|=m}\|\partial^\alpha F\|_{L^1}$.
+\end{lemma}
+\begin{proof}
+By Fourier inversion the left side is $(2\pi)^{-N}|\int\widehat F(t)e^{i\inner tx}(\E e^{i\inner t{X_w}}-\widehat\psi_w(t))dt|$.
+On $Q_0$, Lemma~\ref{lem:near} and $|\widehat F|\le\|F\|_{L^1}$ give $C\ew^3\|F\|_{L^1}$. Outside $Q_0$,
+$\int_{E\setminus Q_0}|\widehat\psi_w|\le Ce^{-c/\ew^2}$, contributing at most $C\ew^3\|F\|_{L^1}$, and
+$\int_{Q_j}|\widehat F||\E e^{i\inner t{X_w}}|\le C_1\sup_{Q_j}|\widehat F|$ by Lemma~\ref{lem:cube}. For the second
+inequality, $|t|\ge a|j|_\infty$ on $Q_j$ and $|\widehat F(t)|\le N^{m/2}|t|^{-m}\|D^mF\|_{L^1}$ (integrate by parts $m$
+times in a coordinate with $|t_k|\ge|t|/\sqrt N$), and $\sum_{j\ne0}|j|_\infty^{-m}<\infty$ for $m>N$.
+\end{proof}
+
+\begin{remark}\label{rem:sob}
+Expansions for smooth test functions under moment conditions alone go back to G\"otze and Hipp \cite{gh}; for
+Diophantine laws Breuillard \cite{breuillard} and Fernando--Liverani \cite{fl} measure the test function in $L^1$-norms
+of derivatives, as here. What Lemma~\ref{lem:sobolev} adds is the absence of \emph{any} arithmetic assumption (lattice
+laws included), the multivariate setting, weights, and above all the form \eqref{eq:sob}: the error is a lattice sum of
+$|\widehat F|$ at mesh $1/\ew$, which is what lets singularities of codimension $\ge2$ (integrable derivatives) and
+curved jumps (decaying Fourier transform) be absorbed. We have not found Lemma~\ref{lem:cube} stated in this form; it
+is in the spirit of Esseen's concentration inequality and we do not claim it as new.
+\end{remark}
+
+\begin{lemma}[small balls, and small neighbourhoods of cones]\label{lem:ball}
+Under Assumption~\ref{ass:B}, $\ew\le\varepsilon_0$: (i) $\Prob(X_w\in B(y,r))\le C_4\max(r,\ew)^N$ for all $y\in E$, $r>0$.
+(ii) Let $V\subset E$ be a closed cone with $\vol\{y\in B(0,1):\dist(y,V)\le r\}\le C_Vr^c$ for $r\le1$. Then for all
+$x\in E$, $R\ge1$ and $0<r\le R$,
+$\Prob\big(|x+X_w|\le R,\ \dist(x+X_w,V)\le r\big)\le C_5R^{N-c}\max(r,\ew)^c$. (iii) $\Prob(|X_w|>u)\le2Ne^{-u^2/(2NM^2)}$.
+\end{lemma}
+\begin{proof}
+(i) Let $k(z)=\prod_j(\sin(z_j/2)/(z_j/2))^2$; $k\ge(2/\pi)^{2N}$ on $[-\pi,\pi]^N$ and $\widehat k$ is bounded and
+supported in $[-1,1]^N$. For $r\ge\ew$,
+$\Prob(X_w\in B(y,r))\le(\pi/2)^{2N}\E k((X_w-y)/r)\le Cr^N\int_{|t|_\infty\le1/r}|\E e^{i\inner t{X_w}}|dt$, and the cube
+$[-1/r,1/r]^N$ is covered by at most $(1+\ew/(c_1r))^N\le C$ cubes of Lemma~\ref{lem:cube}. (ii) Let $\varrho=\max(r,\ew)$ and
+$\{z_i\}$ a maximal $\varrho$-separated subset of $A=\{z\in B(0,R):\dist(z,V)\le r\}$. The balls $B(z_i,\varrho/2)$ are
+disjoint and contained in $\{z\in B(0,2R):\dist(z,V)\le2\varrho\}$, of volume at most $C_V(2R)^{N-c}(2\varrho)^c$ by
+homogeneity, so there are at most $CR^{N-c}\varrho^{c-N}$ of them; $A$ is covered by the $B(z_i,\varrho)$; apply (i).
+(iii) Hoeffding's inequality for each coordinate, $\sum_kw_k^2/\rho_2=1$.
+\end{proof}
+
+\section{The codimension principle}\label{sec:codim}
+
+\begin{assumption}[singular set of codimension $c$]\label{ass:R}
+There is a closed cone $V\subset E$ such that $o\in C^\infty(E\setminus V)$,
+$|D^ko(y)|\le C_k\dist(y,V)^{-k}$ for all $k\ge0$, and $\vol\{y\in B(0,1):\dist(y,V)\le r\}\le C_Vr^c$ for $r\le1$.
+\end{assumption}
+
+\begin{lemma}[examples]\label{lem:examples}
+Assumption~\ref{ass:R} holds for: (a) the Euclidean geometry on $\R^N$, with $V=\{0\}$, $c=N$; (b) block-normalized
+steps, $\nu(y)=\sum_g|y_g|$ over a partition into blocks of sizes $n_g$, with $V=\bigcup_g\{y_g=0\}$, $c=\min_gn_g$;
+(c) the spectral geometry on $\R^{K\times d}$, $K<d$ (transpose if $K>d$), with $V=\{\operatorname{rank}<K\}$,
+$\dist(\cdot,V)=\sigma_K$, $c=d-K+1$; (d) the sign geometry and the spectral geometry with $K=d$, with $c=1$ only.
+\end{lemma}
+\begin{proof}
+(a), (b): homogeneity. (c) For $MM^\top\succ0$, $\polar(M)=(MM^\top)^{-1/2}M=\frac2\pi\int_0^\infty G_\tau(M)\,d\tau$,
+$G_\tau(M)=A^{-1}M$, $A=MM^\top+\tau^2I$. With $s=(\sigma_K^2+\tau^2)^{1/2}$ we have $\|A^{-1/2}\|\le1/s$ and
+$\|A^{-1/2}M\|\le1$. Since $D(A^{-1})[H]=-A^{-1}(HM^\top+MH^\top)A^{-1}$, $D^kG_\tau(M)[H,\dots,H]$ is a sum of at most
+$C_k$ words $A^{-1}X_1A^{-1}X_2\cdots A^{-1}X_jA^{-1}Y$ with $X_i\in\{HM^\top,MH^\top,HH^\top\}$, $Y\in\{M,H\}$ and $k$
+letters $H$ in total. Write $A^{-1}=A^{-1/2}A^{-1/2}$: each letter $M$ or $M^\top$ is adjacent to a half $A^{-1/2}$ of
+its own, and counting letters shows that exactly $k+1$ halves remain unpaired. Hence
+$|D^kG_\tau(M)|\le C_k(\sigma_K^2+\tau^2)^{-(k+1)/2}$ and, integrating in $\tau$ for $k\ge1$, $|D^k\polar(M)|\le C_k'\sigma_K(M)^{-k}$ (trivial for $k=0$).
+The distance to $V$ is $\sigma_K$ (Eckart--Young), and $\sigma_K(M)\le r$ forces some row of $M$ to be within
+$\sqrt Kr$ of the span of the others (\PB, proof of Lemma~2), a set of volume at most $Cr^{d-K+1}$ in the unit ball.
+(d) The exponent $1$ is the volume of a neighbourhood of a hypersurface; $o$ is discontinuous across it.
+\end{proof}
+
+\begin{proposition}[mean field, codimension $\ge2$]\label{prop:field}
+Under Assumptions~\ref{ass:B} and~\ref{ass:R} with $c\ge2$, for $\ew\le\varepsilon_0$,
+\[
+\sup_{|x|\le1}\Big|\E\,o(x+X_w)-\int o(x+y)\psi_w(y)\,dy\Big|\le C_6\big(\ew^{c}+\ew^3\big)\Lw^{N/2}.
+\]
+\end{proposition}
+\begin{proof}
+Let $R=2+M\sqrt{6N\Lw}$, so that $\Prob(|x+X_w|>R)\le2N\ew^3$ (Lemma~\ref{lem:ball}(iii)) and the same for the Gaussian
+weights. Let $\chi_R=\chi(\cdot/R)$ with $\chi\in C_c^\infty(B(0,2))$, $\chi=1$ on $B(0,1)$, and let
+$\Theta\in C^\infty(E)$, $0\le\Theta\le1$, with $\Theta=1$ on $\{\dist(\cdot,V)\le\ew\}$, $\Theta=0$ on
+$\{\dist(\cdot,V)\ge2\ew\}$, $|D^k\Theta|\le C_k\ew^{-k}$ (mollify the indicator of $\{\dist\le\frac32\ew\}$ at scale
+$\ew/4$). Write $o=F_1+F_2+F_3$, $F_1=o(1-\Theta)\chi_R$, $F_2=o\,\Theta\chi_R$, $F_3=o(1-\chi_R)$.
+$F_3$: both $\E|F_3(x+X_w)|$ and $\int|F_3(x+y)||\psi_w(y)|dy$ are at most $C\ew^3$.
+$F_2$: $\E|F_2(x+X_w)|\le C_o\Prob(|x+X_w|\le2R,\dist(x+X_w,V)\le2\ew)\le CR^{N-c}\ew^c$ by Lemma~\ref{lem:ball}(ii), and
+$\int|F_2(x+y)||\psi_w(y)|dy\le C\vol\{B(0,2R):\dist\le2\ew\}\le CR^{N-c}\ew^c$.
+$F_1\in C_c^\infty$: on its support $\dist(z,V)\ge\ew$, and by Leibniz' rule and Assumption~\ref{ass:R},
+$|D^mF_1(z)|\le C_m(\dist(z,V)^{-m}+1)$. Summing over the shells $\{2^i\ew\le\dist<2^{i+1}\ew\}$,
+$\|D^mF_1\|_{L^1}\le C\sum_i(2^i\ew)^{-m}R^{N-c}(2^{i+1}\ew)^c+CR^N\le C(R^{N-c}\ew^{c-m}+R^N)$ for $m=N+1>c$.
+Lemma~\ref{lem:sobolev} gives an error $C(\ew^3R^N+\ew^cR^{N-c}+\ew^mR^N)$ for $F_1$.
+\end{proof}
+
+\begin{theorem}[the bias law without Cram\'er's condition, codimension $\ge2$]\label{thm:codim}
+Let Assumptions~\ref{ass:B} and~\ref{ass:R} hold with $c\ge2$. There are $\varepsilon_0,C>0$ such that for every weight
+sequence with $\ew\le\varepsilon_0$,
+\[
+\arg\min\psi_{\xi_w}\ \subset\ B\Big(\frac{\rho_3}{\rho_2}\,g_\ast\,,\ C\sqrt{\rho_2}\;\ew^{\min(c,3)}\,\Lw^{N/2}\Big),
+\qquad g_\ast=-\tfrac16J_\Sigma^{-1}T_\Sigma[K_3].
+\]
+In particular, for the mean of $b$ samples,
+\[
+\Med_\nu(\xi_b)=-\frac{g_\ast}{b}+O\Big(\frac{\log^{N/2}b}{b^{3/2}}\Big)\ \ (c=2),\qquad
+\Med_\nu(\xi_b)=-\frac{g_\ast}{b}+O\Big(\frac{\log^{N/2}b}{b^{2}}\Big)\ \ (c\ge3),
+\]
+for every bounded law with nondegenerate covariance, with no condition on its characteristic function. This covers
+normalized steps in dimension $N\ge2$, block-normalized steps with blocks of size $\ge2$, and Muon-type (polar) steps
+on $K\times d$ matrices with $K\ne d$.
+\end{theorem}
+\begin{proof}
+$\Phi_{\xi_w}(G)=\E\,o(x+X_w)$ with $x=G/\sqrt{\rho_2}$. By the identities recalled in Section~\ref{sec:setting},
+\[
+\int o(x+y)\psi_w(y)\,dy=\Phi_\Sigma(x)+\tfrac{\varepsilon_3}6D^3\Phi_\Sigma(x)[K_3]+\tfrac{\varepsilon_4}{24}D^4\Phi_\Sigma(x)[K_4]
++\tfrac{\varepsilon_3^2}{72}D^6\Phi_\Sigma(x)[K_3\otimes K_3].
+\]
+$\Phi_\Sigma$ is odd: its even derivatives vanish at $0$, so for $|x|\le C\ew$ the last two terms are $O(\ew^3)$,
+$\Phi_\Sigma(x)=J_\Sigma x+O(\ew^3)$ and $D^3\Phi_\Sigma(x)=D^3\Phi_\Sigma(0)+O(\ew^2)$. With
+Proposition~\ref{prop:field}, uniformly for $|x|\le C\ew$,
+\[
+\E\,o(x+X_w)=J_\Sigma(x-\hat x)+e(x),\qquad \hat x=\varepsilon_3g_\ast,\qquad|e(x)|\le C_7\ew^{\min(c,3)}\Lw^{N/2}.
+\]
+Let $\varrho=2C_7\ew^{\min(c,3)}\Lw^{N/2}/\lambda_{\min}(J_\Sigma)$ (at most $\ew$ for $\ew$ small) and $|u|=1$: then
+$\inner{\E\,o(\hat x+\varrho u+X_w)}{u}\ge\lambda_{\min}(J_\Sigma)\varrho-C_7\ew^{\min(c,3)}\Lw^{N/2}>0$. If a minimizer $x'$
+of the convex function $x\mapsto\E\nu(x+X_w)$ had $|x'-\hat x|>\varrho$, take $u=(x'-\hat x)/|x'-\hat x|$ and
+$y=\hat x+\varrho u$: the subgradient inequality gives $\E\nu(x'+X_w)\ge\E\nu(y+X_w)+(|x'-\hat x|-\varrho)\inner{\E\,o(y+X_w)}u$,
+strictly larger than $\E\nu(y+X_w)$, a contradiction. Returning to $G=\sqrt{\rho_2}x$ and
+$\sqrt{\rho_2}\,\varepsilon_3=\rho_3/\rho_2$ gives the claim.
+\end{proof}
+
+\begin{corollary}[finite sums]\label{cor:fs}
+Let $F=\frac1n\sum_if_i$ and, at a point $W$, let $\zeta=\nabla f_I(W)-\nabla F(W)$ with $I$ uniform, and suppose the $n$
+gradients affinely span $\R^{K\times d}$ (so $n\ge Kd+1$). For minibatches of size $b$ drawn with replacement, the
+nuclear median of the batch noise is $-g_\ast/b+O(b^{-3/2}\log^{N/2}b)$ if $|d-K|=1$ and $-g_\ast/b+O(b^{-2}\log^{N/2}b)$ if
+$|d-K|\ge2$, whatever the arithmetic of the gradients; for $\Sigma=\sigma^2I$, $g_\ast$ is given by the two-moment
+theorem of \PB. When $n=Kd+1$ the noise is supported on a coset of a lattice for every data set: no strongly
+non-lattice or weak Cram\'er argument can apply, and the law holds nevertheless.
+\end{corollary}
+\begin{proof}
+Theorem~\ref{thm:codim} and Lemma~\ref{lem:examples}(c). If $n=N+1$ the differences $z_i-z_1$ form a basis of $E$ and
+generate a lattice containing the support of $\zeta-\zeta'$.
+\end{proof}
+
+\begin{corollary}[batch and momentum together, uniformly in $\beta$]\label{cor:mom}
+Under the hypotheses of Theorem~\ref{thm:codim} let $N_\beta=(1-\beta)\sum_{k\ge0}\beta^k\xi_b^{(k)}$ with independent
+batch means $\xi_b^{(k)}$. Then, with $b_{\mathrm{eff}}=b\frac{1+\beta+\beta^2}{1-\beta^2}$ and $\theta=\frac{1-\beta^2}b$,
+\[
+\Med_\nu(N_\beta)=-\frac{g_\ast}{b_{\mathrm{eff}}}+O\Big(\frac{1}{b_{\mathrm{eff}}}\,\theta^{(\min(c,3)-1)/2}\log^{N/2}(e/\theta)\Big)
+\quad\text{uniformly in }b\ge1,\ \beta\in[0,1)\text{ with }\theta\le\varepsilon_0^2 .
+\]
+In particular the first-order law holds at \emph{fixed} batch size (even $b=1$) as $\beta\to1$.
+\end{corollary}
+\begin{proof}
+The weights are $(1-\beta)\beta^k/b$, each $b$ times: $\rho_3/\rho_2=1/b_{\mathrm{eff}}$, $\ew^2=\theta$,
+$\sqrt{\rho_2}=\ew/(1+\beta)$, and $\rho_3/\rho_2\ge\ew^2/3$.
+\end{proof}
+
+\begin{remark}[relation to \PB]\label{rem:pb}
+(i) For bounded noise and $c\ge2$, Theorem~\ref{thm:codim} reproves Theorem~4 of \PB\ without Theorem~20.1 of \cite{br},
+which \PB\ quoted without access to the book: the proof above is self-contained. (ii) \PB\ left open the regime
+$\beta\to1$ at fixed $b$; Corollary~\ref{cor:mom} settles it for $c\ge2$ (and Theorem~\ref{thm:square} for $2\times2$
+matrices). (iii) Theorem~16 of \PB\ (first-order bias of a linear filter) follows from its Theorem~4 without the
+Lindeberg argument given there: $N_\beta=\frac1b\sum_{i\le b}Y_i$ with $Y_i=(1-\beta)\sum_k\beta^k\zeta_{k,i}$ i.i.d., of
+covariance $\rho_2'\Sigma$ and third cumulant $\rho_3'K_3$ ($\rho'_p=\sum_kw_k^p$ for the filter weights), and
+$|\varphi_Y(t)|\le|\varphi_\zeta(w_0t)|$ so $Y$ inherits Cram\'er's condition; $J_{c\Sigma}^{-1}T_{c\Sigma}=c^{-1}J_\Sigma^{-1}T_\Sigma$
+gives the factor $\rho_3'/\rho_2'$. Three moments suffice. (iv) Theorem~15 of \PB\ (convergence of the momentum
+iteration) assumes a small-ball bound on the noise, which discrete noise violates; the present results concern the
+medians, i.e.\ the destination identified by \cite[Theorem~2]{manuscript} without momentum.
+\end{remark}
+
+\section{Sign descent: the lattice sawtooth}\label{sec:sign}
+
+For the sign geometry $\psi_\xi(G)=\sum_k\E(|G_k+\xi_k|-|\xi_k|)$ is separable, so $\arg\min\psi_\xi$ is the product over
+coordinates of minus the sets of medians of the $\xi_k$: the problem is one-dimensional. Let $\zeta$ be a real random
+variable with $\E\zeta=0$, variance $\sigma^2>0$, $\E|\zeta|^3<\infty$, $\kappa_3=\E\zeta^3$, and
+$g_\ast=\kappa_3/(6\sigma^2)$ (\PB, Remark~5(i)); $S_b=\zeta_1+\dots+\zeta_b$ and $G_b^\st=\arg\min_G\E|G+S_b/b|$, so
+that $b\,G^\st_b=-\{\text{medians of }S_b\}$.
+
+\begin{theorem}[sign descent with discrete noise]\label{thm:sign}
+(a) If $\zeta$ is not lattice, $b\,G_b^\st\to g_\ast$ (every selection). (b) If $\zeta$ is lattice, supported on
+$a+h\Z$ with maximal span $h$, let $\Lambda_b=-(ba+h\Z)$. For every $\delta>0$ and $b\ge b_0(\delta)$:
+$b\,G^\st_b\subset[g_\ast-\frac h2-\delta,\ g_\ast+\frac h2+\delta]$, and if a point $\ell$ of $\Lambda_b$ satisfies
+$|\ell-g_\ast|\le\frac h2-\delta$ then $b\,G^\st_b=\{\ell\}$. Consequently:
+\begin{enumerate}[label=(\roman*),itemsep=0pt,topsep=2pt]
+\item if $a/h$ is irrational, the limit points of $b\,G_b^\st$ fill the interval $[g_\ast-\frac h2,g_\ast+\frac h2]$;
+\item if $a/h=p/q$ in lowest terms, $b\,G_b^\st$ is eventually periodic in $b$ with period $q$ (for $b$ such that
+$g_\ast\notin\Lambda_b+\frac h2$), taking the values of the points of $-(\frac{jh}{q}+h\Z)$ nearest to $g_\ast$,
+$j=0,\dots,q-1$; it does not converge if $q\ge2$, and if $q=1$ and $g_\ast\notin\frac h2+h\Z$ it converges to $h\operatorname{round}(g_\ast/h)$ (the tie case $q=1$, $g_\ast\in\frac h2+h\Z$ is not decided by the first-order expansion);
+\item if $\zeta\in h\Z$ and $|\kappa_3|<3\sigma^2h$, then $G_b^\st=\{0\}$ for all large $b$: sign descent is exactly
+unbiased although $g_\ast\ne0$ when $\kappa_3\ne0$.
+\end{enumerate}
+In all lattice cases $b\,G_b^\st\not\to g_\ast$ unless $g_\ast\in h\Z$ and $a\in h\Z$.
+\end{theorem}
+\begin{proof}
+(a) Esseen's theorem for non-lattice laws: $\Prob(S_b\le x\sigma\sqrt b)=\Phi(x)+\frac{\kappa_3}{6\sigma^3\sqrt b}(1-x^2)\varphi(x)+o(b^{-1/2})$
+uniformly in $x$ \cite{esseen,gk}; at $x=m/(\sigma\sqrt b)$ with $m$ bounded this is
+$\frac12+\frac{\varphi(0)}{\sigma\sqrt b}(m+g_\ast)+o(b^{-1/2})$, and likewise for $\Prob(S_b<\cdot)$, so every median $m_b$
+of $S_b$ satisfies $m_b+g_\ast\to0$ (medians are $O(1)$ by the same expansion). (b) Esseen's expansion for lattice
+laws \cite[\S43]{gk} reads, uniformly in $x$,
+\[
+\Prob(S_b\le x\sigma\sqrt b)=\Phi(x)+\frac{\kappa_3(1-x^2)}{6\sigma^3\sqrt b}\varphi(x)+\frac h{\sigma\sqrt b}\,
+S_1\Big(\frac{x\sigma\sqrt b-ba}{h}\Big)\varphi(x)+o(b^{-1/2}),\qquad S_1(y)=\lfloor y\rfloor-y+\tfrac12 .
+\]
+At a lattice point $m\in ba+h\Z$, $S_1=\frac12$, and just before the next one $S_1\to-\frac12$. Hence for bounded
+$m\in ba+h\Z$,
+$\Prob(S_b\le m)=\frac12+\frac{\varphi(0)}{\sigma\sqrt b}(m+g_\ast+\frac h2)+o(b^{-1/2})$ and
+$\Prob(S_b<m)=\Prob(S_b\le m-h)=\frac12+\frac{\varphi(0)}{\sigma\sqrt b}(m+g_\ast-\frac h2)+o(b^{-1/2})$. A lattice point
+$m$ is a median iff $\Prob(S_b<m)\le\frac12\le\Prob(S_b\le m)$; a non-lattice point is a median only between two
+lattice medians. So for large $b$ every median lies in $[-g_\ast-\frac h2-\delta,-g_\ast+\frac h2+\delta]$, and a lattice
+point with $|m+g_\ast|\le\frac h2-\delta$ has $\Prob(S_b<m)<\frac12<\Prob(S_b\le m)$ and is the unique median. (i) is
+Weyl's equidistribution of $ba/h$ modulo $1$; (ii) and (iii) are immediate ($\Lambda_b$ depends on $b$ modulo $q$; in (iii)
+$a=0$, $|g_\ast|<h/2$).
+\end{proof}
+
+\begin{remark}\label{rem:sign}
+The ingredients are classical: the expansions are Esseen's \cite{esseen}; that the sign of mean minus median of a
+lattice sum depends on $\mu_3$ and on $b$ modulo the span is proved with explicit bounds in \cite{bggh}; medians of
+binomials are in \cite{kaas,hamza}. We have not found the statement ``nearest point of the shifted lattice to the
+Cornish--Fisher value'' nor its reading for sign descent, and claim only that formulation. A finite set of
+$n\ge3$ generic reals is non-lattice, so (a) applies to generic data, but with no rate: $o(1/b)$ can be arbitrarily
+slow for Liouville-type supports, whereas Theorem~\ref{thm:codim} has a universal rate. For $n=2$ atoms, or integer or
+quantized data, (b) applies. Example ($\zeta\in\{-1,2\}$ with probabilities $\frac23,\frac13$; $h=3$, $a=-1$,
+$g_\ast=\frac16$): $b\,G_b^\st=0,1,-1$ for $b\equiv0,1,2$ modulo $3$, for every $b$ computed up to $3002$
+(Section~\ref{sec:num}).
+\end{remark}
+
+\section{Square matrices: a curved singular set of codimension one}\label{sec:square}
+
+For $K=d$ the polar factor jumps across the hypersurface $V=\{\det=0\}$, exactly as the sign jumps across a
+hyperplane, and Proposition~\ref{prop:field} gives nothing. But $V$ is curved: at a point of rank $K-1$ with singular
+values $\sigma_1\ge\dots\ge\sigma_{K-1}>0$ its second fundamental form has the $2(K-1)$ nonzero principal curvatures
+$\pm1/\sigma_i$ (the differential of the unit normal $n=u_Kv_K^\top$ exchanges the components $u_iv_K^\top$ and
+$u_Kv_i^\top$ with the factor $-1/\sigma_i$). A lattice cannot put a mass of order $\ew$ on a neighbourhood of width
+$o(\ew)$ of a curved hypersurface. We prove this for $K=d=2$, where the geometry is explicit.
+
+\paragraph{The $2\times2$ nuclear norm.} For $M=\begin{psmallmatrix}p&q\\r&s\end{psmallmatrix}$ let
+$y_+=\frac1{\sqrt2}(p+s,\,q-r)$, $y_-=\frac1{\sqrt2}(p-s,\,q+r)$; $M\mapsto(y_+,y_-)$ is an isometry
+$E\to\R^2\times\R^2$, $\det M=\frac12(|y_+|^2-|y_-|^2)$, and
+\begin{align*}
+\nnuc M&=\sqrt{\nF M^2+2|\det M|}=\sqrt2\max(|y_+|,|y_-|),\\
+\polar(M)&=\sqrt2\,\Big(\frac{y_+}{|y_+|},0\Big)\ \text{ if }|y_+|>|y_-|,\qquad\polar(M)=\sqrt2\,\Big(0,\frac{y_-}{|y_-|}\Big)\ \text{ if }|y_-|>|y_+|.
+\end{align*}
+So a Muon-type step on a $2\times2$ matrix normalizes the larger of the conformal and anticonformal parts of the
+gradient; $V=\{|y_+|=|y_-|\}$ is the cone over a Clifford torus, smooth away from $0$; and the rotations
+$\mathcal R^\pm_\theta$ of $y_\pm$ alone are isometries of $E$ preserving $\nu$, $V$, $|y|$ and $\det$.
+
+\begin{lemma}[Fourier decay on the unit shell]\label{lem:decay}
+Let $K=d=2$, $\chi\in C_c^\infty(\{\frac18<|y|<8\})$ radial, $F=\polar\cdot\chi$, and for $0<r\le\frac1{256}$ let
+$g_r=\Theta(2\det/r)\,\chi$ with $\Theta\in C_c^\infty(-2,2)$, $0\le\Theta\le1$, $\Theta=1$ on $[-1,1]$. Then for all $t\in E$
+\[
+|\widehat F(t)|\le C(1+|t|)^{-3/2},\qquad|\widehat{g_r}(t)|\le C\,r\,(1+|t|)^{-1/2},\qquad\|g_r\|_{L^1}\le Cr .
+\]
+\end{lemma}
+\begin{proof}
+Write $t=(t_+,t_-)$ and choose the sign $\pm$ with $|t_\pm|\ge|t|/\sqrt2$. \emph{$g_r$:} it is invariant under
+$\mathcal R^\pm_\theta$, so averaging over $\theta$,
+$|\widehat{g_r}(t)|\le\int g_r(y)\,|J_0(|t_\pm||y_\pm|)|\,dy$ with $J_0$ the Bessel function; on the support of $g_r$,
+$|y_\pm|^2=\frac12(|y|^2\pm2\det y)\ge\frac1{256}$, $|J_0(u)|\le\min(1,Cu^{-1/2})$, and $\int g_r\le\vol(\{|2\det|\le2r\}\cap\{\frac18<|y|<8\})\le Cr$
+by the coarea formula ($|\nabla(2\det)|=2|y|\ge\frac14$). \emph{$F$:} on each of $\Omega_\pm=\{\pm\det>0\}$, $F$ is smooth with
+bounded derivatives up to the boundary (on the shell). Let $\hat t=t/|t|$ and $n$ the unit normal to $V$ pointing into
+$\Omega_+$. Applying the divergence theorem twice in the constant direction $\hat t$ on $\Omega_+$ and $\Omega_-$,
+\[
+\widehat F(t)=-\frac i{|t|}\int_V[F]\inner{\hat t}{n}e^{-i\inner ty}dS(y)-\frac1{|t|^2}\Big(\int_V[\partial_{\hat t}F]\inner{\hat t}ne^{-i\inner ty}dS
++\int_{E\setminus V}\partial^2_{\hat t}F\,e^{-i\inner ty}dy\Big),
+\]
+where $[\cdot]$ is the jump across $V$; the bracket is bounded. In the first integral, $V\cap\{\frac18<|y|<8\}$ and $dS$
+are invariant under $\mathcal R^\pm_\theta$, so it equals
+$\int_V\frac1{2\pi}\int_0^{2\pi}a(\mathcal R^\pm_\theta y)e^{-i\inner t{\mathcal R^\pm_\theta y}}d\theta\,dS(y)$ with
+$a=[F]\inner{\hat t}n$ smooth, $|a|+|\partial_\theta a|\le C$, and
+$\inner t{\mathcal R^\pm_\theta y}=\mathrm{const}+|t_\pm||y_\pm|\cos(\theta-\theta_0)$ with $|y_\pm|=|y|/\sqrt2\ge\frac1{8\sqrt2}$ on $V$.
+By van der Corput's lemma \cite[Ch.~VIII, \S1.2]{stein} (second-derivative test where $|\cos|\ge2^{-1/2}$, first-derivative
+test on the four remaining arcs) the inner integral is at most $C|t|^{-1/2}$.
+\end{proof}
+
+\begin{proposition}[mean field, $2\times2$]\label{prop:field2}
+Under Assumption~\ref{ass:B} with $K=d=2$, for $\ew\le\varepsilon_0$,
+$\sup_{|x|\le1}|\E\polar(x+X_w)-\int\polar(x+y)\psi_w(y)dy|\le C\,\ew^{8/7}\Lw^2$.
+\end{proposition}
+\begin{proof}
+Here $N=4$. Fix a radial dyadic partition of unity $\sum_{j\in\Z}\chi(\cdot/2^j)=1$ on $E\setminus\{0\}$,
+$\chi\in C_c^\infty(\{\frac12<|y|<2\})$, and let $F^\mu=\polar\cdot\chi(\cdot/\mu)=F(\cdot/\mu)$ for $\mu=2^j$ (homogeneity),
+so $\widehat{F^\mu}(t)=\mu^4\widehat F(\mu t)$. Fix $\delta=\ew^{8/7}$ and a mollifier $\eta_\delta=\delta^{-4}\eta(\cdot/\delta)$,
+$\eta\in C_c^\infty(B(0,1))$, $|\widehat\eta(s)|\le C_n(1+|s|)^{-n}$. \emph{One shell,} $\ew^{1/2}\le\mu\le R$.
+By \eqref{eq:sob} and Lemma~\ref{lem:decay}, the smoothed function $F^\mu*\eta_\delta$ has error at most
+\[
+C\ew^3\mu^4+C\sum_{j\ne0}\mu^4\Big(\frac{\mu|j|}{\ew}\Big)^{-3/2}\Big(1+\frac{\delta|j|}{\ew}\Big)^{-n}
+\le C\mu^4\ew^3+C\mu^{5/2}\ew^{3/2}\Big(\frac{\ew}\delta\Big)^{5/2}.
+\]
+Since $F^\mu$ is Lipschitz with constant $C/\mu$ off $V$ and $|\nabla(2\det)|\le4\mu$ on the shell,
+$|F^\mu-F^\mu*\eta_\delta|\le C\frac\delta\mu\mathbf 1_{\{\mu/4<|z|<4\mu\}}+C\,\mathbf 1\{|2\det z|\le9\mu\delta,\ \mu/4<|z|<4\mu\}$.
+The last indicator is at most $(g^\mu*\eta_{\delta'})(z)$ where $g^\mu=g_r(\cdot/\mu)$ is built as in
+Lemma~\ref{lem:decay} with $r=16\delta/\mu\le\frac1{256}$, a radial cut-off equal to $1$ on $\{\frac15<|y|<5\}$, and
+$\delta'=\mu r/20$ (on $B(z,\delta')$ the function $2\det/\mu^2$ varies by less than $\frac7{16}r$, so
+$\Theta(2\det/(\mu^2r))=1$ there). By \eqref{eq:sob} and Lemma~\ref{lem:decay} again,
+\[
+\E(g^\mu*\eta_{\delta'})(x+X_w)\le C\mu^4r+C\ew^3\mu^4r+C\sum_{j\ne0}\mu^4r\Big(\frac{\mu|j|}{\ew}\Big)^{-1/2}\Big(1+\frac{\delta'|j|}\ew\Big)^{-n}
+\le C\mu^3\delta+C\mu^{5/2}\ew^{3/2}\Big(\frac\ew\delta\Big)^{5/2},
+\]
+and the same bound holds for the integrals against $|\psi_w|$. The Lipschitz part contributes $C\frac\delta\mu\Prob(|x+X_w|<4\mu)\le C\mu^3\delta$ (Lemma~\ref{lem:ball}(i)). Altogether the
+shell $\mu$ contributes at most
+$C(\mu^4\ew^3+\mu^3\delta+\mu^{5/2}\ew^{3/2}(\ew/\delta)^{5/2})\le C(\mu^{5/2}+\mu^4)\ew^{8/7}$, uniformly in $x$.
+\emph{Assembling.} With $R=2+M\sqrt{6N\Lw}$ as before, shells with $2^j>2R$ lie in $\{|z|>R\}$ and contribute $C\ew^3$ in total on both sides;
+shells with $2^j<\ew^{1/2}$ lie in $B(0,2\ew^{1/2})$, of probability at most $C\ew^{2}$ (Lemma~\ref{lem:ball}(i)) and of
+$|\psi_w|$-mass at most $C\ew^2$; the remaining $O(\Lw)$ shells sum to $CR^4\ew^{8/7}\le C\Lw^2\ew^{8/7}$.
+\end{proof}
+
+\begin{theorem}[the bias law for $2\times2$ polar steps and arbitrary bounded noise]\label{thm:square}
+Under Assumption~\ref{ass:B} with $K=d=2$ and the spectral geometry, for every weight sequence with $\ew\le\varepsilon_0$,
+\[
+\arg\min\psi_{\xi_w}\subset B\Big(\frac{\rho_3}{\rho_2}g_\ast,\ C\sqrt{\rho_2}\,\ew^{8/7}\Lw^2\Big);\qquad\text{in particular}\quad
+\Med_\ast(\xi_b)=-\frac{g_\ast}b+O\Big(\frac{\log^2b}{b^{15/14}}\Big)
+\]
+for every bounded law with nondegenerate covariance, lattice laws included; and
+$\Med_\ast(N_\beta)=-\frac{g_\ast}{b_{\mathrm{eff}}}(1+o(1))$ as $(1-\beta^2)/b\to0$.
+\end{theorem}
+\begin{proof}
+As for Theorem~\ref{thm:codim}, with Proposition~\ref{prop:field2}: for $|x|\le C\ew$,
+$\E\polar(x+X_w)=J_\Sigma(x-\varepsilon_3g_\ast)+O(\ew^{8/7}\Lw^2)$, and the convexity argument applies verbatim.
+\end{proof}
+
+\begin{remark}[the separation]\label{rem:sep}
+Take i.i.d.\ entries $\zeta_{ij}\in\{-1,2\}$ with probabilities $\frac23,\frac13$. For sign descent,
+$b\,G^\st_b\in\{0,1,-1\}$ entrywise for ever (Theorem~\ref{thm:sign}); for polar steps on the same noise,
+$b\,G_b^\st\to g_\ast$ when $K\ne d$ or $K=d=2$ (Theorems~\ref{thm:codim} and~\ref{thm:square}; for $K=d\ge3$ this is Conjecture~\ref{conj:square}). Orthogonalization removes at leading order a
+discreteness effect that persists in sign descent. The rate in Theorem~\ref{thm:square} is not sharp: the exponent
+$\frac87$ uses one curved direction ($|t|^{-1/2}$) out of two, and exact computations (Section~\ref{sec:num}) are
+compatible with a relative error of order $b^{-1/2}$ up to logarithms; the mass that an integer lattice puts on $V$ is
+of order $b^{-1}\log b$ by the count of singular integer matrices \cite{katznelson} (heuristic).
+\end{remark}
+
+\begin{conjecture}[all square sizes]\label{conj:square}
+For $K=d\ge3$, the spectral geometry and Assumption~\ref{ass:B}, $\Med_\ast(\xi_b)=-g_\ast/b+o(1/b)$.
+\end{conjecture}
+\noindent\emph{What is proved towards it, and what is missing.} The scheme of Proposition~\ref{prop:field2} needs, on
+the unit shell, $|\widehat{\polar\chi}(t)|\le C|t|^{-1-\kappa}$ and $|\widehat{g_r}(t)|\le Cr|t|^{-\kappa}$ for some
+$\kappa>0$. We have: the bounds $|D^k\polar(M)|\le C_k\sigma_{K-1}(M)^{-k}$ off $V$ for square $M$ (vertical-line
+resolvent formula for the spectral projectors of the Hermitian dilation); integrability of $\sigma_{K-1}^{-2}$ on $E$
+and of $\sigma_{K-1}^{-1}$ on $V$ (the locus $\sigma_{K-1}=0$ has codimension $4$ in $E$); invariance of $V$, $dS$,
+$\det$ under the rotations $e^{\theta G}$ of two rows or two columns, along which the phase is
+$\mathrm{const}+\varrho\cos(\theta-\theta_0)$ with $\varrho\ge|\inner{G^\top t}{y}|$, so that the orbit integral is a
+Bessel-type average. What remains is a uniform sublevel estimate for the linear forms $y\mapsto\inner\tau y$ on thin
+neighbourhoods of $V$, linear in the thickness, and the bookkeeping near the stratum $\sigma_{K-1}=0$, which is not a
+point when $K\ge3$. See the research log.
+
+\section{Sharpness: the lattice term of order $b^{-3/2}$}\label{sec:sharp}
+
+The remainder of Theorem~\ref{thm:codim} for $c=2$ appears to be attained by lattice laws, with an explicit coefficient (formal derivation, numerical confirmation).
+
+\begin{proposition}[formal; confirmed numerically]\label{prop:lattice2}
+Let $E=\R^2$ with the Euclidean geometry, and let $\zeta$ be supported on $a+\mathcal L$ for a lattice $\mathcal L$ of
+covolume $|\mathcal L|$, with $\mathcal L$ generated by the support of $\zeta-\zeta'$. Let $\Lambda_b=ba+\mathcal L$ and
+\[
+\mathfrak E_\Lambda(m)=\lim_{\tau\to\infty}\Big[|\mathcal L|\sum_{\ell\in\Lambda}\frac{m+\ell}{|m+\ell|}e^{-\inner\ell{\Sigma^{-1}\ell}/2\tau^2}
+-\int_{\R^2}\frac{m+y}{|m+y|}e^{-\inner y{\Sigma^{-1}y}/2\tau^2}dy\Big].
+\]
+Then $b\,G_b^\st=g_\ast-\dfrac{1}{\sqrt b}\,\dfrac{J_\Sigma^{-1}\mathfrak E_{\Lambda_b}(g_\ast)}{2\pi\sqrt{\det\Sigma}}+o(b^{-1/2})$:
+the second-order term is of exact order $b^{-3/2}$ in $G^\st_b$ and depends on $b$ only through the coset $\Lambda_b$.
+\end{proposition}
+\noindent\emph{Derivation.} In the scale of sums, $\E\,o(m+S_b)=\sum_{\ell\in\Lambda_b}o(m+\ell)\Prob(S_b=\ell)$ and the local
+limit theorem gives $\Prob(S_b=\ell)=|\mathcal L|\varphi_{b\Sigma}(\ell)(1+b^{-1/2}P_1+\dots)$; the lattice sum of the
+degree-$0$ kernel differs from its integral by $\varphi_{b\Sigma}(0)\mathfrak E_{\Lambda_b}(m)$ (take $\tau^2=b$) up to smaller
+terms, the integral is $b^{-1/2}J_\Sigma(m-g_\ast)+O(b^{-3/2})$, and $\varphi_{b\Sigma}(0)=(2\pi b\sqrt{\det\Sigma})^{-1}$.
+A proof would require the lattice local expansion with a remainder summable against a non-integrable kernel; we have
+not written it. \emph{Check} (i.i.d.\ coordinates in $\{-1,2\}$, $\mathcal L=3\Z^2$, $\Sigma=2I$, $g_\ast=\frac18(1,1)$,
+$J_\Sigma=\frac{\sqrt\pi}4I$, so the coefficient is $\pi^{-3/2}\mathfrak E_{\Lambda_b}(g_\ast)$): the predicted limits of $\sqrt b\,(b\,G^\st_b-g_\ast)_1$ are $-1.012$, $+0.3326$,
+$-0.1775$ for $b\equiv0,1,2$ modulo $3$; the exact values are $-1.045$ ($b=1026$), $+0.3367$ ($b=4096$), $-0.1791$
+($b=2048$), within $1$--$3\%$ of the prediction and approaching it as $b$ grows (Table~\ref{tab:exact}; an independent exact run gives $-1.020$ at $b=16386$ for the first class).
+
+\section{The sign of $a_1$: a concavity of Wishart moment ratios}\label{sec:a1}
+
+Recall from \PB\ (Theorem~6): for $\Sigma=\sigma^2I$ and the spectral geometry,
+$G^\st_b=\frac{1}{6\sigma^2b}(a_1\cA+a_2\cB)+o(1/b)$, $\cA=\E[\zeta\nF\zeta^2]$, $\cB=\E[\zeta\zeta^\top\zeta]$,
+$a_1=3[(K-1)(d-1)-2(K+d+1)q_{K,d}]/D_{K,d}$, with $q_{K,d}=\E\sum_{i\ne j}\frac{s_is_j}{s_i+s_j}/\E\sum_is_i$ for the
+singular values of a standard Gaussian $K\times d$ matrix $Z$. \PB\ proves $a_2>0$ and observes $a_1<0$ on fifteen
+sizes. Let $W=ZZ^\top$, $D_p=\E\tr W^{p/2}=\E\sum_is_i^p$, and $r(p)=D_{p+2}/D_p$.
+
+\begin{theorem}[$a_1<0$]\label{thm:a1}
+For all $K,d\ge2$: $q_{K,d}>\dfrac{(K-1)(d-1)}{2(K+d+1)}$, i.e.\ $a_1<0<a_2$. Equivalently:
+\begin{enumerate}[label=(\roman*),itemsep=0pt,topsep=2pt]
+\item $2\,r(1)+r(4)<3\,r(2)$: the moment ratio $r$ is strictly ``concave'' at the points $1,2,4$;
+\item $\E\sum_j s_j^pA_j/\E\sum_js_j^p$, with $A_j=\sum_{i\ne j}s_i^2$, is strictly ``convex'' in $p$ at $p=1,2,4$;
+\item for the size-biased mean spectral measure $\nu(dx)\propto x\,\E\sum_i\delta_{s_i^2}(dx)$, of mean $m=K+d+1$ and
+variance $v=Kd+K+d+3$: $\ \E_\nu[x^{1/2}]/\E_\nu[x^{-1/2}]<m-\frac v{2m}$.
+\end{enumerate}
+For $K=1$ ($\nu$ a $\chi^2_{d+2}$ law, $r(p)=p+d$ affine) all three hold with equality, and (iii) holds with equality
+for every Gamma law. For $K\ge9$, and for $(K,d)$ with $K\in\{3,\dots,8\}$ and $d\ge22,17,14,12,11,9$ respectively
+($K\le d$), one has the quantitative bound
+$\big(K+d-\frac{(K-1)(d-1)}{2(K+d+1)}\big)D_1-D_3\ge Kd\,\mathrm{NUM}(K,d)/\big(256(K+d+1)^{13/2}\big)$ with the explicit
+polynomial $\mathrm{NUM}$ of \eqref{eq:num}.
+\end{theorem}
+\begin{proof}
+\emph{Equivalences.} By the Stein identity $D_3=(K+d-q)D_1$ (\PB, proof of Theorem~6), the claim is
+$D_3<c^\ast D_1$ with $c^\ast=K+d-\frac{(K-1)(d-1)}{2m}$. Since $\E[\tr W\cdot\sum_js_j^p]=(Kd+p)D_p$ (differentiate the
+Gaussian integral along dilations), $\E\sum_js_j^pA_j/D_p=Kd+p-r(p)$; and $r(2)=m$,
+$r(4)=\E\tr W^3/\E\tr W^2=(K^2+d^2+3Kd+3K+3d+4)/m$, so $3r(2)-r(4)=2c^\ast$: this is (i) and (ii). (iii):
+$\E_\nu[x^{\pm1/2}]=D_{2\pm1}/(Kd)$, $\E_\nu x=m$, $\E_\nu x^2=\E\tr W^3/(Kd)$, and $m-\frac v{2m}=c^\ast$. For a Gamma law
+of shape $\alpha$ and scale $\theta$ both sides of (iii) equal $\theta(\alpha-\frac12)$.
+
+\emph{$K=2$.} The density of $(s_1>s_2)$ is proportional to $(s_1^2-s_2^2)(s_1s_2)^{d-2}e^{-(s_1^2+s_2^2)/2}$. With
+$s_1+s_2=\rho\cos\frac\phi2$, $s_1-s_2=\rho\sin\frac\phi2$, $\phi\in(0,\frac\pi2)$, the variables $\rho$ and
+$\gamma=\cos\phi$ are independent, $\gamma$ has density $(d-1)\gamma^{d-2}$ on $(0,1)$,
+$\sum s_i=\rho\sqrt{(1+\gamma)/2}$ and $\frac{2s_1s_2}{s_1+s_2}=\rho\gamma/\sqrt{2(1+\gamma)}$. Hence
+$q_{2,d}=\E[\gamma(1+\gamma)^{-1/2}]/\E[(1+\gamma)^{1/2}]$ (for $d=2$: $q_{2,2}=(3\sqrt2-2)/7$), and with $n=d-2$ the claim
+is $\mathcal F=\int_0^1\gamma^n\big((n+9)\gamma-(n+1)\big)(1+\gamma)^{-1/2}d\gamma>0$. Integrating by parts,
+$(n+1)\int_0^1\gamma^n(1+\gamma)^{-1/2}=2^{-1/2}+\frac12\int_0^1\gamma^{n+1}(1+\gamma)^{-3/2}$, so
+$\mathcal F\ge(n+\frac{17}2)\int_0^1\gamma^{n+1}(1+\gamma)^{-1/2}d\gamma-2^{-1/2}\ge2^{-1/2}\big(\frac{n+17/2}{n+2}-1\big)>0$.
+
+\emph{$K\ge3$.} By (iii) the claim is $\E_\nu[g]>0$ for $g(x)=(c^\ast-x)x^{-1/2}$. For $n\ge1$, $g^{(n)}$ has the sign
+$(-1)^n$ on $(0,\infty)$; so (1)~the Taylor polynomial $T_5$ of $g$ at $m$ satisfies $g\ge T_5$, and (2)~the Hermite
+interpolant $H$ of $g$ at four nodes (values and first derivatives) satisfies $g\ge H$. Both $\E_\nu T_5$ and $\E_\nu H$
+are linear in the moments $\E_\nu x^j=\E\tr W^{j+1}/(Kd)$, $j\le7$, and $\E\tr W^k$ is a polynomial in $(K,d)$ computed by
+Wick's formula (sum over the $(2k-1)!!$ pairings of $K^{\#\text{row classes}}d^{\#\text{column classes}}$). Step~1:
+\begin{equation}\label{eq:num}
+\begin{aligned}
+\sqrt m\,\E_\nu T_5&=\mathrm{NUM}(K,d)/(256\,m^6),\\
+\mathrm{NUM}&=K^5(112d^2+112d-224)+K^4(266d^3-221d^2-3854d-3751)\\
+&+K^3(266d^4-358d^3-10520d^2-33316d-36712)\\
+&+K^2(112d^5-221d^4-10520d^3-52379d^2-118790d-96410)\\
+&+K(112d^5-3854d^4-33316d^3-118790d^2-166352d-64872)\\
+&-224d^5-3751d^4-36712d^3-96410d^2-64872d+16497,
+\end{aligned}
+\end{equation}
+and $\mathrm{NUM}(9+\alpha,9+\alpha+\beta)$, $\mathrm{NUM}(3,22+\beta)$, $\mathrm{NUM}(4,17+\beta)$, $\mathrm{NUM}(5,14+\beta)$,
+$\mathrm{NUM}(6,12+\beta)$, $\mathrm{NUM}(7,11+\beta)$, $\mathrm{NUM}(8,9+\beta)$ are polynomials in $\alpha,\beta$ with
+positive coefficients. Step~2: for the $52$ remaining pairs $3\le K\le d$ ($K=3$, $d\le21$; $K=4$, $d\le16$; $K=5$,
+$d\le13$; $K=6$, $d\le11$; $K=7$, $d\le10$; $(8,8)$), nodes $x_i=t_i^2$ with rational $t_i$ (so that $g(x_i),g'(x_i)$
+are rational) give exact rational values $\E_\nu H>0$, the smallest being $0.0323$ at $(3,21)$. Both steps are exact
+integer computations (\texttt{note2/a1/final\_checks.py}, \texttt{finite.py}); the moment polynomials, the identity
+\eqref{eq:num} and the positivity of the coefficients were recomputed independently
+(\texttt{note2/checks/v01\_wick\_moments.py}, \texttt{v02\_a1\_proof.py}).
+\end{proof}
+
+\begin{remark}[what the proof reveals]\label{rem:a1}
+(i) The inequality is a third-order statement: by the delta method both sides of (iii) agree to second order in the
+dispersion of $\nu$, which is why H\"older and Jensen bounds fail (they give only $D_3/D_1\le K+d+1$), and why low-order
+moment certificates fail (the Gauss bound from $\E\tr W^k$, $k\le4$, is negative for all sizes tested with $K\le12$).
+(ii) The sign of $a_1$ is therefore the sign of the deviation of the Wishart spectrum from a Gamma law, measured by the
+second difference of $r$. (iii) $r$ is \emph{not} concave on $(0,\infty)$, granted the limit $r(p)-p\to K+d-1$ as $p\to\infty$ (Laplace asymptotics from the tail $x^{(K+d-3)/2}e^{-x/2}$ of the largest eigenvalue; checked numerically, not proved here):
+indeed $r(4)-4=K+d-1+\frac{(K-1)(d-1)}{K+d+1}$ exceeds this limit, and a concave function with an affine
+asymptote lies below it. Numerically $r$ is concave on $[0,4]$ for the $74$ sizes tested (conjecture). (iv) Consequence
+for the bias: in $G^\st_b=\frac1{6\sigma^2b}(a_2\cB-|a_1|\cA)$ the norm--direction moment $\cA=\E[\zeta\nF\zeta^2]$, which
+drives the bias of normalized steps, always enters \emph{negatively}: when $\cA$ and $\cB$ are aligned (i.i.d.\ entries:
+$\cA=\cB$) orthogonalization partially cancels the bias that Frobenius normalization would have. (v) Numerically
+$d\,(\frac{K-1}2-q_{K,d})$ decreases in $d$ to $\frac{(K-1)(K+2)}{16}$, so the bound of the theorem is not sharp in any
+regime (conjecture: $\frac{K-1}2-q_{K,d}>\frac{(K-1)(K+2)}{16d}$).
+\end{remark}
+
+\section{Exact computations}\label{sec:num}
+
+For entries i.i.d.\ in $\{-1,2\}$ with probabilities $\frac23,\frac13$ ($\sigma^2=2$, $\kappa_3=2$), each entry of
+$S_b$ is $-b+3\operatorname{Bin}(b,\frac13)$, on the lattice $-b+3\Z$: $\E\,o(m\ones\ones^\top+S_b)$ is a finite sum,
+evaluated exactly (binomial weights, truncation beyond $4.4$ to $12$ standard deviations), and the minimizer
+$m_b\ones\ones^\top=b\,G_b^\st$ is found by root-finding (\texttt{checks/e01\_exact\_lattice.py}). The continuous-law values
+are $g_\ast=\frac16$ (sign), $\frac{\kappa_3}{2\sigma^2(N+2)}$ (Euclidean), and $\frac{3(3+2q)}{(K+2)(d+2)}\frac{\kappa_3}{6\sigma^2}$
+(polar; $q_{2,2}=(3\sqrt2-2)/7$).
+
+\begin{table}[h]\centering\footnotesize
+\caption{Exact $b\,G_b^\st$ (one entry) for lattice noise; err $=b\,G_b^\st-g_\ast$. Classes are $b$ modulo $3$.}\label{tab:exact}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+geometry & $c$ & $g_\ast$ & exact behaviour & theory\\
+\midrule
+sign $1\times1$ & 1, flat & $0.1667$ & $b\,G^\st_b=0,+1,-1$ (classes $0,1,2$), all $b\le3002$ & Thm.~\ref{thm:sign}: no limit\\
+Euclid $1\times2$ & 2 & $0.1250$ & $\sqrt b\,$err $\to-1.04,+0.337,-0.179$ ($b\le4096$) & Prop.~\ref{prop:lattice2}: $-1.012,+0.333,-0.178$\\
+Euclid $1\times3$ & 3 & $0.1000$ & $b\,$err $\to-0.811,+0.230,-0.104$ ($b\le400$) & Thm.~\ref{thm:codim}: $O(b^{-1}\log^{3/2}b)$\\
+polar $2\times3$ & 2 & $0.0947$ & $b\,$err $\approx-1.03,+0.12,-0.10$ ($b\le36$) & Thm.~\ref{thm:codim}: $O(b^{-1/2}\log^3b)$\\
+polar $2\times2$ & 1, curved & $0.1138$ & $\sqrt b\,$err $=+0.177,-0.161$ ($b=514,515$); class $0$: text & Thm.~\ref{thm:square}: err $\to0$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Reading.} (1) The trichotomy of the introduction is visible: no convergence for the sign, convergence at
+rate $b^{-1/2}$ in codimension $2$ with the predicted lattice coefficients, rate $b^{-1}$ in codimension $3$. (2) For
+$2\times3$ matrices the error is of order $b^{-1}$, better than the bound: the singular set is a curved variety of
+codimension $2$, and the lattice term of Proposition~\ref{prop:lattice2}, attained when the singular set is a point,
+is averaged along it. (3) \emph{Transient locking for square matrices.} For $2\times2$ and $b\equiv0$ modulo $3$ (lattice
+through the origin), the exact minimizer is $G^\st_b=0$ for every multiple of $3$ computed up to $b=513$, then
+$b\,G_b^\st=0.031$ ($b=768$) and $0.051$ ($b=1026$), rising towards $g_\ast=0.114$. Heuristically, the integer matrices of determinant
+$0$ carry a mass of order $b^{-1}\log b$, on which $\nnuc\cdot$ has a kink; it pins the minimizer at $0$ until the drift
+of order $b^{-1/2}$ of the mean field overcomes it. The minimizer also locks at nonzero kinks: $b\,G_b^\st=\frac17$ exactly for $b=34,64$ and $\frac1{11}$ for $b=65$. So polar steps on $2\times2$ matrices inherit, transiently and at
+moderate batch sizes, the exact unbiasedness of lattice sign descent (Theorem~\ref{thm:sign}(iii)); asymptotically the
+continuous law takes over (Theorem~\ref{thm:square}). At $b=9$ the same locking is seen for $2\times3$.
+
+\section{Audit of the first note}\label{sec:audit}
+
+An independent adversarial pass over \PB\ (report: \texttt{note2/audit\_report.md}) and the present work give:
+\begin{itemize}[itemsep=1pt,topsep=2pt]
+\item \emph{Edgeworth theorem.} Theorem~20.1 of \cite{br} could again not be read in the original; Theorem~20.8 (strongly
+non-lattice laws, three moments, remainder $o(n^{-1/2})$ with the same oscillation term) was verified through a verbatim
+quotation \cite{honda}. For bounded noise and $c\ge2$ or $K=d=2$, the present note removes the dependence on \cite{br}.
+\item \emph{Theorem~6 (two-moment theorem).} The exact lattice computations are a new independent test: they converge
+to the value $\frac{3(3+2q_{2,2})}{16}\frac{\kappa_3}{6\sigma^2}$ with $q_{2,2}=(3\sqrt2-2)/7$ in closed form (\PB\ had the
+Monte-Carlo value $0.32041$; the exact value is $0.320377$).
+\item \emph{Theorem~15.} Dependence structure, summability ($\theta>\frac12$) and identification of the limit are
+correct; three sentences should be added (boundedness of the transient term, passage from the $L^2$ bound on the
+supremum to almost sure convergence, uniformity in $G$ of a continuity estimate). Remark~17(i) needs a small-ball
+assumption on $\xi_b$ that Assumption~N does not imply.
+\item \emph{Theorem~16} follows from Theorem~4 by regrouping (Remark~\ref{rem:pb}(iii)); the fourth moment is superfluous.
+\item \emph{Corollaries~8--10 and Proposition~13} omit to restate standing hypotheses ($K,d\ge2$, Assumption~N,
+Assumption~O); in Proposition~13 the least-squares noise must be viewed in $\R^d\times\mathrm{Sym}(d)$ to have a
+nondegenerate covariance. The lower bound $\theta(\gamma)\ge\frac{12}5$ of the abstract rests on a monotonicity that is
+only numerical. No counterexample to any statement was found.
+\end{itemize}
+
+\section{Originality assessment, limits, open problems}\label{sec:ledger}
+
+\paragraph{Closest results found} (search of 25 November 2026; sources and access levels are in the report
+\texttt{literature\_report2.md}).
+\emph{Expansions without Cram\'er:} G\"otze--Hipp \cite{gh} (smooth functions, moment conditions; primary text not
+accessed); Breuillard \cite{breuillard} and Fernando--Liverani \cite{fl} (Diophantine laws, test functions in
+$L^1$-Sobolev norms, dimension one in the statements we could read); Angst--Poly \cite{angstpoly}, Song \cite{song},
+Dolgopyat--Fernando \cite{df} (weak Cram\'er conditions; all exclude lattice laws). \emph{Lattice laws and curved sets:}
+Esseen \cite{esseen} (balls, $O(n^{-N/(N+1)})$) and the G\"otze school for ellipsoids: the principle that curvature
+rescues lattice laws is classical for convex bodies. \emph{Medians:} \cite{bggh,kaas,hamza} in dimension one;
+Schwank--Drton \cite{schwank} for the geometric median as the \emph{dimension} grows. \emph{Muon:} Do--Dereich--Jentzen
+\cite{ddj} prove non-convergence of Muon on a scalar quadratic with bounded data and nonzero third moment; no matrix,
+Cornish--Fisher or lattice analysis was found. \emph{Wishart:} five-term recurrences for moments of the real ensemble
+\cite{cmos}; no convexity statement for moment ratios was found.
+
+\paragraph{What we believe is new} (a failed search is not a proof of novelty): the codimension principle
+(Theorem~\ref{thm:codim}) and its consequences for finite sums and momentum; the $2\times2$ theorem and the explicit
+block structure of the $2\times2$ nuclear norm as used here; the sign/polar separation; the lattice term of
+Proposition~\ref{prop:lattice2}; Theorem~\ref{thm:a1} and its reformulations. Lemma~\ref{lem:sobolev} is a variant of the
+G\"otze--Hipp/Breuillard technique and Theorem~\ref{thm:sign} a reformulation of Esseen's expansion.
+
+\paragraph{Not established.}
+(1) Conjecture~\ref{conj:square} ($K=d\ge3$). (2) Degenerate covariance, i.e.\ $n\le Kd$ (overparametrized layers): the
+noise lives on a proper subspace $E_\zeta$; the proofs go through if the rank-deficient variety meets the translates
+$x+E_\zeta$ in codimension $\ge2$ uniformly in small $x$ and $J$ is positive definite on $E$, which we have not
+analysed (per-sample gradients of rank one are the important case). (3) Sampling without replacement. (4) Unbounded
+noise (finite moments of high order should suffice; not written). (5) A proof of Proposition~\ref{prop:lattice2}, and
+the true order of the lattice term for $K<d$ (numerics: smaller than the bound when the singular set is curved) and for
+$K=d$. (6) Parameter-dependent noise and convergence of the actual iteration with discrete noise: Theorem~12 of \PB\
+needs its uniform-expansion assumption, which Propositions~\ref{prop:field} and~\ref{prop:field2} supply at a fixed
+point but not uniformly in $W$; and no stability or convergence theorem for the non-gradient state-dependent mean field
+was attempted. (7) Concavity of $r$ on $[0,4]$; the sharp bound of Remark~\ref{rem:a1}(v); a proof of
+Theorem~\ref{thm:a1} that is not computer-assisted. (8) Higher-order hierarchy: Theorem~\ref{thm:codim} shows that for
+$c\ge3$ the next term is $O(b^{-2})$, but we did not compute it.
+
+\begin{thebibliography}{99}\small
+\bibitem{manuscript} Project ``Accelerating Variance Reduction'', \emph{From SAGA to Muon-type steps}, manuscript
+\texttt{paper/paper\_saga\_to\_muon.tex}; first note \PB: \texttt{polar\_bias/paper/polar\_bias.tex}.
+\bibitem{br} R.~N. Bhattacharya and R.~R. Rao, \emph{Normal Approximation and Asymptotic Expansions}, Wiley 1976.
+\bibitem{esseen} C.-G. Esseen, Fourier analysis of distribution functions, \emph{Acta Math.}\ 77 (1945), 1--125.
+\bibitem{gk} B.~V. Gnedenko and A.~N. Kolmogorov, \emph{Limit Distributions for Sums of Independent Random Variables},
+Addison--Wesley 1954, \S42--43.
+\bibitem{gh} F. G\"otze and C. Hipp, Asymptotic expansions in the central limit theorem under moment conditions,
+\emph{Z. Wahrsch.\ Verw.\ Gebiete} 42 (1978), 67--87.
+\bibitem{breuillard} E. Breuillard, Distributions diophantiennes et th\'eor\`eme limite local sur $\R^d$,
+\emph{Probab.\ Theory Related Fields} 132 (2005), 39--73.
+\bibitem{fl} K. Fernando and C. Liverani, Edgeworth expansions for weakly dependent random variables,
+\emph{Ann.\ Inst.\ H. Poincar\'e Probab.\ Statist.}\ 57 (2021), 469--505.
+\bibitem{angstpoly} J. Angst and G. Poly, A weak Cram\'er condition and application to Edgeworth expansions,
+\emph{Electron.\ J. Probab.}\ 22 (2017), paper 59.
+\bibitem{song} K. Song, arXiv:1806.01431.
+\bibitem{df} D. Dolgopyat and K. Fernando, An error term in the central limit theorem for sums of discrete random
+variables, \emph{Int.\ Math.\ Res.\ Not.}\ 2023, arXiv:2303.10235.
+\bibitem{honda} J. Honda, Exact asymptotics for the random coding error probability, arXiv:1506.03355 (quotes
+\cite[Theorem~20.8]{br}).
+\bibitem{bggh} J. Buhler, A. Gamst, R. Graham and A. Hales, Explicit error bounds for lattice Edgeworth expansions,
+arXiv:1710.08845.
+\bibitem{kaas} R. Kaas and J.~M. Buhrman, Mean, median and mode in binomial distributions, \emph{Statist.\ Neerlandica}
+34 (1980), 13--18.
+\bibitem{hamza} K. Hamza, The smallest uniform upper bound on the distance between the mean and the median of the
+binomial and Poisson distributions, \emph{Statist.\ Probab.\ Lett.}\ 23 (1995), 21--25.
+\bibitem{stein} E.~M. Stein, \emph{Harmonic Analysis}, Princeton 1993, Ch.~VIII.
+\bibitem{katznelson} Y.~R. Katznelson, Singular matrices and a uniform bound for congruence groups of
+$\mathrm{SL}_n(\Z)$, \emph{Duke Math.\ J.}\ 69 (1993), 121--136.
+\bibitem{schwank} R. Schwank and M. Drton, On the distance between mean and geometric median in high dimensions,
+arXiv:2508.12926.
+\bibitem{ddj} T. Do, S. Dereich and A. Jentzen, arXiv:2608.04607.
+\bibitem{cmos} F.~D. Cunden, F. Mezzadri, N. O'Connell and N. Simm, Moments of random matrices and hypergeometric
+orthogonal polynomials, \emph{Comm.\ Math.\ Phys.}\ 369 (2019), arXiv:1805.08760.
+\end{thebibliography}
+\end{document}

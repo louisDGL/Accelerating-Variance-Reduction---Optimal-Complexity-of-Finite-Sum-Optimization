@@ -1,0 +1,190 @@
+% polar_bias/master/master.tex -- master theorem document. Build: pdflatex master && bibtex master && pdflatex master (x2)
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,longtable,array}
+\usepackage{enumitem}
+\usepackage[margin=1in]{geometry}
+\usepackage{xcolor}
+\usepackage[round]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black]{hyperref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}{Assumption}
+\renewcommand{\theassumption}{\Alph{assumption}}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\input{shared/macros}
+\input{shared/statements}
+\newcommand{\status}[1]{\textsf{\small[#1]}}
+
+\title{\vspace{-2em}The bias law of norm-steepest stochastic steps\\[2pt]
+\large Master document: statements, assumptions, dependencies, proofs and verification record}
+\author{Project ``Accelerating Variance Reduction'', folder \texttt{polar\_bias/master}}
+\date{25 November 2026}
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{Purpose and conventions}
+
+This document consolidates, in one notation and with complete proofs, the mathematics of three research notes
+(\texttt{polar\_bias/paper/polar\_bias}, \texttt{polar\_bias/note2/paper/discrete\_bias}, and the note \texttt{orbital-bias}) and the
+results of the original manuscript \texttt{paper/paper\_saga\_to\_muon} that they build on. The proofs are the files
+\texttt{proofs/p\_*.tex}; the two papers in \texttt{polar\_bias/papers} input the same files, so that a statement and its proof
+exist in exactly one place. Section~\ref{sec:deps} lists every result with its hypotheses, what it depends on, and how
+it was verified; Section~\ref{sec:verif} is the verification record.
+
+\paragraph{Status tags.} \status{P} proved here in full. \status{P*} proved here, using a classical theorem that is quoted
+(named at the place of use). \status{CA} proved with a computer-assisted step in exact arithmetic. \status{F} formal
+derivation supported by exact numerics; not a theorem. \status{C} conjecture.
+
+\section{Setting}\label{sec:setting}
+
+$E$ is a Euclidean space of dimension $N$ with norm $|\cdot|$; for matrices $E=\R^{K\times d}$ with the Frobenius inner
+product, $N=Kd$. A norm $\nu$ on $E$ is fixed (the dual of the norm in which steps are measured), with a
+\emph{direction map}: a Borel map $o:E\to E$ with $o(x)\in\partial\nu(x)$, $o(tx)=o(x)$ for $t>0$, $o(-x)=-o(x)$. The
+examples are the nuclear norm with $o=\polar$ (Muon-type, orthogonalized steps; $\polar(x)=UV^\top$ for a thin singular
+value decomposition $x=U\operatorname{diag}(s)V^\top$, the partial isometry on the row space when $x$ is rank-deficient),
+the $\ell_1$ norm with $o=\operatorname{sign}$ (sign descent) and the Euclidean norm with $o(x)=x/|x|$ (normalized steps).
+For a random $\xi\in E$ with $\E\nu(\xi)<\infty$,
+\[
+\psi_\xi(G)=\E[\nu(G+\xi)-\nu(\xi)],\qquad \Med_\nu(\xi)=\arg\min_{m}\E[\nu(\xi-m)-\nu(\xi)]=-\arg\min\psi_\xi .
+\]
+$\psi_\xi$ is convex and $\psi_\xi(G)\ge\nu(G)-2\E\nu(\xi)$, so $\arg\min\psi_\xi$ is nonempty, convex and compact, and
+$\E\,o(G+\xi)\in\partial\psi_\xi(G)$. For $\Sigma\succ0$ and $Z_\Sigma\sim N(0,\Sigma)$ put $\psi_\Sigma=\psi_{Z_\Sigma}$,
+$\Phi_\Sigma=\nabla\psi_\Sigma$, and
+\[
+J_\Sigma=D\Phi_\Sigma(0)=\nabla^2\psi_\Sigma(0),\qquad T_\Sigma[K_3]=D^3\Phi_\Sigma(0)[K_3]=\nabla^4\psi_\Sigma(0)[K_3,\cdot\,],\qquad
+\gs=\gs(\Sigma,K_3)=-\tfrac16J_\Sigma^{-1}T_\Sigma[K_3]
+\]
+for a symmetric $3$-tensor $K_3$. Throughout, $\gs$ is the \emph{bias coefficient}: the claim of the first-order law is
+$\arg\min\psi_{\xi_b}=\gs/b+o(1/b)$ for the mean $\xi_b$ of $b$ samples with covariance $\Sigma$ and third cumulant $K_3$.
+
+\input{proofs/p_gauss}
+
+\section{Map of the results}\label{sec:deps}
+
+{\small
+\begin{longtable}{@{}p{0.16\textwidth}p{0.36\textwidth}p{0.24\textwidth}p{0.16\textwidth}@{}}
+\toprule
+Result & Content & Depends on & Status / source\\
+\midrule
+\endhead
+Lemma~\ref{lem:gauss} & Gaussian side: smoothness, $J_\Sigma\succ0$, parity, Hermite identity & -- & \status{P} note 1\\
+Thm.~\ref{thm:conv} & momentum iteration converges a.s.\ to $\arg\min\psi_{N_\beta}$; any norm, any $L^2$ noise & -- & \status{P} note 3\\
+Thm.~\ref{thm:cf} & first-order law under Cram\'er's condition & Lem.~\ref{lem:gauss}, \ref{lem:osc}, \ref{lem:edge}; \citet[Thm.~20.1]{br} & \status{P*} note 1\\
+Thm.~\ref{thm:beff} & linear filters: $\rho_3/\rho_2$; skewness-effective batch & Thm.~\ref{thm:cf} & \status{P*} notes 1, 2\\
+Thm.~\ref{thm:state} & parameter-dependent noise: zeros at $W_\ast+H^{-1}\gs/b$ & Lem.~\ref{lem:gauss}, uniform expansion & \status{P*} note 1\\
+Thm.~\ref{thm:two} & two-moment theorem for the nuclear norm & Lem.~\ref{lem:count}; divergence formula \citep{candes} & \status{P*} note 1\\
+Thm.~\ref{thm:a1} & $a_1<0$, i.e.\ $a_1+a_2>3/(K+d+1)$ & Thm.~\ref{thm:two}(b); exact arithmetic & \status{CA} note 2\\
+Cor.~\ref{cor:dim}--\ref{cor:compare} & dimension factor, rank-one noise, no domination & Thm.~\ref{thm:two}, \ref{thm:a1} & \status{P}\\
+\midrule
+Def.~\ref{def:class} & class $\mathcal X(\varepsilon)$ (cube expansion) & -- & new formulation\\
+Lem.~\ref{lem:test}, \ref{lem:ball} & test functions; small balls & (E1)--(E3) & \status{P} note 2\\
+Prop.~\ref{prop:sums} & weighted bounded sums are in the class, no Cram\'er & Lem.~\ref{lem:cube}, \ref{lem:near} & \status{P} note 2\\
+Prop.~\ref{prop:worclass} & samples without replacement are in the class & \citet{hoeffding} & \status{P*} note 3\\
+Thm.~\ref{thm:codim} & codimension $\ge2$: law holds, sharp rates & Prop.~\ref{prop:field}, Lem.~\ref{lem:locate} & \status{P} note 2\\
+Thm.~\ref{thm:laplace} & Fourier decay of $\Delta\nu$: law holds; all subgradients & Prop.~\ref{prop:value}, Lem.~\ref{lem:upgrade} & \status{P} note 3\\
+Lem.~\ref{lem:matrices}, \ref{lem:twobytwo} & decay for invariant norms ($k,l\ge3$) and for $2\times2$ & van der Corput \citep{stein} & \status{P*} notes 3, here\\
+Thm.~\ref{thm:nuclear} & nuclear norm, every size but $1\times1$ & Thm.~\ref{thm:codim}, \ref{thm:laplace} & \status{P*}\\
+Thm.~\ref{thm:sign} & sign descent: lattice sawtooth & Esseen \citep{esseen,gk} & \status{P*} note 2\\
+Thm.~\ref{thm:wor} & without replacement: factor $\frac{n-2b}{n-2}$ & Prop.~\ref{prop:worclass} & \status{P*} note 3\\
+Cor.~\ref{cor:mom} & batch and momentum, uniformly in $\beta$ & Thm.~\ref{thm:codim}, \ref{thm:laplace} & \status{P*}\\
+Prop.~\ref{prop:lattice2} & lattice term of order $b^{-3/2}$ & -- & \status{F} note 2\\
+\bottomrule
+\end{longtable}}
+
+\paragraph{Logical structure.} There are three layers. \emph{(1) Dynamics:} Theorem~\ref{thm:conv} reduces the question
+``where does the iteration go'' to the location of $\arg\min\psi_{N_\beta}$, a statement about a law. \emph{(2) Location:}
+$\arg\min\psi_{\xi}\approx(\rho_3/\rho_2)\gs$ for averages $\xi$ of many samples; this is proved under Cram\'er's
+condition (Theorem~\ref{thm:cf}) and, with rates and no arithmetic condition, for bounded noise by two independent
+mechanisms (Theorems~\ref{thm:codim} and~\ref{thm:laplace}), which between them cover the nuclear norm in every size
+except $1\times1$, where the law fails (Theorem~\ref{thm:sign}). \emph{(3) Evaluation:} for the nuclear norm and isotropic
+covariance $\gs$ is explicit (Theorems~\ref{thm:two} and~\ref{thm:a1}). Layers (1) and (3) are independent of each other
+and of the mechanism used in (2).
+
+\section{Dynamics: the iteration converges to a norm median}\label{sec:dyn}
+
+\begin{theorem}[convergence with momentum and arbitrary noise]\label{thm:conv}\StmtConv\end{theorem}
+\input{proofs/p_conv}
+
+\begin{remark}
+For $\beta=0$ and the nuclear norm this is Theorem~2(b) of the original manuscript (stochastic polar steps are
+stochastic mirror descent in the space of gradients), whose proof is the special case $e_t=0$, $U_g=f_g-\hbar(g)$. The
+first note proved the momentum case under a small-ball assumption on the noise, which excludes discrete noise;
+the present proof replaces the comparison of polar factors by a comparison of loss values, which is insensitive to
+atoms. The limit is random when $\arg\min\psi_{N_\beta}$ is not a point (example: $\nu=|\cdot|$ on $\R$, $\xi=\pm1$,
+$\beta=\frac13$, where the set is $[-\frac13,\frac13]$).
+\end{remark}
+
+\section{Location under Cram\'er's condition}\label{sec:cramer}
+
+\begin{assumption}[smooth noise]\label{ass:N}\StmtAssN\end{assumption}
+\begin{theorem}[first-order law]\label{thm:cf}\StmtCF\end{theorem}
+\input{proofs/p_cf}
+\begin{theorem}[linear filters and the skewness-effective batch size]\label{thm:beff}\StmtBeff\end{theorem}
+(The proof is at the end of the preceding block. It replaces the Lindeberg argument of the first note; three moments
+suffice.)
+
+\begin{theorem}[parameter-dependent noise]\label{thm:state}\StmtState\end{theorem}
+\begin{proposition}[linear noise models]\label{prop:lin}\StmtLin\end{proposition}
+\input{proofs/p_state}
+
+\section{Evaluation: the two-moment theorem}\label{sec:two}
+
+\begin{theorem}[two-moment theorem]\label{thm:two}\StmtTwo\end{theorem}
+\input{proofs/p_two}
+\begin{theorem}[sign of $a_1$]\label{thm:a1}\StmtAone\end{theorem}
+\input{proofs/p_a1}
+\begin{corollary}[exact dimension factor]\label{cor:dim}\StmtDim\end{corollary}
+\begin{corollary}[rank-one per-sample noise]\label{cor:rank1}\StmtRankOne\end{corollary}
+\begin{corollary}[what is seen, what is annihilated; no domination]\label{cor:compare}\StmtCompare\end{corollary}
+(The proofs of the three corollaries are at the end of the block following Theorem~\ref{thm:two}.)
+
+\section{Location for discrete noise}\label{sec:discrete}
+
+\begin{definition}[cube expansion]\label{def:class}\StmtClass\end{definition}
+\begin{assumption}[bounded noise, weights]\label{ass:B}\StmtAssB\end{assumption}
+\input{proofs/p_fourier}
+
+\subsection{Mechanism I: singular sets of codimension at least two}
+\begin{assumption}[singular set of codimension $c$]\label{ass:R}\StmtAssR\end{assumption}
+\begin{theorem}[codimension principle]\label{thm:codim}\StmtCodim\end{theorem}
+\input{proofs/p_codim}
+
+\subsection{Mechanism II: Fourier decay of the Laplacian of the norm}
+\begin{assumption}[decay]\label{ass:L}\StmtAssL\end{assumption}
+\begin{theorem}[curvature and symmetry]\label{thm:laplace}\StmtLaplace\end{theorem}
+\input{proofs/p_laplace}
+
+\subsection{The nuclear norm in every size; consequences}
+\begin{theorem}[orthogonalized steps and discrete noise]\label{thm:nuclear}\StmtNuclear\end{theorem}
+\begin{corollary}[batch and momentum together, uniformly in $\beta$]\label{cor:mom}\StmtMomCor\end{corollary}
+\begin{corollary}[finite sums]\label{cor:fs}\StmtFS\end{corollary}
+\input{proofs/p_nuclear}
+
+\subsection{The flat case: sign descent}
+\begin{theorem}[sign descent with discrete noise]\label{thm:sign}\StmtSign\end{theorem}
+\input{proofs/p_sign}
+
+\subsection{Sampling without replacement}
+\begin{theorem}[finite-population bias]\label{thm:wor}\StmtWor\end{theorem}
+\input{proofs/p_wor}
+
+\subsection{Sharpness}
+\begin{proposition}[formal; confirmed numerically]\label{prop:lattice2}\StmtLattice\end{proposition}
+\input{proofs/p_lattice}
+
+\input{verification}
+
+\bibliographystyle{plainnat}
+\bibliography{shared/refs}
+\end{document}

@@ -1,0 +1,215 @@
+\begin{thebibliography}{34}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Angst and Poly(2017)]{angstpoly}
+J{\"u}rgen Angst and Guillaume Poly.
+\newblock A weak {C}ram{\'e}r condition and application to {E}dgeworth
+  expansions.
+\newblock \emph{Electronic Journal of Probability}, 22:\penalty0 paper no. 59,
+  2017.
+
+\bibitem[{Anonymous}(2026)]{companionI}
+{Anonymous}.
+\newblock Where do orthogonalized stochastic steps converge? {T}he two-moment
+  law of the bias, 2026.
+\newblock Companion submission (anonymized; included in the supplementary
+  material).
+
+\bibitem[Babu and Singh(1985)]{bs}
+G.~Jogesh Babu and Kesar Singh.
+\newblock Edgeworth expansions for sampling without replacement from finite
+  populations.
+\newblock \emph{Journal of Multivariate Analysis}, 17:\penalty0 261--278, 1985.
+
+\bibitem[Balles et~al.(2020)Balles, Pedregosa, and {Le
+  Roux}]{balles2020geometry}
+Lukas Balles, Fabian Pedregosa, and Nicolas {Le Roux}.
+\newblock The geometry of sign gradient descent, 2020.
+\newblock arXiv:2002.08056.
+
+\bibitem[Bernstein and Newhouse(2024)]{bernstein2024old}
+Jeremy Bernstein and Laker Newhouse.
+\newblock Old optimizer, new norm: An anthology, 2024.
+\newblock arXiv:2409.20325.
+
+\bibitem[Bernstein et~al.(2018)Bernstein, Zhao, Azizzadenesheli, and
+  Anandkumar]{bernstein2019majority}
+Jeremy Bernstein, Jiawei Zhao, Kamyar Azizzadenesheli, and Anima Anandkumar.
+\newblock {signSGD} with majority vote is communication efficient and fault
+  tolerant, 2018.
+\newblock arXiv:1810.05291. ICLR 2019.
+
+\bibitem[Bhattacharya and Rao(1976)]{br}
+R.~N. Bhattacharya and R.~Ranga Rao.
+\newblock \emph{Normal Approximation and Asymptotic Expansions}.
+\newblock Wiley, 1976.
+\newblock Reprinted as SIAM Classics in Applied Mathematics 64, 2010.
+
+\bibitem[Breuillard(2005)]{breuillard}
+Emmanuel Breuillard.
+\newblock Distributions diophantiennes et th{\'e}or{\`e}me limite local sur
+  {$\mathbb{R}^d$}.
+\newblock \emph{Probability Theory and Related Fields}, 132:\penalty0 39--73,
+  2005.
+
+\bibitem[Buhler et~al.(2017)Buhler, Gamst, Graham, and Hales]{bggh}
+Joe Buhler, Anthony Gamst, Ron Graham, and Alfred Hales.
+\newblock Explicit error bounds for lattice {E}dgeworth expansions, 2017.
+\newblock arXiv:1710.08845.
+
+\bibitem[Cardot et~al.(2011)Cardot, C{\'e}nac, and Zitt]{cardot2013efficient}
+Herv{\'e} Cardot, Peggy C{\'e}nac, and Pierre-Andr{\'e} Zitt.
+\newblock Efficient and fast estimation of the geometric median in {Hilbert}
+  spaces with an averaged stochastic gradient algorithm, 2011.
+\newblock arXiv:1101.4316. Bernoulli 19(1):18--43, 2013.
+
+\bibitem[Carlson et~al.(2015)Carlson, Cevher, and Carin]{carlson2015stochastic}
+David Carlson, Volkan Cevher, and Lawrence Carin.
+\newblock Stochastic spectral descent for restricted {B}oltzmann machines.
+\newblock In \emph{Proceedings of the 18th International Conference on
+  Artificial Intelligence and Statistics (AISTATS)}, volume~38 of
+  \emph{Proceedings of Machine Learning Research}, pages 111--119, 2015.
+
+\bibitem[Chen et~al.(2019)Chen, Chen, Sun, Wu, and Hong]{chen2020distributed}
+Xiangyi Chen, Tiancong Chen, Haoran Sun, Zhiwei~Steven Wu, and Mingyi Hong.
+\newblock Distributed training with heterogeneous data: Bridging median- and
+  mean-based algorithms, 2019.
+\newblock arXiv:1906.01736. NeurIPS 2020.
+
+\bibitem[Chen et~al.(2026)Chen, Li, Wang, and Lu]{chen2026when}
+Xiaoran Chen, Binghui Li, Liwei Wang, and Pinyan Lu.
+\newblock When and how does {Muon} precondition? {T}he role of structured
+  gradient noise, 2026.
+\newblock arXiv:2610.31728.
+
+\bibitem[Cornish and Fisher(1938)]{cornish1938moments}
+E.~A. Cornish and R.~A. Fisher.
+\newblock Moments and cumulants in the specification of distributions.
+\newblock \emph{Revue de l'Institut International de Statistique}, 5\penalty0
+  (4):\penalty0 307--320, 1938.
+
+\bibitem[Do et~al.(2026)Do, Dereich, and Jentzen]{do2026muon}
+Thang Do, Steffen Dereich, and Arnulf Jentzen.
+\newblock On {MUON} optimization: From non-convergence to an error analysis
+  with {Polar Express} and the {Newton-Schulz} polynomial from implementations,
+  2026.
+\newblock arXiv:2608.04607.
+
+\bibitem[Dolgopyat and Fernando(2023)]{df}
+Dmitry Dolgopyat and Kasun Fernando.
+\newblock An error term in the central limit theorem for sums of discrete
+  random variables, 2023.
+\newblock arXiv:2303.10235. International Mathematics Research Notices.
+
+\bibitem[Erd{\H o}s and R{\'e}nyi(1959)]{erdosrenyi}
+Paul Erd{\H o}s and Alfr{\'e}d R{\'e}nyi.
+\newblock On the central limit theorem for samples from a finite population.
+\newblock \emph{Publications of the Mathematical Institute of the Hungarian
+  Academy of Sciences}, 4:\penalty0 49--61, 1959.
+
+\bibitem[Esseen(1945)]{esseen}
+Carl-Gustav Esseen.
+\newblock Fourier analysis of distribution functions. {A} mathematical study of
+  the {Laplace--Gaussian} law.
+\newblock \emph{Acta Mathematica}, 77:\penalty0 1--125, 1945.
+
+\bibitem[Fernando and Liverani(2021)]{fl}
+Kasun Fernando and Carlangelo Liverani.
+\newblock Edgeworth expansions for weakly dependent random variables.
+\newblock \emph{Annales de l'Institut Henri Poincar{\'e}, Probabilit{\'e}s et
+  Statistiques}, 57\penalty0 (1):\penalty0 469--505, 2021.
+
+\bibitem[Gnedenko and Kolmogorov(1954)]{gk}
+B.~V. Gnedenko and A.~N. Kolmogorov.
+\newblock \emph{Limit Distributions for Sums of Independent Random Variables}.
+\newblock Addison--Wesley, 1954.
+
+\bibitem[G{\"o}tze and Hipp(1978)]{gh}
+F.~G{\"o}tze and C.~Hipp.
+\newblock Asymptotic expansions in the central limit theorem under moment
+  conditions.
+\newblock \emph{Zeitschrift f{\"u}r Wahrscheinlichkeitstheorie und Verwandte
+  Gebiete}, 42:\penalty0 67--87, 1978.
+
+\bibitem[G{\"o}tze and Zaitsev(2014)]{gz}
+F.~G{\"o}tze and A.~Yu. Zaitsev.
+\newblock Explicit rates of approximation in the {CLT} for quadratic forms.
+\newblock \emph{The Annals of Probability}, 42:\penalty0 354--397, 2014.
+
+\bibitem[Hamza(1995)]{hamza}
+K.~Hamza.
+\newblock The smallest uniform upper bound on the distance between the mean and
+  the median of the binomial and {P}oisson distributions.
+\newblock \emph{Statistics \& Probability Letters}, 23:\penalty0 21--25, 1995.
+
+\bibitem[Hoeffding(1963)]{hoeffding}
+Wassily Hoeffding.
+\newblock Probability inequalities for sums of bounded random variables.
+\newblock \emph{Journal of the American Statistical Association}, 58:\penalty0
+  13--30, 1963.
+
+\bibitem[Jordan et~al.(2024)Jordan, Jin, Boza, You, Cesista, Newhouse, and
+  Bernstein]{jordan2024muon}
+Keller Jordan, Yuchen Jin, Vlado Boza, Jiacheng You, Franz Cesista, Laker
+  Newhouse, and Jeremy Bernstein.
+\newblock {Muon}: An optimizer for hidden layers in neural networks.
+\newblock \url{https://kellerjordan.github.io/posts/muon/}, 2024.
+
+\bibitem[Kaas and Buhrman(1980)]{kaas}
+R.~Kaas and J.~M. Buhrman.
+\newblock Mean, median and mode in binomial distributions.
+\newblock \emph{Statistica Neerlandica}, 34:\penalty0 13--18, 1980.
+
+\bibitem[Minsker(2013)]{minsker2015geometric}
+Stanislav Minsker.
+\newblock Geometric median and robust estimation in {Banach} spaces, 2013.
+\newblock arXiv:1308.1334. Bernoulli 21(4):2308--2335, 2015.
+
+\bibitem[Minsker and Strawn(2023)]{minskerstrawn}
+Stanislav Minsker and Nate Strawn.
+\newblock The geometric median and applications to robust mean estimation,
+  2023.
+\newblock arXiv:2307.03111.
+
+\bibitem[Paquette et~al.(2026)Paquette, Marshall, Benigni, Wang, Agarwala, and
+  Paquette]{paquette2026phases}
+Elliot Paquette, Noah Marshall, Lucas Benigni, Guangyuan Wang, Atish Agarwala,
+  and Courtney Paquette.
+\newblock Phases of {Muon}: When {Muon} eclipses {SignSGD}, 2026.
+\newblock arXiv:2605.09552.
+
+\bibitem[Safaryan and Richt{\'a}rik(2021)]{safaryan2021stochastic}
+Mher Safaryan and Peter Richt{\'a}rik.
+\newblock Stochastic sign descent methods: new algorithms and better theory.
+\newblock In \emph{Proceedings of the 38th International Conference on Machine
+  Learning (ICML)}, 2021.
+
+\bibitem[Schwank and Drton(2025)]{schwank}
+Richard Schwank and Mathias Drton.
+\newblock On the distance between mean and geometric median in high dimensions,
+  2025.
+\newblock arXiv:2508.12926.
+
+\bibitem[Song(2018)]{song}
+Kyungchul Song.
+\newblock A uniform-in-{$P$} {E}dgeworth expansion under weak {C}ram{\'e}r
+  conditions, 2018.
+\newblock arXiv:1806.01431.
+
+\bibitem[Stein(1993)]{stein}
+Elias~M. Stein.
+\newblock \emph{Harmonic Analysis: Real-Variable Methods, Orthogonality, and
+  Oscillatory Integrals}.
+\newblock Princeton University Press, 1993.
+
+\bibitem[Xie(2026)]{xie2026muon}
+Xiaohui Xie.
+\newblock {Muon} under gradient noise and the limits of orthogonalization near
+  optima, 2026.
+\newblock arXiv:2609.32861.
+
+\end{thebibliography}

@@ -1,0 +1,89 @@
+
+====================================================================================================
+ITEM 1. conditioning identity and lattice inversion formula for Psi_0
+====================================================================================================
+n=6 b=2 N=1: max|Psi0(enum)-Psi0(formula)| so far 3.34e-16;  denominator 2.388542372654 vs 2 pi h P(Bin=b) 2.388542372654
+n=6 b=2 N=2: max|Psi0(enum)-Psi0(formula)| so far 3.34e-16;  denominator 2.388542372654 vs 2 pi h P(Bin=b) 2.388542372654
+n=7 b=3 N=2: max|Psi0(enum)-Psi0(formula)| so far 4.75e-16;  denominator 2.416612208092 vs 2 pi h P(Bin=b) 2.416612208092
+n=8 b=5 N=3: max|Psi0(enum)-Psi0(formula)| so far 5.10e-16;  denominator 2.423050252953 vs 2 pi h P(Bin=b) 2.423050252953
+n=9 b=4 N=1: max|Psi0(enum)-Psi0(formula)| so far 5.10e-16;  denominator 2.436977719709 vs 2 pi h P(Bin=b) 2.436977719709
+n=10 b=7 N=2: max|Psi0(enum)-Psi0(formula)| so far 5.10e-16;  denominator 2.429521831933 vs 2 pi h P(Bin=b) 2.429521831933
+-> identity verified to rounding; denominator = 2 pi h P(Bin(n,p)=b).
+
+Denominator / sqrt(2 pi) versus 1 - (1-r)/(12 v)   [r=p(1-p), v=n r]:
+  n=    40 b=   10 v=     7.50: ratio=0.99101565   1-(1-r)/(12v)=0.99097222
+  n=   400 b=  100 v=    75.00: ratio=0.99909763   1-(1-r)/(12v)=0.99909722
+  n=  4000 b= 1000 v=   750.00: ratio=0.99990973   1-(1-r)/(12v)=0.99990972
+  n=  4000 b=   40 v=    39.60: ratio=0.99791867   1-(1-r)/(12v)=0.99791646
+  n= 40000 b=   40 v=    39.96: ratio=0.99791888   1-(1-r)/(12v)=0.99791666
+  n=  4000 b= 3960 v=    39.60: ratio=0.99791867   1-(1-r)/(12v)=0.99791646
+
+====================================================================================================
+ITEM 2. large frequencies
+====================================================================================================
+|E e^{is(I-p)}|^2 - (1-2r(1-cos s)) = 0
+max over x in [0,1] of sqrt(1-x) - exp(-x/2) = 0.0 (<=0: |factor| <= exp(-r(1-cos s)))
+   note 2r(1-cos s) <= 4r <= 1 so x stays in [0,1].
+2000 random (population,t,u): violations of |H0|<=D: 0; max |H0|/D = 0.999996
+max relative error in  r sum s_i^2 = t'Sigma_n t + u^2 : 8.58e-16
+min eigenvalue of Gram matrix [D(tau_a-tau_b)] on 60 random points of R^{N+1}: 0.12780217829827756 (>= 0 up to rounding: D is positive definite, as it must be for a c.f.)
+exp(r(cos x -1)) = E exp(i x (P1-P2)), P1,P2 iid Poisson(r/2): 0
+tent test (lattice population -1/2, n=30,b=10): centered integral 1.17412; max over 300 random shifts 1.09063;
+   at the resonance (t,u)=(2 pi h/3)(1,1): D = 1.000000, |H_0| = 1.000000, shifted tent integral 1.17412
+   -> the bound int_{cube} D <= C is attained at resonances: |Psi_0| is NOT small in L^1(Q_j); only boundedness is available, as the proof uses.
+
+====================================================================================================
+ITEM 3. small frequencies: cumulants, uniform remainder, u-integration
+====================================================================================================
+cumulant 2: -p*(p - 1)   minus r: 0
+cumulant 3: p*(p - 1)*(2*p - 1)   minus r d: 0
+cumulant 4: -p*(p - 1)*(6*p**2 - 6*p + 1)   minus r d4: 0
+cumulant 5: p*(p - 1)*(2*p - 1)*(12*p**2 - 12*p + 1)  -> divisible by p(1-p): -(2*p - 1)*(12*p**2 - 12*p + 1)
+sup_p sup_{rho/4<|s|<=0.25} |remainder| / (r |s|^5) = 0.00833   (bounded uniformly in p; limit value |kappa_5|/(120 r) <= 1/120=0.00833)
+sup_p sup_{rho/4<|s|<=0.5} |remainder| / (r |s|^5) = 0.00833   (bounded uniformly in p; limit value |kappa_5|/(120 r) <= 1/120=0.00833)
+sup_p sup_{rho/4<|s|<=1.0} |remainder| / (r |s|^5) = 0.00833   (bounded uniformly in p; limit value |kappa_5|/(120 r) <= 1/120=0.00833)
+limit of f/(p(1-p)) at p=0: -z + exp(z) - 1    at p=1: z - 1 + exp(-z)   (both entire in z: no singularity is created)
+E_u A_3 = I*(-3*m_1 - m_3)   -> with m_1=0: -I*m_3  = n^{-1} sum (i a_l)^3
+E_u A_4 (m_1=0) = 6*m_2 + m_4 + 3
+E_u A_3^2 (m_1=0) = -9*m_2**2 - 18*m_2 - m_3**2 - 15
+order eps^2 coefficient after u-integration  R(t) = -d**2*m_2**2/8 - d**2*m_2/4 - d**2*m_3**2/72 - 5*d**2/24 + d_4*m_2/4 + d_4*m_4/24 + d_4/8
+R(0) = -5*d**2/24 + d_4/8   with d^2=1-4r, d4=1-6r: r/12 - 1/12  (= -(1-r)/12, matches the local-limit expansion above)
+Q_n(t) = R(t)-R(0) = -d**2*m_2**2/8 - d**2*m_2/4 - d**2*m_3**2/72 + d_4*m_2/4 + d_4*m_4/24
+Q_n with d4-d^2 = -2r: quadratic part = -r/2 * m_2   => covariance (1 + eps^2 r) Sigma_n = (1+1/n) Sigma_n, consistent with exact n/(n-1) Sigma_n to O(n^-2)
+
+Scalar test of the Q_0 expansion: E3 = h^3 * sup_{|t|<=min(6,h/2)} |Psi_0(t) - Gamma_n(t)|, E2 = h^2 * sup |Psi_0 - Gamma_n^{(1)}| (first-order only)
+ population: lattice {-1,2} (2/3,1/3)
+   p=1/4: n=48: E3=  0.028 E2= 0.158 | n=192: E3=  0.057 E2= 0.154 | n=768: E3=  0.054 E2= 0.153 | n=3072: E3=  0.054 E2= 0.153
+   p=1/2: n=48: E3=  0.009 E2= 0.148 | n=192: E3=  0.006 E2= 0.147 | n=768: E3=  0.003 E2= 0.147 | n=3072: E3=  0.001 E2= 0.147
+   p=3/4: n=48: E3=  0.028 E2= 0.158 | n=192: E3=  0.057 E2= 0.154 | n=768: E3=  0.054 E2= 0.153 | n=3072: E3=  0.054 E2= 0.153
+   p=1/12: n=48: E3=  0.055 E2= 0.126 | n=192: E3=  0.093 E2= 0.184 | n=768: E3=  0.098 E2= 0.179 | n=3072: E3=  0.096 E2= 0.178
+ population: bounded skewed non-lattice (cubed uniform quantiles)
+   p=1/4: n=48: E3=  0.080 E2= 0.168 | n=192: E3=  0.073 E2= 0.188 | n=768: E3=  0.070 E2= 0.186 | n=3072: E3=  0.070 E2= 0.186
+   p=1/2: n=48: E3=  0.033 E2= 0.214 | n=192: E3=  0.015 E2= 0.208 | n=768: E3=  0.008 E2= 0.207 | n=3072: E3=  0.004 E2= 0.206
+   p=3/4: n=48: E3=  0.080 E2= 0.168 | n=192: E3=  0.073 E2= 0.188 | n=768: E3=  0.070 E2= 0.186 | n=3072: E3=  0.070 E2= 0.186
+   p=1/12: n=48: E3=  0.036 E2= 0.042 | n=192: E3=  0.104 E2= 0.161 | n=768: E3=  0.111 E2= 0.172 | n=3072: E3=  0.107 E2= 0.171
+ (E3 bounded as n grows => Gamma_n, including my explicit Q_n, is the correct second-order transform on Q_0;
+  E2 bounded but not -> 0 => the eps^2 term is genuinely present.)
+min distance of s_i to 2 pi Z on the stated region (c2=0.3, M c1=0.135): 0.1711  >=  c2 - M c1 = 0.1650 > c2/2
+
+====================================================================================================
+ITEM 4. exact conditional cumulants (rational arithmetic), Maclaurin, scalings
+====================================================================================================
+n=6,b=2 scalar: Cov(T|C0=0) = n/(n-1) Sigma_n exactly: True;   E[T^3|C0=0] = (1-2p)/h n^2/((n-1)(n-2)) K_3n exactly: True
+n=6,b=2 2-dim: Cov(T|C0=0) = n/(n-1) Sigma_n exactly: True;   E[T^3|C0=0] = (1-2p)/h n^2/((n-1)(n-2)) K_3n exactly: True
+n=6,b=4 2-dim: Cov(T|C0=0) = n/(n-1) Sigma_n exactly: True;   E[T^3|C0=0] = (1-2p)/h n^2/((n-1)(n-2)) K_3n exactly: True
+n=7,b=3 2-dim: Cov(T|C0=0) = n/(n-1) Sigma_n exactly: True;   E[T^3|C0=0] = (1-2p)/h n^2/((n-1)(n-2)) K_3n exactly: True
+n=9,b=5 3-dim: Cov(T|C0=0) = n/(n-1) Sigma_n exactly: True;   E[T^3|C0=0] = (1-2p)/h n^2/((n-1)(n-2)) K_3n exactly: True
+ratio of the scalar multipliers: -(2*b - n)/(h*(n - 2))   [claimed (n-2b)/(h(n-2))]
+(n-2b)/(n-2) - (1-2p) = -2*(2*b - n)/(n*(n - 2))  = O(1/n)
+Maclaurin: 400 random cases, violations of  e_m/C(n,m) <= (mean x_i)^m <= exp(M^2 m s^2/2): 0; max ratio mgf/(mean)^m = 1.000000
+m0=min(b,n-b) <= 2 h^2 : True
+exponent: h*d_eps = eps^(q-1) -> v^{-(q-1)/2};  (q-1)/2 = kappa/(2*(N - kappa)) ;  kappa=1/2,N=k^2 -> 1/(2*(2*k**2 - 1))
+
+====================================================================================================
+ITEM 5. complement duality and half sampling (exact enumeration, Euclidean geometric median in R^2)
+====================================================================================================
+n=10: Med(xi_{n,7}) = [ 0.00334  -0.006953],  -(b/(n-b)) Med(xi_{n,3}) = [ 0.00334  -0.006953]
+n=10: Med(xi_{n,6}) = [-0.00437  -0.003072],  -(b/(n-b)) Med(xi_{n,4}) = [-0.00437  -0.003072]
+half sampling b=n/2 on a generic asymmetric population: objective at 0 = 0.911338182062, min found = 0.911338182062; |gradient at 0| = 7.22e-17
+-> 0 is a median at half sampling for an arbitrary centered population (law of xi is symmetric by complementation).

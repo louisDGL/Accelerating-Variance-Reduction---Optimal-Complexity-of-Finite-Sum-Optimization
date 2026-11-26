@@ -1,0 +1,75 @@
+% Module: mechanism I, singular sets of codimension >= 2.
+% Labels: lem:examples, prop:field, proof of thm:codim
+\begin{lemma}[examples]\label{lem:examples}
+Assumption~\ref{ass:R} holds for: \textup{(a)} the Euclidean norm on $\R^N$, with $V=\{0\}$, $c=N$; \textup{(b)}
+block norms $\nu(y)=\sum_g|y_g|$ over a partition of the coordinates into blocks of sizes $n_g$, with
+$V=\bigcup_g\{y_g=0\}$, $c=\min_gn_g$; \textup{(c)} the nuclear norm on $\R^{K\times d}$ with $K<d$ (transpose if $K>d$),
+with $o=\polar$, $V=\{\rank<K\}$, $\dist(\cdot,V)=\sigma_K$ and $c=d-K+1$. For the $\ell_1$ norm (sign descent) and for
+the nuclear norm on square matrices it holds with $c=1$ only.
+\end{lemma}
+\begin{proof}
+(a), (b): $o(y)=(y_g/|y_g|)_g$ is smooth off $V$ and $0$-homogeneous in each block, so $|D^ko(y)|\le C_k\min_g|y_g|^{-k}$
+and $\dist(y,V)=\min_g|y_g|$; the volume bound is elementary. (c) For $MM^\top\succ0$,
+\[
+\polar(M)=(MM^\top)^{-1/2}M=\frac2\pi\int_0^\infty G_\tau(M)\,d\tau,\qquad G_\tau(M)=A^{-1}M,\quad A=MM^\top+\tau^2I .
+\]
+With $s=(\sigma_K(M)^2+\tau^2)^{1/2}$ we have $\|A^{-1/2}\|\le1/s$ and $\|A^{-1/2}M\|\le1$ in operator norm. Since
+$D(A^{-1})[H]=-A^{-1}(HM^\top+MH^\top)A^{-1}$, the derivative $D^kG_\tau(M)[H,\dots,H]$ is a sum of at most $C_k$ words
+$A^{-1}X_1A^{-1}X_2\cdots A^{-1}X_jA^{-1}Y$ with $X_i\in\{HM^\top,MH^\top,HH^\top\}$, $Y\in\{M,H\}$, and $k$ letters $H$
+in total. Write each $A^{-1}=A^{-1/2}A^{-1/2}$: there are $2(j+1)$ halves; each letter $M$ or $M^\top$ can be grouped
+with an adjacent half of its own into a factor of norm at most $1$, and if $\ell$ is the number of letters $M,M^\top$
+then $k+\ell=2j+1$, so exactly $2(j+1)-\ell=k+1$ halves remain, each of norm at most $1/s$. Hence
+$\|D^kG_\tau(M)\|\le C_k(\sigma_K^2+\tau^2)^{-(k+1)/2}$ and, integrating in $\tau$ for $k\ge1$,
+$\|D^k\polar(M)\|\le C_k'\sigma_K(M)^{-k}$ (the case $k=0$ is trivial). The distance from $M$ to $V$ is $\sigma_K(M)$
+(Eckart--Young). Finally, with rows $\varrho_j$ of $M$,
+$\sigma_K(M)\ge K^{-1/2}\min_j\dist(\varrho_j,\operatorname{span}\{\varrho_l\}_{l\ne j})$, so $\sigma_K(M)\le r$ forces some
+row to lie within $\sqrt Kr$ of the span of the others, a subspace of codimension $d-K+1$ in $\R^d$; given the other
+rows this has volume at most $C r^{d-K+1}$ in the unit ball. The last sentence: $o$ jumps across a hypersurface.
+\end{proof}
+
+\begin{proposition}[mean field, codimension $\ge2$]\label{prop:field}
+Let Assumption~\ref{ass:R} hold with $c\ge2$ and let $X\in\mathcal X(\varepsilon)$, $\varepsilon\le\varepsilon_0$, with
+comparison density $\psie$. Then, with $\Le=\log(e/\varepsilon)$,
+\[
+\sup_{|x|\le1}\Big|\E\,o(x+X)-\int o(x+y)\psie(y)\,dy\Big|\le C\big(\varepsilon^{c}+\varepsilon^3\big)\Le^{N/2}.
+\]
+\end{proposition}
+\begin{proof}
+Choose $R=C'\sqrt{\Le}$ with $C'$ so large that $\Prob(|x+X|>R)\le\varepsilon^3$ for $|x|\le1$ (by \textup{(E3)}) and
+$\int_{|x+y|>R}|\psie(y)|dy\le\varepsilon^3$. Let $\chi_R=\chi(\cdot/R)$ with $\chi\in C_c^\infty(B(0,2))$, $\chi=1$ on
+$B(0,1)$, and let $\Theta\in C^\infty(E)$, $0\le\Theta\le1$, with $\Theta=1$ on $\{\dist(\cdot,V)\le\varepsilon\}$,
+$\Theta=0$ on $\{\dist(\cdot,V)\ge2\varepsilon\}$, $|D^k\Theta|\le C_k\varepsilon^{-k}$ (mollify the indicator of
+$\{\dist\le\frac32\varepsilon\}$ at scale $\varepsilon/4$). Write $o=F_1+F_2+F_3$ with $F_1=o(1-\Theta)\chi_R$,
+$F_2=o\,\Theta\chi_R$, $F_3=o(1-\chi_R)$.
+
+$F_3$: both $\E|F_3(x+X)|$ and $\int|F_3(x+y)||\psie(y)|dy$ are at most $C\varepsilon^3$.
+
+$F_2$: $\E|F_2(x+X)|\le\sup|o|\,\Prob(|x+X|\le2R,\ \dist(x+X,V)\le2\varepsilon)\le CR^{N-c}\varepsilon^c$ by
+Lemma~\ref{lem:ball}(ii), and $\int|F_2(x+y)||\psie(y)|dy\le C\vol\{z\in B(0,2R):\dist(z,V)\le2\varepsilon\}\le CR^{N-c}\varepsilon^c$.
+
+$F_1\in C_c^\infty(E)$: on its support $\dist(z,V)\ge\varepsilon$, and by Leibniz' rule and Assumption~\ref{ass:R},
+$|D^mF_1(z)|\le C_m(\dist(z,V)^{-m}+1)$. Summing over the layers $\{2^i\varepsilon\le\dist(\cdot,V)<2^{i+1}\varepsilon\}$,
+$i\ge0$, inside $B(0,2R)$,
+\[
+\|D^mF_1\|_{L^1}\le C\sum_{i\ge0}(2^i\varepsilon)^{-m}R^{N-c}(2^{i+1}\varepsilon)^c+CR^N\le C\big(R^{N-c}\varepsilon^{c-m}+R^N\big)
+\]
+for $m=N+1>c$.
+Lemma~\ref{lem:test} then gives an error $C(\varepsilon^3R^N+\varepsilon^cR^{N-c}+\varepsilon^mR^N)$ for $F_1$ (apply it to
+each coordinate). Summing the three contributions proves the claim.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:codim}]
+Let $H(x)=\E[\nu(x+X)-\nu(X)]$, a convex function with $\E\,o(x+X)\in\partial H(x)$. By Proposition~\ref{prop:field}
+and Lemma~\ref{lem:locate}, uniformly for $|x|\le A\varepsilon$,
+\[
+\E\,o(x+X)=J_\Sigma(x-\hat x)+e_1(x),\qquad|e_1(x)|\le C_1\varepsilon^{\min(c,3)}\Le^{N/2}.
+\]
+Let $\varrho=2C_1\varepsilon^{\min(c,3)}\Le^{N/2}/\lambda_{\min}(J_\Sigma)$, which is at most $\varepsilon$ for
+$\varepsilon$ small, and take $A$ with $|\hat x|+\varepsilon\le A\varepsilon$. For $|u|=1$,
+$\inner{\E\,o(\hat x+\varrho u+X)}{u}\ge\lambda_{\min}(J_\Sigma)\varrho-C_1\varepsilon^{\min(c,3)}\Le^{N/2}>0$. If a minimizer
+$x'$ of $H$ had $|x'-\hat x|>\varrho$, put $u=(x'-\hat x)/|x'-\hat x|$ and $y=\hat x+\varrho u$: the subgradient
+inequality gives $H(x')\ge H(y)+(|x'-\hat x|-\varrho)\inner{\E\,o(y+X)}u>H(y)$, a contradiction. Hence
+$\arg\min H\subset B(\hat x,\varrho)$, which is the first claim. For weighted sums, Proposition~\ref{prop:sums} gives
+$X_w\in\mathcal X(\ew)$ with $\cK=\varepsilon_3K_3$, so $\hat x=\varepsilon_3\gs$; and
+$\psi_{\xi_w}(G)=\sqrt{\rho_2}\,H(G/\sqrt{\rho_2})$ with $\sqrt{\rho_2}\,\varepsilon_3=\rho_3/\rho_2$.
+\end{proof}

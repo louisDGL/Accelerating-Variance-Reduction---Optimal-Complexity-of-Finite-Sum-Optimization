@@ -1,0 +1,170 @@
+\begin{thebibliography}{26}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[{Anonymous}(2026)]{companionII}
+{Anonymous}.
+\newblock Edgeworth without {C}ram{\'e}r: the bias of orthogonalized stochastic
+  steps under discrete noise, 2026.
+\newblock Companion submission (anonymized; included in the supplementary
+  material).
+
+\bibitem[Balles et~al.(2020)Balles, Pedregosa, and {Le
+  Roux}]{balles2020geometry}
+Balles, L., Pedregosa, F., and {Le Roux}, N.
+\newblock The geometry of sign gradient descent, 2020.
+\newblock arXiv:2002.08056.
+
+\bibitem[Bernstein \& Newhouse(2024)Bernstein and Newhouse]{bernstein2024old}
+Bernstein, J. and Newhouse, L.
+\newblock Old optimizer, new norm: An anthology, 2024.
+\newblock arXiv:2409.20325.
+
+\bibitem[Bernstein et~al.(2018)Bernstein, Zhao, Azizzadenesheli, and
+  Anandkumar]{bernstein2019majority}
+Bernstein, J., Zhao, J., Azizzadenesheli, K., and Anandkumar, A.
+\newblock {signSGD} with majority vote is communication efficient and fault
+  tolerant, 2018.
+\newblock arXiv:1810.05291. ICLR 2019.
+
+\bibitem[Bhattacharya \& Rao(1976)Bhattacharya and Rao]{br}
+Bhattacharya, R.~N. and Rao, R.~R.
+\newblock \emph{Normal Approximation and Asymptotic Expansions}.
+\newblock Wiley, 1976.
+\newblock Reprinted as SIAM Classics in Applied Mathematics 64, 2010.
+
+\bibitem[Cand{\`e}s et~al.(2013)Cand{\`e}s, Sing-Long, and Trzasko]{candes}
+Cand{\`e}s, E.~J., Sing-Long, C.~A., and Trzasko, J.~D.
+\newblock Unbiased risk estimates for singular value thresholding and spectral
+  estimators.
+\newblock \emph{IEEE Transactions on Signal Processing}, 61\penalty0
+  (19):\penalty0 4643--4657, 2013.
+
+\bibitem[Cardot et~al.(2011)Cardot, C{\'e}nac, and Zitt]{cardot2013efficient}
+Cardot, H., C{\'e}nac, P., and Zitt, P.-A.
+\newblock Efficient and fast estimation of the geometric median in {Hilbert}
+  spaces with an averaged stochastic gradient algorithm, 2011.
+\newblock arXiv:1101.4316. Bernoulli 19(1):18--43, 2013.
+
+\bibitem[Carlson et~al.(2015)Carlson, Cevher, and Carin]{carlson2015stochastic}
+Carlson, D., Cevher, V., and Carin, L.
+\newblock Stochastic spectral descent for restricted {B}oltzmann machines.
+\newblock In \emph{Proceedings of the 18th International Conference on
+  Artificial Intelligence and Statistics (AISTATS)}, volume~38 of
+  \emph{Proceedings of Machine Learning Research}, pp.\  111--119, 2015.
+
+\bibitem[Chen et~al.(2019)Chen, Chen, Sun, Wu, and Hong]{chen2020distributed}
+Chen, X., Chen, T., Sun, H., Wu, Z.~S., and Hong, M.
+\newblock Distributed training with heterogeneous data: Bridging median- and
+  mean-based algorithms, 2019.
+\newblock arXiv:1906.01736. NeurIPS 2020.
+
+\bibitem[Chen et~al.(2026)Chen, Li, Wang, and Lu]{chen2026when}
+Chen, X., Li, B., Wang, L., and Lu, P.
+\newblock When and how does {Muon} precondition? {T}he role of structured
+  gradient noise, 2026.
+\newblock arXiv:2610.31728.
+
+\bibitem[Cornish \& Fisher(1938)Cornish and Fisher]{cornish1938moments}
+Cornish, E.~A. and Fisher, R.~A.
+\newblock Moments and cumulants in the specification of distributions.
+\newblock \emph{Revue de l'Institut International de Statistique}, 5\penalty0
+  (4):\penalty0 307--320, 1938.
+
+\bibitem[Do et~al.(2026)Do, Dereich, and Jentzen]{do2026muon}
+Do, T., Dereich, S., and Jentzen, A.
+\newblock On {MUON} optimization: From non-convergence to an error analysis
+  with {Polar Express} and the {Newton-Schulz} polynomial from implementations,
+  2026.
+\newblock arXiv:2608.04607.
+
+\bibitem[Duchi et~al.(2012)Duchi, Agarwal, Johansson, and Jordan]{duchiemd}
+Duchi, J.~C., Agarwal, A., Johansson, M., and Jordan, M.~I.
+\newblock Ergodic mirror descent.
+\newblock \emph{SIAM Journal on Optimization}, 22:\penalty0 1549--1578, 2012.
+
+\bibitem[Huang et~al.(2026)Huang, Pu, and Johansson]{huang2026muon}
+Huang, K., Pu, S., and Johansson, K.~H.
+\newblock {Muon} attains $\mathcal{O}(\varepsilon^{-3})$ iteration complexity
+  under shuffling, 2026.
+\newblock arXiv:2611.18124.
+
+\bibitem[Jordan et~al.(2024)Jordan, Jin, Boza, You, Cesista, Newhouse, and
+  Bernstein]{jordan2024muon}
+Jordan, K., Jin, Y., Boza, V., You, J., Cesista, F., Newhouse, L., and
+  Bernstein, J.
+\newblock {Muon}: An optimizer for hidden layers in neural networks.
+\newblock \url{https://kellerjordan.github.io/posts/muon/}, 2024.
+
+\bibitem[Karimireddy et~al.(2019)Karimireddy, Rebjock, Stich, and
+  Jaggi]{karimireddy2019error}
+Karimireddy, S.~P., Rebjock, Q., Stich, S.~U., and Jaggi, M.
+\newblock Error feedback fixes {SignSGD} and other gradient compression
+  schemes, 2019.
+\newblock arXiv:1901.09847. ICML 2019.
+
+\bibitem[Lau et~al.(2025)Lau, Long, and Su]{lau2025polargrad}
+Lau, T. T.-K., Long, Q., and Su, W.
+\newblock {PolarGrad}: A class of matrix-gradient optimizers from a unifying
+  preconditioning perspective, 2025.
+\newblock arXiv:2505.21799.
+
+\bibitem[Li \& Sun(2002)Li and Sun]{lisun}
+Li, W. and Sun, W.
+\newblock Perturbation bounds of unitary and subunitary polar factors.
+\newblock \emph{SIAM Journal on Matrix Analysis and Applications}, 23:\penalty0
+  1183--1193, 2002.
+
+\bibitem[Liu et~al.(2025)Liu, Yuan, and Gu]{liu2025marsm}
+Liu, Y., Yuan, A., and Gu, Q.
+\newblock {MARS-M}: When variance reduction meets matrices, 2025.
+\newblock arXiv:2510.21800.
+
+\bibitem[Minsker(2013)]{minsker2015geometric}
+Minsker, S.
+\newblock Geometric median and robust estimation in {Banach} spaces, 2013.
+\newblock arXiv:1308.1334. Bernoulli 21(4):2308--2335, 2015.
+
+\bibitem[Minsker \& Strawn(2023)Minsker and Strawn]{minskerstrawn}
+Minsker, S. and Strawn, N.
+\newblock The geometric median and applications to robust mean estimation,
+  2023.
+\newblock arXiv:2307.03111.
+
+\bibitem[Paquette et~al.(2026)Paquette, Marshall, Benigni, Wang, Agarwala, and
+  Paquette]{paquette2026phases}
+Paquette, E., Marshall, N., Benigni, L., Wang, G., Agarwala, A., and Paquette,
+  C.
+\newblock Phases of {Muon}: When {Muon} eclipses {SignSGD}, 2026.
+\newblock arXiv:2605.09552.
+
+\bibitem[Safaryan \& Richt{\'a}rik(2021)Safaryan and
+  Richt{\'a}rik]{safaryan2021stochastic}
+Safaryan, M. and Richt{\'a}rik, P.
+\newblock Stochastic sign descent methods: new algorithms and better theory.
+\newblock In \emph{Proceedings of the 38th International Conference on Machine
+  Learning (ICML)}, 2021.
+
+\bibitem[Schwank \& Drton(2025)Schwank and Drton]{schwank}
+Schwank, R. and Drton, M.
+\newblock On the distance between mean and geometric median in high dimensions,
+  2025.
+\newblock arXiv:2508.12926.
+
+\bibitem[Shulgin et~al.(2026)Shulgin, Laing, Orvieto, and
+  Richt{\'a}rik]{shulgin2026quadratic}
+Shulgin, E., Laing, S., Orvieto, A., and Richt{\'a}rik, P.
+\newblock A quadratic lens on {Muon}'s polar update: Benefits, pitfalls, and
+  the role of {Newton-Schulz}, 2026.
+\newblock arXiv:2610.30280.
+
+\bibitem[Xie(2026)]{xie2026muon}
+Xie, X.
+\newblock {Muon} under gradient noise and the limits of orthogonalization near
+  optima, 2026.
+\newblock arXiv:2609.32861.
+
+\end{thebibliography}

@@ -1,0 +1,62 @@
+% Module: first-order law under Cramer's condition. Labels: lem:osc, lem:edge, proof of thm:cf, proof of thm:beff
+\begin{lemma}[oscillation]\label{lem:osc}
+For the $\ell_1$, Euclidean and nuclear norms with their direction maps, and every compact set $\mathcal C$ of positive
+definite covariances, there is $C$ such that for $\varepsilon\le1$
+\[
+\sup_{\Sigma\in\mathcal C}\ \sup_{y\in E}\ \E\,\mathrm{osc}\big(o;B(y+Z_\Sigma,\varepsilon)\big)\le C\varepsilon\log(e/\varepsilon),
+\]
+where $\mathrm{osc}(o;B)$ is the largest oscillation on $B$ of a coordinate of $o$. Moreover
+$\sup_y\Prob(\sigma_{\min(K,d)}(y+Z_\Sigma)\le t)\le Ct$.
+\end{lemma}
+\begin{proof}
+$\ell_1$: the oscillation vanishes unless some coordinate of $y+Z$ is within $\varepsilon$ of $0$, an event of
+probability at most $N\varepsilon\sup\varphi$. Euclidean: $\mathrm{osc}\le\min(2,2\varepsilon/(|x|-\varepsilon)_+)$.
+Nuclear, $K\le d$ (transpose otherwise): with rows $\varrho_j$ of $X$,
+$\sigma_K(X)\ge K^{-1/2}\min_j\dist(\varrho_j,\operatorname{span}\{\varrho_l\}_{l\ne j})$; conditionally on the other rows,
+$\varrho_j$ is Gaussian with covariance at least $\lambda_{\min}(\Sigma)I$ and its component along a unit normal to the
+span has a density bounded by $(2\pi\lambda_{\min})^{-1/2}$; a union bound gives the small-ball estimate. By
+\citet{lisun}, $\nF{\polar(A)-\polar(B)}\le2\nF{A-B}/(\sigma_K(A)+\sigma_K(B))$ for $A,B$ of rank $K$; hence
+$\mathrm{osc}(\polar;B(x,\varepsilon))\le\min(2,4\varepsilon/\sigma_K(x))$ when $\sigma_K(x)>2\varepsilon$, and
+$\E\min(2,4\varepsilon/\sigma_K)\le C\varepsilon\log(e/\varepsilon)$.
+\end{proof}
+
+\begin{lemma}[one-term expansion of the mean field, uniform in the shift]\label{lem:edge}
+Under Assumption~\ref{ass:N}, for the norms of Lemma~\ref{lem:osc}, with $X_b=\sqrt b\,\xi_b$,
+\[
+\sup_{h\in E}\Big|\E\,o(X_b+h)-\Phi_\Sigma(h)-\frac1{6\sqrt b}\,D^3\Phi_\Sigma(h)[K_3]\Big|=o(b^{-1/2}).
+\]
+\end{lemma}
+\begin{proof}
+Theorem~20.1 of \citet{br} with $s=3$ provides $\delta_b=o(b^{-1/2})$ and $c,c'>0$, depending on the law of $\zeta$ only,
+such that for every bounded Borel $f$,
+$|\int f\,d(Q_b-\Phi_{0,\Sigma}-b^{-1/2}P_1)|\le\sup|f|\,\delta_b+c'\sup_y\int\mathrm{osc}(f;B(x+y,2e^{-cb}))\varphi_\Sigma(x)dx$,
+where $Q_b$ is the law of $X_b$ and $P_1$ has density $\frac16\inner{K_3}{\He_3^\Sigma}\varphi_\Sigma$. Apply it to the
+coordinates of $f=o(\cdot+h)$: the supremum is bounded, the oscillation term is $O(be^{-cb})$ by Lemma~\ref{lem:osc},
+uniformly in $h$, and $\int o(x+h)\frac16\inner{K_3}{\He^\Sigma_3(x)}\varphi_\Sigma(x)dx=\frac16D^3\Phi_\Sigma(h)[K_3]$ by
+Lemma~\ref{lem:gauss}(2).
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:cf}]
+By homogeneity $\Phi_{\xi_b}(G)=\E\,o(X_b+\sqrt b\,G)$. Let $G=(\gs+u)/b$ with $|u|\le R$, so $h=\sqrt bG=O(b^{-1/2})$.
+By Lemma~\ref{lem:gauss}, $\Phi_\Sigma(h)=J_\Sigma h+O(|h|^3)$ and $D^3\Phi_\Sigma(h)[K_3]=T_\Sigma[K_3]+O(|h|^2)$; with
+Lemma~\ref{lem:edge},
+\[
+\Phi_{\xi_b}(G)=b^{-1/2}\big(J_\Sigma(\gs+u)+\tfrac16T_\Sigma[K_3]\big)+o(b^{-1/2})=b^{-1/2}J_\Sigma u+o(b^{-1/2}),
+\]
+uniformly in $|u|\le R$. Take $|u|=\epsilon$: $\inner{\Phi_{\xi_b}(G)}{u}\ge b^{-1/2}(\lambda_{\min}(J_\Sigma)\epsilon^2-o(1))>0$
+for $b\ge b_0(\epsilon)$. If a minimizer $G'$ of $\psi_{\xi_b}$ had $|G'-\gs/b|>\epsilon/b$, let $G$ be the point of the
+segment $[\gs/b,G']$ on the sphere of radius $\epsilon/b$, so that $G'-G=\tau u$ with $\tau>0$; since
+$\Phi_{\xi_b}(G)\in\partial\psi_{\xi_b}(G)$, $\psi_{\xi_b}(G')\ge\psi_{\xi_b}(G)+\tau\inner{\Phi_{\xi_b}(G)}u>\psi_{\xi_b}(G)$,
+a contradiction.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:beff}]
+Write the filtered noise as a batch mean of regrouped samples:
+$N_w=\sum_kw_k\xi_b^{(k)}=\frac1b\sum_{i\le b}Y_i$ with $Y_i=\sum_kw_k\zeta_{k,i}$ i.i.d. The series converges absolutely in
+$L^3$ because $\sum_k|w_k|<\infty$; cumulants add over independent summands, so $Y$ has mean $0$, covariance
+$\rho_2\Sigma$ and third cumulant $\rho_3K_3$; and $|\E e^{i\inner tY}|=\prod_k|\varphi(w_kt)|\le|\varphi(w_{k_0}t)|$ for an
+index with $w_{k_0}\ne0$, so $Y$ satisfies Cram\'er's condition. Theorem~\ref{thm:cf} applies to $Y$ and gives
+$\arg\min\psi_{N_w}\subset B\big(\gs(\rho_2\Sigma,\rho_3K_3)/b,\,o(1/b)\big)$, and
+$\gs(\rho_2\Sigma,\rho_3K_3)=\frac{\rho_3}{\rho_2}\gs(\Sigma,K_3)$ by Lemma~\ref{lem:gauss}(5). For the exponential
+average, $\rho_p=(1-\beta)^p/(1-\beta^p)$ and $\rho_3/\rho_2=(1-\beta^2)/(1+\beta+\beta^2)$.
+\end{proof}

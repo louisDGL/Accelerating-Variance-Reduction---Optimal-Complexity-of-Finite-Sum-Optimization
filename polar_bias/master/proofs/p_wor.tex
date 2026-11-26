@@ -1,0 +1,80 @@
+% Module: sampling without replacement. Labels: prop:worclass, proof of thm:wor
+\begin{proposition}[the conditional law belongs to the class]\label{prop:worclass}
+In the setting of Theorem~\ref{thm:wor} let $h=\sqrt v$ and $T=b\,\xi_{n,b}/h$. There is $v_0$ such that for $v\ge v_0$,
+$T\in\mathcal X(1/h)$ with covariance $\Sigma_n$, cubic tensor $\cK=\frac{1-2p}{h}K_{3,n}$, and constants
+$\lambda,\Lambda=M^2,C_\ast,c_\ast$ depending only on $N,M,\lambda$.
+\end{proposition}
+\begin{proof}
+Let $I_1,\dots,I_n$ be independent Bernoulli variables of parameter $p=b/n$, $r=p(1-p)$, so $h^2=nr$, and
+\[
+T'=\frac1h\sum_i(I_i-p)z_i,\qquad C'=\sum_i(I_i-p)=\sum_iI_i-b\ \in\Z .
+\]
+Conditionally on $C'=0$ the set $\{i:I_i=1\}$ is uniform among subsets of size $b$, and since $\sum_iz_i=0$, $T'$ has
+the law of $T$. With $\varphi_p(s)=\E e^{is(I-p)}$, $a_i(t)=\inner t{z_i}$, $s_i=(a_i(t)+u)/h$ and
+$H_0(t,u)=\E e^{i\inner t{T'}+iuC'/h}=\prod_i\varphi_p(s_i)$, the identity
+$\mathbf 1\{C'=0\}=\frac1{2\pi}\int_{-\pi}^{\pi}e^{i\theta C'}d\theta$ gives (the classical device for finite-population limit theorems, going back to \citet{erdosrenyi}; see
+\citet{bs} for Edgeworth expansions in this setting)
+\begin{equation}\label{eq:condcf}
+\chi_T(t)=\frac{\int_{-\pi h}^{\pi h}H_0(t,u)\,du}{\int_{-\pi h}^{\pi h}H_0(0,u)\,du},\qquad
+\int_{-\pi h}^{\pi h}\!H_0(0,u)\,du=2\pi h\,\Prob(C'=0)=\sqrt{2\pi}\,\big(1+O(\tfrac1v)\big),
+\end{equation}
+the last estimate being Stirling's formula for the central binomial probability, uniform in $p$.
+
+\emph{\textup{(E1)}.} $|\varphi_p(s)|^2=1-2r(1-\cos s)$, hence $|H_0(t,u)|\le D(t,u):=\exp(-r\sum_i(1-\cos s_i))$. The function
+$D$ is nonnegative and is the characteristic function of the random vector
+$Y=\frac1h\sum_i(P_i-P_i')\,(z_i,1)\in E\times\R$, where $P_i,P_i'$ are independent Poisson variables of parameter $r/2$
+(indeed $\E e^{is(P-P')}=e^{r(\cos s-1)}$). Let $\alpha=h/(M\sqrt N+1)$ and $\Delta$ the product of the $N+1$ tents
+$(1-|\tau_j|/\alpha)_+$. On the support of $\Delta$, $|s_i|\le1$, so $1-\cos s_i\ge s_i^2/4$ and, because $\sum_iz_i=0$ and
+$h^2=nr$,
+\[
+r\sum_is_i^2=\inner t{\Sigma_nt}+u^2,\qquad D(t,u)\le e^{-(\lambda|t|^2+u^2)/4}.
+\]
+As in the proof of Lemma~\ref{lem:cube}, positivity of $\check\Delta$ gives, for every $\tau_0\in E\times\R$,
+$\int D\,\Delta(\cdot-\tau_0)=\E[e^{i\inner{\tau_0}Y}\check\Delta(Y)]\le\int D\,\Delta\le C$, hence $\int D\le2^{N+1}C$ on every
+cube of half-side $\alpha/2$. A set $(t_0+[-a,a]^N)\times[-\pi h,\pi h]$ with $a=c_\ast h$ is covered by a bounded number of
+such cubes, and with \eqref{eq:condcf} this gives $\int_{t_0+[-a,a]^N}|\chi_T|\le C$.
+
+\emph{\textup{(E2)}.} Let $d=1-2p$ and $d_4=1-6r$. The function $(p,z)\mapsto\log(1+p(e^z-1))-pz$ is analytic in
+$|z|\le z_0$, smooth in $p\in[0,1]$, and vanishes identically for $p=0$ and $p=1$; dividing by $p(1-p)$ leaves a family
+of analytic functions bounded uniformly in $p$. Hence, uniformly in $p\in(0,1)$, for real $|s|\le z_0$,
+$\log\varphi_p(s)=r\big[\frac{(is)^2}2+d\frac{(is)^3}6+d_4\frac{(is)^4}{24}+O(|s|^5)\big]$. Fix $c_2\le z_0/2$ and
+$c_1$ with $M\sqrt Nc_1\le c_2/2$. For $|t|_\infty\le c_1h$ and $|u|\le c_2h$, summing over $i$ with
+$A_j=\frac1n\sum_l(i(a_l(t)+u))^j$,
+\[
+H_0(t,u)=e^{-(\inner t{\Sigma_nt}+u^2)/2}\exp\Big(\frac{d}{6h}A_3+\frac{d_4}{24h^2}A_4+R\Big),\quad|R|\le\frac C{h^3}(|t|+|u|)^5 ,
+\]
+and expanding the exponential as in Lemma~\ref{lem:near} (after reducing $c_1,c_2$),
+\begin{align*}
+H_0(t,u)={}&e^{-(\inner t{\Sigma_nt}+u^2)/2}\Big(1+\frac{d}{6h}A_3+\frac1{h^2}\Big\{\frac{d_4}{24}A_4+\frac{d^2}{72}A_3^2\Big\}\Big)\\
+&+O\Big(h^{-3}(1+|t|+|u|)^{15}e^{-c(|t|^2+u^2)}\Big).
+\end{align*}
+For $c_2h\le|u|\le\pi h$ and $|t|_\infty\le c_1h$, every $s_i$ is at distance at least $c_2/2$ from $2\pi\Z$, so
+$|H_0|\le D\le e^{-c'h^2}$. We may therefore integrate the Gaussian polynomial over $u\in\R$ at the cost of an error
+$O(h^{-3})$ after integration in $t$ over $[-c_1h,c_1h]^N$. Odd powers of $u$ integrate to zero against $e^{-u^2/2}$
+and $\frac1n\sum_la_l(t)=0$, so
+$\int A_3e^{-u^2/2}du=\sqrt{2\pi}\,\frac1n\sum_l(ia_l(t))^3=\sqrt{2\pi}\,K_{3,n}[(it)^{\otimes3}]$, while the term in braces
+integrates to $\sqrt{2\pi}\,q_2(t)$ with $q_2$ an even polynomial of degree at most $6$ with coefficients bounded in terms
+of $M$ (it involves $\frac1n\sum_la_l^2$, $\frac1n\sum_la_l^4$ and $(\frac1n\sum_la_l^3)^2$). The same computation at
+$t=0$ gives the denominator of \eqref{eq:condcf} as $\sqrt{2\pi}(1+h^{-2}q_2(0)+O(h^{-3}))$. Dividing,
+\[
+\int_{[-c_1h,c_1h]^N}\Big|\chi_T(t)-e^{-\inner t{\Sigma_nt}/2}\Big(1+\frac{d}{6h}K_{3,n}[(it)^{\otimes3}]+\frac{q_2(t)-q_2(0)}{h^2}\Big)\Big|\,dt\le\frac C{h^3},
+\]
+which is \textup{(E2)} with $\widehat r=h^{-2}(q_2-q_2(0))$ and $c_\ast=c_1$.
+
+\emph{\textup{(E3)}.} Replacing the sample by its complement changes $b\,\xi_{n,b}$ into its opposite, so we may assume
+that $m_0=\min(b,n-b)\le2h^2$ points are drawn. By \citet[Theorem~4]{hoeffding}, for a coordinate functional $y$ and
+real $s$, $\E e^{s\,y(b\xi_{n,b})}$ is at most the same expectation for sampling with replacement, which is at most
+$e^{m_0s^2M^2/2}$. Since $T=b\,\xi_{n,b}/h$ and $m_0/h^2\le2$, the coordinates of $T$ are sub-Gaussian with variance proxy $2M^2$.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:wor}]
+By Proposition~\ref{prop:worclass}, Theorem~\ref{thm:codim} or Theorem~\ref{thm:laplace} applies to $X=T$ with
+$\varepsilon=1/h$: every minimizer $x$ of $x\mapsto\E\nu(x+T)$ satisfies
+$|x-\frac{1-2p}h\gs^{(n)}|\le C\,h^{-1-2\gamma}\log^{N}(eh)$ (the constants are uniform because $\Sigma_n$ ranges in a
+compact set of positive definite matrices). Since $\psi_{\xi_{n,b}}(G)=\frac hb\,\E[\nu(\frac bhG+T)-\nu(T)]$, the set
+$\arg\min\psi_{\xi_{n,b}}=-\Med_\nu(\xi_{n,b})$ is $\frac hb$ times the set of these minimizers. Multiplying by $h$ gives
+\eqref{eq:wor} with $1-2p$ in place of $\frac{n-2b}{n-2}$; the two differ by $\frac{2(n-2b)}{n(n-2)}=O(1/n)=O(1/v)$, and
+$\gs^{(n)}$ is bounded. (The coefficient $\frac{n-2b}{n-2}$ is the one that matches the exact conditional cumulants,
+$\Cov(T)=\frac n{n-1}\Sigma_n$ and $\E T^{\otimes3}=\frac{1-2p}{h}\frac{n^2}{(n-1)(n-2)}K_{3,n}$, and the exact duality
+$\Med_\nu(\xi_{n,n-b})=-\frac b{n-b}\Med_\nu(\xi_{n,b})$.)
+\end{proof}

@@ -1,0 +1,45 @@
+% Module: sign of a_1 (computer-assisted for K>=3). Label: eq:num
+\begin{proof}[Proof of Theorem~\ref{thm:a1}]
+Let $W=ZZ^\top$, $D_p=\E\tr W^{p/2}=\E\sum_is_i^p$, $r(p)=D_{p+2}/D_p$ and $m=K+d+1$.
+\emph{Equivalences.} By the Stein identity $D_3=(K+d-q)D_1$ of Theorem~\ref{thm:two}(b), the claim is
+$D_3<c^\ast D_1$ with $c^\ast=K+d-\frac{(K-1)(d-1)}{2m}$. Since $\E[\tr W\cdot\sum_js_j^p]=(Kd+p)D_p$ (differentiate the
+Gaussian integral along dilations), $\E\sum_js_j^pA_j/D_p=Kd+p-r(p)$; and $r(2)=m$,
+$r(4)=\E\tr W^3/\E\tr W^2=(K^2+d^2+3Kd+3K+3d+4)/m$, so $3r(2)-r(4)=2c^\ast$: this is (i) and (ii). (iii):
+$\E_\varpi[x^{\pm1/2}]=D_{2\pm1}/(Kd)$, $\E_\varpi x=m$, $\E_\varpi x^2=\E\tr W^3/(Kd)$, and $m-\frac v{2m}=c^\ast$. For a Gamma law
+of shape $\alpha$ and scale $\theta$ both sides of (iii) equal $\theta(\alpha-\frac12)$; for $K=1$, $\varpi$ is the $\chi^2_{d+2}$ law.
+
+\emph{$K=2$.} The density of $(s_1>s_2)$ is proportional to $(s_1^2-s_2^2)(s_1s_2)^{d-2}e^{-(s_1^2+s_2^2)/2}$. With
+$s_1+s_2=\rho\cos\frac\phi2$, $s_1-s_2=\rho\sin\frac\phi2$, $\phi\in(0,\frac\pi2)$, the variables $\rho$ and
+$\gamma=\cos\phi$ are independent, $\gamma$ has density $(d-1)\gamma^{d-2}$ on $(0,1)$,
+$\sum s_i=\rho\sqrt{(1+\gamma)/2}$ and $\frac{2s_1s_2}{s_1+s_2}=\rho\gamma/\sqrt{2(1+\gamma)}$. Hence
+$q_{2,d}=\E[\gamma(1+\gamma)^{-1/2}]/\E[(1+\gamma)^{1/2}]$ (for $d=2$: $q_{2,2}=(3\sqrt2-2)/7$), and with $n=d-2$ the claim
+is $\mathcal F=\int_0^1\gamma^n\big((n+9)\gamma-(n+1)\big)(1+\gamma)^{-1/2}d\gamma>0$. Integrating by parts,
+$(n+1)\int_0^1\gamma^n(1+\gamma)^{-1/2}=2^{-1/2}+\frac12\int_0^1\gamma^{n+1}(1+\gamma)^{-3/2}$, so
+$\mathcal F\ge(n+\frac{17}2)\int_0^1\gamma^{n+1}(1+\gamma)^{-1/2}d\gamma-2^{-1/2}\ge2^{-1/2}\big(\frac{n+17/2}{n+2}-1\big)>0$.
+
+\emph{$K\ge3$.} By (iii) the claim is $\E_\varpi[g]>0$ for $g(x)=(c^\ast-x)x^{-1/2}$. For $n\ge1$, $g^{(n)}$ has the sign
+$(-1)^n$ on $(0,\infty)$; so (1)~the Taylor polynomial $T_5$ of $g$ at $m$ satisfies $g\ge T_5$, and (2)~the Hermite
+interpolant $H$ of $g$ at four nodes (values and first derivatives) satisfies $g\ge H$. Both $\E_\varpi T_5$ and $\E_\varpi H$
+are linear in the moments $\E_\varpi x^j=\E\tr W^{j+1}/(Kd)$, $j\le7$, and $\E\tr W^k$ is a polynomial in $(K,d)$ computed by
+Wick's formula (sum over the $(2k-1)!!$ pairings of $K^{\#\text{row classes}}d^{\#\text{column classes}}$). Step~1:
+\begin{equation}\label{eq:num}
+\begin{aligned}
+\sqrt m\,\E_\varpi T_5&=\mathrm{NUM}(K,d)/(256\,m^6),\\
+\mathrm{NUM}&=K^5(112d^2+112d-224)+K^4(266d^3-221d^2-3854d-3751)\\
+&+K^3(266d^4-358d^3-10520d^2-33316d-36712)\\
+&+K^2(112d^5-221d^4-10520d^3-52379d^2-118790d-96410)\\
+&+K(112d^5-3854d^4-33316d^3-118790d^2-166352d-64872)\\
+&-224d^5-3751d^4-36712d^3-96410d^2-64872d+16497,
+\end{aligned}
+\end{equation}
+and $\mathrm{NUM}(9+\alpha,9+\alpha+\beta)$, $\mathrm{NUM}(3,22+\beta)$, $\mathrm{NUM}(4,17+\beta)$, $\mathrm{NUM}(5,14+\beta)$,
+$\mathrm{NUM}(6,12+\beta)$, $\mathrm{NUM}(7,11+\beta)$, $\mathrm{NUM}(8,9+\beta)$ are polynomials in $\alpha,\beta$ with
+positive coefficients. Step~2: for the $52$ remaining pairs $3\le K\le d$ ($K=3$, $d\le21$; $K=4$, $d\le16$; $K=5$,
+$d\le13$; $K=6$, $d\le11$; $K=7$, $d\le10$; $(8,8)$), nodes $x_i=t_i^2$ with rational $t_i$ (so that $g(x_i),g'(x_i)$
+are rational) give exact rational values $\E_\varpi H>0$, the smallest being $0.0323$ at $(3,21)$. Both steps are exact
+integer computations; the moment polynomials, the identity \eqref{eq:num}, the positivity of the coefficients and the
+$52$ certificates were recomputed by two independent implementations (supplementary code, \texttt{a1/} and \texttt{checks/v01, v02}).
+Finally $a_1<0$ is equivalent to $a_1+a_2>\frac3{K+d+1}$: by Theorem~\ref{thm:two}(c),
+$a_1+a_2-\frac3{K+d+1}=\frac{6}{(K+2)(d+2)}\big(q_{K,d}-\frac{(K-1)(d-1)}{2(K+d+1)}\big)$, because
+$3+\frac{(K-1)(d-1)}{K+d+1}=\frac{(K+2)(d+2)}{K+d+1}$.
+\end{proof}

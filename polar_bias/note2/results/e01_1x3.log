@@ -1,0 +1,15 @@
+1x3: continuous-law prediction for b*G_b (each entry): g* = 0.100000
+b=    4 mod3=1  b*G_b=+0.161203  err=+0.061203  sqrt(b)*err=+0.1224  b*err=+0.245
+b=    8 mod3=2  b*G_b=+0.087714  err=-0.012286  sqrt(b)*err=-0.0348  b*err=-0.098
+b=   16 mod3=1  b*G_b=+0.114661  err=+0.014661  sqrt(b)*err=+0.0586  b*err=+0.235
+b=   17 mod3=2  b*G_b=+0.094017  err=-0.005983  sqrt(b)*err=-0.0247  b*err=-0.102
+b=   18 mod3=0  b*G_b=+0.054066  err=-0.045934  sqrt(b)*err=-0.1949  b*err=-0.827
+b=   32 mod3=2  b*G_b=+0.096783  err=-0.003217  sqrt(b)*err=-0.0182  b*err=-0.103
+b=   64 mod3=1  b*G_b=+0.103610  err=+0.003610  sqrt(b)*err=+0.0289  b*err=+0.231
+b=   65 mod3=2  b*G_b=+0.098407  err=-0.001593  sqrt(b)*err=-0.0128  b*err=-0.104
+b=   66 mod3=0  b*G_b=+0.087678  err=-0.012322  sqrt(b)*err=-0.1001  b*err=-0.813
+b=  128 mod3=2  b*G_b=+0.099189  err=-0.000811  sqrt(b)*err=-0.0092  b*err=-0.104
+b=  129 mod3=0  b*G_b=+0.093715  err=-0.006285  sqrt(b)*err=-0.0714  b*err=-0.811
+b=  130 mod3=1  b*G_b=+0.101773  err=+0.001773  sqrt(b)*err=+0.0202  b*err=+0.230
+b=  256 mod3=1  b*G_b=+0.100899  err=+0.000899  sqrt(b)*err=+0.0144  b*err=+0.230
+b=  400 mod3=1  b*G_b=+0.100575  err=+0.000575  sqrt(b)*err=+0.0115  b*err=+0.230

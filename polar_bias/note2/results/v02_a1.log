@@ -1,0 +1,18 @@
+E tr W^1: Wick enumeration == certificate polynomial: True
+E tr W^2: Wick enumeration == certificate polynomial: True
+E tr W^3: Wick enumeration == certificate polynomial: True
+E tr W^4: Wick enumeration == certificate polynomial: True
+E tr W^5: Wick enumeration == certificate polynomial: True
+E tr W^6: Wick enumeration == certificate polynomial: True
+E tr W^7: Wick enumeration == certificate polynomial: True
+E tr W^8: Wick enumeration == certificate polynomial: True
+c* identity: True
+sqrt(m) E_nu[T_5] = NUM/DEN,  DEN = 256*(K + d + 1)**6
+NUM = K**5*(112*d**2 + 112*d - 224) + K**4*(266*d**3 - 221*d**2 - 3854*d - 3751) + K**3*(266*d**4 - 358*d**3 - 10520*d**2 - 33316*d - 36712) + K**2*(112*d**5 - 221*d**4 - 10520*d**3 - 52379*d**2 - 118790*d - 96410) + K*(112*d**5 - 3854*d**4 - 33316*d**3 - 118790*d**2 - 166352*d - 64872) - 224*d**5 - 3751*d**4 - 36712*d**3 - 96410*d**2 - 64872*d + 16497
+all coefficients of NUM(9+a, 9+a+b) positive: True
+NUM(3, 22+b) all coefficients positive: True
+NUM(4, 17+b) all coefficients positive: True
+NUM(5, 14+b) all coefficients positive: True
+NUM(6, 12+b) all coefficients positive: True
+NUM(7, 11+b) all coefficients positive: True
+NUM(8, 9+b) all coefficients positive: True

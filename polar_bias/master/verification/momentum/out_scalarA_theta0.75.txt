@@ -1,0 +1,11 @@
+case A theta=0.75 T=16000000 R=256 seed=11
+  recursion e_t check (first 2e4 steps): max abs err 5.41e-16
+  (eq:path) slack min over runs/steps (must be >= 0 up to rounding): 1.413e-11
+  sum_t eta_t|e_t| up to T: mean 1.3899 max 2.0899
+  exact median of N_beta = -0.189323332733; MC median (2e6 samples) = -0.18852; target G_inf = 0.189323332733
+  t=   250000: mean(G_t)-target = -1.515e-03 +- 6.7e-04 (SE); sd across runs 1.076e-02; max|.| 3.551e-02
+  t=  1000000: mean(G_t)-target = -9.759e-04 +- 3.9e-04 (SE); sd across runs 6.260e-03; max|.| 2.001e-02
+  t=  4000000: mean(G_t)-target = -7.424e-04 +- 2.3e-04 (SE); sd across runs 3.692e-03; max|.| 1.257e-02
+  t=  8000000: mean(G_t)-target = -3.865e-04 +- 1.7e-04 (SE); sd across runs 2.682e-03; max|.| 9.869e-03
+  t= 16000000: mean(G_t)-target = -4.875e-04 +- 1.3e-04 (SE); sd across runs 2.138e-03; max|.| 6.214e-03
+  max |G_T - G_T/2| over runs: 1.012e-02

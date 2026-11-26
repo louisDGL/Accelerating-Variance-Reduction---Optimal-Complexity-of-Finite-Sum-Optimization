@@ -1,0 +1,29 @@
+% Module: the flat case (sign descent). Label: proof of thm:sign
+\begin{proof}[Proof of Theorem~\ref{thm:sign}]
+$b\,G^\st_b=-\{\text{medians of }S_b\}$. \textup{(a)} Esseen's theorem for non-lattice laws with three moments
+\citep{esseen,gk}: uniformly in $x$,
+$\Prob(S_b\le x\sigma\sqrt b)=\Phi(x)+\frac{\kappa_3}{6\sigma^3\sqrt b}(1-x^2)\varphi(x)+o(b^{-1/2})$, with $\Phi,\varphi$
+the standard normal distribution function and density. At $x=m/(\sigma\sqrt b)$ with $m$ bounded this reads
+$\frac12+\frac{\varphi(0)}{\sigma\sqrt b}(m+\gs)+o(b^{-1/2})$, and the same holds for $\Prob(S_b<m)$; so every
+median $m_b$ of $S_b$ satisfies $m_b+\gs\to0$ (medians are bounded, by the same expansion at $|m|$ large).
+
+\textup{(b)} Esseen's expansion for lattice laws \citep[\S43]{gk} reads, uniformly in $x$,
+\[
+\Prob(S_b\le x\sigma\sqrt b)=\Phi(x)+\frac{\kappa_3(1-x^2)}{6\sigma^3\sqrt b}\varphi(x)+\frac h{\sigma\sqrt b}\,
+S_1\Big(\frac{x\sigma\sqrt b-ba}{h}\Big)\varphi(x)+o(b^{-1/2}),
+\]
+where $S_1(y)=\lfloor y\rfloor-y+\tfrac12$.
+At a point $m\in ba+h\Z$ of the lattice carrying $S_b$, $S_1=\frac12$, and immediately to the left of the next lattice
+point $S_1\to-\frac12$. Hence, for bounded $m\in ba+h\Z$,
+\begin{align*}
+\Prob(S_b\le m)&=\tfrac12+\tfrac{\varphi(0)}{\sigma\sqrt b}\big(m+\gs+\tfrac h2\big)+o(b^{-1/2}),\\
+\Prob(S_b<m)=\Prob(S_b\le m-h)&=\tfrac12+\tfrac{\varphi(0)}{\sigma\sqrt b}\big(m+\gs-\tfrac h2\big)+o(b^{-1/2}).
+\end{align*}
+A lattice point $m$ is a median if and only if $\Prob(S_b<m)\le\frac12\le\Prob(S_b\le m)$, and a point off the lattice
+is a median only if it lies between two consecutive lattice medians. So for $b$ large every median lies in
+$[-\gs-\frac h2-\delta,-\gs+\frac h2+\delta]$, and a lattice point with $|m+\gs|\le\frac h2-\delta$ has
+$\Prob(S_b<m)<\frac12<\Prob(S_b\le m)$, hence is the unique median. \textup{(i)} follows from Weyl's
+equidistribution of $ba/h$ modulo $1$. \textup{(ii)}: $\Lambda_b$ depends on $b$ modulo $q$ only; if $q\ge2$ the cosets
+are distinct, at most one of them has $\gs$ at the midpoint between two of its points, and the nearest points of two
+different cosets differ, so there is no limit; if $q=1$, $\Lambda_b=h\Z$. \textup{(iii)}: $a=0$ and $|\gs|<h/2$.
+\end{proof}

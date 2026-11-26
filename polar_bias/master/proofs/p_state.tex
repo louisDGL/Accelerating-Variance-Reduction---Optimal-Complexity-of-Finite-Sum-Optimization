@@ -1,0 +1,26 @@
+% Module: parameter-dependent noise. Label: eq:hb
+\begin{proof}[Proof of Theorem~\ref{thm:state}]
+By homogeneity and (iii), uniformly in $W\in\mathcal U$,
+\begin{equation}\label{eq:hb}
+h_b(W)=\Phi_{\Sigma(W)}\big(\sqrt b\,\nabla F(W)\big)+\tfrac1{6\sqrt b}D^3\Phi_{\Sigma(W)}\big(\sqrt b\,\nabla F(W)\big)[K_3(W)]+o(b^{-1/2}).
+\end{equation}
+\emph{Step 1.} By Lemma~\ref{lem:gauss}, uniformly over the compact set of covariances,
+$|\Phi_{\Sigma(W)}(h)|\ge c_0\min(|h|,1)$ and the second term of \eqref{eq:hb} is at most $C_1b^{-1/2}$. Hence
+$|h_b(W)|\le\delta b^{-1/2}$ forces $c_0\min(\sqrt b|\nabla F(W)|,1)\le(C_1+\delta+o(1))b^{-1/2}$, i.e.\
+$|\nabla F(W)|\le C_2/b$ and $|W-W_\ast|\le C_3/b$ for $b$ large. \emph{Step 2.} Write $W=W_\ast+w/b$, $|w|\le C_3$. Then
+$\sqrt b\,\nabla F(W)=b^{-1/2}(Hw+o(1))$, $\Sigma(W)\to\Sigma_\ast$, $K_3(W)\to K_{3\ast}$, and $J_\Sigma$, $T_\Sigma$ are
+continuous in $\Sigma$, so \eqref{eq:hb} reads $h_b(W)=b^{-1/2}\big(J_{\Sigma_\ast}Hw+\frac16T_{\Sigma_\ast}[K_{3\ast}]+o(1)\big)$,
+uniformly in $|w|\le C_3$. If $|h_b(W)|\le\delta b^{-1/2}$ then $|w-H^{-1}\gs|\le\|(J_{\Sigma_\ast}H)^{-1}\|(\delta+o(1))$.
+\emph{Existence.} The continuous field $w\mapsto\sqrt b\,h_b(W_\ast+w/b)$ converges uniformly on a ball around
+$H^{-1}\gs$ to the affine isomorphism $w\mapsto J_{\Sigma_\ast}H(w-H^{-1}\gs)$, which has degree $\pm1$ there.
+\end{proof}
+
+\begin{proof}[Proof of Proposition~\ref{prop:lin}]
+Apply Theorem~20.1 of \citet{br} to $\chi$ and to $f_{W,h}(x)=o(L_Wx+h)$: its oscillation on a ball of radius
+$\varepsilon$ is that of $o$ on a ball of radius $\|L_W\|\varepsilon$ around $L_Wx+h$, and $L_WZ_\chi\sim
+N(0,\Sigma(W))$ with $\Sigma(W)=L_W\Sigma_\chi L_W^\top$ in a compact set of positive definite matrices, so
+Lemma~\ref{lem:osc} bounds the oscillation term uniformly; the remainder $\delta_b$ depends on $\chi$ only. The
+Gaussian and first Edgeworth terms of $\chi$ push forward to those of covariance $\Sigma(W)$ and cumulant
+$L_W^{\otimes3}K_3^\chi=K_3(W)$: with $u(s)=\E f_{W,h}(Z_\chi+s)=\Phi_{\Sigma(W)}(h+L_Ws)$,
+$-\int f_{W,h}K_3^\chi\cdot\partial^3\varphi_{\Sigma_\chi}=D^3u(0)[K_3^\chi]=D^3\Phi_{\Sigma(W)}(h)[L_W^{\otimes3}K_3^\chi]$.
+\end{proof}

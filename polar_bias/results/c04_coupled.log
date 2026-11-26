@@ -1,0 +1,8 @@
+g* per entry = 0.18934
+(ii) coupled dynamics, F(W) = 0.5 <W, W H>, H = diag(1,2,0.5); R parallel runs; tail average of grad F(W_t)
+   beta=0.9 b=1 eta0=0.05: tail-averaged gradient = [0.01281 0.01279 0.01286 0.01258 0.01266 0.0131 ]
+        zero of the frozen stationary mean field = [0.0133  0.01287 0.01289 0.01346 0.01286 0.01331];  relative distance 0.033;  final eta = 1.85e-03
+   beta=0.9 b=1 eta0=0.025: tail-averaged gradient = [0.01294 0.0127  0.01307 0.01317 0.01288 0.01314]
+        zero of the frozen stationary mean field = [0.01309 0.01304 0.01286 0.01295 0.01334 0.01303];  relative distance 0.021;  final eta = 9.26e-04
+   beta=0.5 b=1 eta0=0.05: tail-averaged gradient = [0.07405 0.07392 0.07403 0.07427 0.07402 0.07436]
+        zero of the frozen stationary mean field = [0.07437 0.07461 0.0744  0.07468 0.07407 0.07432];  relative distance 0.005;  final eta = 1.85e-03

@@ -1,0 +1,12 @@
+K=2 d=3: q=0.3934 a1=-0.2040 a2=0.7721 a1+a2=0.5680
+
+== law rank1: isotropic=True; |A|=9.892 |B|=9.890
+   closed form g* = [0.4066 0.3898 0.3802 0.3836 0.3475 0.383 ]
+   general MC  g* = [0.4051 0.3895 0.3818 0.3844 0.3499 0.3853]
+   b=  4: b*G = [-0.0087 -0.0086 -0.0069 -0.0073 -0.0078 -0.0082]  |b G - g*|_F/|g*|_F = 1.021  cos = -0.9973  (MC se of b*G ~ 0.003; resid 9e-18; 204s)
+          sign descent, b * limit gradient per coordinate = [0.014 0.015 0.017 0.015 0.014 0.015]
+   b= 16: b*G = [0.1228 0.1221 0.1226 0.1217 0.1241 0.1235]  |b G - g*|_F/|g*|_F = 0.679  cos = 0.9987  (MC se of b*G ~ 0.006; resid 8e-18; 117s)
+          sign descent, b * limit gradient per coordinate = [0.24  0.237 0.238 0.237 0.239 0.239]
+   b= 64: b*G = [0.2559 0.2698 0.27   0.2571 0.2606 0.2645]  |b G - g*|_F/|g*|_F = 0.315  cos = 0.9986  (MC se of b*G ~ 0.016; resid 2e-17; 78s)
+          sign descent, b * limit gradient per coordinate = [0.455 0.47  0.473 0.464 0.467 0.479]
+(run stopped here by a wrong output path, fixed since; the remaining laws are in c03_d..g)
